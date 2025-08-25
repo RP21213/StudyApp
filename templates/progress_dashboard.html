@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Dashboard for {{ hub_name }}</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --background-body: #f4f5f7;
+            --background-card: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); color: var(--text-main); margin: 0; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .page-header h1 { font-size: 2.25rem; margin: 0; }
+        .button { display: inline-flex; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--background-card); color: var(--text-secondary); border: 1px solid var(--border-color); transition: all 0.2s; }
+        .button:hover { background-color: #f3f4f6; color: var(--text-main); }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .card { background-color: var(--background-card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow); }
+        .card h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); margin: 0 0 0.5rem 0; }
+        .stat-large { font-size: 3rem; font-weight: 700; color: var(--primary-color); }
+        .stat-large span { font-size: 1.25rem; font-weight: 500; color: var(--text-secondary); margin-left: 0.5rem; }
+        .topic-list .topic-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .topic-name { font-weight: 600; }
+        .topic-bar-container { flex-grow: 1; height: 10px; background-color: #f3f4f6; border-radius: 5px; margin: 0 1rem; }
+        .topic-bar { height: 100%; border-radius: 5px; }
+        .mastery-high { background-color: var(--green); }
+        .mastery-mid { background-color: var(--yellow); }
+        .mastery-low { background-color: var(--red); }
+        .topic-score { font-weight: 700; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>{{ hub_name }} Dashboard</h1>
+            <a href="{{ url_for('hub_page', hub_id=hub_id) }}" class="button">← Back to Hub</a>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>Total XP</h2>
+                <div class="stat-large">{{ total_xp }} <span>XP</span></div>
+            </div>
+            <div class="card">
+                <h2>Study Streak</h2>
+                <div class="stat-large">{{ streak_days }} <span>Days 🔥</span></div>
+            </div>
+            <div class="card">
+                <h2>Average Score</h2>
+                <div class="stat-large">{{ (progress_timeline | map(attribute='score') | sum / progress_timeline | length) | round(0) | int }}<span>%</span></div>
+            </div>
+        </div>
+
+        <div class="grid" style="grid-template-columns: 1fr 2fr;">
+            <div class="card">
+                <h2>Topic Mastery</h2>
+                <div class="topic-list">
+                    {% for item in topic_mastery %}
+                    <div class="topic-item">
+                        <span class="topic-name">{{ item.topic }}</span>
+                        <div class="topic-bar-container">
+                            {% set mastery = 'mastery-high' if item.score >= 80 else 'mastery-mid' if item.score >= 50 else 'mastery-low' %}
+                            <div class="topic-bar {{ mastery }}" style="width: {{ item.score }}%;"></div>
+                        </div>
+                        <span class="topic-score">{{ item.score }}%</span>
+                    </div>
+                    {% else %}
+                    <p>Complete some quizzes to see your topic mastery!</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card">
+                <h2>Progress Over Time</h2>
+                <div id="progress-chart" style="width:100%; height:300px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressData = {{ progress_timeline | tojson | safe }};
+            
+            if (progressData.length > 0) {
+                const dates = progressData.map(d => d.date);
+                const scores = progressData.map(d => d.score);
+
+                const trace = {
+                    x: dates,
+                    y: scores,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    line: {
+                        color: '{{ "var(--primary-color)" }}',
+                        width: 3
+                    },
+                    marker: {
+                        color: '{{ "var(--primary-color)" }}',
+                        size: 8
+                    }
+                };
+
+                const layout = {
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Quiz Score (%)', range: [0, 100] },
+                    margin: { t: 20, b: 40, l: 40, r: 20 },
+                };
+
+                Plotly.newPlot('progress-chart', [trace], layout, {responsive: true, displaylogo: false});
+            }
+        });
+    </script>
+</body>
+</html>

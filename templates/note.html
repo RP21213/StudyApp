@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ note.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); margin: 0; padding: 2rem; color: var(--text-main); line-height: 1.8; }
+        .page-layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
+        .main-content { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; box-shadow: var(--card-shadow); }
+        .note-header { padding: 2rem 2.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+        .note-header h1 { font-family: 'Poppins', sans-serif; margin: 0; font-size: 2.25rem; line-height: 1.2; }
+        .note-meta { font-family: 'Poppins', sans-serif; font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .note-meta a { text-decoration: none; color: var(--primary-color); font-weight: 500; }
+        .header-actions { display: flex; gap: 0.75rem; flex-shrink: 0; }
+        .button { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; font-family: 'Poppins', sans-serif; border: 1px solid var(--border-color); background-color: white; color: var(--text-secondary); cursor: pointer; }
+        .note-content { padding: 1.5rem 2.5rem 2.5rem; font-family: 'Lora', serif; transition: opacity 0.3s ease; }
+        .note-content.ai-loading { opacity: 0.6; pointer-events: none; }
+        
+        #selection-popup {
+            position: absolute; display: none; background-color: var(--text-main);
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 0.5rem; z-index: 1000;
+            display: flex; flex-direction: column; gap: 0.25rem;
+            width: 240px;
+        }
+        .popup-button { background: none; border: none; color: white; padding: 0.5rem 0.75rem; margin: 0; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; text-align: left; line-height: 1.4; }
+        .popup-button:hover { background-color: rgba(255,255,255,0.2); }
+        .popup-button strong { font-size: 0.9rem; font-weight: 600; display: block; }
+        .popup-button span { font-size: 0.8rem; font-weight: 400; opacity: 0.8; }
+        
+        .companion-sidebar { position: sticky; top: 2rem; background-color: var(--background-card); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 1.5rem; }
+        .companion-sidebar h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
+        .companion-content { min-height: 200px; font-family: 'Lora', serif; line-height: 1.7; }
+        .companion-content .empty-state { text-align: center; padding-top: 3rem; color: var(--text-secondary); }
+        .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .mini-quiz-question { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 1rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+        .quiz-option { border: 1px solid var(--border-color); background-color: white; color: var(--text-main); padding: 0.75rem; border-radius: 6px; text-align: left; width: 100%; font-family: 'Poppins', sans-serif; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s; }
+        .quiz-option:hover:not(:disabled) { background-color: #f9fafb; }
+        .quiz-option:disabled { cursor: not-allowed; }
+        .quiz-option.correct { background-color: #dcfce7; border-color: #86efac; color: #166534; font-weight: 600; }
+        .quiz-option.incorrect { background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .quiz-feedback { font-size: 0.9rem; font-weight: 500; font-family: 'Poppins', sans-serif; margin-top: 0.5rem; }
+        .feedback-correct { color: var(--success-color); }
+        .feedback-incorrect { color: var(--danger-color); }
+        
+        @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } .companion-sidebar { position: static; margin-top: 2rem; } }
+    </style>
+</head>
+<body>
+    <div id="selection-popup">
+        <button class="popup-button" data-type="simplify"><strong>Simplify It</strong><span>👉 Rephrase in clear, plain language.</span></button>
+        <button class="popup-button" data-type="example"><strong>Give an Example</strong><span>👉 Provide a concrete, real-world example.</span></button>
+        <button class="popup-button" data-type="significance"><strong>Why It Matters</strong><span>👉 Explain its significance and relevance.</span></button>
+        <button class="popup-button" data-type="quiz"><strong>Quiz Me</strong><span>👉 Generate a quick question on this text.</span></button>
+    </div>
+    <div class="page-layout">
+        <div class="main-content">
+            <header class="note-header">
+                <div>
+                    <h1>{{ note.title }}</h1>
+                    <p class="note-meta">Part of <a href="{{ url_for('hub_page', hub_id=note.hub_id) }}">{{ hub_name }}</a> Hub &middot; Created {{ note.created_at|timesince }} ago</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('download_note_pdf', note_id=note.id) }}" class="button">Download PDF</a>
+                </div>
+            </header>
+            <main class="note-content" id="note-content-area">
+                {{ note.content_html|safe }}
+            </main>
+        </div>
+        <aside class="companion-sidebar">
+            <h3>AI Companion</h3>
+            <div id="companion-content" class="companion-content">
+                <div class="empty-state"><p>Highlight text in your notes to get started.</p></div>
+            </div>
+        </aside>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const noteContentArea = document.getElementById('note-content-area');
+            if (!noteContentArea) return;
+            const popup = document.getElementById('selection-popup');
+            const companionContent = document.getElementById('companion-content');
+            let currentSelection = null;
+            let isAIThinking = false;
+
+            function renderQuiz(quizData) {
+                companionContent.innerHTML = '';
+                quizData.questions.forEach((q, index) => {
+                    const questionBlock = document.createElement('div');
+                    questionBlock.innerHTML = `<p class="mini-quiz-question">${q.question}</p>`;
+                    const optionsContainer = document.createElement('div');
+                    optionsContainer.className = 'quiz-options';
+                    q.options.forEach(optionText => {
+                        const optionButton = document.createElement('button');
+                        optionButton.className = 'quiz-option';
+                        optionButton.textContent = optionText;
+                        optionButton.dataset.correctAnswer = q.correct_answer;
+                        optionsContainer.appendChild(optionButton);
+                    });
+                    questionBlock.appendChild(optionsContainer);
+                    const feedbackEl = document.createElement('div');
+                    feedbackEl.className = 'quiz-feedback';
+                    questionBlock.appendChild(feedbackEl);
+                    companionContent.appendChild(questionBlock);
+                });
+            }
+
+            companionContent.addEventListener('click', (e) => {
+                if (e.target.classList.contains('quiz-option') && !e.target.disabled) {
+                    const button = e.target;
+                    const optionsContainer = button.parentElement;
+                    const feedbackEl = optionsContainer.nextElementSibling;
+                    const correctAnswer = button.dataset.correctAnswer;
+                    optionsContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+                    if (button.textContent === correctAnswer) {
+                        button.classList.add('correct');
+                        feedbackEl.textContent = 'Correct!';
+                        feedbackEl.className = 'quiz-feedback feedback-correct';
+                    } else {
+                        button.classList.add('incorrect');
+                        feedbackEl.textContent = `Correct answer: ${correctAnswer}`;
+                        feedbackEl.className = 'quiz-feedback feedback-incorrect';
+                        Array.from(optionsContainer.children).find(b => b.textContent === correctAnswer)?.classList.add('correct');
+                    }
+                }
+            });
+
+            noteContentArea.addEventListener('mouseup', () => {
+                if (isAIThinking) return;
+                const selection = window.getSelection();
+                const selectedText = selection.toString().trim();
+                if (selectedText.length > 5 && selectedText.length < 500) {
+                    currentSelection = selection;
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    popup.style.display = 'flex';
+                    popup.style.left = `${rect.left + window.scrollX + rect.width / 2 - popup.offsetWidth / 2}px`;
+                    popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight - 5}px`;
+                } else {
+                    popup.style.display = 'none';
+                }
+            });
+            document.addEventListener('mousedown', (e) => {
+                if (!popup.contains(e.target)) popup.style.display = 'none';
+            });
+            popup.addEventListener('click', async (e) => {
+                const button = e.target.closest('.popup-button');
+                if (button && currentSelection && !isAIThinking) {
+                    isAIThinking = true;
+                    noteContentArea.classList.add('ai-loading');
+                    companionContent.innerHTML = '<div class="spinner"></div><p style="text-align:center;">Working on it...</p>';
+                    popup.style.display = 'none';
+                    const selectedText = currentSelection.toString().trim();
+                    const explanationType = button.dataset.type;
+                    const contextText = currentSelection.anchorNode.parentElement.textContent;
+                    const isQuiz = explanationType === 'quiz';
+                    const endpoint = isQuiz ? '/generate_mini_quiz' : '/explain_selection';
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ selected_text: selectedText, context_text: contextText, explanation_type: explanationType })
+                        });
+                        if (!response.ok) throw new Error('API request failed');
+                        const result = await response.json();
+                        if (isQuiz) {
+                            renderQuiz(result);
+                        } else {
+                            companionContent.innerHTML = result.explanation;
+                        }
+                    } catch (error) {
+                        companionContent.innerHTML = '<p>Sorry, an error occurred. Please try again.</p>';
+                    } finally {
+                        isAIThinking = false;
+                        noteContentArea.classList.remove('ai-loading');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Topic Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+        }
+        .container {
+            max-width: 90%;
+            width: 1200px;
+            margin: 0 auto;
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 2.5rem;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin: 0;
+        }
+        .button {
+            display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+            font-weight: 500; padding: 0.6rem 1.2rem; border-radius: 8px;
+            border: 1px solid var(--border-color); background-color: white; color: var(--text-secondary); cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .button:hover {
+            background-color: #f3f4f6;
+            color: var(--text-main);
+            border-color: #d1d5db;
+        }
+        .analysis-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .analysis-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .analysis-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0.5rem auto 0;
+        }
+        .chart-container {
+            width: 100%;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Topic Analysis Dashboard</h1>
+            <a href="{{ url_for('hub_page', hub_id=hub_id) }}" class="button">← Back to Hub</a>
+        </header>
+
+        <section class="analysis-section">
+            <h2>Overall Topic Importance</h2>
+            <p>This chart shows the average weight of each topic across all selected documents, sorted from most to least important. Use this to identify the highest-priority concepts for your revision.</p>
+            <div id="summary-barchart" class="chart-container"></div>
+        </section>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 3rem 0;">
+
+        <section class="analysis-section">
+            <h2>Topic Distribution Heatmap</h2>
+            <p>The heatmap below shows how those key topics are distributed within each document. A darker cell means a topic is more prominent in that specific file. This helps you find where to focus your reading.</p>
+            <div id="heatmap-chart" class="chart-container"></div>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const heatmapData = {{ heatmap_data | tojson | safe }};
+
+            // --- 1. Calculate Averages and Sort Topics ---
+            const topicScores = heatmapData.topics.map(topic => ({ name: topic, totalWeight: 0 }));
+            
+            heatmapData.documents.forEach(doc => {
+                doc.weights.forEach((weight, index) => {
+                    topicScores[index].totalWeight += weight;
+                });
+            });
+
+            topicScores.forEach(score => {
+                score.average = score.totalWeight / heatmapData.documents.length;
+            });
+
+            topicScores.sort((a, b) => b.average - a.average);
+
+            const sortedTopicNames = topicScores.map(score => score.name);
+            const sortedTopicAverages = topicScores.map(score => score.average);
+
+            // --- 2. Create the Summary Bar Chart ---
+            const barChartTrace = {
+                x: sortedTopicNames,
+                y: sortedTopicAverages,
+                type: 'bar',
+                text: sortedTopicAverages.map(val => val.toFixed(2)),
+                textposition: 'auto',
+                marker: {
+                    color: sortedTopicAverages,
+                    colorscale: 'Viridis'
+                }
+            };
+            
+            // **FIX APPLIED HERE**
+            // Calculate the max value of the y-axis to add padding for the text labels
+            const maxAverage = Math.max(...sortedTopicAverages);
+            
+            const barChartLayout = {
+                title: 'Average Topic Weight Across Documents',
+                xaxis: { title: 'Topics' },
+                yaxis: {
+                    title: 'Average Weight',
+                    // Set the range to be 0 to the max value plus 20% for padding
+                    range: [0, maxAverage * 1.2]
+                }
+            };
+            const config = { responsive: true, displaylogo: false };
+            Plotly.newPlot('summary-barchart', [barChartTrace], barChartLayout, config);
+
+
+            // --- 3. Reorder Heatmap Data Based on Sorted Topics ---
+            const originalTopicOrder = heatmapData.topics;
+            const docNames = heatmapData.documents.map(doc => doc.name).reverse();
+            const originalZValues = heatmapData.documents.map(doc => doc.weights).reverse();
+            
+            const sortedZValues = docNames.map((_, docIndex) => {
+                return sortedTopicNames.map(sortedTopic => {
+                    const originalIndex = originalTopicOrder.indexOf(sortedTopic);
+                    return originalZValues[docIndex][originalIndex];
+                });
+            });
+
+            // Format z-values for display on the heatmap cells
+            const formattedTextValues = sortedZValues.map(row => row.map(val => val.toFixed(2)));
+
+            // --- 4. Create the Sorted, Visually-Enhanced Heatmap ---
+            const heatmapTrace = {
+                x: sortedTopicNames,
+                y: docNames,
+                z: sortedZValues,
+                text: formattedTextValues,
+                texttemplate: "%{text}",
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                hoverongaps: false,
+                hovertemplate: '<b>Document</b>: %{y}<br>' +
+                               '<b>Topic</b>: %{x}<br>' +
+                               '<b>Weight</b>: %{z}<extra></extra>'
+            };
+            const heatmapLayout = {
+                title: 'Detailed Topic Distribution per Document',
+                xaxis: { side: 'top' },
+                yaxis: { automargin: true },
+                autosize: true
+            };
+            Plotly.newPlot('heatmap-chart', [heatmapTrace], heatmapLayout, config);
+        });
+    </script>
+</body>
+</html>

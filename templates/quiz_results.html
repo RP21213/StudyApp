@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --correct-bg: #dcfce7;
+            --correct-border: #4ade80;
+            --incorrect-bg: #fee2e2;
+            --incorrect-border: #f87171;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .results-header {
+            background-color: var(--background-card);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .results-header h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2.5rem;
+        }
+        .score {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .score-text {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+        .question-block {
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+        }
+        .question-text { font-weight: 600; margin: 0 0 1rem 0; }
+        .answer-section {
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+        .your-answer { background-color: #f3f4f6; }
+        .correct-answer { background-color: var(--correct-bg); }
+        .ai-feedback { background-color: #eef2ff; border-left: 3px solid var(--primary-color); margin-top: 1rem; }
+        
+        .button {
+            display: inline-flex; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem;
+            border-radius: 8px; background: var(--primary-color); color: white;
+            transition: background-color 0.2s; border: none; font-size: 1rem; cursor: pointer;
+        }
+        .button:hover { background-color: var(--primary-hover); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="results-header">
+            <h1>Quiz Complete!</h1>
+            <p class="score-text">Your Final Score:</p>
+            <div class="score">{{ results.final_score }}%</div>
+            <a href="{{ url_for('hub_page', hub_id=activity.hub_id) }}" class="button">Back to Hub</a>
+        </div>
+        
+        <h2>Review Your Answers</h2>
+
+        {% for q in results.questions %}
+        <div class="question-block">
+            <p class="question-text">{{ loop.index }}. {{ q.question }}</p>
+            
+            {% set graded_answer = results.graded_answers[loop.index0] %}
+
+            {% if q.type == 'multiple_choice' %}
+                <div class="answer-section your-answer" style="border-left: 3px solid {{ '#f87171' if not graded_answer.correct else '#4ade80' }};">
+                    <strong>Your Answer:</strong> {{ graded_answer.user_answer or "No answer provided" }}
+                </div>
+                {% if not graded_answer.correct %}
+                <div class="answer-section correct-answer">
+                    <strong>Correct Answer:</strong> {{ q.correct_answer }}
+                </div>
+                {% endif %}
+            {% else %}
+                 <div class="answer-section your-answer">
+                    <strong>Your Answer:</strong> {{ graded_answer.user_answer or "No answer provided" }}
+                </div>
+                 <div class="answer-section ai-feedback">
+                    <p><strong>AI Feedback (Score: {{ graded_answer.score }}/10):</strong></p>
+                    <p>{{ graded_answer.feedback }}</p>
+                </div>
+                 <div class="answer-section correct-answer">
+                    <strong>Model Answer:</strong> {{ q.model_answer }}
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
