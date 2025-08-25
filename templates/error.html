@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #111827; padding: 2rem; }
+        .container { max-width: 900px; margin: 0 auto; background-color: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #dc2626; }
+        pre { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 6px; white-space: pre-wrap; word-wrap: break-word; }
+        .btn-secondary { display: inline-block; background-color: #e5e7eb; color: #111827; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; margin-top: 1rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>An Error Occurred</h1>
+        <p>The application encountered a problem while trying to process the AI's response. This usually happens when the AI does not return a perfectly formatted JSON object.</p>
+        
+        <h3>Technical Error Message:</h3>
+        <pre>{{ error_message }}</pre>
+
+        <h3>Raw AI Response:</h3>
+        <p>This is the exact text the AI sent back. Please copy this and include it if you need further help.</p>
+        <pre>{{ raw_response }}</pre>
+
+        <a href="{{ url_for('home') }}" class="btn-secondary">Go Back to Homepage</a>
+    </div>
+</body>
+</html>

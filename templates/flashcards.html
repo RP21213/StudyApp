@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+            touch-action: none; /* Prevents scrolling on touch devices */
+        }
+        .container { max-width: 500px; margin: 0 auto; }
+        .game-header { text-align: center; margin-bottom: 1.5rem; }
+        .deck-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 1.5rem;
+        }
+        .flashcard {
+            position: absolute;
+            width: 100%; height: 100%;
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform-origin: center;
+        }
+        .flashcard-inner {
+            position: relative; width: 100%; height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: var(--card-shadow);
+            border-radius: 16px;
+        }
+        .flashcard.is-flipped .flashcard-inner { transform: rotateX(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute; width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1.5rem; border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+        .flashcard-front { background-color: var(--background-card); font-size: 1.25rem; font-weight: 600; }
+        .flashcard-back { background-color: #f3f4f6; transform: rotateX(180deg); }
+        
+        .swipe-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; font-weight: bold; color: white;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .swipe-right { background-color: rgba(16, 185, 129, 0.7); }
+        .swipe-left { background-color: rgba(239, 68, 68, 0.7); }
+
+        .game-controls { display: flex; justify-content: space-around; align-items: center; }
+        .swipe-btn {
+            background-color: white; border: 1px solid var(--border-color);
+            border-radius: 50%; width: 60px; height: 60px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .swipe-btn:hover { transform: scale(1.1); box-shadow: 0 7px 10px rgba(0,0,0,0.1); }
+        .swipe-btn svg { width: 28px; height: 28px; }
+        #wrong-btn svg { color: var(--danger-color); }
+        #correct-btn svg { color: var(--success-color); }
+
+        .results-screen { text-align: center; padding: 2rem; }
+        .results-screen h2 { font-size: 2rem; }
+        .button { display: inline-flex; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--primary-color); color: white; transition: background-color 0.2s; border: none; font-size: 1rem; cursor: pointer; }
+        .button:hover { background-color: var(--primary-hover); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1 id="game-title">{{ activity.title or 'Flashcard Set' }}</h1>
+            <p id="game-subtitle">Click card to flip. Swipe or use buttons to answer.</p>
+        </div>
+
+        <div class="deck-container" id="deck-container">
+            {% for card in activity.data.cards %}
+            <div class="flashcard" data-index="{{ loop.index0 }}">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div class="swipe-overlay swipe-right">KNEW IT</div>
+                        <div class="swipe-overlay swipe-left">DON'T KNOW</div>
+                        <p>{{ card.front }}</p>
+                    </div>
+                    <div class="flashcard-back">
+                        <p>{{ card.back }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="results-screen" style="display: none;">
+                <h2>Session Complete!</h2>
+                <p>You reviewed all the cards in this deck.</p>
+                <p><strong>Correct:</strong> <span id="correct-count">0</span> | <strong>Incorrect:</strong> <span id="incorrect-count">0</span></p>
+                <button id="save-exit-btn" class="button">Save & Exit to Hub</button>
+            </div>
+        </div>
+
+        <div class="game-controls" id="game-controls">
+            <button class="swipe-btn" id="wrong-btn" title="I don't know">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <button class="swipe-btn" id="correct-btn" title="I know this">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+    const deckContainer = document.getElementById('deck-container');
+    const allCards = Array.from(deckContainer.querySelectorAll('.flashcard'));
+    const resultsScreen = deckContainer.querySelector('.results-screen');
+    const correctCountEl = document.getElementById('correct-count');
+    const incorrectCountEl = document.getElementById('incorrect-count');
+    const saveExitBtn = document.getElementById('save-exit-btn');
+    const gameControls = document.getElementById('game-controls');
+    const activityId = '{{ activity.id }}';
+    const hubId = '{{ activity.hub_id }}';
+    
+    let currentCard = null;
+    let isDragging = false;
+    let startX = 0;
+    let offsetX = 0;
+    
+    const results = { correct: [], incorrect: [] };
+
+    function setupCards() {
+        allCards.forEach((card, index) => {
+            card.style.zIndex = allCards.length - index;
+            card.style.transform = `translateY(${index * 4}px) scale(${1 - (index * 0.05)})`;
+            card.addEventListener('click', () => card.classList.toggle('is-flipped'));
+
+            // Mouse Events
+            card.addEventListener('mousedown', startDrag);
+            // Touch Events
+            card.addEventListener('touchstart', startDrag);
+        });
+        
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('touchmove', drag);
+        
+        document.getElementById('wrong-btn').onclick = () => swipeCard('left');
+        document.getElementById('correct-btn').onclick = () => swipeCard('right');
+        saveExitBtn.onclick = saveAndExit;
+    }
+    
+    function updateTopCard() {
+        const topCard = deckContainer.querySelector('.flashcard:not(.swiped)');
+        currentCard = topCard || null;
+    }
+
+    function startDrag(e) {
+        updateTopCard();
+        if (!currentCard) return;
+        
+        isDragging = true;
+        startX = e.pageX || e.touches[0].pageX;
+        currentCard.style.transition = 'none'; // Disable transition while dragging
+    }
+
+    function drag(e) {
+        if (!isDragging || !currentCard) return;
+        e.preventDefault();
+        
+        const currentX = e.pageX || e.touches[0].pageX;
+        offsetX = currentX - startX;
+        
+        const rotation = offsetX / 20; // Rotate card as it's dragged
+        currentCard.style.transform = `translateX(${offsetX}px) rotate(${rotation}deg)`;
+        
+        const rightOverlay = currentCard.querySelector('.swipe-right');
+        const leftOverlay = currentCard.querySelector('.swipe-left');
+
+        rightOverlay.style.opacity = Math.max(0, offsetX / 100);
+        leftOverlay.style.opacity = Math.max(0, -offsetX / 100);
+    }
+    
+    function endDrag() {
+        if (!isDragging || !currentCard) return;
+        isDragging = false;
+        
+        const swipeThreshold = 100;
+        
+        if (offsetX > swipeThreshold) {
+            swipeCard('right');
+        } else if (offsetX < -swipeThreshold) {
+            swipeCard('left');
+        } else {
+            // Return to center if not swiped far enough
+            currentCard.style.transition = 'transform 0.3s ease';
+            currentCard.style.transform = '';
+            const overlays = currentCard.querySelectorAll('.swipe-overlay');
+            overlays.forEach(o => o.style.opacity = '0');
+        }
+        offsetX = 0;
+    }
+
+    function swipeCard(direction) {
+        updateTopCard();
+        if (!currentCard) return;
+
+        const cardIndex = parseInt(currentCard.dataset.index);
+        const flyoutX = direction === 'right' ? 500 : -500;
+        
+        if (direction === 'right') {
+            results.correct.push(cardIndex);
+        } else {
+            results.incorrect.push(cardIndex);
+        }
+        
+        currentCard.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+        currentCard.style.transform = `translateX(${flyoutX}px) rotate(${flyoutX/20}deg)`;
+        currentCard.style.opacity = '0';
+        currentCard.classList.add('swiped');
+        
+        updateDeck();
+    }
+
+    // ✅ UPDATED FUNCTION
+    function updateDeck() {
+         const remainingCards = allCards.filter(c => !c.classList.contains('swiped'));
+         
+         if (remainingCards.length === 0) {
+             showResults();
+             return; // Stop the function after showing results
+         }
+
+         // This new block of code loops through the remaining cards 
+         // and resets their size and position in the stack.
+         remainingCards.forEach((card, index) => {
+            card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+            card.style.zIndex = remainingCards.length - index;
+            // The new top card (at index 0) will animate to full size (scale(1))
+            card.style.transform = `translateY(${index * 4}px) scale(${1 - (index * 0.05)})`;
+        });
+    }
+    
+    function showResults() {
+        gameControls.style.display = 'none';
+        resultsScreen.style.display = 'block';
+        correctCountEl.textContent = results.correct.length;
+        incorrectCountEl.textContent = results.incorrect.length;
+    }
+
+    async function saveAndExit() {
+        saveExitBtn.textContent = 'Saving...';
+        saveExitBtn.disabled = true;
+
+        try {
+            await fetch(`/flashcards/${activityId}/save_game`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(results)
+            });
+        } catch (error) {
+            console.error('Failed to save results:', error);
+        } finally {
+            window.location.href = `/hub/${hubId}`;
+        }
+    }
+
+    setupCards();
+    </script>
+</body>
+</html>

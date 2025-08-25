@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lecture.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --card-shadow: 0 1px 3px 0 rgba(0,0,0,0.07), 0 1px 2px -1px rgba(0,0,0,0.07);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-color); margin: 0; padding: 2rem; color: var(--text-main); }
+        .page-layout { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: flex-start; }
+        .main-content { display: flex; flex-direction: column; gap: 2rem; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 2.5rem; font-weight: 700; margin: 0; }
+        .content-section { background-color: var(--card-background); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 2.5rem 3rem; }
+        .content-section h2 { font-size: 1.5rem; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-top: 0; margin-bottom: 2rem; }
+        .nav-link { text-decoration: none; color: var(--text-secondary); font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; }
+        #notes-content { font-family: 'Lora', serif; line-height: 1.8; transition: opacity 0.3s ease; }
+        #notes-content.ai-loading { opacity: 0.6; pointer-events: none; }
+        
+        #selection-popup {
+            position: absolute; display: none; background-color: var(--text-main);
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 0.5rem; z-index: 1000;
+            display: flex; flex-direction: column; gap: 0.25rem;
+            width: 240px;
+        }
+        .popup-button {
+            background: none; border: none; color: white; padding: 0.5rem 0.75rem; margin: 0;
+            border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif;
+            text-align: left; line-height: 1.4;
+        }
+        .popup-button:hover { background-color: rgba(255,255,255,0.2); }
+        .popup-button strong { font-size: 0.9rem; font-weight: 600; display: block; }
+        .popup-button span { font-size: 0.8rem; font-weight: 400; opacity: 0.8; }
+        
+        .companion-sidebar { position: sticky; top: 2rem; background-color: var(--card-background); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 1.5rem; }
+        .companion-sidebar h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
+        .companion-content { min-height: 200px; font-family: 'Lora', serif; line-height: 1.7; }
+        .companion-content .empty-state { text-align: center; padding-top: 3rem; color: var(--text-secondary); }
+        .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* --- NEW: Interactive Quiz Styles --- */
+        .mini-quiz-question { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 1rem; }
+        .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+        .quiz-option {
+            border: 1px solid var(--border-color); background-color: white; color: var(--text-main);
+            padding: 0.75rem; border-radius: 6px; text-align: left; width: 100%;
+            font-family: 'Poppins', sans-serif; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s;
+        }
+        .quiz-option:hover:not(:disabled) { background-color: #f9fafb; }
+        .quiz-option:disabled { cursor: not-allowed; }
+        .quiz-option.correct { background-color: #dcfce7; border-color: #86efac; color: #166534; font-weight: 600; }
+        .quiz-option.incorrect { background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+        .quiz-feedback { font-size: 0.9rem; font-weight: 500; font-family: 'Poppins', sans-serif; margin-top: 0.5rem; }
+        .feedback-correct { color: var(--success-color); }
+        .feedback-incorrect { color: var(--danger-color); }
+
+        @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } .companion-sidebar { position: static; margin-top: 2rem; } }
+    
+        .card { background: var(--card-background); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem; box-shadow: var(--card-shadow); }
+        .notes-content { line-height: 1.65; }
+        .flashcards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .flashcard { perspective: 1000px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; min-height: 140px; transform-style: preserve-3d; transition: transform 0.5s; }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; inset: 0; backface-visibility: hidden; display:flex;align-items:center;justify-content:center; border:1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; }
+        .flashcard-back { transform: rotateY(180deg); }
+
+    </style>
+</head>
+<body>
+    <div id="selection-popup">
+        <button class="popup-button" data-type="simplify"><strong>Simplify It</strong><span>👉 Rephrase in clear, plain language.</span></button>
+        <button class="popup-button" data-type="example"><strong>Give an Example</strong><span>👉 Provide a concrete, real-world example.</span></button>
+        <button class="popup-button" data-type="significance"><strong>Why It Matters</strong><span>👉 Explain its significance and relevance.</span></button>
+        <button class="popup-button" data-type="quiz"><strong>Quiz Me</strong><span>👉 Generate a quick question on this text.</span></button>
+    </div>
+    <div class="page-layout">
+        
+        <main class="main-content">
+            <div class="header">
+                <div>
+                    <h1>{{ lecture.title }}</h1>
+                    <p style="margin:0;color:var(--text-secondary);font-size:0.95rem;">From: {{ lecture.source_files|join(', ') }}</p>
+                </div>
+                <div>
+                    <a href="/hub/{{ lecture.hub_id }}" style="text-decoration:none;border:1px solid var(--border-color);padding:0.5rem 0.75rem;border-radius:8px;">← Back to Hub</a>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <section class="card">
+                <h3>Interactive Notes</h3>
+                <div id="notes-content" class="notes-content">
+                    {% if note %}
+                        {{ note.content_html | safe }}
+                    {% else %}
+                        <p>No notes found for this lecture.</p>
+                    {% endif %}
+                </div>
+            </section>
+
+            <!-- Flashcards Section -->
+            <section class="card">
+                <h3>Flashcards</h3>
+                {% if flashcards and flashcards|length > 0 %}
+                <div class="flashcards-grid">
+                    {% for card in flashcards %}
+                    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                {{ card.front }}
+                            </div>
+                            <div class="flashcard-back">
+                                {{ card.back }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p>No flashcards were generated.</p>
+                {% endif %}
+            </section>
+
+            <!-- Quizzes Section -->
+            <section class="card">
+                <h3>Practice Quizzes</h3>
+                {% if quizzes and quizzes|length > 0 %}
+                <ul class="lectures-list">
+                    {% for q in quizzes %}
+                    <li class="lecture-item" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border-color);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;background:#fff;">
+                        <a href="/quiz/{{ q.id }}" style="text-decoration:none;color:inherit;flex:1;">{{ q.title or 'Quiz' }}</a>
+                        <form action="/quiz/{{ q.id }}/delete" method="post" onsubmit="return confirm('Delete this quiz?');">
+                            <button type="submit" class="delete-btn">🗑️</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    <p>No quizzes were generated.</p>
+                {% endif %}
+            </section>
+        </main>
+
+        <aside class="companion-sidebar">
+            <h3>AI Companion</h3>
+            <div id="companion-content" class="companion-content">
+                <div class="empty-state"><p>Highlight text in your notes to get started.</p></div>
+            </div>
+        </aside>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const notesContent = document.getElementById('notes-content');
+            if (!notesContent) return;
+            const popup = document.getElementById('selection-popup');
+            const companionContent = document.getElementById('companion-content');
+            let currentSelection = null;
+            let isAIThinking = false;
+            
+            // --- NEW: Function to render the interactive quiz ---
+            function renderQuiz(quizData) {
+                companionContent.innerHTML = '';
+                quizData.questions.forEach((q, index) => {
+                    const questionBlock = document.createElement('div');
+                    questionBlock.innerHTML = `<p class="mini-quiz-question">${q.question}</p>`;
+                    const optionsContainer = document.createElement('div');
+                    optionsContainer.className = 'quiz-options';
+                    
+                    q.options.forEach(optionText => {
+                        const optionButton = document.createElement('button');
+                        optionButton.className = 'quiz-option';
+                        optionButton.textContent = optionText;
+                        optionButton.dataset.correctAnswer = q.correct_answer;
+                        optionsContainer.appendChild(optionButton);
+                    });
+                    
+                    questionBlock.appendChild(optionsContainer);
+                    const feedbackEl = document.createElement('div');
+                    feedbackEl.className = 'quiz-feedback';
+                    questionBlock.appendChild(feedbackEl);
+                    companionContent.appendChild(questionBlock);
+                });
+            }
+
+            // --- NEW: Event listener for quiz option clicks (using event delegation) ---
+            companionContent.addEventListener('click', (e) => {
+                if (e.target.classList.contains('quiz-option') && !e.target.disabled) {
+                    const button = e.target;
+                    const optionsContainer = button.parentElement;
+                    const feedbackEl = optionsContainer.nextElementSibling;
+                    const correctAnswer = button.dataset.correctAnswer;
+                    
+                    // Disable all buttons in this group
+                    optionsContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
+                    
+                    if (button.textContent === correctAnswer) {
+                        button.classList.add('correct');
+                        feedbackEl.textContent = 'Correct!';
+                        feedbackEl.className = 'quiz-feedback feedback-correct';
+                    } else {
+                        button.classList.add('incorrect');
+                        feedbackEl.textContent = `Correct answer: ${correctAnswer}`;
+                        feedbackEl.className = 'quiz-feedback feedback-incorrect';
+                        // Highlight the correct answer
+                        Array.from(optionsContainer.children).find(b => b.textContent === correctAnswer)?.classList.add('correct');
+                    }
+                }
+            });
+
+            notesContent.addEventListener('mouseup', () => {
+                if (isAIThinking) return;
+                const selection = window.getSelection();
+                const selectedText = selection.toString().trim();
+                if (selectedText.length > 5 && selectedText.length < 500) {
+                    currentSelection = selection;
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    popup.style.display = 'flex';
+                    popup.style.left = `${rect.left + window.scrollX + rect.width / 2 - popup.offsetWidth / 2}px`;
+                    popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight - 5}px`;
+                } else {
+                    popup.style.display = 'none';
+                }
+            });
+            document.addEventListener('mousedown', (e) => {
+                if (!popup.contains(e.target)) popup.style.display = 'none';
+            });
+            popup.addEventListener('click', async (e) => {
+                const button = e.target.closest('.popup-button');
+                if (button && currentSelection && !isAIThinking) {
+                    isAIThinking = true;
+                    notesContent.classList.add('ai-loading');
+                    companionContent.innerHTML = '<div class="spinner"></div><p style="text-align:center;">Working on it...</p>';
+                    popup.style.display = 'none';
+                    const selectedText = currentSelection.toString().trim();
+                    const explanationType = button.dataset.type;
+                    const contextText = currentSelection.anchorNode.parentElement.textContent;
+                    
+                    // --- UPDATED: Route logic based on button type ---
+                    const isQuiz = explanationType === 'quiz';
+                    const endpoint = isQuiz ? '/generate_mini_quiz' : '/explain_selection';
+                    
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ selected_text: selectedText, context_text: contextText, explanation_type: explanationType })
+                        });
+                        if (!response.ok) throw new Error('API request failed');
+                        
+                        const result = await response.json();
+                        
+                        if (isQuiz) {
+                            renderQuiz(result);
+                        } else {
+                            companionContent.innerHTML = result.explanation;
+                        }
+                    } catch (error) {
+                        companionContent.innerHTML = '<p>Sorry, an error occurred. Please try again.</p>';
+                    } finally {
+                        isAIThinking = false;
+                        notesContent.classList.remove('ai-loading');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

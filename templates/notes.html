@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Tools</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =================================
+           1. CSS Variables & Base Styles
+           ================================= */
+        :root {
+            --primary-color: #4f46e5;
+            --primary-color-hover: #4338ca;
+            --background-color: #f4f5f7;
+            --card-background: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --border-color-dashed: #d1d5db;
+            --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            background-color: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 1200px;
+            box-sizing: border-box;
+        }
+
+        /* =================================
+           2. Component Styles
+           ================================= */
+        
+        /* --- Buttons --- */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .form-button {
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-color-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        }
+        .btn-secondary {
+            background-color: var(--card-background);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+            color: var(--text-main);
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2.5rem;
+        }
+        .button svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* --- Custom File Upload --- */
+        .file-upload-wrapper {
+            border: 2px dashed var(--border-color-dashed);
+            border-radius: 8px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .file-upload-wrapper:hover {
+            border-color: var(--primary-color);
+            background-color: #f9fafb;
+        }
+        input[type="file"] { display: none; }
+        .file-name-display {
+            display: block;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 500;
+            min-height: 1.2em;
+        }
+
+        /* --- Loader & Modal Overlays --- */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+        }
+        .modal-overlay {
+            background-color: rgba(17, 24, 39, 0.6);
+        }
+        .overlay.visible { display: flex; }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+        #loader-overlay p { font-size: 1.1rem; color: var(--text-main); font-weight: 500; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--card-shadow-hover);
+        }
+        .modal-content h3 { margin-top: 0; font-size: 1.25rem; }
+        .modal-content textarea {
+            width: 100%;
+            min-height: 150px;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        
+        /* =================================
+           3. Page-Specific Styles
+           ================================= */
+
+        /* --- Homepage / Choice View --- */
+        .choice-view header { text-align: center; }
+        .choice-view h1 { font-size: 2.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; }
+        .choice-view .subtitle { color: var(--text-secondary); margin-bottom: 3rem; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto;}
+        
+        .choice-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .choice-card {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: box-shadow 0.3s ease, transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            background: var(--card-background);
+        }
+        .choice-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow-hover); }
+        .choice-card .icon { margin-bottom: 1rem; color: var(--primary-color); }
+        .choice-card h2 { margin-top: 0; font-size: 1.1rem; font-weight: 600; }
+        .choice-card p { font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary); flex-grow: 1; margin-bottom: 1.5rem; }
+        .choice-card form { margin-top: auto; }
+        
+        .form-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; font-size: 0.85rem; }
+        .form-options label { display: block; color: var(--text-secondary); margin-bottom: 0.25rem; font-size: 0.8rem; }
+        .form-options input[type="number"] { width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; text-align: center; box-sizing: border-box; }
+
+        /* --- Results View (Notes & Flashcards) --- */
+        .results-header { text-align: center; margin-bottom: 2.5rem; }
+        .results-header h1 { font-size: 1.75rem; }
+        .results-header p { color: var(--text-secondary); margin-top: -0.75rem; }
+        
+        /* Notes */
+        .notes-content { font-family: 'Lora', serif; line-height: 1.7; text-align: left; }
+        .notes-content h1, .notes-content h2, .notes-content h3 { font-family: 'Inter', sans-serif; margin-top: 2.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .notes-content h1 { font-size: 1.5rem; }
+        .notes-content h2 { font-size: 1.25rem; }
+
+        /* Flashcards */
+        .flashcard-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .flashcard { background-color: transparent; min-height: 200px; perspective: 1000px; cursor: pointer; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; box-shadow: var(--card-shadow); border-radius: 12px; }
+        .flashcard.is-flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; border-radius: 12px; text-align: center; }
+        .flashcard-front { background-color: white; border: 1px solid var(--border-color); font-weight: 600; }
+        .flashcard-back { background: var(--primary-color); color: white; transform: rotateY(180deg); }
+    </style>
+</head>
+<body>
+
+    <div id="loader-overlay" class="overlay">
+        <div class="spinner"></div>
+        <p>Generating, please wait...</p>
+    </div>
+
+    <div id="quizlet-modal" class="modal-overlay overlay">
+        <div class="modal-content">
+            <h3>Export to Quizlet</h3>
+            <p>Copy the text below and paste it into Quizlet's "Import" function.</p>
+            <textarea id="quizlet-export-text" readonly></textarea>
+            <div class="button-group" style="justify-content: flex-end;">
+                <button id="close-modal-btn" class="button btn-secondary">Close</button>
+                <a href="https://quizlet.com/create-set" target="_blank" class="button btn-secondary">Open Quizlet</a>
+                <button id="copy-btn" class="button btn-primary">Copy Text</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-container">
+        {% if notes_html or flashcards %}
+
+            <section class="results-view">
+                {% if notes_html %}
+                <article class="notes-section">
+                    <header class="results-header">
+                        <h1>Your Study Notes</h1>
+                    </header>
+                    <div class="notes-content">{{ notes_html|safe }}</div>
+                    <div class="button-group">
+                        <a href="{{ url_for('download', filename='study_notes.docx') }}" class="button btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Download as Word Doc
+                        </a>
+                    </div>
+                </article>
+                {% endif %}
+
+                {% if flashcards %}
+                <article class="flashcard-section">
+                    <header class="results-header">
+                        <h1>Your Revision Flashcards</h1>
+                        <p>Click on any card to flip it!</p>
+                    </header>
+                    <div class="flashcard-container">
+                        {% for card in flashcards %}
+                        <div class="flashcard" role="button" tabindex="0" aria-label="Flashcard: {{ card.front }}">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">{{ card.front }}</div>
+                                <div class="flashcard-back">{{ card.back }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="button-group">
+                        <button id="export-notion-btn" class="button btn-secondary">Download CSV for Notion/Anki</button>
+                        <button id="export-quizlet-btn" class="button btn-primary">Export for Quizlet</button>
+                    </div>
+                </article>
+                {% endif %}
+
+                <div class="button-group">
+                    <a href="{{ url_for('home') }}" class="button btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        Back to Tools
+                    </a>
+                </div>
+            </section>
+
+        {% else %}
+
+            <section class="choice-view">
+                <header>
+                    <h1>AI Study Tools</h1>
+                    <p class="subtitle">Supercharge your learning. Upload your documents and choose a tool to get started.</p>
+                </header>
+                
+                <div class="choice-container">
+                    <article class="choice-card">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        </div>
+                        <h2>Create Study Notes</h2>
+                        <p>Turn a single PDF into a well-structured summary perfect for revision.</p>
+                        <form action="/generate-notes" method="post" enctype="multipart/form-data">
+                            <label for="notes-file-input" class="file-upload-wrapper">
+                                <span class="upload-text">Choose a PDF File</span>
+                                <span class="file-name-display" data-file-name-for="notes-file-input"></span>
+                            </label>
+                            <input type="file" name="pdf" accept=".pdf" required id="notes-file-input" data-is-multiple="false">
+                            <button type="submit" class="button btn-primary form-button">Generate Notes</button>
+                        </form>
+                    </article>
+
+                    <article class="choice-card">
+                        <div class="icon">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                        </div>
+                        <h2>Create Flashcards</h2>
+                        <p>Upload one or more PDFs to generate interactive flashcards for active recall.</p>
+                        <form action="/generate-flashcards" method="post" enctype="multipart/form-data">
+                            <label for="flashcards-file-input" class="file-upload-wrapper">
+                                <span class="upload-text">Choose PDF File(s)</span>
+                                <span class="file-name-display" data-file-name-for="flashcards-file-input"></span>
+                            </label>
+                            <input type="file" name="pdf" accept=".pdf" required multiple id="flashcards-file-input" data-is-multiple="true">
+                            <button type="submit" class="button btn-primary form-button">Generate Flashcards</button>
+                        </form>
+                    </article>
+
+                    <article class="choice-card">
+                        <div class="icon">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                        </div>
+                        <h2>Smart Quiz Generator</h2>
+                        <p>Get a practice quiz with varied question types from your notes or slides.</p>
+                        <form action="/generate-quiz" method="post" enctype="multipart/form-data">
+                            <label for="quiz-file-input" class="file-upload-wrapper">
+                                <span class="upload-text">Choose PDF File(s)</span>
+                                <span class="file-name-display" data-file-name-for="quiz-file-input"></span>
+                            </label>
+                            <input type="file" name="pdf" accept=".pdf" required multiple id="quiz-file-input" data-is-multiple="true">
+                            <button type="submit" class="button btn-primary form-button">Generate Quiz</button>
+                        </form>
+                    </article>
+
+                    <article class="choice-card">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        </div>
+                        <h2>Past Paper Analyser</h2>
+                        <p>Upload multiple past papers to identify recurring topics and trends.</p>
+                        <form action="/analyse-papers" method="post" enctype="multipart/form-data">
+                            <label for="analyser-file-input" class="file-upload-wrapper">
+                                <span class="upload-text">Choose PDF File(s)</span>
+                                <span class="file-name-display" data-file-name-for="analyser-file-input"></span>
+                            </label>
+                            <input type="file" name="pdf" accept=".pdf" required multiple id="analyser-file-input" data-is-multiple="true">
+                            <button type="submit" class="button btn-primary form-button">Analyse Papers</button>
+                        </form>
+                    </article>
+
+                    <article class="choice-card">
+                        <div class="icon">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        </div>
+                        <h2>Mock Exam Generator</h2>
+                        <p>Generate a realistic, timed exam paper from your study materials.</p>
+                        <form action="/generate-exam" method="post" enctype="multipart/form-data">
+                            <div class="form-options">
+                                <div><label for="num_mcq">MCQs</label><input type="number" id="num_mcq" name="num_mcq" value="10" min="1"></div>
+                                <div><label for="num_short">Short Ans.</label><input type="number" id="num_short" name="num_short" value="5" min="0"></div>
+                                <div><label for="time_limit">Time (min)</label><input type="number" id="time_limit" name="time_limit" value="120" min="10" step="5"></div>
+                            </div>
+                            <label for="exam-file-input" class="file-upload-wrapper">
+                                <span class="upload-text">Choose PDF File(s)</span>
+                                <span class="file-name-display" data-file-name-for="exam-file-input"></span>
+                            </label>
+                            <input type="file" name="pdf" accept=".pdf" required multiple id="exam-file-input" data-is-multiple="true">
+                            <button type="submit" class="button btn-primary form-button">Generate Exam</button>
+                        </form>
+                    </article>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Reusable File Input Handler ---
+            const setupFileInputHandler = (inputId) => {
+                const fileInput = document.getElementById(inputId);
+                if (!fileInput) return;
+
+                const isMultiple = fileInput.dataset.isMultiple === 'true';
+                const fileNameDisplay = document.querySelector(`[data-file-name-for="${inputId}"]`);
+
+                fileInput.addEventListener('change', () => {
+                    if (!fileNameDisplay) return;
+                    const numFiles = fileInput.files.length;
+                    if (numFiles === 0) {
+                        fileNameDisplay.textContent = '';
+                    } else if (isMultiple) {
+                        fileNameDisplay.textContent = `${numFiles} file(s) selected`;
+                    } else {
+                        fileNameDisplay.textContent = fileInput.files[0].name;
+                    }
+                });
+            };
+            
+            ['notes-file-input', 'flashcards-file-input', 'quiz-file-input', 'analyser-file-input', 'exam-file-input'].forEach(setupFileInputHandler);
+
+
+            // --- Loading Screen Logic ---
+            const loaderOverlay = document.getElementById('loader-overlay');
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', (event) => {
+                    const fileInput = form.querySelector('input[type="file"]');
+                    if (fileInput && fileInput.files.length > 0) {
+                        if (loaderOverlay) loaderOverlay.classList.add('visible');
+                    }
+                });
+            });
+
+            // --- Flashcard Flip Logic ---
+            document.querySelectorAll('.flashcard').forEach(card => {
+                const flipCard = () => card.classList.toggle('is-flipped');
+                card.addEventListener('click', flipCard);
+                card.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault(); // Prevent scrolling on spacebar press
+                        flipCard();
+                    }
+                });
+            });
+
+            // --- Export Logic (only runs on results page) ---
+            {% if flashcards %}
+            const flashcardsData = {{ flashcards|tojson }};
+
+            // Notion/Anki (CSV) Export
+            const exportNotionBtn = document.getElementById('export-notion-btn');
+            if (exportNotionBtn) {
+                exportNotionBtn.addEventListener('click', () => {
+                    fetch('/export-csv', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(flashcardsData),
+                    })
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = 'flashcards.csv';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        a.remove();
+                    })
+                    .catch(err => console.error('Export failed:', err));
+                });
+            }
+
+            // Quizlet Export Modal
+            const exportQuizletBtn = document.getElementById('export-quizlet-btn');
+            const quizletModal = document.getElementById('quizlet-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const copyBtn = document.getElementById('copy-btn');
+            const exportTextArea = document.getElementById('quizlet-export-text');
+            
+            if (exportQuizletBtn && quizletModal) {
+                exportQuizletBtn.addEventListener('click', () => {
+                    const quizletText = flashcardsData.map(card => {
+                        const front = card.front.replace(/\n/g, ' ').trim();
+                        const back = card.back.replace(/\n/g, ' ').trim();
+                        return `${front}\t${back}`;
+                    }).join('\n');
+                    
+                    exportTextArea.value = quizletText;
+                    quizletModal.classList.add('visible');
+                });
+
+                copyBtn.addEventListener('click', () => {
+                    exportTextArea.select();
+                    navigator.clipboard.writeText(exportTextArea.value).then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => { copyBtn.textContent = 'Copy Text'; }, 2000);
+                    });
+                });
+
+                const hideModal = () => quizletModal.classList.remove('visible');
+                closeModalBtn.addEventListener('click', hideModal);
+                quizletModal.addEventListener('click', (event) => {
+                    if (event.target === quizletModal) hideModal();
+                });
+            }
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

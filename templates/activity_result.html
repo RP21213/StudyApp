@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Results</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f4f5f7;
+            --background-card: #ffffff;
+            --correct-bg: #f0fdf4;
+            --correct-border: #16a34a;
+            --incorrect-bg: #fef2f2;
+            --incorrect-border: #ef4444;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-body);
+            color: var(--text-main);
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: var(--background-card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px A6px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        h1 { font-size: 1.875rem; margin: 0; }
+        h2 { font-size: 1.5rem; margin-top: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .score { font-size: 1.875rem; font-weight: 700; color: var(--primary-color); }
+        .question-block { margin-bottom: 2.5rem; }
+        .question { font-weight: 600; margin-bottom: 0.75rem; }
+        .user-answer {
+            margin-left: 1rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        .feedback {
+            margin-left: 1rem;
+            padding: 0.75rem;
+            border-left-width: 4px;
+            border-radius: 6px;
+        }
+        .feedback.correct {
+            border-color: var(--correct-border);
+            background-color: var(--correct-bg);
+            color: #15803d;
+        }
+        .feedback.incorrect {
+            border-color: var(--incorrect-border);
+            background-color: var(--incorrect-bg);
+            color: #b91c1c;
+        }
+        .model-answer { font-family: 'Lora', serif; }
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ activity.type }} Results</h1>
+            <div class="score">Score: {{ activity.score }}%</div>
+        </div>
+        
+        {% if activity.exam_data.section_a_mcq %}
+            <h2>Multiple Choice ({{ activity.mcq_score }} / {{ activity.exam_data.section_a_mcq|length }})</h2>
+            {% for q in activity.exam_data.section_a_mcq %}
+                <div class="question-block">
+                    <p class="question">{{ loop.index }}. {{ q.question }}</p>
+                    <span class="user-answer">Your answer: {{ activity.graded_results['mcq_' + (loop.index0|string)].user_answer }}</span>
+                    {% if activity.graded_results['mcq_' + (loop.index0|string)].is_correct %}
+                        <div class="feedback correct"><b>Correct!</b></div>
+                    {% else %}
+                        <div class="feedback incorrect"><b>Incorrect.</b> The correct answer was: {{ q.correct_answer }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if activity.exam_data.section_b_short_answer %}
+            <h2>Short Answers</h2>
+            {% for q in activity.exam_data.section_b_short_answer %}
+                <div class="question-block">
+                    <p class="question">{{ loop.index }}. {{ q.question }}</p>
+                    <span class="user-answer model-answer">{{ activity.graded_results['short_' + (loop.index0|string)].user_answer }}</span>
+                    <div class="feedback correct">
+                        <b>Score: {{ activity.graded_results['short_' + (loop.index0|string)].score }}/10</b><br>
+                        <b>Feedback:</b> {{ activity.graded_results['short_' + (loop.index0|string)].feedback }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if activity.exam_data.section_c_essay %}
+            <h2>Essay Questions</h2>
+            {% for q in activity.exam_data.section_c_essay %}
+                <div class="question-block">
+                    <p class="question">{{ loop.index }}. {{ q.question }}</p>
+                    <span class="user-answer model-answer">{{ activity.graded_results['essay_' + (loop.index0|string)].user_answer }}</span>
+                    <div class="feedback correct">
+                        <b>Score: {{ activity.graded_results['essay_' + (loop.index0|string)].score }}/10</b><br>
+                        <b>Feedback:</b> {{ activity.graded_results['essay_' + (loop.index0|string)].feedback }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <a href="{{ url_for('hub_page', hub_id=hub_id) }}" class="back-link">← Back to Hub</a>
+    </div>
+</body>
+</html>

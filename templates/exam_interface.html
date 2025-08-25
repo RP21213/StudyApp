@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Exam Interface</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-bg: #dcfce7;
+            --success-border: #4ade80;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-border: #f87171;
+            --error-text: #991b1b;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #d1d5db;
+            --background-light: #f9fafb;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-light);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        .exam-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .exam-header h1 {
+            font-size: 2.25rem;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .exam-section {
+            margin-bottom: 3rem;
+        }
+
+        .exam-section h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Lora', serif;
+        }
+        
+        .button { 
+            display: inline-block; 
+            padding: 0.7rem 1.5rem; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 1rem; 
+            text-decoration: none; 
+            text-align: center;
+            cursor: pointer; 
+            transition: background-color 0.2s ease, transform 0.2s ease; 
+        }
+        .btn-primary { 
+            background-color: var(--primary-color); 
+            color: white; 
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        .btn-secondary:hover {
+            background-color: #eef2ff;
+        }
+        
+        .question-block {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 0;
+        }
+        
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .options-group label {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .options-group label:hover {
+            background-color: var(--background-light);
+            border-color: var(--primary-color);
+        }
+        .options-group input[type="radio"] {
+            margin-right: 0.75rem;
+        }
+
+        textarea.short-answer, textarea.essay-answer {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box; 
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        textarea.essay-answer {
+            min-height: 150px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px #c7d2fe;
+        }
+        textarea:disabled {
+            background-color: var(--background-light);
+            cursor: not-allowed;
+        }
+
+        .feedback-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        .feedback-box.correct {
+            background-color: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+        }
+        .feedback-box.incorrect {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+        }
+        .feedback-box p { margin: 0; }
+        .feedback-box strong { font-weight: 600; }
+
+        .results-summary {
+            padding: 1.5rem;
+            border: 1px solid var(--primary-color);
+            background-color: #eef2ff;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .results-summary h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <main class="exam-container">
+        <header class="exam-header">
+            <h1>Mock Exam</h1>
+            <a href="{{ url_for('hub_page', hub_id=hub_id) }}" class="button btn-secondary">← Back to Hub</a>
+        </header>
+
+        {% if graded_results %}
+        <section class="results-summary">
+            <h2>Results Summary</h2>
+            <p>You scored <strong>{{ total_mcq_score }} out of {{ exam_data.section_a_mcq|length }}</strong> on the Multiple Choice section.</p>
+            <p>Review the detailed feedback on your answers below.</p>
+        </section>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('grade_exam_route', hub_id=hub_id) }}">
+            <input type="hidden" name="section_a_mcq" value='{{ exam_data.section_a_mcq | tojson | safe }}'>
+            <input type="hidden" name="section_b_short_answer" value='{{ exam_data.section_b_short_answer | tojson | safe }}'>
+            <input type="hidden" name="section_c_essay" value='{{ exam_data.section_c_essay | tojson | safe }}'>
+            <input type="hidden" name="time_limit" value="{{ time_limit }}">
+
+            {% if exam_data.section_a_mcq %}
+            <section class="exam-section" id="section-a">
+                <h2>Section A: Multiple Choice</h2>
+                {% for question in exam_data.section_a_mcq %}
+                    {% set q_index = loop.index0 %}
+                    <article class="question-block">
+                        <p class="question-text">{{ loop.index }}. {{ question.question }}</p>
+                        <div class="options-group">
+                            {% for option in question.options %}
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="mcq_answer_{{ q_index }}"
+                                        value="{{ option }}"
+                                        {% if graded_results and graded_results['mcq_' ~ q_index].user_answer == option %}checked{% endif %}
+                                        {% if graded_results %}disabled{% endif %}
+                                        required>
+                                    {{ option }}
+                                </label>
+                            {% endfor %}
+                        </div>
+
+                        {% if graded_results and ('mcq_' ~ q_index) in graded_results %}
+                            {% set result = graded_results['mcq_' ~ q_index] %}
+                            <div class="feedback-box {{ 'correct' if result.is_correct else 'incorrect' }}">
+                                {% if result.is_correct %}
+                                    <p><strong>Correct!</strong> Your answer was: {{ result.user_answer }}</p>
+                                {% else %}
+                                    <p><strong>Incorrect.</strong> Your answer: {{ result.user_answer or 'No answer given' }}</p>
+                                    <p>Correct Answer: <strong>{{ question.correct_answer }}</strong></p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% if exam_data.section_b_short_answer %}
+            <section class="exam-section" id="section-b">
+                <h2>Section B: Short Answer</h2>
+                {% for question in exam_data.section_b_short_answer %}
+                    {% set q_index = loop.index0 %}
+                    <article class="question-block">
+                        <p class="question-text">{{ loop.index }}. {{ question.question }}</p>
+                        <textarea class="short-answer" name="short_answer_{{ q_index }}" {% if graded_results %}disabled{% endif %}>{% if graded_results %}{{ graded_results['short_' ~ q_index].user_answer }}{% endif %}</textarea>
+
+                        {% if graded_results and ('short_' ~ q_index) in graded_results %}
+                            {% set result = graded_results['short_' ~ q_index] %}
+                            <div class="feedback-box">
+                                <p><strong>AI Feedback (Score: {{ result.score }}/10):</strong></p>
+                                <p>{{ result.feedback }}</p>
+                                <hr style="border-top: 1px solid #ccc; border-bottom: none; margin: 1rem 0;">
+                                <p><strong>Model Answer:</strong></p>
+                                <p>{{ question.model_answer }}</p>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            {% if exam_data.section_c_essay %}
+            <section class="exam-section" id="section-c">
+                <h2>Section C: Essay Question</h2>
+                {% for question in exam_data.section_c_essay %}
+                    {% set q_index = loop.index0 %}
+                    <article class="question-block">
+                        <!-- THIS IS THE CORRECTED SECTION -->
+                        <p class="question-text">{{ loop.index }}. {{ question.question }}</p>
+                        <textarea class="essay-answer" name="essay_answer_{{ q_index }}" {% if graded_results %}disabled{% endif %}>{% if graded_results %}{{ graded_results['essay_' ~ q_index].user_answer }}{% endif %}</textarea>
+
+                        {% if graded_results and ('essay_' ~ q_index) in graded_results %}
+                            {% set result = graded_results['essay_' ~ q_index] %}
+                            <div class="feedback-box">
+                                <p><strong>AI Feedback (Score: {{ result.score }}/10):</strong></p>
+                                <p>{{ result.feedback }}</p>
+                                <hr style="border-top: 1px solid #ccc; border-bottom: none; margin: 1rem 0;">
+                                <p><strong>Model Answer:</strong></p>
+                                <p>{{ question.model_answer }}</p>
+                            </div>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </section>
+            {% endif %}
+            
+            {% if not graded_results %}
+                <button type="submit" class="button btn-primary">Grade My Exam</button>
+            {% endif %}
+        </form>
+    </main>
+
+</body>
+</html>

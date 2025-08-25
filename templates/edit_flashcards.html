@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Flashcards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .page-header h1 { font-size: 2rem; margin: 0; }
+        .header-actions { display: flex; gap: 1rem; }
+        .button {
+            display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 600;
+            padding: 0.625rem 1.25rem; border-radius: 8px; border: 1px solid transparent;
+            transition: all 0.2s ease-in-out; cursor: pointer; font-size: 1rem;
+        }
+        .button-primary { background-color: var(--primary-color); color: white; }
+        .button-primary:hover { background-color: var(--primary-hover); }
+        .button-secondary { background-color: var(--background-card); border-color: var(--border-color); color: var(--text-secondary); }
+        .button-secondary:hover { background-color: #f3f4f6; }
+        .button-danger { background-color: var(--danger-color); color: white; }
+        .button-danger:hover { background-color: var(--danger-hover); }
+
+        .flashcard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        .flashcard-editor {
+            background-color: var(--background-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            position: relative;
+        }
+        .flashcard-editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .flashcard-editor-header span { font-weight: 600; color: var(--text-secondary); }
+        .delete-card-btn {
+            background: none; border: none; color: var(--text-secondary); cursor: pointer;
+            padding: 0.25rem; border-radius: 50%;
+        }
+        .delete-card-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
+        .editor-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .editor-fields textarea {
+            width: 100%;
+            min-height: 120px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+        .form-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 1;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            padding: 0.5rem 0;
+        }
+        .dropdown-content a {
+            color: var(--text-main);
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .dropdown-content a:hover {
+            background-color: #f3f4f6;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1>{{ activity.title or 'Edit Flashcard Set' }}</h1>
+            <div class="header-actions">
+                <a href="{{ url_for('hub_page', hub_id=activity.hub_id) }}" class="button button-secondary">Back to Hub</a>
+                
+                <div class="dropdown">
+                    <button class="button button-secondary">Export</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('export_flashcards', activity_id=activity.id, format='quizlet') }}">For Quizlet (.txt)</a>
+                        <a href="{{ url_for('export_flashcards', activity_id=activity.id, format='anki') }}">For Anki (.txt)</a>
+                        <a href="{{ url_for('export_flashcards', activity_id=activity.id, format='notion') }}">For Notion (.csv)</a>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('view_flashcards', activity_id=activity.id) }}" class="button button-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" /></svg>
+                    Start Game
+                </a>
+            </div>
+        </div>
+
+        <form action="{{ url_for('update_flashcard_set', activity_id=activity.id) }}" method="POST">
+            <div class="flashcard-grid" id="flashcard-grid">
+                {% for card in activity.data.cards %}
+                <div class="flashcard-editor">
+                    <div class="flashcard-editor-header">
+                        <span>Card {{ loop.index }}</span>
+                        <button type="button" class="delete-card-btn" onclick="this.closest('.flashcard-editor').remove()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                    <div class="editor-fields">
+                        <textarea name="front_{{ loop.index0 }}" placeholder="Front (Question/Term)">{{ card.front }}</textarea>
+                        <textarea name="back_{{ loop.index0 }}" placeholder="Back (Answer/Definition)">{{ card.back }}</textarea>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-actions">
+                <button type="button" id="add-card-btn" class="button button-secondary">Add New Card</button>
+                <button type="submit" class="button button-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    document.getElementById('add-card-btn').addEventListener('click', () => {
+        const grid = document.getElementById('flashcard-grid');
+        const cardCount = grid.getElementsByClassName('flashcard-editor').length;
+
+        const newEditor = document.createElement('div');
+        newEditor.classList.add('flashcard-editor');
+        newEditor.innerHTML = `
+            <div class="flashcard-editor-header">
+                <span>Card ${cardCount + 1}</span>
+                <button type="button" class="delete-card-btn" onclick="this.closest('.flashcard-editor').remove()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+            <div class="editor-fields">
+                <textarea name="front_${cardCount}" placeholder="Front (Question/Term)"></textarea>
+                <textarea name="back_${cardCount}" placeholder="Back (Answer/Definition)"></textarea>
+            </div>
+        `;
+        grid.appendChild(newEditor);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ hub.name }} - Study Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f4f5f7;
+            --background-card: #ffffff;
+            --background-sidebar: #f9fafb;
+            --background-interactive-hover: #f3f4f6;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+            --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+        }
+        
+        @property --angle {
+          syntax: '<angle>';
+          initial-value: 0deg;
+          inherits: false;
+        }
+        
+        @keyframes rotate {
+          to {
+            --angle: 360deg;
+          }
+        }
+        
+        body {
+            font-family: 'Lora', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        h1, h2, h3, h4, h5, .button, .tab-button, .stat-label, .upload-form .file-upload-text, .chat-widget {
+            font-family: 'Poppins', sans-serif;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            align-items: start;
+        }
+        .button {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            text-decoration: none; font-weight: 600; padding: 0.625rem 1rem;
+            border-radius: 8px; border: 1px solid transparent;
+            transition: all 0.2s ease-in-out; cursor: pointer; font-size: 0.9rem;
+            outline: none;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow);
+        }
+        .button-primary { background: linear-gradient(to right, #6366f1, var(--primary-color)); color: white; }
+        .button-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+        .button-secondary { background-color: var(--background-card); border-color: var(--border-color); color: var(--text-secondary); }
+        .button-secondary:hover { background-color: var(--background-interactive-hover); color: var(--text-main); }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .content-card {
+            background-color: var(--background-card);
+            border-radius: 12px;
+            border: 1px solid #f3f4f6;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem 2rem;
+        }
+        .page-header {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .page-header h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
+        /* --- REVERTED: Progress Stats Bar CSS --- */
+        .progress-stats {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem;
+        }
+        .stat-item { text-align: center; }
+        .stat-value {
+            display: block;
+            font-size: 2.75rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        .stat-value.is-zero {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+        .stat-label { font-size: 0.9rem; color: var(--text-secondary); }
+        
+        /* Tab Styles */
+        .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid #f3f4f6; }
+        .tab-nav { display: flex; border-bottom: 1px solid var(--border-color); padding: 0.5rem 2rem 0 2rem; flex-wrap: wrap; }
+        .tab-button {
+            padding: 1rem 0.5rem; margin-right: 1.5rem; margin-bottom: -1px; cursor: pointer; border: none; background: none; font-size: 1rem; font-weight: 600;
+            color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .tab-content { display: none; padding: 1.5rem; }
+        .tab-content.active { display: block; }
+
+        /* Asset List Styles (for notes, flashcards, quizzes) */
+        .asset-list { list-style: none; padding: 0; margin: 0; }
+        .asset-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
+        .asset-item:not(:last-child) { margin-bottom: 0.5rem; }
+        .asset-item:hover { background-color: var(--background-interactive-hover); border-color: var(--border-color); }
+        .asset-link { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex-grow: 1; }
+        .asset-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .asset-icon-note { background-color: var(--primary-light); color: var(--primary-color); }
+        .asset-icon-flashcards { background-color: #dcfce7; color: #166534; }
+        .asset-icon-quiz { background-color: #fef9c3; color: #854d0e; }
+        .asset-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; color: var(--text-main); }
+        .asset-details span { font-size: 0.85rem; color: var(--text-secondary); }
+        .asset-score { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); padding: 0 1rem; display: flex; align-items: center; }
+        .asset-actions { display: flex; gap: 0.5rem; opacity: 0; transition: opacity 0.2s; }
+        .asset-item:hover .asset-actions { opacity: 1; }
+        .action-btn { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background-color: rgba(0,0,0,0.05); }
+        .action-btn svg { width: 16px; height: 16px; color: var(--text-secondary); }
+        .action-btn:hover svg { color: var(--text-main); }
+        .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
+        .edit-input { font-size: 1rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px solid var(--primary-color); flex-grow: 1; }
+        .save-btn { font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: 4px; border: 1px solid var(--success-color); background-color: var(--success-color); color: white; margin-left: 0.5rem; }
+        
+        .study-tools-container { transition: opacity 0.3s ease-in-out; }
+        .study-tools-container.disabled { opacity: 0.5; pointer-events: none; }
+        .study-tools-container.disabled .feature-banner:hover { transform: none; box-shadow: var(--card-shadow); }
+        .study-tools-container.disabled .feature-banner:hover::before { opacity: 0; }
+        .study-tools-container.disabled .feature-card:hover { transform: none; box-shadow: var(--card-shadow); border-color: #f3f4f6; }
+        
+        .feature-banner { 
+            border-radius: 12px; 
+            padding: 2rem; 
+            color: white; 
+            background: linear-gradient(135deg, #6366f1 0%, var(--primary-color) 100%); 
+            cursor: pointer; 
+            border: none; 
+            box-shadow: var(--card-shadow); 
+            text-align: left; 
+            width: 100%;
+            position: relative;
+            z-index: 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-banner::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            top: -3px; left: -3px;
+            width: calc(100% + 6px);
+            height: calc(100% + 6px);
+            border-radius: inherit;
+            background: conic-gradient(
+                from var(--angle),
+                #007cf0, #00dfd8, #ff007c, #f2c700, #007cf0
+            );
+            animation: rotate 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .feature-banner:hover { 
+            transform: translateY(-5px) scale(1.01); 
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4); 
+        }
+        .feature-banner:hover::before {
+            opacity: 1;
+        }
+        .feature-banner h4 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+        .feature-banner p { font-size: 1rem; margin: 0.5rem 0 0 0; opacity: 0.9; font-family: 'Poppins', sans-serif; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+        .feature-card { background-color: var(--background-card); border: 1px solid #f3f4f6; border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow);}
+        .feature-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
+        .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
+        .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
+        .feature-card:hover .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
+
+        .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; }
+        .progress-card:hover { transform: translateY(-5px); }
+        .progress-card h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.5rem 0; opacity: 0.8; }
+        .stat-large { font-size: 3rem; font-weight: 700; }
+        .stat-large span { font-size: 1.25rem; font-weight: 500; opacity: 0.7; margin-left: 0.5rem; }
+        .card-icon { position: absolute; right: 1rem; top: 1rem; opacity: 0.2; font-size: 3rem; }
+        .xp-card { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .streak-card { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .score-card { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .spotlight-card { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+        .spotlight-card h2 { opacity: 1; font-weight: 600; }
+        .spotlight-topic { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0; }
+        .spotlight-topic-score { color: var(--red); font-weight: 700; }
+        .spotlight-topic-improvement { color: var(--green); font-weight: 700; }
+        .spotlight-card .button { background: var(--primary-color); color: white; margin-top: 1rem; }
+        .spotlight-card .button:hover { background: var(--primary-hover); }
+
+        .large-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .large-grid-card { background-color: white; border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); }
+        .large-grid-card h2 { color: var(--text-secondary); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 1.5rem 0;}
+        .topic-list .topic-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .topic-name { font-weight: 600; }
+        .topic-bar-container { flex-grow: 1; height: 10px; background-color: #f3f4f6; border-radius: 5px; margin: 0 1rem; overflow: hidden; }
+        .topic-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease-in-out; }
+        .mastery-high { background-color: var(--green); }
+        .mastery-mid { background-color: var(--yellow); }
+        .mastery-low { background-color: var(--red); }
+        .topic-score { font-weight: 700; font-size: 1.1rem; }
+        .level-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; }
+        .level-bar-container { width: 100%; height: 20px; background-color: var(--primary-light); border-radius: 10px; overflow: hidden; }
+        .level-bar { height: 100%; border-radius: 10px; background: var(--primary-color); transition: width 0.5s ease-in-out; }
+        .recent-activity-card { padding: 1.5rem; }
+        .recent-activity-card p { margin: 0; font-weight: 500; font-family: 'Poppins', sans-serif;}
+        .recent-activity-card strong { color: var(--text-main); }
+        .recent-activity-card span { color: var(--text-secondary); }
+
+        .files-panel { background-color: var(--background-sidebar); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 1.5rem; position: sticky; top: 2rem; }
+        .sidebar-section { margin-bottom: 2rem; } .sidebar-section:last-child { margin-bottom: 0; }
+        .files-panel h3 { font-size: 1.125rem; margin: 0 0 1rem 0; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .file-list .file-item { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 0.5rem; border-radius: 8px; transition: background-color 0.2s; margin-bottom: 0.25rem; }
+        .file-list .file-item:hover { background-color: var(--background-interactive-hover); }
+        .file-item .file-info { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; cursor: pointer; overflow: hidden; }
+        .file-info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-item input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--primary-color); flex-shrink: 0; }
+        .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; opacity: 0.5; flex-shrink: 0; }
+        .file-item:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
+        .delete-btn svg { width: 16px; height: 16px; }
+        .upload-form { margin-top: 1.5rem; }
+        .upload-form .file-upload-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; border: 2px dashed var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+        .upload-form .file-upload-wrapper:hover { border-color: var(--primary-color); background-color: #fbfbfe; }
+        .upload-form input[type="file"] { display: none; }
+        .upload-form .file-upload-text { color: var(--text-secondary); font-weight: 500; }
+        .upload-form .upload-icon { color: var(--text-secondary); transition: color 0.2s; }
+        .upload-form .file-upload-wrapper:hover .upload-icon { color: var(--primary-color); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; text-align: center; }
+        .overlay.visible { display: flex; }
+        .spinner { border: 5px solid #e5e7eb; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+        .overlay p { font-size: 1.25rem; font-weight: 600; color: var(--text-main); margin: 0 0 0.5rem 0; }
+        .overlay span { font-size: 1rem; color: var(--text-secondary); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .lectures-list { list-style: none; padding: 0; margin: 1.5rem 0 0 0; }
+        .lecture-item a { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; padding: 1rem; border-radius: 8px; transition: background-color 0.2s, box-shadow 0.2s; border: 1px solid transparent; }
+        .lecture-item a:hover { background-color: var(--background-interactive-hover); border-color: var(--border-color); }
+        .lecture-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background-color: #dbeafe; color: #1e40af; }
+        .lecture-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; color: var(--text-main); }
+        .lecture-details span { font-size: 0.85rem; color: var(--text-secondary); }
+        .empty-lectures { text-align: center; padding: 2rem; color: var(--text-secondary); }
+        .lecture-item .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; opacity: 0.5; flex-shrink: 0; }
+        .lecture-item:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
+        .delete-btn svg { width: 16px; height: 16px; }
+        .chat-widget { display: flex; flex-direction: column; background-color: var(--background-card); border-radius: 8px; border: 1px solid var(--border-color); }
+        .chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; height: 400px; }
+        .message { padding: 0.75rem 1rem; border-radius: 12px; max-width: 85%; line-height: 1.5; word-wrap: break-word; }
+        .user-message { background-color: var(--primary-color); color: white; border-bottom-right-radius: 2px; align-self: flex-end; }
+        .ai-message { background-color: var(--background-interactive-hover); color: var(--text-main); border-bottom-left-radius: 2px; align-self: flex-start; }
+        .ai-message.loading-message { color: var(--text-secondary); font-style: italic; }
+        .chat-controls { padding: 0.75rem; border-top: 1px solid var(--border-color); background-color: var(--background-card); }
+        .chat-input-form { display: flex; }
+        .chat-input-form input { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.625rem; font-size: 0.9rem; margin-right: 0.5rem; }
+        .chat-input-form button { background-color: var(--primary-color); border: none; color: white; padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; }
+        .answer-style-selector { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+        .answer-style-selector label { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); }
+        .answer-style-selector select { font-size: 0.8rem; padding: 0.25rem 0.5rem; border-radius: 4px; border-color: var(--border-color); }
+        .proactive-suggestion {
+            background-color: white; border: 1px solid var(--border-color); color: var(--primary-color);
+            padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+            transition: background-color 0.2s; display: block; width: 100%; text-align: left; margin-top: 0.5rem; font-family: 'Poppins', sans-serif;
+        }
+        .proactive-suggestion:hover { background-color: var(--primary-light); }
+    </style>
+</head>
+<body>
+    <div id="loader-overlay" class="overlay">
+        <div class="spinner"></div>
+        <p id="loader-text">Starting study session...</p>
+        <span id="loader-subtext">This will take a moment.</span>
+    </div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-card">
+                <div class="page-header">
+                    <h1>{{ hub.name }}</h1>
+                    <a href="{{ url_for('dashboard') }}" class="button button-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        Dashboard
+                    </a>
+                </div>
+                <div class="progress-stats">
+                    <div class="stat-item">
+                        <span class="stat-value {% if hub.notes_count == 0 %}is-zero{% endif %}">{{ hub.notes_count or 0 }}</span>
+                        <span class="stat-label">Notes Saved</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value {% if hub.flashcard_count == 0 %}is-zero{% endif %}">{{ hub.flashcard_count or 0 }}</span>
+                        <span class="stat-label">Flashcards</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value {% if hub.quizzes_taken == 0 %}is-zero{% endif %}">{{ hub.quizzes_taken or 0 }}</span>
+                        <span class="stat-label">Quizzes Taken</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tab-nav">
+                    <button class="tab-button active" onclick="openTab(event, 'tools')">Study Tools</button>
+                    <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
+                    <button class="tab-button" onclick="openTab(event, 'notes')">My Notes</button>
+                    <button class="tab-button" onclick="openTab(event, 'flashcards')">My Flashcards</button>
+                    <button class="tab-button" onclick="openTab(event, 'quizzes')">My Quizzes</button>
+                    <button class="tab-button" onclick="openTab(event, 'lectures')">My Lectures</button>
+                </div>
+                
+                <div id="tools" class="tab-content active">
+                    <div id="study-tools-container">
+                        <button type="button" onclick="runOneClickStudySession('{{ hub.id }}')" class="feature-banner">
+                             <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <div>
+                                        <h4 id="one-click-title">One-Click Study Session</h4>
+                                        <p id="one-click-subtitle">Select a document to generate notes, flashcards, & quizzes.</p>
+                                    </div>
+                <div id="lectures" class="tab-content" style="display:none;">
+                    <h2 style="margin:0 0 1rem 0;">My Lectures</h2>
+                    {% if all_lectures %}
+                    <ul class="lectures-list">
+                        {% for lecture in all_lectures %}
+                        <li class="lecture-item" style="display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border-color);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;background:#fff;">
+                            <a href="/lecture/{{ lecture.id }}" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;flex:1;">
+                                <div class="lecture-icon">📘</div>
+                                <div class="lecture-details">
+                                    <h5 style="margin:0 0 0.2rem 0;">{{ lecture.title }}</h5>
+                                    <span>Created {{ lecture.created_at }}</span>
+                                </div>
+                            </a>
+                            <form action="/lecture/{{ lecture.id }}/delete" method="get" onsubmit="return confirm('Delete this lecture and its materials?');">
+                                <button type="submit" class="delete-btn" title="Delete lecture">🗑️</button>
+                            </form>
+                        </li>
+                        {% else %}
+                        <div class="empty-lectures">
+                            <p>No lectures yet. Use One‑Click Study Session to generate your first lecture.</p>
+                        </div>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-lectures">
+                        <p>No lectures yet. Use One‑Click Study Session to generate your first lecture.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                                </div>
+                                <span style="font-size: 2rem; opacity: 0.7;">→</span>
+                            </div>
+                        </button>
+                        <div class="feature-grid" style="margin-top: 1.5rem;">
+                            <button type="submit" name="tool" value="notes" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+                                <div class="feature-text"><h4>Generate Notes</h4><p>Create interactive, saved study guides.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="submit" name="tool" value="flashcards" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
+                                <div class="feature-text"><h4>Create Flashcards</h4><p>Automate cards for active recall practice.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="submit" name="tool" value="quiz" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
+                                <div class="feature-text"><h4>Generate Quiz</h4><p>Test your knowledge with practice questions.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="submit" name="tool" value="exam" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #ffe4e6;"><svg style="color: #9f1239;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                                <div class="feature-text"><h4>Create Mock Exam</h4><p>Simulate exam conditions with a timed test.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="submit" name="tool" value="analyse" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
+                                <div class="feature-text"><h4>Analyze Past Papers</h4><p>Predict future questions and identify trends.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="submit" name="tool" value="heatmap" form="tools-form" class="feature-card">
+                                <div class="feature-icon-wrapper" style="background-color: #fff7ed;"><svg style="color: #c2410c;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.362-3.797z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214C14.268 5.474 13.166 5.8 12 6.202c-1.166-.402-2.268-.728-3.362-1.012A8.25 8.25 0 0012 21v-7.784c1.558 0 3.04.42 4.362 1.154a8.25 8.25 0 00-1.002-8.156z" /></svg></div>
+                                <div class="feature-text"><h4>Topic Heatmap</h4><p>Visualize the most recurring topics and themes.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                       </div>
+                    </div>
+                </div>
+                
+                <div id="progress" class="tab-content">
+                    <div class="progress-grid">
+                        <div class="progress-card xp-card">
+                            <div class="card-icon">🏆</div>
+                            <h2>Total XP</h2>
+                            <div class="stat-large">{{ total_xp }} <span>XP</span></div>
+                        </div>
+                        <div class="progress-card streak-card">
+                            <div class="card-icon">🔥</div>
+                            <h2>Study Streak</h2>
+                            <div class="stat-large">{{ streak_days }} <span>Days</span></div>
+                        </div>
+                        <div class="progress-card score-card">
+                            <div class="card-icon">🎯</div>
+                            <h2>Average Score</h2>
+                            <div class="stat-large">{{ (topic_mastery | map(attribute='score') | sum / (topic_mastery | length if (topic_mastery | length) > 0 else 1)) | round(0) | int }}<span>%</span></div>
+                        </div>
+                    </div>
+            
+                    <div class="large-grid">
+                        <div class="large-grid-card">
+                            <h2>Topic Mastery</h2>
+                            <div class="topic-list">
+                                {% for item in topic_mastery %}
+                                <div class="topic-item">
+                                    <span class="topic-name">{{ item.topic }}</span>
+                                    <div class="topic-bar-container">
+                                        {% set mastery = 'mastery-high' if item.score >= 80 else 'mastery-mid' if item.score >= 50 else 'mastery-low' %}
+                                        <div class="topic-bar {{ mastery }}" style="width: {{ item.score }}%;"></div>
+                                    </div>
+                                    <span class="topic-score">{{ item.score }}%</span>
+                                </div>
+                                {% else %}
+                                <p style="text-align: center; color: var(--text-secondary); padding: 2rem 0;">Complete quizzes to see your topic mastery breakdown!</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="large-grid-card">
+                            <h2>Level Progress</h2>
+                             {% if level_data %}
+                            <div class="level-header">
+                                <span>Level {{ level_data.current_level }} Scholar</span>
+                                <span>{{ level_data.xp_in_level }} / {{ level_data.xp_for_next_level }} XP</span>
+                            </div>
+                            <div class="level-bar-container">
+                                {% set progress_percent = (level_data.xp_in_level / level_data.xp_for_next_level) * 100 %}
+                                <div class="level-bar" style="width: {{ progress_percent }}%;"></div>
+                            </div>
+                            {% else %}
+                            <p>Start studying to gain XP and level up!</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+                        <div class="progress-card spotlight-card">
+                            {% if spotlight %}
+                                {% if spotlight.type == 'weakest' %}
+                                    <h2>Weakness Spotlight</h2>
+                                    <p class="spotlight-topic">{{ spotlight.topic }} <span class="spotlight-topic-score">{{ spotlight.score }}%</span></p>
+                                    <a href="{{ url_for('generate_weakness_quiz', hub_id=hub.id, topic=spotlight.topic) }}" class="button">5-Question Quiz Now</a>
+                                {% elif spotlight.type == 'improved' %}
+                                    <h2>Most Improved!</h2>
+                                    <p class="spotlight-topic">{{ spotlight.topic }} <span class="spotlight-topic-improvement">+{{ spotlight.change }}%</span></p>
+                                    <p style="opacity: 0.8; margin-top: 1rem;">Great work! Keep up the momentum.</p>
+                                {% elif spotlight.type == 'recommend' %}
+                                    <h2>Time to Review</h2>
+                                    <p class="spotlight-topic">{{ spotlight.topic }}</p>
+                                    <a href="{{ url_for('generate_weakness_quiz', hub_id=hub.id, topic=spotlight.topic) }}" class="button">Review with a Quiz</a>
+                                {% endif %}
+                            {% else %}
+                                <h2>Study Tip</h2>
+                                <p>Complete a few more quizzes to unlock personalized recommendations!</p>
+                            {% endif %}
+                        </div>
+                        <div class="large-grid-card recent-activity-card">
+                            <h2>Recent Activity</h2>
+                            <p><strong>Today:</strong> <span>You've earned +{{ today_xp }} XP.</span></p>
+                            <p style="margin-top: 1rem;"><strong>Yesterday:</strong>
+                                <span>
+                                {% if yesterday_activities.quizzes > 0 or yesterday_activities.flashcards > 0 %}
+                                    Completed 
+                                    {% if yesterday_activities.quizzes > 0 %}
+                                        {{ yesterday_activities.quizzes }} quiz(zes)
+                                    {% endif %}
+                                    {% if yesterday_activities.quizzes > 0 and yesterday_activities.flashcards > 0 %}
+                                        and
+                                    {% endif %}
+                                    {% if yesterday_activities.flashcards > 0 %}
+                                        {{ yesterday_activities.flashcards }} flashcard session(s).
+                                    {% endif %}
+                                {% else %}
+                                    No activity recorded.
+                                {% endif %}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="notes" class="tab-content">
+                    <ul class="asset-list">
+                        {% for note in all_notes %}
+                        <li class="asset-item" data-id="{{ note.id }}" data-type="note">
+                            <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link">
+                                <div class="asset-icon asset-icon-note">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                </div>
+                                <div class="asset-details">
+                                    <h5 id="title-note-{{ note.id }}">{{ note.title }}</h5>
+                                    <span>Created {{ note.created_at|timesince }} ago</span>
+                                </div>
+                            </a>
+                            <div class="asset-actions">
+                                <button class="action-btn edit-btn" title="Edit name"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                <button class="action-btn delete-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                            </div>
+                        </li>
+                        {% else %}
+                        <li class="empty-state-text"><p>You haven't generated any notes yet.</p></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div id="flashcards" class="tab-content">
+                    <ul class="asset-list">
+                        {% for card_set in all_flashcards %}
+                        <li class="asset-item" data-id="{{ card_set.id }}" data-type="flashcards">
+                            <a href="{{ url_for('edit_flashcard_set', activity_id=card_set.id) }}" class="asset-link">
+                                <div class="asset-icon asset-icon-flashcards">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                                </div>
+                                <div class="asset-details">
+                                    <h5 id="title-flashcards-{{ card_set.id }}">{{ card_set.title or 'Flashcard Set' }}</h5>
+                                    <span>Created {{ card_set.created_at|timesince }} ago</span>
+                                </div>
+                            </a>
+                             <div class="asset-actions">
+                                <button class="action-btn edit-btn" title="Edit name"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                <button class="action-btn delete-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                            </div>
+                        </li>
+                        {% else %}
+                        <li class="empty-state-text"><p>You haven't generated any flashcards yet.</p></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div id="quizzes" class="tab-content">
+                    <ul class="asset-list">
+                        {% for quiz in all_quizzes %}
+                        <li class="asset-item" data-id="{{ quiz.id }}" data-type="quiz">
+                            <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link">
+                                <div class="asset-icon asset-icon-quiz">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                                </div>
+                                <div class="asset-details">
+                                    <h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
+                                    <span>Completed {{ quiz.created_at|timesince }} ago</span>
+                                </div>
+                            </a>
+                            <div class="asset-score">
+                                <span>{{ quiz.score }}%</span>
+                            </div>
+                            <div class="asset-actions">
+                               <button class="action-btn edit-btn" title="Edit name"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                               <button class="action-btn delete-btn" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                            </div>
+                        </li>
+                        {% else %}
+                        <li class="empty-state-text"><p>You haven't completed any quizzes yet.</p></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+        </main>
+
+        <aside class="files-panel">
+            <form id="tools-form" action="{{ url_for('run_hub_tool', hub_id=hub.id) }}" method="POST">
+                <div class="sidebar-section">
+                    <h3>Documents</h3>
+                    <div class="file-list">
+                        {% for file in hub.files %}
+                        <div class="file-item">
+                            <label class="file-info" for="file-{{ loop.index }}">
+                                <input type="checkbox" class="file-checkbox" name="selected_files" value="{{ file.path }}" id="file-{{ loop.index }}" data-filename="{{ file.name }}">
+                                <span class="file-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                </span>
+                                <span>{{ file.name }}</span>
+                            </label>
+                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" 
+                               class="delete-btn" 
+                               title="Delete file"
+                               onclick="return confirm('Are you sure you want to delete this file?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
+                        {% else %}
+                        <p style="color: var(--text-secondary); text-align: center; padding: 1rem 0;">Upload a PDF to begin.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </form>
+            
+            <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
+                <label for="pdf-upload" class="file-upload-wrapper">
+                    <span class="upload-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </span>
+                    <span class="file-upload-text">Click or drag to upload</span>
+                </label>
+                <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
+            </form>
+
+            <div class="sidebar-section">
+                <h3>AI Tutor</h3>
+                <div class="chat-widget">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message ai-message" id="ai-initial-message">Hello! Select a document from the list above to get started.</div>
+                    </div>
+                    <div class="chat-controls">
+                        <div class="answer-style-selector">
+                            <label for="answer-style">Answer Style:</label>
+                            <select id="answer-style">
+                                <option value="default" selected>Detailed Explanation</option>
+                                <option value="summary">Summary</option>
+                                <option value="bullets">Key Points (Bullets)</option>
+                            </select>
+                        </div>
+                        <form class="chat-input-form" id="chat-form">
+                            <input type="text" id="chat-input" placeholder="e.g., Explain page 3..." autocomplete="off">
+                            <button type="submit" title="Send">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Lectures</h3>
+                <div class="lectures-list">
+                    {% for lecture in all_lectures %}
+                        <div class="lecture-item">
+                            <a href="{{ url_for('lecture_page', lecture_id=lecture.id) }}">
+                                <div class="lecture-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20v2.5a2.5 2.5 0 0 1-2.5 2.5H6.5A2.5 2.5 0 0 1 4 19.5z"></path><path d="M20 17H6.5a2.5 2.5 0 0 0-2.5 2.5V21H20z"></path><path d="M20 12V4H4v8a2 2 0 0 0 2 2h14v-2z"></path><path d="M12 7h5"></path><path d="M12 11h5"></path></svg>
+                                </div>
+                                <div class="lecture-details">
+                                    <h5>{{ lecture.title }}</h5>
+                                    <span>Created {{ lecture.created_at|timesince }} ago</span>
+                                </div>
+                            </a>
+                            <a href="{{ url_for('delete_lecture', hub_id=hub.id, lecture_id=lecture.id) }}" 
+                               class="delete-btn" 
+                               title="Delete Lecture"
+                               onclick="return confirm('Are you sure you want to delete this lecture and all associated data?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
+                    {% else %}
+                    <div class="empty-lectures">
+                        <p>No lectures have been generated yet. Use the "One-Click Study Session" to create your first one!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const studyToolsContainer = document.getElementById('study-tools-container');
+            const oneClickTitle = document.getElementById('one-click-title');
+            const oneClickSubtitle = document.getElementById('one-click-subtitle');
+            const aiInitialMessage = document.getElementById('ai-initial-message');
+            const fileCheckboxes = document.querySelectorAll('.file-checkbox');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+
+            function updateUIBasedOnSelection() {
+                const selectedCheckboxes = document.querySelectorAll('.file-checkbox:checked');
+                const selectedCount = selectedCheckboxes.length;
+
+                if (selectedCount === 0) {
+                    studyToolsContainer.classList.add('disabled');
+                } else {
+                    studyToolsContainer.classList.remove('disabled');
+                }
+
+                if (selectedCount === 1) {
+                    const filename = selectedCheckboxes[0].dataset.filename;
+                    oneClickTitle.textContent = `Create full study set for ${filename}`;
+                    oneClickSubtitle.style.display = 'none';
+                } else if (selectedCount > 1) {
+                    oneClickTitle.textContent = `Create full study set from ${selectedCount} documents`;
+                    oneClickSubtitle.style.display = 'none';
+                } else {
+                    oneClickTitle.textContent = 'One-Click Study Session';
+                    oneClickSubtitle.style.display = 'block';
+                    oneClickSubtitle.textContent = 'Select a document to generate notes, flashcards, & quizzes.';
+                }
+
+                if (selectedCount === 1) {
+                    const filename = selectedCheckboxes[0].dataset.filename;
+                    aiInitialMessage.innerHTML = `I see you've selected '<strong>${filename}</strong>'. How can I help?
+                        <button class="proactive-suggestion" data-question="Summarize the key points">Summarize the key points</button>
+                        <button class="proactive-suggestion" data-question="Define the main terms">Define the main terms</button>
+                        <button class="proactive-suggestion" data-question="Generate 5 practice questions">Generate 5 practice questions</button>`;
+                } else if (selectedCount > 1) {
+                     aiInitialMessage.innerHTML = `You have ${selectedCount} documents selected. Ask me to compare them or explain a concept across all of them.`;
+                } else {
+                    aiInitialMessage.innerHTML = "Hello! Select a document from the list above to get started.";
+                }
+            }
+            
+            fileCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateUIBasedOnSelection);
+            });
+            
+            chatMessages.addEventListener('click', (event) => {
+                if (event.target.classList.contains('proactive-suggestion')) {
+                    const question = event.target.dataset.question;
+                    chatInput.value = question;
+                    chatForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
+            });
+
+            updateUIBasedOnSelection();
+
+            if (document.querySelector('.tab-button.active').getAttribute('onclick').includes('progress')) {
+                renderProgressChart();
+            }
+            
+            document.querySelectorAll('.asset-list').forEach(list => {
+                list.addEventListener('click', async (event) => {
+                    const target = event.target.closest('button');
+                    if (!target) return;
+                    const item = target.closest('.asset-item');
+                    const id = item.dataset.id;
+                    const type = item.dataset.type;
+
+                    if (target.classList.contains('delete-btn')) {
+                        if (confirm(`Are you sure you want to delete this ${type}?`)) {
+                            const response = await fetch(`/${type}/${id}/delete`, { method: 'POST' });
+                            const result = await response.json();
+                            if (result.success) {
+                                item.style.transition = 'opacity 0.3s ease';
+                                item.style.opacity = '0';
+                                setTimeout(() => item.remove(), 300);
+                            } else {
+                                alert(`Error: ${result.message}`);
+                            }
+                        }
+                    }
+                    if (target.classList.contains('edit-btn')) {
+                        const details = item.querySelector('.asset-details');
+                        const titleElement = details.querySelector('h5');
+                        const originalTitle = titleElement.textContent;
+                        const editForm = document.createElement('div');
+                        editForm.style.display = 'flex';
+                        editForm.style.alignItems = 'center';
+                        editForm.style.flexGrow = '1';
+                        editForm.innerHTML = `<input type="text" class="edit-input" value="${originalTitle}"><button class="save-btn">Save</button>`;
+                        details.style.display = 'none';
+                        item.querySelector('.asset-link').insertAdjacentElement('afterend', editForm);
+                        const input = editForm.querySelector('.edit-input');
+                        input.focus();
+                        input.select();
+                        const handleSave = async () => {
+                             const newTitle = input.value.trim();
+                             if (newTitle && newTitle !== originalTitle) {
+                                const response = await fetch(`/${type}/${id}/edit`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ new_title: newTitle })
+                                });
+                                const result = await response.json();
+                                if(result.success) titleElement.textContent = newTitle;
+                                else alert(`Error: ${result.message}`);
+                             }
+                            editForm.remove();
+                            details.style.display = '';
+                        };
+                        editForm.querySelector('.save-btn').addEventListener('click', handleSave);
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') handleSave();
+                            if (e.key === 'Escape') {
+                                editForm.remove();
+                                details.style.display = '';
+                            }
+                        });
+                    }
+                });
+            });
+            
+            const toolsForm = document.getElementById('tools-form');
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loaderText = document.getElementById('loader-text');
+            const loaderSubtext = document.getElementById('loader-subtext');
+            if (toolsForm) {
+                toolsForm.addEventListener('submit', (event) => {
+                    const selectedFiles = document.querySelectorAll('input[name="selected_files"]:checked');
+                    if (selectedFiles.length > 0) {
+                        loaderText.textContent = 'Generating...';
+                        loaderSubtext.textContent = 'This may take up to 30 seconds.';
+                        loaderOverlay.classList.add('visible');
+                    } else {
+                        event.preventDefault();
+                        alert("Please select at least one document to use with the AI tools.");
+                    }
+                });
+            }
+            
+            const answerStyleSelect = document.getElementById('answer-style');
+            const hubId = '{{ hub.id }}';
+            let chatHistory = [];
+            chatForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const question = chatInput.value.trim();
+                if (!question) return;
+                addMessage(question, 'user');
+                chatHistory.push({ role: 'user', content: question });
+                chatInput.value = '';
+                const loadingMessage = addMessage('Thinking...', 'ai', true);
+                const selectedFiles = Array.from(document.querySelectorAll('input[name="selected_files"]:checked')).map(cb => cb.value);
+                const answerStyle = answerStyleSelect.value;
+                try {
+                    const response = await fetch(`/hub/${hubId}/ask_tutor`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            question, 
+                            selected_files: selectedFiles,
+                            chat_history: chatHistory.slice(0, -1),
+                            answer_style: answerStyle
+                        }),
+                    });
+                    const result = await response.json();
+                    const aiAnswer = result.answer || result.error || 'An unexpected error occurred.';
+                    loadingMessage.innerHTML = aiAnswer.replace(/\n/g, '<br>');
+                    loadingMessage.classList.remove('loading-message');
+                    chatHistory.push({ role: 'ai', content: aiAnswer });
+                } catch (error) {
+                    const errorText = 'Error: Could not connect to the server.';
+                    loadingMessage.textContent = errorText;
+                    loadingMessage.classList.remove('loading-message');
+                    chatHistory.push({ role: 'ai', content: errorText });
+                }
+            });
+            function addMessage(text, sender, isLoading = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message ${isLoading ? 'loading-message' : ''}`;
+                messageDiv.textContent = text;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return messageDiv;
+            }
+        });
+
+        async function runOneClickStudySession(hubId) {
+            const selectedFilesCheckboxes = document.querySelectorAll('input[name="selected_files"]:checked');
+            const selectedFiles = Array.from(selectedFilesCheckboxes).map(cb => cb.value);
+            if (selectedFiles.length === 0) {
+                alert("Please select at least one document to run the One-Click Study Session.");
+                return;
+            }
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const loaderText = document.getElementById('loader-text');
+            const loaderSubtext = document.getElementById('loader-subtext');
+            loaderOverlay.classList.add('visible');
+            const steps = [
+                { text: 'Generating notes from PDF...', subtext: 'Step 1 of 3: Converting files and creating your study guide.' },
+                { text: 'Creating flashcards...', subtext: 'Step 2 of 3: Identifying key terms for active recall.' },
+                { text: 'Generating 3 practice quizzes...', subtext: 'Step 3 of 3: Designing your quizzes for review.' },
+            ];
+            for (let i = 0; i < steps.length; i++) {
+                loaderText.textContent = steps[i].text;
+                loaderSubtext.textContent = steps[i].subtext;
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            try {
+                const response = await fetch(`/hub/${hubId}/one_click_study`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selected_files: selectedFiles }),
+                });
+                const result = await response.json();
+                if (result.success) {
+                    loaderText.textContent = 'Session complete!';
+                    loaderSubtext.textContent = 'All your study materials are ready.';
+                    setTimeout(() => {
+                        window.location.href = `/lecture/${result.lecture_id}`;
+                    }, 1000);
+                } else {
+                    loaderText.textContent = 'Error occurred';
+                    loaderSubtext.textContent = result.message || 'Please try again.';
+                    setTimeout(() => loaderOverlay.classList.remove('visible'), 3000);
+                }
+            } catch (error) {
+                loaderText.textContent = 'Network error';
+                loaderSubtext.textContent = 'Could not connect to the server. Please try again.';
+                setTimeout(() => loaderOverlay.classList.remove('visible'), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
+

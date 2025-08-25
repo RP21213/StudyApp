@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Smart Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #111827; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 2rem; background-color: white; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .quiz-header { text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 2rem; }
+        #timer { font-size: 1.5rem; font-weight: 600; color: var(--primary-color); }
+        .question-block { margin-bottom: 2.5rem; padding: 1.5rem; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .question-block p { font-weight: 600; margin-top: 0; font-size: 1.1rem; }
+        .options label { display: block; margin: 0.75rem 0; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; }
+        .options label:hover { background-color: #f9fafb; }
+        textarea { width: 100%; min-height: 100px; border: 1px solid #d1d5db; border-radius: 6px; padding: 0.75rem; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
+        .btn-primary { display: block; width: 100%; background-color: var(--primary-color); color: white; border: none; padding: 1rem; font-size: 1.1rem; font-weight: 600; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="quiz-header">
+            <h1>Smart Quiz</h1>
+            <div id="timer">Time Remaining: 10:00</div>
+        </div>
+
+        <form id="quiz-form" action="{{ url_for('submit_quiz', activity_id=activity_id) }}" method="POST">
+            {% for question in questions %}
+            {% set question_index = loop.index0 %}
+            <div class="question-block">
+                <p>{{ loop.index }}. {{ question.question }}</p>
+
+                {% if question.type == 'multiple_choice' %}
+                    <div class="options">
+                        {% for option in question.options %}
+                        <label>
+                            <input type="radio" name="question-{{ question_index }}" value="{{ option }}" required> {{ option }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                {% elif question.type == 'short_answer' or question.type == 'explanation' %}
+                    <textarea name="question-{{ question_index }}" placeholder="Your answer here..."></textarea>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" id="submit-btn" class="btn-primary">Submit Quiz</button>
+        </form>
+    </div>
+
+    <script>
+        const quizForm = document.getElementById('quiz-form');
+        const timerDisplay = document.getElementById('timer');
+        let timeLimit = {{ time_limit }}; // in seconds
+        let timerInterval;
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLimit--;
+                const minutes = Math.floor(timeLimit / 60).toString().padStart(2, '0');
+                const seconds = (timeLimit % 60).toString().padStart(2, '0');
+                timerDisplay.textContent = `Time Remaining: ${minutes}:${seconds}`;
+
+                if (timeLimit <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "Time's Up!";
+                    quizForm.submit();
+                }
+            }, 1000);
+        }
+
+        startTimer();
+    </script>
+</body>
+</html>
