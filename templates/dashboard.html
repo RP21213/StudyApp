@@ -24,191 +24,174 @@
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
+        html[data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger-color: #f87171;
+            --danger-hover: #ef4444;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-light: #6b7280;
+            --border-color: #374151;
+            --background-light: #111827;
+            --background-white: #1f2937;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15);
+            --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.1);
+            --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: var(--background-light);
             margin: 0;
             color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
         .header-text { flex-grow: 1; }
-        .header-actions { display: flex; gap: 1rem; }
+        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
         .header-text h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
         .header-text p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0; }
         
         .button {
-            background: var(--primary-color);
-            color: white;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            border: 1px solid transparent;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: var(--shadow-sm);
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1rem;
-            text-decoration: none;
+            background: var(--primary-color); color: white; padding: 0.75rem 1.25rem;
+            border-radius: 8px; border: 1px solid transparent; font-weight: 600; cursor: pointer;
+            box-shadow: var(--shadow-sm); transition: all 0.2s ease; display: inline-flex;
+            align-items: center; gap: 0.5rem; font-size: 1rem; text-decoration: none;
         }
-        .button:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .button-danger {
-            background-color: #fee2e2;
-            color: var(--danger-color);
-            border-color: #fecaca;
-        }
-        .button-danger:hover {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
+        .button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .button-danger { background-color: var(--danger-color); color: white; border-color: transparent; }
+        html[data-theme="light"] .button-danger { background-color: #fee2e2; color: var(--danger-color); border-color: #fecaca; }
+        .button-danger:hover { background-color: var(--danger-hover); border-color: var(--danger-hover); color: white; transform: translateY(-2px); box-shadow: var(--shadow-md); }
 
-        .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 2rem;
-        }
-        
-        .hub-card {
-            background-color: var(--background-white);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-md);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        .hub-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        /* --- UPDATED: Header Styles --- */
-        .card-header {
-            height: 90px; /* <-- HEADER IS SMALLER */
-            position: relative;
-            display: flex;
-            padding: 1rem 1.5rem;
-            align-items: flex-end;
-        }
-
-        .card-header h2 {
-            font-size: 1.5rem; /* <-- FONT IS SMALLER */
+        .pro-badge {
+            background: linear-gradient(to right, #facc15, #fb923c);
+            color: #422006;
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
             font-weight: 700;
-            margin: 0;
-            color: rgba(0, 0, 0, 0.7);
+            font-size: 0.9rem;
         }
 
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2rem; }
+        .hub-card {
+            background-color: var(--background-white); border-radius: 16px; border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md); transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .hub-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        .card-header { height: 90px; position: relative; display: flex; padding: 1rem 1.5rem; align-items: flex-end; }
+        .card-header h2 { font-size: 1.5rem; font-weight: 700; margin: 0; color: rgba(0, 0, 0, 0.7); }
+        html[data-theme="dark"] .card-header h2 { color: rgba(255, 255, 255, 0.85); }
         .delete-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background-color: rgba(0, 0, 0, 0.08);
-            color: rgba(0, 0, 0, 0.6);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 10;
+            position: absolute; top: 1rem; right: 1rem; background-color: rgba(0,0,0,0.08); color: rgba(0,0,0,0.6);
+            border: none; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 10;
         }
-        .delete-btn:hover {
-            background-color: var(--danger-color);
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        .hub-card-link {
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            padding: 1.5rem;
-        }
-        
-        .hub-card-body {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 1rem 0;
-            color: var(--text-secondary);
-        }
-        
+        html[data-theme="dark"] .delete-btn { background-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+        .delete-btn:hover { background-color: var(--danger-color); color: white; transform: scale(1.1); }
+        .hub-card-link { text-decoration: none; color: inherit; display: flex; flex-direction: column; flex-grow: 1; padding: 1.5rem; }
+        .hub-card-body { flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 80px; }
+        .empty-state { text-align: center; padding: 1rem 0; color: var(--text-secondary); }
         .empty-state svg { width: 40px; height: 40px; margin-bottom: 0.5rem; }
         .empty-state p { margin: 0; font-weight: 500; font-size: 0.9rem; }
-        
-        .hub-stats {
-            display: flex;
-            justify-content: space-around;
-            gap: 1.5rem;
-            text-align: center;
-            width: 100%;
-        }
-
+        .hub-stats { display: flex; justify-content: space-around; gap: 1.5rem; text-align: center; width: 100%; }
         .stat { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
         .stat-value { font-weight: 700; font-size: 1.5rem; color: var(--text-main); }
         .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); }
         
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(16, 24, 40, 0.6); backdrop-filter: blur(8px);
-            display: none; justify-content: center; align-items: center; z-index: 1000;
-            opacity: 0; transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(16, 24, 40, 0.6);
+            backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; transition: opacity 0.3s ease;
         }
         .modal-overlay.visible { display: flex; opacity: 1; }
         .modal-content {
             background: var(--background-white); padding: 2rem; border-radius: 12px;
-            width: 100%; max-width: 400px; box-shadow: var(--shadow-lg);
-            transform: scale(0.95); transition: transform 0.3s ease;
+            width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.3s ease;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .modal-header h3 { font-size: 1.25rem; margin: 0; }
         .close-button { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 0.5rem; }
         .modal-content input[type="text"] {
-            width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem;
-            margin-bottom: 1rem; box-sizing: border-box;
+            width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);
+            font-size: 1rem; margin-bottom: 1rem; box-sizing: border-box;
+            background-color: var(--background-light); color: var(--text-main);
         }
         .modal-content .button { width: 100%; justify-content: center; }
+
+        /* Theme toggle styles */
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 70px;
+            cursor: pointer;
+        }
+        .theme-switch input { display:none; }
+        .theme-switch .track {
+            background: linear-gradient(to right, #89cff0, #b6d8f2);
+            bottom: 0;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s ease-in-out;
+            border-radius: 34px;
+            overflow: hidden;
+        }
+        .theme-switch .handle {
+            background-color: #f9d71c;
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            transition: .4s ease-in-out;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        .theme-switch input:checked + .track {
+            background: linear-gradient(to right, #000428, #004e92);
+        }
+        .theme-switch input:checked + .track .handle {
+            transform: translateX(36px);
+            background-color: #f5f3ce;
+        }
+        .theme-switch .track-elements { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
+        .theme-switch .cloud, .theme-switch .star {
+            position: absolute; transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+        .theme-switch .cloud { background-color: white; border-radius: 50%; opacity: 1; }
+        .theme-switch .cloud.c1 { width: 15px; height: 10px; top: 8px; left: 35px; }
+        .theme-switch .cloud.c2 { width: 10px; height: 8px; top: 15px; left: 45px; }
+        .theme-switch .cloud.c3 { width: 12px; height: 9px; top: 6px; left: 55px; }
+        .theme-switch .cloud:before, .theme-switch .cloud:after { content: ''; position: absolute; background: white; border-radius: 50%; }
+        .theme-switch .cloud.c1:before { width: 8px; height: 8px; top: -4px; left: 3px; }
+        .theme-switch .cloud.c1:after { width: 10px; height: 10px; top: -2px; right: 2px; }
+        .theme-switch .star { background-color: white; border-radius: 50%; opacity: 0; transform: scale(0.5); }
+        .theme-switch .star.s1 { width: 2px; height: 2px; top: 8px; left: 10px; }
+        .theme-switch .star.s2 { width: 3px; height: 3px; top: 18px; left: 20px; }
+        .theme-switch .star.s3 { width: 2px; height: 2px; top: 10px; left: 30px; }
+        .theme-switch .star.s4 { width: 1px; height: 1px; top: 20px; left: 5px; }
+        .theme-switch input:checked + .track .cloud { opacity: 0; transform: translateX(-20px); }
+        .theme-switch input:checked + .track .star { opacity: 1; transform: scale(1); }
     </style>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -218,7 +201,44 @@
                 <p>All your courses, notes, and AI-powered tools in one place.</p>
             </div>
             <div class="header-actions">
+                <!-- Theme Toggle -->
+                <label class="theme-switch" for="theme-toggle">
+                    <input type="checkbox" id="theme-toggle" />
+                    <div class="track">
+                        <div class="handle"></div>
+                        <div class="track-elements">
+                            <div class="cloud c1"></div>
+                            <div class="cloud c2"></div>
+                            <div class="cloud c3"></div>
+                            <div class="star s1"></div>
+                            <div class="star s2"></div>
+                            <div class="star s3"></div>
+                            <div class="star s4"></div>
+                        </div>
+                    </div>
+                </label>
+
+                <!-- Subscription Status -->
+                {% if current_user.subscription_tier == 'free' %}
+                <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                    <!-- 
+                        IMPORTANT: Replace this value with your actual Price ID from the Stripe Dashboard.
+                        This ID starts with 'price_...'.
+                    -->
+                    <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
+                    <button type="submit" class="button">🚀 Upgrade to Pro</button>
+                </form>
+                {% elif current_user.subscription_tier == 'pro' %}
+                    <div class="pro-badge"><span>PRO</span></div>
+                {% endif %}
+
+                <!-- New Sign Out button -->
+                <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
+
+                <!-- Delete All Hubs button -->
                 <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
+
+                <!-- Create Hub button -->
                 <button class="button" id="open-modal-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Create New Hub
@@ -248,75 +268,71 @@
                         {% else %}
                         <div class="hub-stats">
                             <div class="stat">
-                                <span class="stat-value">{{ hub.notes_count or 0 }}</span>
-                                <span class="stat-label">Notes</span>
+                                <span class="stat-value">{{ hub.files|length }}</span>
+                                <span class="stat-label">Files</span>
                             </div>
                             <div class="stat">
-                                <span class="stat-value">{{ hub.flashcard_count or 0 }}</span>
+                                <span class="stat-value">{{ hub.flashcards_count }}</span>
                                 <span class="stat-label">Flashcards</span>
                             </div>
                             <div class="stat">
-                                <span class="stat-value">{{ hub.quizzes_taken or 0 }}</span>
-                                <span class="stat-label">Quizzes</span>
+                                <span class="stat-value">{{ hub.notes_count }}</span>
+                                <span class="stat-label">Notes</span>
                             </div>
                         </div>
                         {% endif %}
                     </div>
-                    <!-- REMOVED: The hub-card-footer div was here -->
                 </a>
             </article>
+            {% else %}
+            <p style="text-align:center; color: var(--text-secondary); font-size: 1rem; grid-column: 1 / -1;">No study hubs yet. Create your first one!</p>
             {% endfor %}
         </main>
     </div>
 
-    <div class="modal-overlay" id="new-hub-modal">
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Create a New Hub</h3>
+                <h3>Create New Hub</h3>
                 <button class="close-button" id="close-modal-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <form action="{{ url_for('add_hub') }}" method="POST">
-                <input type="text" name="hub_name" placeholder="e.g., BIO101 Cell Biology" required>
+                <input type="text" name="hub_name" placeholder="Enter hub name" required>
                 <button type="submit" class="button">Create Hub</button>
             </form>
         </div>
     </div>
 
     <script>
-        function confirmDeleteAll() {
-            if (confirm("Are you sure you want to delete ALL of your hubs and all associated data?")) {
-                return confirm("This action is permanent and cannot be undone. Are you absolutely sure?");
+        // Modal functionality
+        const openModalBtn = document.getElementById('open-modal-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+
+        openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
+        closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
+        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        if (localStorage.getItem('theme') === 'dark') themeToggle.checked = true;
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
             }
-            return false;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('new-hub-modal');
-            const openBtn = document.getElementById('open-modal-btn');
-            const closeBtn = document.getElementById('close-modal-btn');
-
-            const openModal = () => modal.classList.add('visible');
-            const closeModal = () => modal.classList.remove('visible');
-
-            openBtn.addEventListener('click', openModal);
-            closeBtn.addEventListener('click', closeModal);
-            
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) closeModal();
-            });
-            
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && modal.classList.contains('visible')) closeModal();
-            });
-
-            document.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                });
-            });
         });
+
+        // Confirm delete all hubs
+        function confirmDeleteAll() {
+            return confirm('Are you sure you want to delete ALL hubs? This cannot be undone.');
+        }
     </script>
 </body>
 </html>

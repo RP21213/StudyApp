@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ session.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5; --primary-hover: #4338ca; --primary-light: #eef2ff;
+            --success-color: #10b981; --danger-color: #ef4444;
+            --text-main: #1f2937; --text-secondary: #6b7280;
+            --border-color: #e5e7eb; --background-body: #f4f5f7;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); margin: 0; padding: 2rem; }
+        .session-container { max-width: 800px; margin: auto; }
+        .session-header { text-align: center; margin-bottom: 2rem; }
+        .session-header h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+        .progress-container { margin-bottom: 2rem; }
+        .topic-progress { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+        .topic-progress-segment { flex: 1; height: 8px; background-color: var(--border-color); border-radius: 4px; transition: background-color 0.3s ease; }
+        .topic-progress-segment.active { background-color: var(--primary-color); }
+        .phase-progress { font-weight: 600; color: var(--text-secondary); text-align: center; }
+        .step-card { background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .content-area { padding: 2rem; font-family: 'Lora', serif; line-height: 1.8; }
+        .content-area h3, .content-area h2, .content-area h1 { font-family: 'Poppins', sans-serif; }
+        .interaction-area { padding: 2rem; border-top: 1px solid var(--border-color); background-color: #f9fafb; border-radius: 0 0 12px 12px; }
+        .interaction-area h3 { margin: 0 0 1rem; font-size: 1.2rem; font-family: 'Poppins', sans-serif;}
+        .interaction-area .options button { display: block; width: 100%; text-align: left; background: white; border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.5rem; cursor: pointer; font-size: 1rem; }
+        .interaction-area .options button:hover:not(:disabled) { background-color: var(--primary-light); }
+        .interaction-area .options button:disabled { cursor: not-allowed; }
+        .interaction-area .options button.correct { background-color: #dcfce7; border-color: var(--success-color); font-weight: 600; }
+        .interaction-area .options button.incorrect { background-color: #fee2e2; border-color: var(--danger-color); }
+        .interaction-area textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; box-sizing: border-box; }
+        .feedback { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; }
+        .feedback.success { background-color: #dcfce7; }
+        .feedback.error { background-color: #fee2e2; }
+        .session-footer { margin-top: 1.5rem; text-align: right; }
+        .button { background-color: var(--primary-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .button.secondary { background-color: #fff; color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .button:disabled { background-color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="session-container">
+        <header class="session-header">
+            <h1 id="topic-title"></h1>
+            <div class="progress-container">
+                <div id="topic-progress" class="topic-progress"></div>
+                <div id="phase-progress" class="phase-progress"></div>
+            </div>
+        </header>
+
+        <div class="step-card">
+            <div id="content-area" class="content-area"></div>
+            <div id="interaction-area" class="interaction-area"></div>
+        </div>
+
+        <footer class="session-footer">
+            <button id="next-btn" class="button">Continue</button>
+        </footer>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sessionPlan = {{ session.session_plan | tojson | safe }};
+        const sessionId = '{{ session.id }}';
+        
+        const steps = [];
+        // --- NEW FLATTENING LOGIC ---
+        if (sessionPlan && sessionPlan.topics) {
+            sessionPlan.topics.forEach((topic, topicIndex) => {
+                // Add the main content as the first step for this topic
+                if (topic.content_html) {
+                    steps.push({ 
+                        type: 'guided_notes', 
+                        content_html: topic.content_html,
+                        topic_title: topic.title, 
+                        topic_index: topicIndex 
+                    });
+                }
+                // Add all subsequent interactions for this topic
+                if (topic.interactions && Array.isArray(topic.interactions)) {
+                    topic.interactions.forEach(interaction => {
+                        if (interaction && typeof interaction === 'object' && interaction.type) {
+                            steps.push({ ...interaction, topic_title: topic.title, topic_index: topicIndex });
+                        }
+                    });
+                }
+            });
+        }
+        
+        let currentStepIndex = 0;
+        let sessionResults = [];
+
+        const titleEl = document.getElementById('topic-title');
+        const topicProgressEl = document.getElementById('topic-progress');
+        const phaseProgressEl = document.getElementById('phase-progress');
+        const contentArea = document.getElementById('content-area');
+        const interactionArea = document.getElementById('interaction-area');
+        const nextBtn = document.getElementById('next-btn');
+        
+        if (steps.length === 0) {
+            titleEl.textContent = "Error";
+            contentArea.innerHTML = `<h3>Session Generation Failed</h3><p>There was an issue creating the study plan from the provided document. The AI may not have been able to find distinct topics to structure a session.</p><p>Please try again with a different document or a longer one.</p>`;
+            interactionArea.innerHTML = `<a href="/hub/{{ session.hub_id }}" class="button">Back to Hub</a>`;
+            nextBtn.style.display = 'none';
+            return;
+        }
+
+        function initializeProgressBars() {
+            topicProgressEl.innerHTML = '';
+            if (sessionPlan && sessionPlan.topics) {
+                sessionPlan.topics.forEach(() => {
+                    const segment = document.createElement('div');
+                    segment.className = 'topic-progress-segment';
+                    topicProgressEl.appendChild(segment);
+                });
+            }
+        }
+        
+        function renderCurrentStep() {
+            if (currentStepIndex >= steps.length) {
+                completeSession();
+                return;
+            }
+
+            const step = steps[currentStepIndex];
+            nextBtn.disabled = true;
+            interactionArea.innerHTML = '';
+            contentArea.innerHTML = '';
+
+            titleEl.textContent = step.topic_title;
+            const interactionType = step.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            phaseProgressEl.textContent = `Step ${currentStepIndex + 1} of ${steps.length}: ${interactionType}`;
+            document.querySelectorAll('.topic-progress-segment').forEach((seg, i) => {
+                seg.classList.toggle('active', i <= step.topic_index);
+            });
+            
+            switch(step.type) {
+                case 'guided_notes':
+                    contentArea.innerHTML = step.content_html;
+                    interactionArea.innerHTML = `<p>Read the notes above. Click Continue when you're ready to test your knowledge.</p>`;
+                    nextBtn.disabled = false;
+                    break;
+                case 'checkpoint_quiz':
+                    contentArea.innerHTML = `<h3>Checkpoint Quiz</h3><p>Let's test your knowledge on what you've just learned.</p>`;
+                    renderMcq(step.questions);
+                    break;
+                case 'teach_back':
+                    contentArea.innerHTML = `<h3>Teach It Back Challenge</h3><p>Reinforce your learning by explaining the core concept in your own words.</p>`;
+                    renderTeachBack(step);
+                    break;
+                default:
+                    contentArea.innerHTML = `<p>Error: Encountered an unknown step type: ${step.type}. Skipping.</p>`;
+                    nextBtn.disabled = false;
+            }
+        }
+
+        function renderMcq(questions) {
+            const question = questions[0];
+            let html = `<h3>${question.question}</h3><div class="options">`;
+            question.options.forEach(opt => {
+                html += `<button data-option="${opt}">${opt}</button>`;
+            });
+            html += `</div><div class="feedback"></div>`;
+            interactionArea.innerHTML = html;
+            interactionArea.querySelectorAll('.options button').forEach(btn => {
+                btn.addEventListener('click', () => handleMcqAnswer(btn, question.correct_answer));
+            });
+        }
+
+        function handleMcqAnswer(selectedButton, correctAnswer) {
+            const isCorrect = selectedButton.dataset.option === correctAnswer;
+            const feedbackEl = interactionArea.querySelector('.feedback');
+            interactionArea.querySelectorAll('.options button').forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.option === correctAnswer) btn.classList.add('correct');
+            });
+
+            if (isCorrect) {
+                selectedButton.classList.add('correct');
+                feedbackEl.textContent = 'Correct!';
+                feedbackEl.className = 'feedback success';
+            } else {
+                selectedButton.classList.add('incorrect');
+                feedbackEl.textContent = `Not quite. The correct answer was highlighted.`;
+                feedbackEl.className = 'feedback error';
+            }
+            sessionResults.push({ step: currentStepIndex, is_correct: isCorrect, topic_title: steps[currentStepIndex].topic_title });
+            nextBtn.disabled = false;
+        }
+
+        function renderTeachBack(block) {
+            interactionArea.innerHTML = `
+                <h3>${block.prompt}</h3>
+                <textarea id="teach-back-input" placeholder="Explain in your own words..."></textarea>
+                <button id="submit-teach-back" class="button" style="margin-top: 1rem;">Submit Explanation</button>
+                <div class="feedback"></div>`;
+            document.getElementById('submit-teach-back').addEventListener('click', () => handleTeachBackSubmit(block.model_answer));
+        }
+
+        async function handleTeachBackSubmit(modelAnswer) {
+            const submitBtn = document.getElementById('submit-teach-back');
+            const studentAnswer = document.getElementById('teach-back-input').value;
+            const feedbackEl = interactionArea.querySelector('.feedback');
+            if (studentAnswer.trim().length < 10) {
+                feedbackEl.textContent = 'Please provide a more detailed explanation.';
+                feedbackEl.className = 'feedback error';
+                return;
+            }
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Evaluating...';
+            try {
+                const response = await fetch('/session/evaluate_teach_back', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_answer: modelAnswer, student_answer: studentAnswer })
+                });
+                const result = await response.json();
+                feedbackEl.innerHTML = `<p><strong>Score: ${result.score}/10</strong> | <strong>Feedback:</strong> ${result.feedback}</p><hr><p><strong>Model Answer:</strong> ${modelAnswer}</p>`;
+                feedbackEl.className = 'feedback success';
+                sessionResults.push({ step: currentStepIndex, score: result.score, feedback: result.feedback, topic_title: steps[currentStepIndex].topic_title });
+                nextBtn.disabled = false;
+            } catch (error) {
+                feedbackEl.textContent = 'Could not evaluate answer. Please try again.';
+                feedbackEl.className = 'feedback error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Explanation';
+            }
+        }
+
+        async function completeSession() {
+            nextBtn.textContent = 'Finishing...';
+            nextBtn.disabled = true;
+            const response = await fetch(`/session/${sessionId}/complete`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ results: sessionResults })
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = data.report_url;
+            } else {
+                alert('Failed to save session results.');
+                nextBtn.disabled = false;
+                nextBtn.textContent = 'Continue';
+            }
+        }
+
+        nextBtn.addEventListener('click', () => {
+            currentStepIndex++;
+            renderCurrentStep();
+        });
+
+        initializeProgressBars();
+        renderCurrentStep();
+    });
+    </script>
+</body>
+</html>

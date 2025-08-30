@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ folder.name }} - Folder View</title>
+    <!-- Reusing the same fonts as the main hub page -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Using the same CSS from hub.html for a consistent look and feel -->
+    <style>
+        :root {
+            --primary-color: #4f46e5; --primary-hover: #4338ca; --primary-light: #eef2ff;
+            --danger-color: #ef4444; --danger-hover: #dc2626; --success-color: #10b981;
+            --text-main: #1f2937; --text-secondary: #6b7280; --border-color: #e5e7eb;
+            --background-body: #f4f5f7; --background-card: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); margin: 0; padding: 2rem; color: var(--text-main); }
+        h1, h2, h3, h4, h5, .button { font-family: 'Poppins', sans-serif; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .main-content { display: flex; flex-direction: column; gap: 2rem; }
+        .content-card { background-color: var(--background-card); border-radius: 12px; border: 1px solid #f3f4f6; box-shadow: var(--card-shadow); padding: 1.5rem 2rem; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; }
+        .page-header h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
+        .button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; text-decoration: none; font-weight: 600; padding: 0.625rem 1rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.2s ease-in-out; cursor: pointer; font-size: 0.9rem; }
+        .button-primary { background-color: var(--primary-color); color: white; }
+        .button-secondary { background-color: var(--background-card); border-color: var(--border-color); color: var(--text-secondary); }
+        .button-danger { background-color: var(--danger-color); color: white; }
+        .asset-list { list-style: none; padding: 0; margin: 0; }
+        .asset-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 8px; transition: background-color 0.2s; }
+        .asset-item:not(:last-child) { margin-bottom: 0.5rem; }
+        .asset-item:hover { background-color: #f9fafb; }
+        .asset-link { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex-grow: 1; }
+        .asset-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .asset-icon-note { background-color: var(--primary-light); color: var(--primary-color); }
+        .asset-icon-flashcards { background-color: #dcfce7; color: #166534; }
+        .asset-icon-quiz { background-color: #fef9c3; color: #854d0e; }
+        .asset-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; }
+        .asset-details span { font-size: 0.85rem; color: var(--text-secondary); }
+        .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; max-height: 80vh; display: flex; flex-direction: column; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
+        .modal-header h3 { margin: 0; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        .modal-body { overflow-y: auto; padding-right: 1rem; }
+        .modal-footer { margin-top: 1.5rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1rem; }
+        .modal-body h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container" style="grid-template-columns: 1fr;">
+        <main class="main-content">
+            <div class="content-card">
+                <div class="page-header" id="folder-header">
+                    <h1>{{ folder.name }}</h1>
+                    <div class="asset-actions" style="gap: 1rem;">
+                        <a href="{{ url_for('hub_page', hub_id=folder.hub_id, _anchor='folders') }}" class="button button-secondary">Back to Hub</a>
+                        <button class="button button-primary" id="add-items-btn">Add Items to Folder</button>
+                    </div>
+                </div>
+            </div>
+            <div class="content-card">
+                <h3>Contents</h3>
+                <ul class="asset-list" id="folder-items-list">
+                    {% for item in folder_items %}
+                    <li class="asset-item" data-id="{{ item.id }}" data-type="{{ 'note' if 'content_html' in item.__dict__ else item.type.lower() }}">
+                        {% if 'content_html' in item.__dict__ %}
+                        <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link">
+                            <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Note</span></div>
+                        </a>
+                        {% elif item.type == 'Quiz' %}
+                        <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link">
+                            <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
+                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz ({{ item.score }}%)</span></div>
+                        </a>
+                        {% elif item.type == 'Flashcards' %}
+                        <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link">
+                           <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
+                           <div class="asset-details"><h5>{{ item.title }}</h5><span>Flashcards</span></div>
+                        </a>
+                        {% endif %}
+                        <div class="asset-actions">
+                            <button class="button button-danger remove-item-btn" style="padding: 0.5rem 1rem;">Remove</button>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="empty-state-text">This folder is empty. Click "Add Items to Folder" to get started.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Items Modal -->
+    <div class="modal-overlay" id="add-items-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Items to Folder</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                {% if available_assets.notes %}
+                <h4>Notes</h4>
+                <ul class="asset-list">
+                    {% for note in available_assets.notes %}<li class="asset-item" style="padding-left:0;"><label style="display:flex; align-items:center; gap:1rem; cursor:pointer; width:100%;"><input type="checkbox" data-id="{{ note.id }}" data-type="note"><span>{{ note.title }}</span></label></li>{% endfor %}
+                </ul>
+                {% endif %}
+                {% if available_assets.quizzes %}
+                <h4>Quizzes</h4>
+                <ul class="asset-list">
+                    {% for quiz in available_assets.quizzes %}<li class="asset-item" style="padding-left:0;"><label style="display:flex; align-items:center; gap:1rem; cursor:pointer; width:100%;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz"><span>{{ quiz.title }}</span></label></li>{% endfor %}
+                </ul>
+                {% endif %}
+                 {% if available_assets.flashcards %}
+                 <h4>Flashcards</h4>
+                <ul class="asset-list">
+                    {% for fc in available_assets.flashcards %}<li class="asset-item" style="padding-left:0;"><label style="display:flex; align-items:center; gap:1rem; cursor:pointer; width:100%;"><input type="checkbox" data-id="{{ fc.id }}" data-type="flashcards"><span>{{ fc.title }}</span></label></li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary close-btn">Cancel</button>
+                <button class="button button-primary" id="save-added-items-btn">Add Selected Items</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const folderId = '{{ folder.id }}';
+        
+        const modal = document.getElementById('add-items-modal');
+        document.getElementById('add-items-btn').addEventListener('click', () => modal.style.display = 'flex');
+        modal.querySelectorAll('.close-btn').forEach(btn => {
+            btn.addEventListener('click', () => modal.style.display = 'none');
+        });
+
+        document.getElementById('save-added-items-btn').addEventListener('click', async () => {
+            const selectedItems = [];
+            modal.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                selectedItems.push({ id: cb.dataset.id, type: cb.dataset.type });
+            });
+            if (selectedItems.length > 0) {
+                const response = await fetch(`/folder/${folderId}/add_items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: selectedItems })
+                });
+                if (response.ok) window.location.reload();
+                else alert('Failed to add items.');
+            } else {
+                modal.style.display = 'none';
+            }
+        });
+
+        document.getElementById('folder-items-list').addEventListener('click', async (e) => {
+            if (e.target.classList.contains('remove-item-btn')) {
+                if (confirm('Are you sure you want to remove this item from the folder?')) {
+                    const itemEl = e.target.closest('.asset-item');
+                    const item = { id: itemEl.dataset.id, type: itemEl.dataset.type };
+                    const response = await fetch(`/folder/${folderId}/remove_item`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ item: item })
+                    });
+                    if (response.ok) {
+                         itemEl.style.transition = 'opacity 0.3s';
+                         itemEl.style.opacity = '0';
+                         setTimeout(() => itemEl.remove(), 300);
+                    } else {
+                        alert('Failed to remove item.');
+                    }
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>

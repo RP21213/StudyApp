@@ -1,4 +1,3 @@
-# app.py
 # ==============================================================================
 # 1. SETUP & IMPORTS
 # ==============================================================================
@@ -10,6 +9,8 @@ import re
 import random
 from datetime import datetime, timezone
 from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from openai import OpenAI
 import PyPDF2
 import ast
@@ -20,6 +21,18 @@ from datetime import datetime, timedelta, timezone
 import threading
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
+import stripe
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User
+
+# --- NEW: Imports for Authentication ---
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# --- NEW: Imports for .ics parsing ---
+from icalendar import Calendar
+from werkzeug.utils import secure_filename
+import uuid
+
 
 # --- UPDATED: Import the new models, including Lecture ---
 from models import Hub, Activity, Note, Lecture
@@ -103,26 +116,42 @@ class NotesPDF(FPDF):
                         self.write(6, part)
                 self.ln(6)
 
+
+
 # --- Initialize Firebase ---
 try:
     base_dir = os.path.dirname(os.path.abspath(__file__))
     key_path = os.path.join(base_dir, "firebase_key.json")
     cred = credentials.Certificate(key_path)
-    BUCKET_NAME = "ai-study-hub-f3040.firebasestorage.app" # YOUR FIREBASE BUCKET NAME
+    BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME", "ai-study-hub-f3040.firebasestorage.app")
     firebase_admin.initialize_app(cred, {'storageBucket': BUCKET_NAME})
     print("Firebase initialized successfully!")
 except Exception as e:
     print(f"Firebase initialization failed. Error: {e}")
-
 db = firestore.client()
 bucket = storage.bucket()
 
 # --- Flask App and OpenAI Client Initialization ---
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+# IMPORTANT: Set a secret key for session management in your environment variables
+app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-llm = ChatOpenAI(openai_api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4o")
-embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+# --- NEW: Configure Stripe ---
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+YOUR_DOMAIN = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000")
+
+
+# --- NEW: Setup Flask-Login ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login' # Redirect to /login if user is not authenticated
+
+@login_manager.user_loader
+def load_user(user_id):
+    user_doc = db.collection('users').document(user_id).get()
+    if user_doc.exists:
+        return User.from_dict(user_doc.to_dict())
+    return None
 
 
 # --- Jinja Filter for Relative Time ---
@@ -140,6 +169,54 @@ app.jinja_env.filters['timesince'] = timesince_filter
 # ==============================================================================
 # 2. CORE UTILITY & HELPER FUNCTIONS
 # ==============================================================================
+
+# --- NEW: Helper function for updating hub progress ---
+def update_hub_progress(hub_id, xp_to_add):
+    """
+    Atomically updates a hub's total XP and calculates the study streak.
+    """
+    try:
+        hub_ref = db.collection('hubs').document(hub_id)
+        hub_doc = hub_ref.get()
+        if not hub_doc.exists:
+            return
+
+        hub_data = hub_doc.to_dict()
+        
+        # Streak Calculation Logic
+        today = datetime.now(timezone.utc).date()
+        last_study_date = hub_data.get('last_study_date')
+        
+        # Convert Firestore timestamp to date if it exists
+        if last_study_date:
+            last_study_date = last_study_date.date()
+
+        current_streak = hub_data.get('streak_days', 0)
+        new_streak = current_streak
+
+        if last_study_date is None:
+            # First activity ever
+            new_streak = 1
+        elif last_study_date == today:
+            # Already studied today, streak doesn't increase
+            pass
+        elif last_study_date == today - timedelta(days=1):
+            # Studied yesterday, increment streak
+            new_streak += 1
+        else:
+            # Missed a day or more, reset streak to 1
+            new_streak = 1
+            
+        # Use a transaction to safely update XP and streak data
+        hub_ref.update({
+            'total_xp': firestore.Increment(xp_to_add),
+            'streak_days': new_streak,
+            'last_study_date': datetime.now(timezone.utc)
+        })
+
+    except Exception as e:
+        print(f"Error updating hub progress for hub {hub_id}: {e}")
+
 def pdf_to_text(pdf_file_stream):
     try:
         reader = PyPDF2.PdfReader(pdf_file_stream)
@@ -188,6 +265,151 @@ def safe_load_json(data):
 # ==============================================================================
 # 3. AI GENERATION SERVICES
 # ==============================================================================
+
+
+def generate_cheat_sheet_json(text):
+    """Generates content for a multi-column cheat sheet as a JSON object."""
+    prompt = f"""
+    You are an expert content creator for cheat sheets. Analyze the provided text and extract the most critical information (key definitions, code snippets, important formulas, core concepts).
+    Your output MUST be a single, valid JSON object structured for a 3-column layout.
+
+    The JSON structure must be:
+    {{
+      "title": "Cheat Sheet Title",
+      "columns": [
+        {{ "blocks": [ {{ "title": "Block Title", "content_html": "HTML content..." }} ] }},
+        {{ "blocks": [ {{ "title": "Block Title", "content_html": "HTML content..." }} ] }},
+        {{ "blocks": [ {{ "title": "Block Title", "content_html": "HTML content..." }} ] }}
+      ]
+    }}
+
+    - The root object has "title" and "columns".
+    - "columns" is an array that should contain exactly 3 column objects.
+    - Each column object has a "blocks" array.
+    - Each block object has a "title" and "content_html".
+    - The `content_html` should be well-formed HTML using `<p>`, `<ul>`, `<li>`, `<strong>`, and `<pre><code>` for code. Distribute the content logically across the three columns.
+
+    Analyze this text:
+    ---
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+def generate_audio_from_text(text, hub_id, session_id, topic_index):
+    """Generates an MP3 audio file from text and saves it to Firebase Storage."""
+    try:
+        # Generate audio data from OpenAI's TTS API
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy", # Other voices: echo, fable, onyx, nova, shimmer
+            input=text
+        )
+        audio_data = response.content
+
+        # Define a unique path in Firebase Storage
+        file_name = f"recap_topic_{topic_index}.mp3"
+        file_path = f"hubs/{hub_id}/sessions/{session_id}/{file_name}"
+        
+        # Upload the audio data to the bucket
+        blob = bucket.blob(file_path)
+        blob.upload_from_string(audio_data, content_type='audio/mpeg')
+
+        # Make the blob publicly accessible and get its URL
+        blob.make_public()
+        return blob.public_url
+
+    except Exception as e:
+        print(f"Error generating or uploading audio: {e}")
+        return None
+
+def generate_remedial_materials(text, topic):
+    """Generates focused notes and a 3-question quiz for a specific weak topic."""
+    prompt = f"""
+    You are an expert tutor creating remedial study materials for a student who is struggling with a specific topic.
+    The topic is: "{topic}"
+
+    Your task is to generate a JSON object with two keys: "notes_html" and "questions".
+
+    1.  "notes_html": Create a concise, clear, and well-structured HTML summary of the key concepts for ONLY the topic of "{topic}", based on the provided text. Use p, ul, li, and strong tags.
+    2.  "questions": Create an array of 3 multiple-choice questions that specifically test the most important aspects of "{topic}". Each question object must have "question", "options" (an array of 4 strings), and "correct_answer".
+
+    Base all content strictly on the provided text below.
+    ---
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+def generate_full_study_session(text, duration, focus):
+    """
+    Generates a complete, multi-modal, 3-phase study plan in a single, robust AI call.
+    """
+    focus_instructions = {
+        "recall": "Prioritize 'checkpoint_quiz' interactions to reinforce memory.",
+        "understanding": "Prioritize 'teach_back' to deepen comprehension.",
+        "exam_prep": "Use a mix of 'checkpoint_quiz' with varied questions and 'teach_back' for conceptual clarity."
+    }
+    duration_map = {
+        "15": {"topics": "2-3", "detail": "brief"},
+        "30": {"topics": "4-5", "detail": "standard"},
+        "60": {"topics": "6-7", "detail": "in-depth"}
+    }
+    session_config = duration_map.get(str(duration), {"topics": "4-5", "detail": "standard"})
+    num_topics = session_config["topics"]
+    detail_level = session_config["detail"]
+
+    detail_instructions = {
+        "brief": "For each topic, the 'content_html' should be a concise summary of 2-3 paragraphs. Follow it with only one simple interaction block ('checkpoint_quiz' or 'teach_back').",
+        "standard": "For each topic, the 'content_html' should be moderately detailed. Follow it with a mix of two interaction blocks.",
+        "in-depth": "For each topic, the 'content_html' should be comprehensive and detailed. Follow it with at least two varied and challenging interaction blocks."
+    }
+
+    prompt = f"""
+    You are an expert AI instructional designer creating a complete, personalized study session from text.
+    The user wants a ~{duration} minute session focused on '{focus}'.
+
+    **SESSION DIRECTIVES:**
+    - **Topic Count:** Structure the content into {num_topics} logical topics.
+    - **Detail Level:** The session must be '{detail_level}'. Follow this rule: {detail_instructions.get(detail_level)}
+    - **Focus:** Adhere to the user's focus on '{focus}'. Follow this rule: {focus_instructions.get(focus)}
+
+    Your response MUST be a single, valid JSON object with one key: "topics".
+    Each topic object in the "topics" array must contain:
+    1. "title": A string for the topic title.
+    2. "content_html": A string of rich, well-formed HTML content for this topic. This is the main learning material. It MUST be detailed and comprehensive as per the detail level. Include interactive keywords by wrapping them in `<span class="keyword" title="concise definition">keyword</span>`.
+    3. "interactions": An ARRAY of interaction block objects to follow the content.
+
+    **Interaction Block Types:**
+    - type: "checkpoint_quiz"
+      - "questions": An array of 1-2 multiple-choice objects. Each must have "question", "options" (an array of 4 strings), and "correct_answer".
+    - type: "teach_back"
+      - "prompt": A string asking the user to explain the topic's core concept.
+      - "model_answer": A concise, ideal answer for evaluation.
+
+    **CRITICAL INSTRUCTIONS:**
+    - The `content_html` for each topic MUST be substantial and detailed. This is the primary learning content.
+    - The `interactions` you generate for a topic MUST be based ONLY on the `content_html` you just generated for that same topic.
+
+    Here is the text to build the entire plan from:
+    ---
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
 def generate_interactive_notes_html(text):
     """Generates interactive study notes in HTML format using the AI."""
     prompt = f"""
@@ -240,7 +462,6 @@ def generate_flashcards_from_text(text):
 
 def generate_quiz_from_text(text):
     """Generates a quiz in JSON format from text using the AI."""
-    # ✅ FIX: This prompt is re-engineered to be more direct and reliable for topic tagging.
     prompt = f"""
     You are an expert educator. Your task is to create a 10-question practice quiz from the text below.
 
@@ -386,137 +607,162 @@ def generate_interactive_heatmap_data(text):
     )
     return response.choices[0].message.content
 
-# ==============================================================================
-# 4. FLASK ROUTES
-# ==============================================================================
+# --- Homepage and Auth Routes ---
 @app.route("/")
-def home():
-    return redirect(url_for('dashboard'))
+def index():
+    return render_template("index.html")
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        users_ref = db.collection('users').where('email', '==', email).limit(1).stream()
+        user_list = list(users_ref)
+
+        if not user_list:
+            flash('Invalid email or password.')
+            return redirect(url_for('login'))
+
+        user_data = user_list[0].to_dict()
+        user = User.from_dict(user_data)
+        
+        if not check_password_hash(user.password_hash, password):
+            flash('Invalid email or password.')
+            return redirect(url_for('login'))
+        
+        login_user(user, remember=True)
+        return redirect(url_for('dashboard'))
+
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        users_ref = db.collection('users').where('email', '==', email).limit(1).stream()
+        if list(users_ref):
+            flash('Email address already exists.')
+            return redirect(url_for('signup'))
+        
+        password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+        
+        user_ref = db.collection('users').document()
+        new_user = User(
+            id=user_ref.id, 
+            email=email, 
+            password_hash=password_hash
+        )
+        user_ref.set(new_user.to_dict())
+
+        login_user(new_user, remember=True)
+        return redirect(url_for('dashboard'))
+
+    return render_template('signup.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+# --- Main Application Routes (UPDATED) ---
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    hubs_ref = db.collection('hubs').stream()
-    hubs_list = []
-    for hub_doc in hubs_ref:
-        hub = Hub.from_dict(hub_doc.to_dict())
-        activities_query = db.collection('activities').where('hub_id', '==', hub.id).stream()
-        hub_activities = [Activity.from_dict(doc.to_dict()) for doc in activities_query]
-        notes_query = db.collection('notes').where('hub_id', '==', hub.id).stream()
-        hub.notes_count = len(list(notes_query))
-        hub.flashcard_count = len([a for a in hub_activities if a.type == 'Flashcards'])
-        hub.quizzes_taken = len([a for a in hub_activities if a.type in ['Quiz', 'Mock Exam'] and a.status == 'graded'])
-        hubs_list.append(hub)
+    # UPDATED: This query now filters hubs by the logged-in user's ID
+    hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+    
+    hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]
+    # In a full app, you'd also calculate stats for each hub here
+    
     return render_template("dashboard.html", hubs=hubs_list)
 
+
 @app.route("/add_hub", methods=["POST"])
+@login_required
 def add_hub():
     hub_name = request.form.get('hub_name')
     if hub_name:
         hub_ref = db.collection('hubs').document()
-        hub_styles = [
-            {"color": "#fdba74", "pattern": "data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 0v20M0 10h20' stroke-width='1' stroke='rgba(0,0,0,0.1)'/%3E%3C/svg%3E"},
-            {"color": "#6ee7b7", "pattern": "data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='4' stroke-width='1.5' stroke='rgba(0,0,0,0.1)' fill='none'/%3E%3C/svg%3E"},
-            {"color": "#93c5fd", "pattern": "data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 10 L10 18 L18 10' stroke-width='1.5' stroke='rgba(0,0,0,0.1)' fill='none'/%3E%3C/svg%3E"},
-            {"color": "#c4b5fd", "pattern": "data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='5' y='5' width='10' height='10' rx='2' stroke-width='1.5' stroke='rgba(0,0,0,0.1)' fill='none'/%3E%3C/svg%3E"},
-            {"color": "#f9a8d4", "pattern": "data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2 L18 22 L6 22 Z' stroke-width='1.5' stroke='rgba(0,0,0,0.1)' fill='none'/%3E%3C/svg%3E"},
-            {"color": "#fde047", "pattern": "data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0L20 20M20 0L0 20' stroke-width='1' stroke='rgba(0,0,0,0.1)'/%3E%3C/svg%3E"}
-        ]
-        style = random.choice(hub_styles)
-        new_hub = Hub(id=hub_ref.id, name=hub_name, header_color=style['color'], header_pattern_url=style['pattern'])
+        
+        # UPDATED: We now pass the current_user.id when creating a new Hub
+        new_hub = Hub(
+            id=hub_ref.id, 
+            name=hub_name, 
+            user_id=current_user.id # This is the crucial change
+        )
         hub_ref.set(new_hub.to_dict())
     return redirect(url_for('dashboard'))
 
-@app.route("/hub/<hub_id>/delete")
-def delete_hub(hub_id):
-    try:
-        blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
-        for blob in blobs: blob.delete()
-        collections_to_delete = ['notes', 'activities', 'lectures']
-        for coll in collections_to_delete:
-            docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
-            for doc in docs: doc.reference.delete()
-        db.collection('hubs').document(hub_id).delete()
-        flash(f"Hub and all its data have been successfully deleted.", "success")
-    except Exception as e:
-        print(f"Error deleting hub {hub_id}: {e}")
-        flash("An error occurred while trying to delete the hub.", "error")
-    return redirect(url_for('dashboard'))
-
-# ✅ ADDED: New route to handle exporting flashcards in different formats
-@app.route("/flashcards/<activity_id>/export")
-def export_flashcards(activity_id):
-    # 1. Get the format and fetch the flashcard data from Firestore
-    export_format = request.args.get('format')
-    activity_doc = db.collection('activities').document(activity_id).get()
-
-    if not activity_doc.exists:
-        return "Flashcard set not found.", 404
-
-    activity = Activity.from_dict(activity_doc.to_dict())
-    cards = activity.data.get('cards', [])
-    
-    # Use an in-memory text buffer to build the file
-    string_buffer = io.StringIO()
-
-    # 2. Generate the correct file format based on the user's choice
-    if export_format in ['quizlet', 'anki']:
-        # Quizlet and Anki both use a simple Tab-Separated Value (.txt) format
-        for card in cards:
-            front = card.get('front', '').replace('\n', ' ')
-            back = card.get('back', '').replace('\n', ' ')
-            string_buffer.write(f"{front}\t{back}\n")
-        
-        mimetype = 'text/plain'
-        filename = f"{activity.title or 'flashcards'}.txt"
-
-    elif export_format == 'notion':
-        # Notion imports well from Comma-Separated Value (.csv) files
-        writer = csv.writer(string_buffer)
-        writer.writerow(['Front', 'Back']) # CSV Header
-        for card in cards:
-            writer.writerow([card.get('front', ''), card.get('back', '')])
-
-        mimetype = 'text/csv'
-        filename = f"{activity.title or 'flashcards'}.csv"
-    
-    else:
-        return "Invalid export format specified.", 400
-
-    # 3. Create and send the downloadable file as a response
-    response_data = string_buffer.getvalue()
-    return Response(
-        response_data,
-        mimetype=mimetype,
-        headers={"Content-Disposition": f"attachment;filename={filename}"}
-    )
-
-
-# In app.py
 
 @app.route("/hub/<hub_id>")
+@login_required
 def hub_page(hub_id):
     hub_doc = db.collection('hubs').document(hub_id).get()
-    if not hub_doc.exists: return "Hub not found.", 404
+    if not hub_doc.exists:
+        flash("Hub not found.", "error")
+        return redirect(url_for('dashboard'))
+    
     hub = Hub.from_dict(hub_doc.to_dict())
 
-    # --- 1. Fetch all assets ---
-    activities_query = db.collection('activities').where('hub_id', '==', hub_id).order_by('created_at').stream()
+    # SECURITY CHECK: Ensure the logged-in user owns this hub
+    if hub.user_id != current_user.id:
+        flash("You do not have permission to view this hub.", "error")
+        return redirect(url_for('dashboard'))
+
+    activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
     all_activities = [Activity.from_dict(doc.to_dict()) for doc in activities_query]
     
-    notes_query = db.collection('notes').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    notes_query = db.collection('notes').where('hub_id', '==', hub_id).stream()
     all_notes = [Note.from_dict(note.to_dict()) for note in notes_query]
     
-    lectures_query = db.collection('lectures').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
-    all_lectures = [Lecture.from_dict(doc.to_dict()) for doc in lectures_query]
+    sessions_query = db.collection('sessions').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    all_sessions = [StudySession.from_dict(doc.to_dict()) for doc in sessions_query]
+
+    folders_query = db.collection('folders').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    all_folders = [Folder.from_dict(doc.to_dict()) for doc in folders_query]
+
+    notes_map = {note.id: note for note in all_notes}
+    activities_map = {activity.id: activity for activity in all_activities}
+
+    for folder in all_folders:
+        hydrated_items = []
+        for item_ref in folder.items:
+            doc_id = item_ref.get('id')
+            doc_type = item_ref.get('type')
+            
+            item = None
+            if doc_type == 'note' and doc_id in notes_map:
+                item = notes_map[doc_id]
+            elif doc_type in ['quiz', 'flashcards'] and doc_id in activities_map:
+                item = activities_map[doc_id]
+            
+            if item:
+                hydrated_items.append(item)
+        
+        folder.hydrated_items = hydrated_items
 
     all_flashcards = [activity for activity in all_activities if activity.type == 'Flashcards']
     graded_activities = [activity for activity in all_activities if activity.status == 'graded']
-    all_quizzes = [activity for activity in graded_activities if 'Quiz' in activity.type or 'Exam' in activity.type]
+    
+    # --- FIX: Create a list of all quizzes/exams, not just graded ones ---
+    all_quizzes_and_exams = [
+        activity for activity in all_activities 
+        if 'Quiz' in activity.type or 'Exam' in activity.type
+    ]
 
-    # --- 2. Process Data for Progress Dashboard ---
     topic_performance = {}
-    topic_history = {} # For improvement calculation
-    last_seen_topic = {} # For recommendation calculation
+    topic_history = {}
+    last_seen_topic = {}
 
     for activity in graded_activities:
         if 'Quiz' in activity.type or 'Exam' in activity.type:
@@ -537,19 +783,16 @@ def hub_page(hub_id):
         key=lambda x: x['score'], reverse=True
     )
     
-    # --- 3. Calculate Spotlight Card Variety ---
     potential_spotlights = []
     
-    # A) Weakest Topic (always a candidate if it exists)
     if topic_mastery:
         weakest = min(topic_mastery, key=lambda x: x['score'])
-        if weakest['score'] < 70: # Only show if mastery is below a threshold
+        if weakest['score'] < 70:
              potential_spotlights.append({'type': 'weakest', 'topic': weakest['topic'], 'score': weakest['score']})
 
-    # B) Most Improved Topic
     best_improvement = {'topic': None, 'change': 0}
     for topic, history in topic_history.items():
-        if len(history) >= 4: # Need at least 4 data points to compare
+        if len(history) >= 4:
             midpoint = len(history) // 2
             first_half_avg = sum(history[:midpoint]) / midpoint
             second_half_avg = sum(history[midpoint:]) / (len(history) - midpoint)
@@ -560,48 +803,38 @@ def hub_page(hub_id):
     if best_improvement['topic'] and best_improvement['change'] > 10:
         potential_spotlights.append({'type': 'improved', 'topic': best_improvement['topic'], 'change': best_improvement['change']})
         
-    # C) Next Recommended Topic (Spaced Repetition)
-    review_candidates = [t for t in topic_mastery if t['score'] < 90] # Don't need to review mastered topics
+    review_candidates = [t for t in topic_mastery if t['score'] < 90]
     if review_candidates:
         oldest_first = sorted(review_candidates, key=lambda x: last_seen_topic.get(x['topic']))
         potential_spotlights.append({'type': 'recommend', 'topic': oldest_first[0]['topic']})
 
     spotlight = random.choice(potential_spotlights) if potential_spotlights else None
 
-    # --- 4. Calculate Gamification & Recent Activity ---
-    total_xp = 0
-    study_dates = set()
-    today = datetime.now(timezone.utc).date()
-    yesterday = today - timedelta(days=1)
+    # --- REFACTORED: Use persistent progress data from the Hub ---
+    total_xp = hub.total_xp
+    streak_days = hub.streak_days
+
+    # --- Yesterday/Today stats are still calculated dynamically ---
     today_xp = 0
     yesterday_activities = {'quizzes': 0, 'flashcards': 0}
-
-    for activity in all_activities:
-        activity_date = activity.created_at.date()
-        xp_gain = 0
-        if activity.status == 'graded': xp_gain = 15
-        elif activity.type == 'Flashcards': xp_gain = 5
-        
-        total_xp += xp_gain
-        study_dates.add(activity_date)
-        
-        if activity_date == today:
-            today_xp += xp_gain
-        elif activity_date == yesterday:
-            if 'Quiz' in activity.type or 'Exam' in activity.type:
-                yesterday_activities['quizzes'] += 1
-            elif activity.type == 'Flashcards':
-                yesterday_activities['flashcards'] += 1
+    today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
     
-    # Calculate Streak
-    streak_days = 0
-    current_day = today
-    while current_day in study_dates or (today - current_day).days < 2:
-        if current_day in study_dates: streak_days += 1
-        current_day -= timedelta(days=1)
-        if current_day not in study_dates and (today - current_day).days >= 2: break
-
-    # Calculate Level
+    # This loop is now only for calculating today/yesterday stats
+    for activity in all_activities:
+        if activity.status in ['graded', 'completed']:
+            activity_date = activity.created_at.date()
+            xp_gain = 15 if activity.status == 'graded' else 5
+            
+            if activity_date == today:
+                today_xp += xp_gain
+            elif activity_date == yesterday:
+                if 'Quiz' in activity.type or 'Exam' in activity.type:
+                    yesterday_activities['quizzes'] += 1
+                elif activity.type == 'Flashcards':
+                    yesterday_activities['flashcards'] += 1
+    
+    # --- REFACTORED: Level calculation now uses the persistent total_xp ---
     level_data = {}
     current_level = 1
     xp_for_next = 100
@@ -612,39 +845,404 @@ def hub_page(hub_id):
         xp_for_next = int(100 * (current_level ** 1.5))
     level_data = {"current_level": current_level, "xp_in_level": total_xp - xp_cumulative, "xp_for_next_level": xp_for_next}
 
-    # --- 5. Finalize Hub Stats & Render Template ---
+    # --- UI Counts are still dynamic ---
     hub.notes_count = len(all_notes)
     hub.flashcard_count = len(all_flashcards)
-    hub.quizzes_taken = len(all_quizzes)
+    hub.quizzes_taken = len([q for q in all_quizzes_and_exams if q.status == 'graded'])
+    
+    # --- NEW: Fetch Notifications ---
+    notifications_query = db.collection('notifications').order_by('created_at', direction=firestore.Query.DESCENDING).limit(10).stream()
+    notifications = [Notification.from_dict(doc.to_dict()) for doc in notifications_query]
+    unread_notifications_count = sum(1 for n in notifications if not n.read)
 
     return render_template(
         "hub.html", 
-        hub=hub, 
-        all_notes=all_notes, 
-        all_lectures=all_lectures, 
-        all_flashcards=all_flashcards, 
-        all_quizzes=all_quizzes,
-        topic_mastery=topic_mastery,
-        level_data=level_data,
+        hub=hub,
+        # Pass the new persistent data to the template
         total_xp=total_xp,
         streak_days=streak_days,
+        level_data=level_data,
+        # Pass all other data as before
+        all_notes=all_notes, 
+        all_sessions=all_sessions, 
+        all_flashcards=all_flashcards, 
+        all_quizzes_and_exams=all_quizzes_and_exams,
+        topic_mastery=topic_mastery,
         spotlight=spotlight,
         today_xp=today_xp,
-        yesterday_activities=yesterday_activities
+        all_folders=all_folders,
+        yesterday_activities=yesterday_activities,
+        notifications=notifications,
+        unread_notifications_count=unread_notifications_count
     )
 
+# ==============================================================================
+# 5. NEW STRIPE & SUBSCRIPTION ROUTES
+# ==============================================================================
+
+@app.route('/create-checkout-session', methods=['POST'])
+@login_required
+def create_checkout_session():
+    price_id = request.form.get('price_id')
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=YOUR_DOMAIN + '/dashboard?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=YOUR_DOMAIN + '/',
+            customer_email=current_user.email,
+            # Pass user ID to identify the user in webhook
+            metadata={'user_id': current_user.id}
+        )
+    except Exception as e:
+        return str(e)
+
+    return redirect(checkout_session.url, code=303)
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = os.getenv("STRIPE_ENDPOINT_SECRET")
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return 'Invalid signature', 400
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_id = session.get('metadata', {}).get('user_id')
+        if user_id:
+            user_ref = db.collection('users').document(user_id)
+            user_ref.update({
+                'subscription_tier': 'pro',
+                'subscription_active': True,
+                'stripe_customer_id': session.customer,
+                'stripe_subscription_id': session.subscription
+            })
+            print(f"User {user_id} successfully subscribed to Pro plan.")
+
+    # Handle other subscription events like cancellations
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        stripe_customer_id = subscription.customer
+        users_ref = db.collection('users').where('stripe_customer_id', '==', stripe_customer_id).stream()
+        for user_doc in users_ref:
+            user_doc.reference.update({
+                'subscription_tier': 'free',
+                'subscription_active': False
+            })
+            print(f"User {user_doc.id}'s subscription was cancelled.")
+
+    return 'Success', 200
+
+# ==============================================================================
+# 4. FLASK ROUTES
+# ==============================================================================
+
+@app.route("/")
+def home():
+    return redirect(url_for('dashboard'))
+
+@app.route("/hub/<hub_id>/delete")
+@login_required
+def delete_hub(hub_id):
+    try:
+        blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
+        for blob in blobs: blob.delete()
+        collections_to_delete = ['notes', 'activities', 'lectures', 'notifications']
+        for coll in collections_to_delete:
+            docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
+            for doc in docs: doc.reference.delete()
+        db.collection('hubs').document(hub_id).delete()
+        flash(f"Hub and all its data have been successfully deleted.", "success")
+    except Exception as e:
+        print(f"Error deleting hub {hub_id}: {e}")
+        flash("An error occurred while trying to delete the hub.", "error")
+    return redirect(url_for('dashboard'))
+
+@app.route("/flashcards/<activity_id>/export")
+@login_required
+def export_flashcards(activity_id):
+    # 1. Get the format and fetch the flashcard data from Firestore
+    export_format = request.args.get('format')
+    activity_doc = db.collection('activities').document(activity_id).get()
+
+    if not activity_doc.exists:
+        return "Flashcard set not found.", 404
+
+    activity = Activity.from_dict(activity_doc.to_dict())
+    cards = activity.data.get('cards', [])
+    
+    string_buffer = io.StringIO()
+
+    if export_format in ['quizlet', 'anki']:
+        for card in cards:
+            front = card.get('front', '').replace('\n', ' ')
+            back = card.get('back', '').replace('\n', ' ')
+            string_buffer.write(f"{front}\t{back}\n")
+        
+        mimetype = 'text/plain'
+        filename = f"{activity.title or 'flashcards'}.txt"
+
+    elif export_format == 'notion':
+        writer = csv.writer(string_buffer)
+        writer.writerow(['Front', 'Back'])
+        for card in cards:
+            writer.writerow([card.get('front', ''), card.get('back', '')])
+
+        mimetype = 'text/csv'
+        filename = f"{activity.title or 'flashcards'}.csv"
+    
+    else:
+        return "Invalid export format specified.", 400
+
+    response_data = string_buffer.getvalue()
+    return Response(
+        response_data,
+        mimetype=mimetype,
+        headers={"Content-Disposition": f"attachment;filename={filename}"}
+    )
+
+
 @app.route("/note/<note_id>")
+@login_required
 def view_note(note_id):
     note_doc = db.collection('notes').document(note_id).get()
-    if not note_doc.exists: return "Note not found", 404
+    if not note_doc.exists:
+        return "Note not found", 404
     note = Note.from_dict(note_doc.to_dict())
     hub_doc = db.collection('hubs').document(note.hub_id).get()
     hub_name = hub_doc.to_dict().get('name') if hub_doc.exists else "Hub"
+
+    # Check for special note types based on title
+    if "Mind Map for" in note.title:
+        try:
+            # Try to load the content as JSON for the mind map
+            mind_map_data = json.loads(note.content_html)
+            return render_template("mind_map.html", note=note, hub_name=hub_name, mind_map_data=mind_map_data)
+        except json.JSONDecodeError:
+            # If it fails, it's just text, render normally
+            pass
+    elif "Cheat Sheet for" in note.title:
+        try:
+            # The content should be a JSON object with the cheat sheet structure
+            cheat_sheet_data = json.loads(note.content_html)
+            return render_template("cheat_sheet.html", note=note, hub_name=hub_name, cheat_sheet_data=cheat_sheet_data)
+        except json.JSONDecodeError:
+            pass
+
+    # Fallback to the standard note view
     return render_template("note.html", note=note, hub_name=hub_name)
 
-# In app.py
+@app.route("/hub/<hub_id>/setup_session", methods=["POST"])
+@login_required
+def setup_session(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("Interactive Sessions are a Pro feature. Please upgrade your plan.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    selected_files = request.form.getlist('selected_files')
+    if not selected_files:
+        flash("Please select at least one file to start a session.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+    
+    return render_template("setup_session.html", hub_id=hub_id, selected_files=selected_files)
+
+@app.route("/hub/<hub_id>/create_session", methods=["POST"])
+@login_required
+def create_session(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("Interactive Sessions are a Pro feature. Please upgrade your plan.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    form = request.form
+    duration = form.get('duration', '30')
+    focus = form.get('focus', 'understanding')
+    selected_files = form.getlist('selected_files')
+    hub_text = get_text_from_hub_files(selected_files)
+
+    if not hub_text:
+        flash("Could not extract text from the selected files.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        plan_json_str = generate_full_study_session(hub_text, duration, focus)
+        study_plan = safe_load_json(plan_json_str)
+        
+        if not study_plan.get('topics') or not isinstance(study_plan['topics'], list) or len(study_plan['topics']) == 0:
+            raise ValueError("AI failed to generate a valid study plan with topics.")
+
+        full_notes_html = ""
+        all_quizzes_data = []
+        for topic in study_plan.get('topics', []):
+            full_notes_html += f"<h2>{topic.get('title', 'Untitled Topic')}</h2>"
+            full_notes_html += topic.get('content_html', '<p>No content was generated for this section.</p>')
+            
+            for interaction in topic.get('interactions', []):
+                if interaction.get('type') == 'checkpoint_quiz':
+                    quiz_questions = interaction.get('questions', [])
+                    if quiz_questions:
+                        all_quizzes_data.append(quiz_questions)
+        
+        flashcards_raw = generate_flashcards_from_text(hub_text)
+        all_flashcards = parse_flashcards(flashcards_raw)
+        
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        
+        batch = db.batch()
+        session_ref = db.collection('sessions').document()
+        
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Notes for Session: {first_file_name}", content_html=full_notes_html)
+        batch.set(note_ref, new_note.to_dict())
+
+        flashcard_ref = db.collection('activities').document()
+        new_flashcards = Activity(id=flashcard_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for Session: {first_file_name}", data={'cards': all_flashcards}, status='completed')
+        batch.set(flashcard_ref, new_flashcards.to_dict())
+
+        quiz_ids = []
+        for i, questions in enumerate(all_quizzes_data):
+            quiz_ref = db.collection('activities').document()
+            new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Checkpoint Quiz {i+1} for Session", data={'questions': questions})
+            batch.set(quiz_ref, new_quiz.to_dict())
+            quiz_ids.append(quiz_ref.id)
+
+        new_session = StudySession(
+            id=session_ref.id, hub_id=hub_id, title=f"Interactive Session: {first_file_name}",
+            source_files=selected_files, session_plan=study_plan, note_id=note_ref.id,
+            flashcard_activity_id=flashcard_ref.id, quiz_activity_ids=quiz_ids
+        )
+        batch.set(session_ref, new_session.to_dict())
+
+        # --- NEW: Create Notification ---
+        notification_ref = db.collection('notifications').document()
+        message = f"Your interactive session '{new_session.title}' is ready to start."
+        link = url_for('start_study_session', session_id=new_session.id)
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+        
+        batch.commit()
+
+        return redirect(url_for('start_study_session', session_id=session_ref.id))
+
+    except Exception as e:
+        print(f"Error creating session: {e}")
+        flash(f"An error occurred while creating your session: {e}", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+@app.route("/session/<session_id>")
+@login_required
+def start_study_session(session_id):
+    session_doc = db.collection('sessions').document(session_id).get()
+    if not session_doc.exists:
+        return "Study session not found.", 404
+    session = StudySession.from_dict(session_doc.to_dict())
+    return render_template("study_session.html", session=session)
+
+
+@app.route("/session/evaluate_teach_back", methods=["POST"])
+@login_required
+def evaluate_teach_back():
+    data = request.get_json()
+    model_answer = data.get('model_answer')
+    student_answer = data.get('student_answer')
+
+    if not model_answer or not student_answer:
+        return jsonify({"error": "Missing data"}), 400
+
+    feedback_json_str = grade_answer_with_ai(
+        question="The student was asked to explain a concept. Evaluate their explanation against the model answer.",
+        model_answer=model_answer,
+        student_answer=student_answer
+    )
+    feedback_data = safe_load_json(feedback_json_str)
+    return jsonify(feedback_data)
+
+
+@app.route("/session/<session_id>/complete", methods=["POST"])
+@login_required
+def complete_session(session_id):
+    results_data = request.json.get('results')
+    session_ref = db.collection('sessions').document(session_id)
+    session_ref.update({
+        'status': 'completed',
+        'results': results_data
+    })
+    return jsonify({"success": True, "report_url": url_for('session_report', session_id=session_id)})
+
+
+@app.route("/session/<session_id>/report")
+@login_required
+def session_report(session_id):
+    session_doc = db.collection('sessions').document(session_id).get()
+    if not session_doc.exists: return "Session report not found.", 404
+    session = StudySession.from_dict(session_doc.to_dict())
+    hub_text = get_text_from_hub_files(session.source_files)
+    
+    topic_scores = {}
+    for result in session.results:
+        topic_title = result.get('topic_title', 'Unknown Topic')
+        if topic_title not in topic_scores:
+            topic_scores[topic_title] = {'score': 0, 'total': 0}
+        
+        is_correct = result.get('is_correct', False) or result.get('score', 0) >= 7
+        topic_scores[topic_title]['score'] += 1 if is_correct else 0
+        topic_scores[topic_title]['total'] += 1
+
+    weak_topics = [
+        topic for topic, data in topic_scores.items() 
+        if data['total'] > 0 and (data['score'] / data['total']) < 0.7
+    ]
+    
+    remedial_links = {}
+    if weak_topics and hub_text:
+        batch = db.batch()
+        for topic in weak_topics:
+            try:
+                materials_json_str = generate_remedial_materials(hub_text, topic)
+                materials = safe_load_json(materials_json_str)
+                
+                quiz_data = materials.get("questions", [])
+
+                remedial_note_ref = db.collection('notes').document()
+                remedial_note = Note(id=remedial_note_ref.id, hub_id=session.hub_id, title=f"Review Notes: {topic}", content_html=materials.get("notes_html", ""))
+                batch.set(remedial_note_ref, remedial_note.to_dict())
+                
+                remedial_quiz_ref = db.collection('activities').document()
+                remedial_quiz = Activity(id=remedial_quiz_ref.id, hub_id=session.hub_id, type='Quiz', title=f"Review Quiz: {topic}", data={'questions': quiz_data})
+                batch.set(remedial_quiz_ref, remedial_quiz.to_dict())
+                
+                remedial_links[topic] = {
+                    "note_id": remedial_note_ref.id,
+                    "quiz_id": remedial_quiz_ref.id
+                }
+            except Exception as e:
+                print(f"Failed to generate remedial content for topic '{topic}': {e}")
+        batch.commit()
+    
+    total_questions = len(session.results)
+    correct_answers = sum(1 for r in session.results if r.get('is_correct') or r.get('score', 0) >= 7)
+    final_score = int((correct_answers / total_questions) * 100) if total_questions > 0 else 0
+
+    return render_template("session_report.html", session=session, final_score=final_score, weak_topics=weak_topics, remedial_links=remedial_links)
 
 @app.route('/explain_selection', methods=['POST'])
+@login_required
 def explain_selection():
     data = request.get_json()
     selected_text = data.get('selected_text')
@@ -654,7 +1252,6 @@ def explain_selection():
     if not selected_text or not explanation_type:
         return jsonify({"error": "Missing required data"}), 400
 
-    # --- UPDATED: Stricter prompts to enforce brevity ---
     prompts = {
         'simplify': f"""
             You are an expert educator. Rephrase the following **'Selected Text'** in clear, plain language.
@@ -694,8 +1291,8 @@ def explain_selection():
         print(f"Error in explain_selection: {e}")
         return jsonify({"error": "Failed to generate explanation."}), 500
 
-# --- NEW: Dedicated route for generating interactive quiz data ---
 @app.route('/generate_mini_quiz', methods=['POST'])
+@login_required
 def generate_mini_quiz():
     data = request.get_json()
     selected_text = data.get('selected_text')
@@ -716,7 +1313,7 @@ def generate_mini_quiz():
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o", # Using a more powerful model for reliable JSON generation
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
@@ -727,15 +1324,15 @@ def generate_mini_quiz():
         return jsonify({"error": "Failed to generate quiz."}), 500
 
 @app.route("/flashcards/<activity_id>")
+@login_required
 def view_flashcards(activity_id):
-    # This route for the game itself remains unchanged
     activity_doc = db.collection('activities').document(activity_id).get()
     if not activity_doc.exists: return "Flashcard set not found.", 404
     activity = Activity.from_dict(activity_doc.to_dict())
     return render_template("flashcards.html", activity=activity)
 
-# ✅ ADDED: New route to render the edit_flashcards.html page
 @app.route("/flashcards/<activity_id>/edit_set")
+@login_required
 def edit_flashcard_set(activity_id):
     activity_doc = db.collection('activities').document(activity_id).get()
     if not activity_doc.exists:
@@ -744,13 +1341,12 @@ def edit_flashcard_set(activity_id):
     activity = Activity.from_dict(activity_doc.to_dict())
     return render_template("edit_flashcards.html", activity=activity)
 
-# ✅ ADDED: New route to handle the form submission from the edit page
 @app.route("/flashcards/<activity_id>/update_set", methods=["POST"])
+@login_required
 def update_flashcard_set(activity_id):
     form_data = request.form
     new_cards = []
     i = 0
-    # Loop through form fields dynamically until we can't find the next one
     while f'front_{i}' in form_data:
         front = form_data.get(f'front_{i}')
         back = form_data.get(f'back_{i}')
@@ -760,7 +1356,6 @@ def update_flashcard_set(activity_id):
     
     try:
         activity_ref = db.collection('activities').document(activity_id)
-        # Update only the 'cards' part of the 'data' field in Firestore
         activity_ref.update({'data.cards': new_cards})
         flash("Flashcards updated successfully!", "success")
     except Exception as e:
@@ -769,6 +1364,7 @@ def update_flashcard_set(activity_id):
     return redirect(url_for('edit_flashcard_set', activity_id=activity_id))
 
 @app.route('/explain-formula', methods=['POST'])
+@login_required
 def explain_formula():
     formula = request.json.get('formula')
     if not formula: return jsonify({"error": "No formula provided"}), 400
@@ -779,6 +1375,7 @@ def explain_formula():
     return jsonify({"explanation": explanation_html})
 
 @app.route("/quiz/<activity_id>/delete", methods=["POST"])
+@login_required
 def delete_quiz(activity_id):
     try:
         db.collection('activities').document(activity_id).delete()
@@ -788,6 +1385,7 @@ def delete_quiz(activity_id):
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/quiz/<activity_id>/edit", methods=["POST"])
+@login_required
 def edit_quiz(activity_id):
     data = request.get_json()
     new_title = data.get('new_title')
@@ -800,6 +1398,7 @@ def edit_quiz(activity_id):
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/hub/<hub_id>/delete_file")
+@login_required
 def delete_file(hub_id):
     file_path = request.args.get('file_path')
     if not file_path:
@@ -817,6 +1416,7 @@ def delete_file(hub_id):
     return redirect(url_for('hub_page', hub_id=hub_id))
 
 @app.route("/hub/<hub_id>/upload", methods=["POST"])
+@login_required
 def upload_file(hub_id):
     if 'pdf' not in request.files:
         flash("No file part in the request.", "error")
@@ -860,9 +1460,13 @@ def generate_quiz_on_topic(text, topic):
     )
     return response.choices[0].message.content
 
-# ✅ ADDED: New route to generate a quiz focused on the user's weakest topic.
 @app.route("/hub/<hub_id>/generate_weakness_quiz/<topic>")
+@login_required
 def generate_weakness_quiz(hub_id, topic):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("Targeted weakness quizzes are a Pro feature. Please upgrade.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
     hub_doc = db.collection('hubs').document(hub_id).get()
     if not hub_doc.exists:
         flash("Study hub not found.", "error")
@@ -878,29 +1482,41 @@ def generate_weakness_quiz(hub_id, topic):
     quiz_json = generate_quiz_on_topic(hub_text, topic)
     quiz_data = safe_load_json(quiz_json)
     
+    batch = db.batch()
     activity_ref = db.collection('activities').document()
     activity_title = f"Targeted Quiz: {topic}"
     new_activity = Activity(id=activity_ref.id, hub_id=hub_id, type='Quiz', title=activity_title, data={'questions': quiz_data.get('questions', [])})
-    activity_ref.set(new_activity.to_dict())
+    batch.set(activity_ref, new_activity.to_dict())
+
+    # --- NEW: Create Notification ---
+    notification_ref = db.collection('notifications').document()
+    message = f"Your targeted quiz for '{topic}' has been generated."
+    link = url_for('take_lecture_quiz', activity_id=new_activity.id) # FIX: Changed quiz_id to activity_id
+    new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+    batch.set(notification_ref, new_notification.to_dict())
+    batch.commit()
 
     flash(f"Generated a special quiz to help you with {topic}!", "success")
-    return redirect(url_for('take_lecture_quiz', quiz_id=new_activity.id))
+    return redirect(url_for('take_lecture_quiz', activity_id=new_activity.id)) # FIX: Changed quiz_id to activity_id
 
 # ==============================================================================
 # 5. UNIFIED AI TOOL & DOWNLOAD ROUTES
 # ==============================================================================
 @app.route("/hub/<hub_id>/one_click_study", methods=["POST"])
+@login_required
 def one_click_study_tool(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        return jsonify({"success": False, "message": "One-Click Study Kits are a Pro feature. Please upgrade."}), 403
+
     selected_files = request.json.get('selected_files')
     if not selected_files:
         return jsonify({"success": False, "message": "No files were selected."}), 400
 
     hub_text = get_text_from_hub_files(selected_files)
-    if not hub_text or len(hub_text) < 100: # Basic check for meaningful content
+    if not hub_text or len(hub_text) < 100:
         return jsonify({"success": False, "message": "Could not extract enough text from the selected document(s)."}), 500
 
     try:
-        # --- Step 1: Generate and Validate Notes ---
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         lecture_title = f"Lecture for {first_file_name}"
         
@@ -911,7 +1527,6 @@ def one_click_study_tool(hub_id):
         note_ref = db.collection('notes').document()
         new_note = Note(id=note_ref.id, hub_id=hub_id, title=lecture_title, content_html=interactive_html)
 
-        # --- Step 2: Generate and Validate Flashcards ---
         flashcards_raw = generate_flashcards_from_text(hub_text)
         flashcards_parsed = parse_flashcards(flashcards_raw)
         if not flashcards_parsed:
@@ -921,24 +1536,21 @@ def one_click_study_tool(hub_id):
         activity_ref_fc = db.collection('activities').document()
         new_activity_fc = Activity(id=activity_ref_fc.id, hub_id=hub_id, type='Flashcards', data={'cards': flashcards_parsed}, status='completed', title=flashcard_title)
         
-        # --- Step 3: Generate and Validate 3 Quizzes ---
         quiz_ids = []
         new_quizzes = []
         for i in range(1, 4):
             quiz_json = generate_quiz_from_text(hub_text)
             quiz_data = safe_load_json(quiz_json)
             if not quiz_data.get('questions'):
-                # If one quiz fails, we can proceed with fewer, but we'll log it.
                 print(f"Warning: AI failed to generate questions for Quiz {i}.")
                 continue
 
-            # FIXED: Added a descriptive title to each quiz
             quiz_title = f"Practice Quiz {i} for {first_file_name}"
             activity_ref_quiz = db.collection('activities').document()
             new_activity_quiz = Activity(
                 id=activity_ref_quiz.id, 
                 hub_id=hub_id, 
-                type=f'Quiz', # Simplified type for better grouping
+                type=f'Quiz',
                 title=quiz_title, 
                 data={'questions': quiz_data.get('questions', [])}
             )
@@ -948,22 +1560,14 @@ def one_click_study_tool(hub_id):
         if not new_quizzes:
             raise ValueError("The AI failed to generate any practice quizzes.")
 
-        # --- Step 4: Save Everything to Database in a Batch ---
-        # This ensures that if one part fails, nothing is saved.
         batch = db.batch()
-        
-        # Save the Note
         batch.set(note_ref, new_note.to_dict())
-        
-        # Save the Flashcard Activity
         batch.set(activity_ref_fc, new_activity_fc.to_dict())
 
-        # Save all successful Quiz Activities
         for quiz_activity in new_quizzes:
             quiz_ref = db.collection('activities').document(quiz_activity.id)
             batch.set(quiz_ref, quiz_activity.to_dict())
         
-        # Finally, create and save the Lecture linking all assets
         lecture_ref = db.collection('lectures').document()
         new_lecture = Lecture(
             id=lecture_ref.id, 
@@ -976,79 +1580,16 @@ def one_click_study_tool(hub_id):
         )
         batch.set(lecture_ref, new_lecture.to_dict())
         
-        batch.commit() # Execute all database operations
+        batch.commit()
 
-        return jsonify({"success": True, "message": "Study materials created successfully!", "lecture_id": new_lecture.id})
+        return jsonify({"success": True, "message": "Study materials created successfully!", "lecture": new_lecture.to_dict()})
 
     except Exception as e:
         print(f"Error in one_click_study_tool: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/hub/<hub_id>/run_tool", methods=["POST"])
-def run_hub_tool(hub_id):
-    tool = request.form.get('tool')
-    selected_files = request.form.getlist('selected_files')
-    if not selected_files:
-        flash("Please select at least one file to process.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-    hub_text = get_text_from_hub_files(selected_files)
-    if not hub_text:
-        flash("Could not extract text from the selected file(s).", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-    if tool == 'notes':
-        interactive_html = generate_interactive_notes_html(hub_text)
-        note_ref = db.collection('notes').document()
-        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
-        note_title = f"Notes for {first_file_name}"
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=note_title, content_html=interactive_html)
-        note_ref.set(new_note.to_dict())
-        flash("Your interactive notes have been created!", "success")
-        return redirect(url_for('view_note', note_id=new_note.id))
-    elif tool == 'flashcards':
-        flashcards_raw = generate_flashcards_from_text(hub_text)
-        flashcards_parsed = parse_flashcards(flashcards_raw)
-        if not flashcards_parsed:
-            flash("The AI could not generate any flashcards from the selected text. Please try again.", "warning")
-            return redirect(url_for('hub_page', hub_id=hub_id))
-        
-        activity_ref = db.collection('activities').document()
-        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
-        activity_title = f"Flashcards for {first_file_name}"
-        
-        new_activity = Activity(id=activity_ref.id, hub_id=hub_id, type='Flashcards', title=activity_title, data={'cards': flashcards_parsed}, status='completed')
-        activity_ref.set(new_activity.to_dict())
-        
-        flash(f"{len(flashcards_parsed)} flashcards were generated! You can now edit them.", "success")
-        # ✅ CHANGED: Redirect to the new edit page instead of the game
-        return redirect(url_for('edit_flashcard_set', activity_id=new_activity.id))
-    elif tool == 'quiz':
-        quiz_json = generate_quiz_from_text(hub_text)
-        quiz_data = safe_load_json(quiz_json)
-        activity_ref = db.collection('activities').document()
-        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
-        activity_title = f"Quiz for {first_file_name}"
-        new_activity = Activity(id=activity_ref.id, hub_id=hub_id, type='Quiz', title=activity_title, data={'questions': quiz_data.get('questions', [])})
-        activity_ref.set(new_activity.to_dict())
-        return redirect(url_for('take_lecture_quiz', quiz_id=new_activity.id))
-    elif tool == 'exam':
-        activity_ref = db.collection('activities').document()
-        activity_type = 'Mock Exam'
-        new_activity = Activity(id=activity_ref.id, hub_id=hub_id, type=activity_type)
-        activity_ref.set(new_activity.to_dict())
-        return render_template("exam_customize.html", hub_id=hub_id, selected_files=selected_files, activity_id=new_activity.id)
-    elif tool == 'analyse':
-        analysis_html = markdown.markdown(analyse_papers_with_ai(hub_text))
-        return render_template("analysis.html", analysis_html=analysis_html)
-    elif tool == 'heatmap':
-        heatmap_json_str = generate_interactive_heatmap_data(hub_text)
-        heatmap_data = safe_load_json(heatmap_json_str)
-        if not heatmap_data or "topics" not in heatmap_data or "documents" not in heatmap_data or not heatmap_data["documents"]:
-            flash("Could not generate heatmap data. The AI may have had trouble analyzing the documents. Please try again with different files.", "warning")
-            return redirect(url_for('hub_page', hub_id=hub_id))
-        return render_template("heatmap.html", hub_id=hub_id, heatmap_data=heatmap_data)
-    return "Invalid tool selected.", 400
-
 @app.route("/note/<note_id>/download_pdf")
+@login_required
 def download_note_pdf(note_id):
     note_doc = db.collection('notes').document(note_id).get()
     if not note_doc.exists: return "Note not found", 404
@@ -1062,7 +1603,12 @@ def download_note_pdf(note_id):
     return send_file(pdf_buffer, as_attachment=True, download_name=f"{note.title}.pdf", mimetype='application/pdf')
 
 @app.route("/hub/<hub_id>/create_exam", methods=["POST"])
+@login_required
 def create_exam(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("The Mock Exam generator is a Pro feature. Please upgrade.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
     form_data = request.form
     selected_files = form_data.getlist('selected_files')
     activity_id = form_data.get('activity_id')
@@ -1080,6 +1626,7 @@ def create_exam(hub_id):
     return render_template("exam_interface.html", exam_data=exam_data, time_limit=time_limit, hub_id=hub_id, activity_id=activity_id)
 
 @app.route("/hub/<hub_id>/grade_exam", methods=["POST"])
+@login_required
 def grade_exam_route(hub_id):
     form_data = request.form
     activity_id = form_data.get('activity_id')
@@ -1122,9 +1669,10 @@ def grade_exam_route(hub_id):
     return redirect(url_for('hub_page', hub_id=hub_id))
 
 # ==============================================================================
-# 6. LECTURE, QUIZ, AND TUTOR ROUTES
+# 6. LECTURE & QUIZ ROUTES
 # ==============================================================================
 @app.route("/lecture/<lecture_id>")
+@login_required
 def lecture_page(lecture_id):
     lecture_doc = db.collection('lectures').document(lecture_id).get()
     if not lecture_doc.exists: return "Lecture not found.", 404
@@ -1139,56 +1687,96 @@ def lecture_page(lecture_id):
         if quiz_doc.exists: quizzes.append(Activity.from_dict(quiz_doc.to_dict()))
     return render_template("lecture_page.html", lecture=lecture, note=note, flashcards=flashcards_data, quizzes=quizzes)
 
-@app.route("/quiz/<quiz_id>")
-def take_lecture_quiz(quiz_id):
-    quiz_doc = db.collection('activities').document(quiz_id).get()
+# --- FIX: Standardized route to use <activity_id> ---
+@app.route("/quiz/<activity_id>")
+@login_required
+def take_lecture_quiz(activity_id):
+    quiz_doc = db.collection('activities').document(activity_id).get()
     if not quiz_doc.exists: return "Quiz not found.", 404
     quiz_activity = Activity.from_dict(quiz_doc.to_dict())
     questions = quiz_activity.data.get('questions', [])
-    return render_template("quiz.html", questions=questions, time_limit=600, activity_id=quiz_id)
-
-# In app.py
+    return render_template("quiz.html", questions=questions, time_limit=600, activity_id=activity_id)
 
 @app.route("/quiz/<activity_id>/submit", methods=["POST"])
+@login_required
 def submit_quiz(activity_id):
     activity_ref = db.collection('activities').document(activity_id)
     activity_doc = activity_ref.get()
-    if not activity_doc.exists: return "Quiz not found.", 404
+    if not activity_doc.exists:
+        return "Quiz not found.", 404
+
     activity = Activity.from_dict(activity_doc.to_dict())
     questions = activity.data.get('questions', [])
+    
     graded_answers = []
-    mcq_score, total_mcq, open_ended_score, total_open_ended_possible = 0, 0, 0, 0
+    total_achieved_score = 0
+    total_possible_score = len(questions) * 10  # Each question is now worth 10 points
+
     for i, q in enumerate(questions):
         user_answer = request.form.get(f'question-{i}')
-        # ✅ ADDED: Get the topic for the current question. Default to 'General' if not found.
         question_topic = q.get('topic', 'General')
+        
+        # Default values for each graded answer
+        score = 0
+        is_correct = False
+        feedback = "No feedback available."
 
         if q.get('type') == 'multiple_choice':
-            total_mcq += 1
+            correct_answer_text = q.get('correct_answer', '').strip()
+            user_answer_text = user_answer.strip() if user_answer else ''
             
-            correct_answer_text = q.get('correct_answer', '').lower().strip().rstrip('.,;!?')
-            user_answer_text = user_answer.lower().strip().rstrip('.,;!?') if user_answer else ''
-            is_correct = (user_answer and user_answer_text == correct_answer_text)
-
-            if is_correct: mcq_score += 1
-            # ✅ CHANGED: Save the question's topic along with the answer.
-            graded_answers.append({"user_answer": user_answer, "correct": is_correct, "topic": question_topic})
+            is_correct = (user_answer and user_answer_text.lower() == correct_answer_text.lower())
+            
+            if is_correct:
+                score = 10
+                feedback = "Correct!"
+            else:
+                score = 0
+                feedback = f"Incorrect. The correct answer was: {correct_answer_text}"
+            
+            total_achieved_score += score
+            graded_answers.append({
+                "user_answer": user_answer, 
+                "correct": is_correct, 
+                "score": score,
+                "feedback": feedback,
+                "topic": question_topic
+            })
         
         elif q.get('type') in ['short_answer', 'explanation']:
-            total_open_ended_possible += 10
             try:
                 feedback_json_str = grade_answer_with_ai(q.get('question'), q.get('model_answer'), user_answer)
                 feedback_data = json.loads(feedback_json_str)
                 score = feedback_data.get('score', 0)
-                open_ended_score += score
-                # ✅ CHANGED: Save the topic for open-ended questions too.
-                graded_answers.append({"user_answer": user_answer, "feedback": feedback_data.get('feedback'), "score": score, "topic": question_topic})
+                feedback = feedback_data.get('feedback', 'Could not retrieve AI feedback.')
+                is_correct = score >= 7 # Consider it "correct" if the score is 7/10 or higher
             except Exception as e:
                 print(f"Error grading open-ended answer for quiz {activity_id}: {e}")
-                graded_answers.append({"user_answer": user_answer, "feedback": "Could not be graded automatically.", "score": 0, "topic": question_topic})
+                score = 0
+                feedback = "This answer could not be graded automatically due to an error."
+                is_correct = False
+            
+            total_achieved_score += score
+            graded_answers.append({
+                "user_answer": user_answer, 
+                "feedback": feedback, 
+                "score": score, 
+                "correct": is_correct,
+                "topic": question_topic
+            })
+        
+        # --- FIX: Add a catch-all 'else' to prevent crashes from unknown question types ---
+        else:
+            # Handle unknown or malformed question types gracefully
+            graded_answers.append({
+                "user_answer": user_answer or "No answer provided",
+                "feedback": f"This question (type: {q.get('type', 'unknown')}) could not be graded automatically.",
+                "score": 0,
+                "correct": False,
+                "topic": question_topic
+            })
 
-    total_achieved_score = mcq_score + open_ended_score
-    total_possible_score = total_mcq + total_open_ended_possible
+
     final_percentage = int((total_achieved_score / total_possible_score) * 100) if total_possible_score > 0 else 0
     
     activity_ref.update({
@@ -1200,10 +1788,15 @@ def submit_quiz(activity_id):
             "graded_answers": graded_answers
         }
     })
+
+    # --- NEW: Update Hub Progress ---
+    update_hub_progress(activity.hub_id, 15)
+
     return redirect(url_for('quiz_results', activity_id=activity_id))
 
 
 @app.route("/quiz/<activity_id>/results")
+@login_required
 def quiz_results(activity_id):
     activity_doc = db.collection('activities').document(activity_id).get()
     if not activity_doc.exists: return "Quiz results not found.", 404
@@ -1211,9 +1804,8 @@ def quiz_results(activity_id):
     results = activity.graded_results
     return render_template("quiz_results.html", activity=activity, results=results)
 
-# In app.py
-
 @app.route("/flashcards/<activity_id>/save_game", methods=["POST"])
+@login_required
 def save_flashcard_game(activity_id):
     data = request.get_json()
     correct_indices = data.get('correct', [])
@@ -1228,25 +1820,29 @@ def save_flashcard_game(activity_id):
         activity = Activity.from_dict(activity_doc.to_dict())
         all_cards = activity.data.get('cards', [])
 
-        # ✅ ADDED: Identify the actual flashcards the user got wrong.
         incorrect_cards = [all_cards[i] for i in incorrect_indices if i < len(all_cards)]
 
         activity_ref.update({
+            "status": "completed",
             "game_results": {
                 "correct_count": len(correct_indices),
                 "incorrect_count": len(incorrect_indices),
                 "total_cards": len(all_cards),
                 "last_played": datetime.now(timezone.utc),
-                # ✅ ADDED: Store the list of cards that need more practice.
                 "incorrect_cards": incorrect_cards 
             }
         })
+        
+        # --- NEW: Update Hub Progress ---
+        update_hub_progress(activity.hub_id, 5)
+
         return jsonify({"success": True, "message": "Game results saved."})
     except Exception as e:
         print(f"Error saving flashcard game for {activity_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/lecture/<lecture_id>/delete")
+@login_required
 def delete_lecture(lecture_id):
     lecture_ref = db.collection('lectures').document(lecture_id)
     lecture_doc = lecture_ref.get()
@@ -1259,58 +1855,210 @@ def delete_lecture(lecture_id):
     flash("Lecture and all associated data deleted successfully.", "success")
     return redirect(url_for('hub_page', hub_id=lecture.hub_id))
 
-@app.route("/hub/<hub_id>/ask_tutor", methods=["POST"])
-def ask_ai_tutor(hub_id):
-    data = request.get_json()
-    question = data.get('question')
-    selected_files = data.get('selected_files')
-    chat_history_json = data.get('chat_history', [])
-    answer_style = data.get('answer_style', 'default')
-    chat_history = []
-    for msg in chat_history_json:
-        if msg.get('role') == 'user': chat_history.append(HumanMessage(content=msg.get('content')))
-        elif msg.get('role') == 'ai': chat_history.append(AIMessage(content=msg.get('content')))
-    if not question: return jsonify({"error": "No question provided."}), 400
-    if not selected_files: return jsonify({"answer": "Please select at least one document to use as context for my answer."})
+# ==============================================================================
+# 6B. CALENDAR & SCHEDULING ROUTES (REPLACES AI TUTOR)
+# ==============================================================================
+
+@app.route("/hub/<hub_id>/events")
+@login_required
+def get_hub_events(hub_id):
+    """API endpoint to fetch calendar events for a hub for FullCalendar."""
     try:
-        context_text = get_text_from_hub_files(selected_files)
-        if not context_text: return jsonify({"answer": "I couldn't extract any text from the selected documents."})
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        documents = text_splitter.create_documents([context_text])
-        vector_store = FAISS.from_documents(documents, embeddings)
-        retriever = vector_store.as_retriever()
-        contextualize_q_prompt = ChatPromptTemplate.from_messages([("system", "Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question which can be understood without the chat history. Do NOT answer the question, just reformulate it if needed and otherwise return it as is."), MessagesPlaceholder("chat_history"), ("human", "{input}")])
-        history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
-        style_instructions = ""
-        if answer_style == "summary": style_instructions = "Provide a concise, one-paragraph summary of the answer."
-        elif answer_style == "bullets": style_instructions = "List the key points of the answer using bullet points."
-        else: style_instructions = "Provide a clear and detailed explanation."
-        
-        # === FIX: Corrected placeholder from {{context}} to {context} ===
-        qa_system_prompt = f"""You are an expert AI tutor. Your goal is to help the user understand concepts based on their documents. Use the following retrieved context as your primary source of knowledge to answer the user's question. Your answer must be grounded in the context provided.
-        - **Synthesize, do not just search:** Create a comprehensive answer by combining information from the relevant parts of the context.
-        - **If the context is related but doesn't answer directly:** Explain what you can find and how it relates.
-        - **If the topic is completely absent:** Politely state that the provided documents do not cover the topic.
-        - **Style instruction:** {style_instructions}
-        Context:
-        {{context}}"""
+        start_str = request.args.get('start')
+        end_str = request.args.get('end')
 
-        # === FIX: Corrected placeholder from {{input}} to {input} ===
-        qa_prompt = ChatPromptTemplate.from_messages([("system", qa_system_prompt), MessagesPlaceholder("chat_history"), ("human", "{{input}}")])
+        start_dt = datetime.fromisoformat(start_str.replace('Z', '+00:00'))
+        end_dt = datetime.fromisoformat(end_str.replace('Z', '+00:00'))
+
+        events_query = db.collection('calendar_events').where('hub_id', '==', hub_id) \
+            .where('start_time', '>=', start_dt) \
+            .where('start_time', '<=', end_dt) \
+            .stream()
         
-        question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-        rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
-        response = rag_chain.invoke({"input": question, "chat_history": chat_history})
-        answer = response.get("answer", "Sorry, I encountered an issue and couldn't generate a response.")
-        return jsonify({"answer": answer})
+        events_list = []
+        for doc in events_query:
+            event = CalendarEvent.from_dict(doc.to_dict())
+            events_list.append({
+                "id": event.id,
+                "title": event.title,
+                "start": event.start_time.isoformat(),
+                "end": event.end_time.isoformat(),
+                "allDay": event.all_day,
+                "color": event.color,
+                "extendedProps": {
+                    "eventType": event.event_type,
+                    "focus": event.focus or "No details provided.",
+                    "exportUrl": url_for('export_ics', event_id=event.id)
+                }
+            })
+            
+        return jsonify(events_list)
     except Exception as e:
-        print(f"Error in AI Tutor: {e}")
-        return jsonify({"error": "An internal error occurred."}), 500
+        print(f"Error fetching hub events: {e}")
+        return jsonify({"success": False, "message": "An error occurred."}), 500
+
+
+@app.route("/hub/<hub_id>/create_calendar_event", methods=["POST"])
+@login_required
+def create_calendar_event(hub_id):
+    """Creates a new calendar event in Firestore."""
+    data = request.get_json()
+    try:
+        event_title = data.get('title')
+        event_type = data.get('event_type')
+        start_str = data.get('start_time')
+        duration_minutes = int(data.get('duration'))
+        
+        start_time = datetime.fromisoformat(start_str).replace(tzinfo=timezone.utc)
+        end_time = start_time + timedelta(minutes=duration_minutes)
+
+        event_ref = db.collection('calendar_events').document()
+        new_event = CalendarEvent(
+            id=event_ref.id,
+            hub_id=hub_id,
+            title=event_title,
+            event_type=event_type,
+            start_time=start_time,
+            end_time=end_time,
+            source_files=data.get('source_files', []),
+            focus=data.get('focus')
+        )
+        event_ref.set(new_event.to_dict())
+
+        return jsonify({"success": True, "message": "Event scheduled successfully!"})
+    except Exception as e:
+        print(f"Error creating calendar event: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+        
+@app.route("/event/<event_id>/export_ics")
+@login_required
+def export_ics(event_id):
+    """Generates a downloadable .ics file for a calendar event."""
+    event_doc = db.collection('calendar_events').document(event_id).get()
+    if not event_doc.exists:
+        return "Event not found", 404
+    
+    event_data = event_doc.to_dict()
+    
+    # Ensure datetime objects are timezone-aware (UTC)
+    start_time = event_data['start_time'].replace(tzinfo=timezone.utc)
+    end_time = event_data['end_time'].replace(tzinfo=timezone.utc)
+    created_time = event_data['created_at'].replace(tzinfo=timezone.utc)
+
+    start_utc = start_time.strftime('%Y%m%dT%H%M%SZ')
+    end_utc = end_time.strftime('%Y%m%dT%H%M%SZ')
+    created_utc = created_time.strftime('%Y%m%dT%H%M%SZ')
+    
+    description = f"Focus: {event_data.get('focus', 'N/A')}\\n"
+    if event_data.get('source_files'):
+        files_str = ", ".join([os.path.basename(f) for f in event_data['source_files']])
+        description += f"Source Files: {files_str}"
+
+    ics_content = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//MyStudyHub//NONSGML v1.0//EN",
+        "BEGIN:VEVENT",
+        f"UID:{event_doc.id}@mystudyhub.app",
+        f"DTSTAMP:{created_utc}",
+        f"DTSTART:{start_utc}",
+        f"DTEND:{end_utc}",
+        f"SUMMARY:{event_data['title']}",
+        f"DESCRIPTION:{description}",
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ]
+    
+    response = Response("\r\n".join(ics_content), mimetype="text/calendar")
+    response.headers["Content-Disposition"] = f"attachment; filename={secure_filename(event_data['title'])}.ics"
+    return response
+
+
+@app.route("/hub/<hub_id>/import_ics", methods=["POST"])
+@login_required
+def import_ics(hub_id):
+    """Parses an uploaded .ics file and adds events to the hub's calendar."""
+    if 'ics_file' not in request.files:
+        flash("No file part in the request.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='calendar'))
+
+    file = request.files['ics_file']
+    if file.filename == '':
+        flash("No file selected.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='calendar'))
+
+    if file and file.filename.lower().endswith('.ics'):
+        try:
+            cal = Calendar.from_ical(file.read())
+            batch = db.batch()
+            event_count = 0
+
+            for component in cal.walk():
+                if component.name == "VEVENT":
+                    event_count += 1
+                    summary = str(component.get('summary', 'Untitled Event'))
+                    start_dt = component.get('dtstart').dt
+                    end_dt = component.get('dtend').dt
+
+                    # Ensure datetime objects are timezone-aware (UTC)
+                    if isinstance(start_dt, datetime) and start_dt.tzinfo is None:
+                        start_dt = start_dt.replace(tzinfo=timezone.utc)
+                    if isinstance(end_dt, datetime) and end_dt.tzinfo is None:
+                        end_dt = end_dt.replace(tzinfo=timezone.utc)
+                    
+                    # Handle all-day events (which are of type date, not datetime)
+                    all_day = not isinstance(start_dt, datetime)
+                    if all_day:
+                        start_dt = datetime.combine(start_dt, datetime.min.time(), tzinfo=timezone.utc)
+                        end_dt = datetime.combine(end_dt, datetime.min.time(), tzinfo=timezone.utc)
+
+                    event_ref = db.collection('calendar_events').document(str(uuid.uuid4()))
+                    new_event = CalendarEvent(
+                        id=event_ref.id,
+                        hub_id=hub_id,
+                        title=summary,
+                        event_type="Imported",
+                        start_time=start_dt,
+                        end_time=end_dt,
+                        all_day=all_day,
+                        focus=str(component.get('description', ''))
+                    )
+                    batch.set(event_ref, new_event.to_dict())
+            
+            batch.commit()
+            flash(f"Successfully imported {event_count} events from your calendar!", "success")
+
+        except Exception as e:
+            print(f"Error importing ICS file: {e}")
+            flash("An error occurred while parsing the calendar file. It might be invalid.", "error")
+    else:
+        flash("Invalid file type. Please upload a .ics file.", "error")
+
+    return redirect(url_for('hub_page', hub_id=hub_id, _anchor='calendar'))
 
 # ==============================================================================
-# 6A. ASSET MANAGEMENT ROUTES (EDIT/DELETE)
+# 6A. ASSET MANAGEMENT & NOTIFICATION ROUTES
 # ==============================================================================
+@app.route("/notifications/mark_read", methods=["POST"])
+@login_required
+def mark_notifications_read():
+    data = request.get_json()
+    notification_ids = data.get('ids', [])
+    if not notification_ids:
+        return jsonify({"success": False, "message": "No notification IDs provided."}), 400
+    try:
+        batch = db.batch()
+        for notif_id in notification_ids:
+            notif_ref = db.collection('notifications').document(notif_id)
+            batch.update(notif_ref, {'read': True})
+        batch.commit()
+        return jsonify({"success": True, "message": "Notifications marked as read."})
+    except Exception as e:
+        print(f"Error marking notifications as read: {e}")
+        return jsonify({"success": False, "message": "An internal error occurred."}), 500
+        
 @app.route("/note/<note_id>/delete", methods=["POST"])
+@login_required
 def delete_note(note_id):
     try:
         db.collection('notes').document(note_id).delete()
@@ -1318,8 +2066,57 @@ def delete_note(note_id):
     except Exception as e:
         print(f"Error deleting note {note_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
+    
+@app.route("/hub/batch_delete", methods=["POST"])
+@login_required
+def batch_delete_assets():
+    items_to_delete = request.json.get('items', [])
+    if not items_to_delete:
+        return jsonify({"success": False, "message": "No items provided."}), 400
+
+    try:
+        batch = db.batch()
+
+        for item in items_to_delete:
+            item_id = item.get('id')
+            item_type = item.get('type')
+
+            if not item_id or not item_type:
+                continue
+
+            if item_type == 'note':
+                ref = db.collection('notes').document(item_id)
+                batch.delete(ref)
+            elif item_type in ['flashcards', 'quiz']:
+                ref = db.collection('activities').document(item_id)
+                batch.delete(ref)
+            elif item_type == 'session':
+                session_ref = db.collection('sessions').document(item_id)
+                session_doc = session_ref.get()
+
+                if session_doc.exists:
+                    session_data = session_doc.to_dict()
+                    
+                    if session_data.get('note_id'):
+                        batch.delete(db.collection('notes').document(session_data['note_id']))
+                    
+                    if session_data.get('flashcard_activity_id'):
+                        batch.delete(db.collection('activities').document(session_data['flashcard_activity_id']))
+
+                    for quiz_id in session_data.get('quiz_activity_ids', []):
+                        batch.delete(db.collection('activities').document(quiz_id))
+                    
+                    batch.delete(session_ref)
+
+        batch.commit()
+        return jsonify({"success": True, "message": "Items deleted successfully."})
+
+    except Exception as e:
+        print(f"Error during batch delete: {e}")
+        return jsonify({"success": False, "message": "An internal error occurred."}), 500
 
 @app.route("/note/<note_id>/edit", methods=["POST"])
+@login_required
 def edit_note(note_id):
     data = request.get_json()
     new_title = data.get('new_title')
@@ -1332,6 +2129,7 @@ def edit_note(note_id):
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/flashcards/<activity_id>/delete", methods=["POST"])
+@login_required
 def delete_flashcards(activity_id):
     try:
         db.collection('activities').document(activity_id).delete()
@@ -1341,6 +2139,7 @@ def delete_flashcards(activity_id):
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/flashcards/<activity_id>/edit", methods=["POST"])
+@login_required
 def edit_flashcards(activity_id):
     data = request.get_json()
     new_title = data.get('new_title')
@@ -1353,6 +2152,7 @@ def edit_flashcards(activity_id):
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/delete_all_hubs")
+@login_required
 def delete_all_hubs():
     try:
         all_hubs = db.collection('hubs').stream()
@@ -1364,7 +2164,7 @@ def delete_all_hubs():
             hub_id = hub_doc.id
             blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
             for blob in blobs: blob.delete()
-            collections_to_delete = ['notes', 'activities', 'lectures']
+            collections_to_delete = ['notes', 'activities', 'lectures', 'notifications']
             for coll in collections_to_delete:
                 docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
                 for doc in docs: doc.reference.delete()
@@ -1376,10 +2176,519 @@ def delete_all_hubs():
     return redirect(url_for('dashboard'))
 
 # ==============================================================================
-# 7. MAIN EXECUTION
+# 7. GUIDED WORKFLOW ROUTES (NEW SECTION)
+# ==============================================================================
+
+# --- NEW: This is the single route that handles the new workflow form ---
+@app.route("/hub/<hub_id>/generate_workflow_folder", methods=["POST"])
+@login_required
+def generate_workflow_folder(hub_id):
+    try:
+        data = request.get_json()
+        workflow_type = data.get('workflow_type')
+        selected_tools = data.get('selected_tools', [])
+        selected_files = data.get('selected_files', [])
+
+        # --- ACCESS CONTROL ---
+        if current_user.subscription_tier == 'free':
+            pro_tools_requested = [tool for tool in selected_tools if tool not in ['notes', 'flashcards']]
+            if pro_tools_requested:
+                # Capitalize for display
+                pro_tools_str = ', '.join([t.capitalize() for t in pro_tools_requested])
+                return jsonify({"success": False, "message": f"Creating {pro_tools_str} is a Pro feature. Please upgrade to generate these resources."}), 403
+
+        if not all([workflow_type, selected_tools, selected_files]):
+            return jsonify({"success": False, "message": "Missing required data."}), 400
+
+        hub_text = get_text_from_hub_files(selected_files)
+        if not hub_text:
+            return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        folder_name = f"Exam Pack for {first_file_name}" if workflow_type == 'exam' else f"Revision Pack for {first_file_name}"
+        
+        batch = db.batch()
+        folder_items = []
+        folder_ref = db.collection('folders').document()
+
+        # --- Generate selected resources ---
+        if 'notes' in selected_tools:
+            interactive_html = generate_interactive_notes_html(hub_text)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Notes for {first_file_name}", content_html=interactive_html)
+            batch.set(note_ref, new_note.to_dict())
+            folder_items.append({'id': note_ref.id, 'type': 'note'})
+
+        if 'flashcards' in selected_tools:
+            flashcards_raw = generate_flashcards_from_text(hub_text)
+            flashcards_parsed = parse_flashcards(flashcards_raw)
+            if flashcards_parsed:
+                fc_ref = db.collection('activities').document()
+                new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+                batch.set(fc_ref, new_fc.to_dict())
+                folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+
+        if 'quiz' in selected_tools or 'exam' in selected_tools:
+            quiz_json = generate_quiz_from_text(hub_text) # Generates a 10-q quiz
+            quiz_data = safe_load_json(quiz_json)
+            if quiz_data.get('questions'):
+                quiz_ref = db.collection('activities').document()
+                quiz_title = "Mock Exam" if 'exam' in selected_tools else "Practice Quiz"
+                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"{quiz_title} for {first_file_name}", data=quiz_data)
+                batch.set(quiz_ref, new_quiz.to_dict())
+                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+        
+        if 'cheatsheet' in selected_tools:
+            cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json_str)
+            batch.set(note_ref, new_note.to_dict())
+            folder_items.append({'id': note_ref.id, 'type': 'note'})
+            
+        if 'heatmap' in selected_tools:
+            # Note: Heatmap is a view, not a savable asset. We'll skip adding it to the folder.
+            # You could potentially save the JSON data as a note if desired.
+            pass
+
+        if 'analyse' in selected_tools:
+            # Note: Analysis is a view, not a savable asset.
+            pass
+
+        # --- Create the folder and notification ---
+        new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
+        batch.set(folder_ref, new_folder.to_dict())
+        
+        notification_ref = db.collection('notifications').document()
+        message = f"Your new resource folder '{folder_name}' is ready."
+        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+
+        batch.commit()
+        return jsonify({"success": True, "message": f"Successfully created folder '{folder_name}'!"})
+
+    except Exception as e:
+        print(f"Error in generate_workflow_folder: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+# --- NEW: ROUTE TO HANDLE INDIVIDUAL TOOL GENERATION ---
+@app.route("/hub/<hub_id>/run_async_tool", methods=["POST"])
+@login_required
+def run_async_tool(hub_id):
+    data = request.get_json()
+    tool = data.get('tool')
+    selected_files = data.get('selected_files')
+
+    # --- ACCESS CONTROL ---
+    if current_user.subscription_tier == 'free' and tool not in ['notes', 'flashcards']:
+        return jsonify({"success": False, "message": f"The '{tool.capitalize()}' tool is a Pro feature. Please upgrade to use it."}), 403
+    
+    if not all([tool, selected_files]):
+        return jsonify({"success": False, "message": "Missing tool or selected files."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+    try:
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        
+        if tool == 'notes':
+            interactive_html = generate_interactive_notes_html(hub_text)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Quick Notes for {first_file_name}", content_html=interactive_html)
+            note_ref.set(new_note.to_dict())
+            redirect_url = url_for('view_note', note_id=note_ref.id)
+
+        elif tool == 'flashcards':
+            flashcards_raw = generate_flashcards_from_text(hub_text)
+            flashcards_parsed = parse_flashcards(flashcards_raw)
+            fc_ref = db.collection('activities').document()
+            new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Quick Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+            fc_ref.set(new_fc.to_dict())
+            redirect_url = url_for('edit_flashcard_set', activity_id=fc_ref.id)
+            
+        elif tool == 'quiz':
+            quiz_json = generate_quiz_from_text(hub_text)
+            quiz_data = safe_load_json(quiz_json)
+            quiz_ref = db.collection('activities').document()
+            new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
+            quiz_ref.set(new_quiz.to_dict())
+            redirect_url = url_for('take_lecture_quiz', activity_id=quiz_ref.id) # FIX: Changed quiz_id to activity_id
+
+        elif tool == 'mindmap':
+            mind_map_json_str = generate_mind_map_json(hub_text)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Mind Map for {first_file_name}", content_html=mind_map_json_str)
+            note_ref.set(new_note.to_dict())
+            redirect_url = url_for('view_note', note_id=note_ref.id)
+            
+        elif tool == 'cheatsheet':
+            cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json_str)
+            note_ref.set(new_note.to_dict())
+            redirect_url = url_for('view_note', note_id=note_ref.id)
+            
+        elif tool == 'analyse':
+            analysis_markdown = analyse_papers_with_ai(hub_text)
+            analysis_html = markdown.markdown(analysis_markdown)
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Analysis of {first_file_name}", content_html=analysis_html)
+            note_ref.set(new_note.to_dict())
+            redirect_url = url_for('view_note', note_id=note_ref.id)
+
+        else:
+            return jsonify({"success": False, "message": f"Unknown tool: {tool}"}), 400
+
+        return jsonify({"success": True, "redirect_url": redirect_url})
+
+    except Exception as e:
+        print(f"Error in run_async_tool for tool '{tool}': {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# ==============================================================================
+# 7. ASSIGNMENT WRITER ROUTES (NEW MAJOR FEATURE)
+# ==============================================================================
+
+def parse_brief_requirements_with_ai(brief_text, rubric_text):
+    """Analyzes the brief and rubric to extract key assignment constraints."""
+    prompt = f"""
+    You are an expert academic assistant. Analyze the provided assignment brief and marking rubric to extract key requirements.
+    Your response MUST be a single, valid JSON object with the following keys: "word_count", "sources_required", "prompt_type", "key_themes".
+    - "word_count": An integer (e.g., 2500).
+    - "sources_required": An integer representing the minimum number of sources.
+    - "prompt_type": A short description (e.g., "Compare and contrast", "Critical analysis", "Case study").
+    - "key_themes": An array of 3-5 strings representing the core topics to be covered.
+
+    Assignment Brief:
+    ---
+    {brief_text}
+    ---
+
+    Marking Rubric (Optional):
+    ---
+    {rubric_text}
+    ---
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+def generate_assignment_outline_with_ai(assignment_details, context_text):
+    """Generates a structured outline and evidence plan using RAG."""
+    # This is a simplified RAG implementation for the response
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+    documents = text_splitter.create_documents([context_text])
+    vector_store = FAISS.from_documents(documents, embeddings)
+    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+    
+    # Retrieve relevant docs for the overall theme
+    relevant_docs = retriever.get_relevant_documents(assignment_details['brief_text'])
+    context_summary = "\n---\n".join([doc.page_content for doc in relevant_docs])
+
+    prompt = f"""
+    You are an expert academic planner creating a detailed essay outline.
+    Based on the assignment brief and the provided source material context, generate a hierarchical outline as a JSON object.
+
+    **Assignment Details:**
+    - Title: {assignment_details['title']}
+    - Brief: {assignment_details['brief_text']}
+    - Word Count: {assignment_details['word_count_target']}
+    - Referencing: {assignment_details['referencing_style']}
+    - Voice: {assignment_details['voice']}
+
+    **JSON Structure Rules:**
+    1.  The root object must have two keys: "thesis_statement" (a string) and "sections" (an array of section objects).
+    2.  Each section object MUST contain:
+        - "title": A string for the section heading (e.g., "Introduction", "The Role of Fiscal Policy").
+        - "word_count": An integer, a suggested word count for this section.
+        - "plan": An array of strings, where each string is a key point or argument to be made in that section.
+        - "evidence_suggestions": An array of strings, where each string is a brief note on what kind of evidence from the source material would be useful here (e.g., "Cite definitions from Document A", "Use statistics from Document B regarding inflation").
+
+    **CRITICAL:** The total of all section word counts should roughly equal the target word count. Base all 'evidence_suggestions' ONLY on the provided context below.
+
+    **Extracted Context from Source Materials:**
+    ---
+    {context_summary}
+    ---
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+def draft_assignment_section_with_ai(assignment_details, section_plan, context_text):
+    """Drafts a single section of the assignment using RAG, incorporating human-like writing."""
+    # This is a simplified RAG implementation for the response
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
+    documents = text_splitter.create_documents([context_text])
+    vector_store = FAISS.from_documents(documents, embeddings)
+    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+    
+    # Retrieve relevant docs for the specific section
+    query = f"{section_plan['title']}: {', '.join(section_plan['plan'])}"
+    relevant_docs = retriever.get_relevant_documents(query)
+    context_for_section = "\n---\n".join([doc.page_content for doc in relevant_docs])
+
+    prompt = f"""
+    You are an expert academic writer tasked with drafting a single essay section.
+    
+    **Overall Assignment Brief:** {assignment_details['brief_text']}
+    **Target Voice & Style:** Write in a "{assignment_details['voice']}" voice, using {assignment_details['referencing_style']} for any citations.
+    **Originality Level:** The user set an originality slider to "{assignment_details['originality_level']}".
+        - If 'More Original': Rely heavily on synthesis and critical analysis, using sources mainly for support.
+        - If 'More Evidenced': Use more direct quotes and close paraphrasing, ensuring every key point is backed by a citation.
+
+    **Current Section to Draft:**
+    - Title: "{section_plan['title']}"
+    - Plan: {', '.join(section_plan['plan'])}
+    - Target Word Count: {section_plan['word_count']} words
+
+    **Instructions:**
+    1.  Write a coherent, well-structured draft for this section only.
+    2.  The draft must be approximately {section_plan['word_count']} words.
+    3.  Strictly adhere to the plan and use the provided source context below to support all claims.
+    4.  Where you use information from the context, insert an inline citation placeholder like `[CITATION: summary of source info]`. For example: `...which led to a significant economic downturn [CITATION: Document A statistics on GDP decline].`
+    5.  Produce human-like prose. Vary sentence length, use appropriate discourse markers (e.g., 'however', 'consequently'), and maintain a formal academic tone.
+
+    **Source Context for this Section:**
+    ---
+    {context_for_section}
+    ---
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+
+@app.route("/hub/<hub_id>/start_assignment")
+@login_required
+def start_assignment(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("The Assignment Writer is a Pro feature. Please upgrade to access.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+    hub_doc = db.collection('hubs').document(hub_id).get()
+    if not hub_doc.exists:
+        return "Hub not found", 404
+    hub = Hub.from_dict(hub_doc.to_dict())
+    return render_template("create_assignment.html", hub=hub)
+
+@app.route("/hub/<hub_id>/generate_assignment_plan", methods=["POST"])
+@login_required
+def generate_assignment_plan(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        flash("The Assignment Writer is a Pro feature.", "warning")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    form = request.form
+    
+    # --- 1. Create and save the initial Assignment object ---
+    assignment_ref = db.collection('assignments').document()
+    new_assignment = Assignment(
+        id=assignment_ref.id,
+        hub_id=hub_id,
+        title=form.get('title'),
+        module=form.get('module'),
+        word_count_target=form.get('word_count_target'),
+        due_date=form.get('due_date'),
+        referencing_style=form.get('referencing_style'),
+        voice=form.get('voice'),
+        originality_level=form.get('originality_level'),
+        brief_text=form.get('brief_text'),
+        rubric_text=form.get('rubric_text'),
+        source_files=form.getlist('selected_files'),
+        cite_only_uploaded='cite_only_uploaded' in form
+    )
+    assignment_ref.set(new_assignment.to_dict())
+
+    try:
+        # --- 2. Run AI to parse requirements and generate outline ---
+        hub_text = get_text_from_hub_files(new_assignment.source_files)
+        if not hub_text and new_assignment.cite_only_uploaded:
+            assignment_ref.update({'status': 'error', 'parsed_requirements': {'error': 'No text could be extracted from source files.'}})
+            return redirect(url_for('assignment_workspace', assignment_id=new_assignment.id))
+
+        # requirements_json_str = parse_brief_requirements_with_ai(new_assignment.brief_text, new_assignment.rubric_text)
+        # requirements_data = safe_load_json(requirements_json_str)
+        
+        outline_json_str = generate_assignment_outline_with_ai(new_assignment.to_dict(), hub_text)
+        outline_data = safe_load_json(outline_json_str)
+
+        # --- 3. Update the Assignment object with the results ---
+        assignment_ref.update({
+            # "parsed_requirements": requirements_data,
+            "outline": outline_data,
+            "status": 'outline_ready'
+        })
+
+        return redirect(url_for('assignment_workspace', assignment_id=new_assignment.id))
+
+    except Exception as e:
+        print(f"Error in generate_assignment_plan: {e}")
+        assignment_ref.update({'status': 'error', 'outline': {'error': str(e)}})
+        return redirect(url_for('assignment_workspace', assignment_id=new_assignment.id))
+
+@app.route("/assignment/<assignment_id>")
+@login_required
+def assignment_workspace(assignment_id):
+    assignment_doc = db.collection('assignments').document(assignment_id).get()
+    if not assignment_doc.exists:
+        return "Assignment not found", 404
+    assignment = Assignment.from_dict(assignment_doc.to_dict())
+    return render_template("assignment_workspace.html", assignment=assignment)
+
+@app.route("/assignment/<assignment_id>/draft_section", methods=["POST"])
+@login_required
+def draft_section(assignment_id):
+    assignment_doc = db.collection('assignments').document(assignment_id).get()
+    if not assignment_doc.exists:
+        return jsonify({"success": False, "message": "Assignment not found."}), 404
+    
+    assignment = Assignment.from_dict(assignment_doc.to_dict())
+    section_index = request.json.get('section_index')
+    
+    if section_index is None or section_index >= len(assignment.outline.get('sections', [])):
+        return jsonify({"success": False, "message": "Invalid section index."}), 400
+
+    try:
+        section_plan = assignment.outline['sections'][section_index]
+        hub_text = get_text_from_hub_files(assignment.source_files)
+        
+        drafted_text = draft_assignment_section_with_ai(assignment.to_dict(), section_plan, hub_text)
+
+        # Update the specific section in the draft_content map
+        field_path = f'draft_content.section_{section_index}'
+        db.collection('assignments').document(assignment_id).update({
+            field_path: drafted_text
+        })
+        
+        return jsonify({"success": True, "drafted_text": drafted_text})
+
+    except Exception as e:
+        print(f"Error drafting section {section_index} for assignment {assignment_id}: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# ==============================================================================
+# 8. FOLDER MANAGEMENT ROUTES
+# ==============================================================================
+
+@app.route("/hub/<hub_id>/create_folder", methods=["POST"])
+@login_required
+def create_folder(hub_id):
+    folder_name = request.form.get('folder_name')
+    if not folder_name:
+        flash("Folder name cannot be empty.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+    
+    batch = db.batch()
+    folder_ref = db.collection('folders').document()
+    new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name)
+    batch.set(folder_ref, new_folder.to_dict())
+    
+    # --- NEW: Create Notification ---
+    notification_ref = db.collection('notifications').document()
+    message = f"A new folder named '{folder_name}' was created."
+    link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
+    new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+    batch.set(notification_ref, new_notification.to_dict())
+    batch.commit()
+
+    flash(f"Folder '{folder_name}' created successfully!", "success")
+    return redirect(url_for('hub_page', hub_id=hub_id, _anchor='folders'))
+
+
+@app.route("/folder/<folder_id>")
+@login_required
+def view_folder(folder_id):
+    folder_ref = db.collection('folders').document(folder_id)
+    folder_doc = folder_ref.get()
+    if not folder_doc.exists:
+        return "Folder not found", 404
+    folder = Folder.from_dict(folder_doc.to_dict())
+
+    folder_items = []
+    folder_item_ids = {item['id'] for item in folder.items}
+    
+    for item_ref in folder.items:
+        doc_id = item_ref.get('id')
+        doc_type = item_ref.get('type')
+        
+        if doc_type == 'note':
+            doc = db.collection('notes').document(doc_id).get()
+            if doc.exists: folder_items.append(Note.from_dict(doc.to_dict()))
+        elif doc_type in ['quiz', 'flashcards']:
+            doc = db.collection('activities').document(doc_id).get()
+            if doc.exists: folder_items.append(Activity.from_dict(doc.to_dict()))
+
+    all_notes = [n for n in db.collection('notes').where('hub_id', '==', folder.hub_id).stream() if n.id not in folder_item_ids]
+    all_activities = [a for a in db.collection('activities').where('hub_id', '==', folder.hub_id).stream() if a.id not in folder_item_ids]
+    
+    available_assets = {
+        "notes": [Note.from_dict(n.to_dict()) for n in all_notes],
+        "quizzes": [Activity.from_dict(a.to_dict()) for a in all_activities if a.to_dict().get('type') == 'Quiz'],
+        "flashcards": [Activity.from_dict(a.to_dict()) for a in all_activities if a.to_dict().get('type') == 'Flashcards']
+    }
+    
+    return render_template("folder.html", folder=folder, folder_items=folder_items, available_assets=available_assets)
+
+@app.route("/folder/<folder_id>/update_name", methods=["POST"])
+@login_required
+def update_folder_name(folder_id):
+    new_name = request.json.get('new_name')
+    if not new_name:
+        return jsonify({"success": False, "message": "Name cannot be empty."}), 400
+    try:
+        db.collection('folders').document(folder_id).update({'name': new_name})
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/folder/<folder_id>/delete", methods=["POST"])
+@login_required
+def delete_folder(folder_id):
+    try:
+        db.collection('folders').document(folder_id).delete()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/folder/<folder_id>/add_items", methods=["POST"])
+@login_required
+def add_items_to_folder(folder_id):
+    items_to_add = request.json.get('items', [])
+    if not items_to_add:
+        return jsonify({"success": False, "message": "No items to add."}), 400
+    try:
+        folder_ref = db.collection('folders').document(folder_id)
+        folder_ref.update({'items': firestore.ArrayUnion(items_to_add)})
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/folder/<folder_id>/remove_item", methods=["POST"])
+@login_required
+def remove_item_from_folder(folder_id):
+    item_to_remove = request.json.get('item')
+    if not item_to_remove:
+        return jsonify({"success": False, "message": "No item to remove."}), 400
+    try:
+        folder_ref = db.collection('folders').document(folder_id)
+        folder_ref.update({'items': firestore.ArrayRemove([item_to_remove])})
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# ==============================================================================
+# 9. MAIN EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-

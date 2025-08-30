@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start New Assignment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5; --primary-hover: #4338ca; --primary-light: #eef2ff;
+            --text-main: #1f2937; --text-secondary: #6b7280; --border-color: #e5e7eb;
+            --background-body: #f4f5f7; --background-card: #ffffff;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); margin: 0; padding: 2rem; color: var(--text-main); }
+        .container { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; max-width: 1200px; margin: auto; }
+        .form-panel, .files-panel { background-color: var(--background-card); border-radius: 12px; border: 1px solid var(--border-color); padding: 2rem; }
+        h1 { font-size: 1.875rem; font-weight: 700; margin: 0 0 2rem 0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        input[type="text"], input[type="number"], input[type="date"], select, textarea {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem; box-sizing: border-box;
+        }
+        textarea { min-height: 150px; resize: vertical; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .button {
+            display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 600;
+            padding: 0.8rem 1.5rem; border-radius: 8px; border: 1px solid transparent; transition: all 0.2s; cursor: pointer; font-size: 1rem; width: 100%;
+        }
+        .button-primary { background-color: var(--primary-color); color: white; }
+        .button-primary:hover { background-color: var(--primary-hover); }
+        .button-primary:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .file-list .file-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 0.5rem; border-radius: 8px; }
+        .file-item:hover { background-color: #f3f4f6; }
+        .file-item input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--primary-color); }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; text-align: center; }
+        .spinner { border: 4px solid rgba(79, 70, 229, 0.2); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-panel">
+            <a href="{{ url_for('hub_page', hub_id=hub.id) }}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">&larr; Back to Hub</a>
+            <h1>New Assignment Draft</h1>
+            <form id="assignment-form" action="{{ url_for('generate_assignment_plan', hub_id=hub.id) }}" method="POST">
+                <div class="form-group">
+                    <label for="title">Assignment Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., The Impact of Post-War Fiscal Policy" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="module">Module / Course Code</label>
+                        <input type="text" id="module" name="module" placeholder="e.g., ECON101">
+                    </div>
+                    <div class="form-group">
+                        <label for="word_count_target">Word Count Target</label>
+                        <input type="number" id="word_count_target" name="word_count_target" placeholder="e.g., 2500" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="brief_text">Assignment Brief</label>
+                    <textarea id="brief_text" name="brief_text" placeholder="Paste your assignment question, brief, or instructions here..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="rubric_text">Marking Rubric (Optional)</label>
+                    <textarea id="rubric_text" name="rubric_text" placeholder="For better results, paste the marking criteria or rubric here."></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="referencing_style">Referencing Style</label>
+                        <select id="referencing_style" name="referencing_style">
+                            <option>APA 7th Edition</option>
+                            <option>Harvard</option>
+                            <option>MLA 9th Edition</option>
+                            <option>Chicago</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="voice">Academic Voice</label>
+                        <select id="voice" name="voice">
+                            <option value="Clear & Concise (ESL-friendly)">Clear & Concise (ESL-friendly)</option>
+                            <option value="Standard Academic (2nd Year)">Standard Academic (2nd Year)</option>
+                            <option value="Critical & Nuanced (Final Year)">Critical & Nuanced (Final Year)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="originality_level">Originality vs. Evidence</label>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);"><p>More Original</p><p>More Evidenced</p></div>
+                    <input type="range" id="originality_level" name="originality_level" min="1" max="5" value="3" style="width: 100%;">
+                </div>
+            </form>
+        </div>
+        <div class="files-panel">
+            <h3>Source Materials</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top:0;">Select the lecture notes, readings, and other documents the AI should use as evidence.</p>
+            <div id="file-list-container" class="file-list">
+                {% for file in hub.files %}
+                <div class="file-item">
+                    <label style="display: flex; align-items: center; gap: 0.75rem; width: 100%; cursor: pointer;">
+                        <input type="checkbox" form="assignment-form" name="selected_files" value="{{ file.path }}">
+                        <span>{{ file.name }}</span>
+                    </label>
+                </div>
+                {% else %}
+                <p style="text-align: center; color: var(--text-secondary);">No files in this hub. <a href="{{ url_for('hub_page', hub_id=hub.id) }}">Upload some first!</a></p>
+                {% endfor %}
+            </div>
+             <div class="form-group" style="margin-top: 2rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem;">
+                    <input type="checkbox" form="assignment-form" name="cite_only_uploaded" checked>
+                    Only cite from uploaded sources
+                </label>
+            </div>
+            <button type="submit" form="assignment-form" id="submit-btn" class="button button-primary">Generate Outline & Plan</button>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner"></div>
+        <h3 style="margin-top: 1.5rem; color: var(--text-main);">Analyzing Brief & Sources...</h3>
+        <p style="color: var(--text-secondary);">This may take a minute. We're building your assignment plan.</p>
+    </div>
+
+    <script>
+        document.getElementById('assignment-form').addEventListener('submit', function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>

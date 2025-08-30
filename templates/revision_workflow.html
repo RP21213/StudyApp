@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Make Revision Resources - {{ hub.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #4f46e5; --border-color: #e5e7eb; --primary-light: #eef2ff; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 1rem; }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
+        h1 { margin-top: 0; }
+        p { color: #6b7280; }
+        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; background-color: var(--primary-color); color: white; border: none; font-weight: 600; cursor: pointer; }
+        .button.secondary { background-color: white; color: #6b7280; border: 1px solid var(--border-color); }
+        .resource-options { margin: 2rem 0; }
+        .resource-option { display: block; background-color: #f9fafb; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .resource-option label { display: flex; align-items: center; gap: 1rem; font-weight: 600; cursor: pointer; }
+        .resource-option input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--primary-color); }
+
+        /* --- Loader Styles --- */
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            text-align: center;
+        }
+        .spinner {
+            border: 6px solid #e5e7eb;
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-overlay p { font-size: 1.1rem; font-weight: 500; color: #1f2937; margin-top: 1.5rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <!-- Loader Overlay HTML -->
+    <div class="loader-overlay" id="loader-overlay">
+        <div class="spinner"></div>
+        <p>Building your revision pack...<br>Please wait.</p>
+    </div>
+
+    <div class="container">
+        <h1>Make Revision Resources</h1>
+        <p>Generate study aids from the <strong>{{ selected_files|length }} document(s)</strong> you selected. Choose the resources you want to create.</p>
+        
+        <form action="{{ url_for('create_revision_resources', hub_id=hub.id) }}" method="POST" id="workflow-form">
+            {% for file in selected_files %}<input type="hidden" name="selected_files" value="{{ file }}">{% endfor %}
+
+            <div class="resource-options">
+                <div class="resource-option">
+                    <label>
+                        <input type="checkbox" name="generate_notes" checked>
+                        <span>Interactive Study Notes</span>
+                    </label>
+                </div>
+                <div class="resource-option">
+                    <label>
+                        <input type="checkbox" name="generate_flashcards" checked>
+                        <span>Flashcard Deck</span>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="button">Generate Resources</button>
+            <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="button secondary" style="margin-top: 1rem; text-align:center;">Cancel</a>
+        </form>
+    </div>
+    
+    <script>
+        // Show loader on form submission
+        document.getElementById('workflow-form').addEventListener('submit', function() {
+            document.getElementById('loader-overlay').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5; --text-main: #1f2937; --text-secondary: #6b7280;
+            --border-color: #e5e7eb; --background-body: #f9fafb; --background-card: #ffffff;
+        }
+        body { font-family: 'Lora', serif; background-color: var(--background-body); margin: 0; color: var(--text-main); }
+        .workspace-grid { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+        .sidebar { background-color: var(--background-card); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .main-content { overflow-y: auto; padding: 2rem 3rem; }
+        .sidebar-header, .main-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h3, .main-header h1 { font-family: 'Poppins', sans-serif; margin: 0; }
+        .sidebar-content { padding: 1.5rem; overflow-y: auto; flex-grow: 1; }
+        .outline-section { margin-bottom: 1.5rem; border-left: 3px solid var(--border-color); padding-left: 1rem; }
+        .outline-section h5 { font-family: 'Poppins', sans-serif; margin: 0 0 0.5rem 0; display: flex; justify-content: space-between; }
+        .outline-section h5 span { font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; }
+        .outline-section p { font-size: 0.9rem; margin: 0.25rem 0; color: var(--text-secondary); }
+        .outline-section ul { list-style: disc; padding-left: 1.2rem; margin-top: 0.5rem; }
+        .outline-section ul li { font-size: 0.85rem; margin-bottom: 0.3rem; }
+        .button {
+            display: inline-flex; font-family: 'Poppins', sans-serif; font-weight: 600; padding: 0.5rem 1rem; border-radius: 8px;
+            border: 1px solid transparent; transition: all 0.2s; cursor: pointer; font-size: 0.875rem;
+        }
+        .button-primary { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .button-primary:disabled { background-color: #d1d5db; border-color: #d1d5db; cursor: not-allowed; }
+        .draft-section { border-bottom: 1px solid #e5e7eb; padding-bottom: 2rem; margin-bottom: 2rem; }
+        .draft-section h2 { font-family: 'Poppins'; border-bottom: 2px solid var(--primary-color); padding-bottom: 0.5rem; }
+        .draft-content {
+            background-color: #f9fafb; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem;
+            min-height: 200px; white-space: pre-wrap; line-height: 1.7;
+        }
+        .draft-content .citation { background-color: #eef2ff; color: #4338ca; padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'Poppins', sans-serif; font-size: 0.8rem; }
+        .error-message { background-color: #fee2e2; border: 1px solid #f87171; color: #991b1b; padding: 1.5rem; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="workspace-grid">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3>Outline & Plan</h3>
+            </div>
+            <div class="sidebar-content">
+                {% if assignment.status == 'outline_ready' and assignment.outline and not assignment.outline.get('error') %}
+                    <div class="outline-section" style="border-color: var(--primary-color);">
+                        <h5>Thesis Statement</h5>
+                        <p><em>{{ assignment.outline.thesis_statement }}</em></p>
+                    </div>
+
+                    {% for section in assignment.outline.sections %}
+                    <div class="outline-section" id="outline-section-{{ loop.index0 }}">
+                        <h5>{{ section.title }} <span>~{{ section.word_count }} words</span></h5>
+                        <p><strong>Plan:</strong> {{ section.plan | join(', ') }}</p>
+                        <p><strong>Evidence Needed:</strong></p>
+                        <ul>
+                            {% for ev in section.evidence_suggestions %}<li>{{ ev }}</li>{% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                {% elif assignment.status == 'error' %}
+                    <div class="error-message">
+                        <h4>Failed to Generate Plan</h4>
+                        <p>The AI could not generate an outline. Error:</p>
+                        <p><code>{{ assignment.outline.get('error', 'Unknown error.') }}</code></p>
+                    </div>
+                {% else %}
+                    <p>Loading plan...</p>
+                {% endif %}
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="main-header">
+                <h1>{{ assignment.title }}</h1>
+            </div>
+            <div id="draft-container">
+                {% if assignment.status == 'outline_ready' and assignment.outline and not assignment.outline.get('error') %}
+                    {% for section in assignment.outline.sections %}
+                    <div class="draft-section">
+                        <h2>{{ section.title }}</h2>
+                        <div class="draft-content" id="draft-content-{{ loop.index0 }}">
+                            <!-- Drafted content will be injected here -->
+                        </div>
+                        <button class="button button-primary draft-btn" data-section-index="{{ loop.index0 }}" style="margin-top: 1rem;">
+                            Draft This Section
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const assignmentId = '{{ assignment.id }}';
+
+            document.querySelectorAll('.draft-btn').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const sectionIndex = button.dataset.sectionIndex;
+                    const contentDiv = document.getElementById(`draft-content-${sectionIndex}`);
+                    
+                    button.textContent = 'Drafting...';
+                    button.disabled = true;
+                    contentDiv.textContent = 'The AI is writing, please wait...';
+
+                    try {
+                        const response = await fetch(`/assignment/${assignmentId}/draft_section`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ section_index: parseInt(sectionIndex) })
+                        });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            let formattedText = result.drafted_text.replace(/\[CITATION: (.*?)\]/g, '<span class="citation" title="$1">CITATION</span>');
+                            contentDiv.innerHTML = formattedText;
+                            button.textContent = 'Draft Again';
+                        } else {
+                            contentDiv.textContent = `Error: ${result.message}`;
+                            button.textContent = 'Try Drafting Again';
+                        }
+
+                    } catch (error) {
+                        contentDiv.textContent = 'A network error occurred. Please try again.';
+                        button.textContent = 'Try Drafting Again';
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

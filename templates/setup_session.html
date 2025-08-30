@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Setup Your Study Session</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-color: #4f46e5; --border-color: #e5e7eb; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; display: grid; place-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
+        h1 { margin-top: 0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        select, .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; }
+        .button { background-color: var(--primary-color); color: white; border: none; font-weight: 600; cursor: pointer; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 10; }
+        .spinner { border: 5px solid #e5e7eb; border-top: 5px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="loader-overlay" class="overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-weight: 500;">Building your personalized session...</p>
+    </div>
+    <div class="container">
+        <h1>Personalize Your Session</h1>
+        <p>This session will be based on the {{ selected_files|length }} document(s) you selected.</p>
+        <form action="{{ url_for('create_session', hub_id=hub_id) }}" method="POST" id="session-form">
+            {% for file in selected_files %}
+            <input type="hidden" name="selected_files" value="{{ file }}">
+            {% endfor %}
+            <div class="form-group">
+                <label for="duration">How long do you want to study?</label>
+                <select id="duration" name="duration">
+                    <option value="15">15 Minutes (Quick Review)</option>
+                    <option value="30" selected>30 Minutes (Standard Session)</option>
+                    <option value="60">60 Minutes (Deep Dive)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="focus">What is your main goal?</label>
+                <select id="focus" name="focus">
+                    <option value="recall">Active Recall (Memorization)</option>
+                    <option value="understanding" selected>Deep Understanding (Concepts)</option>
+                    <option value="exam_prep">Exam Preparation (Practice Questions)</option>
+                </select>
+            </div>
+            <button type="submit" class="button">Start Studying</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('session-form').addEventListener('submit', () => {
+            document.getElementById('loader-overlay').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>

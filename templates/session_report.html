@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Session Report: {{ session.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+     <style>
+        :root {
+            --primary-color: #4f46e5; --danger-color: #ef4444; --success-color: #10b981;
+            --background-body: #f4f5f7; --text-main: #1f2937; --border-color: #e5e7eb;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--background-body); color: var(--text-main); padding: 2rem; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 2.5rem; border-radius: 12px; }
+        .report-header { text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+        .score { font-size: 4rem; font-weight: 700; color: var(--primary-color); }
+        .weak-topics { background-color: #fef2f2; border: 1px solid var(--danger-color); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; }
+        .weak-topics h3 { color: var(--danger-color); margin-top: 0; }
+        .button { display: inline-block; background-color: var(--primary-color); color: white; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; margin: 0.25rem; }
+        .button.secondary { background-color: #e0e7ff; color: var(--primary-color); }
+        .breakdown-section { margin-top: 2rem; }
+        .result-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+        .result-item h4 { margin: 0 0 1rem; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="report-header">
+            <h1>Session Complete!</h1>
+            <p>Your overall score for this session was:</p>
+            <div class="score">{{ final_score }}%</div>
+            <p>A full set of notes and flashcards from this session have been saved to your hub.</p>
+        </div>
+
+        {% if weak_topics %}
+        <div class="weak-topics">
+            <h3>Remedial Plan for Weak Topics</h3>
+            <p>You struggled with the topics below. We've generated targeted materials to help you review:</p>
+            {% for topic in weak_topics %}
+                <div>
+                    <strong>{{ topic }}</strong>
+                    {% if remedial_links[topic] %}
+                        <a href="{{ url_for('view_note', note_id=remedial_links[topic].note_id) }}" class="button secondary">Review Notes</a>
+                        <a href="{{ url_for('take_lecture_quiz', quiz_id=remedial_links[topic].quiz_id) }}" class="button secondary">Take Review Quiz</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="breakdown-section">
+            <h2>Performance Breakdown</h2>
+            {% for result in session.results %}
+            <div class="result-item">
+                <h4>Step {{ loop.index }}: {{ result.topic_title }}</h4>
+                {% if result.is_correct is defined %}
+                    <p><strong>Interaction:</strong> Knowledge Check</p>
+                    <p><strong>Result:</strong> <span style="font-weight:bold; color: {{ '#10b981' if result.is_correct else '#ef4444' }}">{{ 'Correct' if result.is_correct else 'Incorrect' }}</span></p>
+                {% else %}
+                    <p><strong>Interaction:</strong> Teach Back</p>
+                    <p><strong>Your Score:</strong> {{ result.score }}/10</p>
+                    <p><strong>AI Feedback:</strong> {{ result.feedback }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('hub_page', hub_id=session.hub_id) }}" class="button">Finish & Back to Hub</a>
+        </div>
+    </div>
+</body>
+</html>
