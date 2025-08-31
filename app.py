@@ -22,6 +22,8 @@ import threading
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
 import stripe
+import base64 # Make sure this import is at the top with your others
+import json   # Make sure this import is at the top with your others
 from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User
 
 # --- NEW: Imports for Authentication ---
@@ -119,15 +121,28 @@ class NotesPDF(FPDF):
 
 
 # --- Initialize Firebase ---
+
 try:
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    key_path = os.path.join(base_dir, "firebase_key.json")
-    cred = credentials.Certificate(key_path)
+    # Check if the encoded key is in environment variables (for production on Render)
+    firebase_key_b64 = os.getenv("FIREBASE_KEY_B64")
+    if firebase_key_b64:
+        # Decode the base64 string back into a JSON string
+        firebase_key_json = base64.b64decode(firebase_key_b64).decode('utf-8')
+        # Load the JSON string into a Python dictionary
+        cred_dict = json.loads(firebase_key_json)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        # Fallback to local file for development on your own computer
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        key_path = os.path.join(base_dir, "firebase_key.json")
+        cred = credentials.Certificate(key_path)
+
     BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME", "ai-study-hub-f3040.firebasestorage.app")
     firebase_admin.initialize_app(cred, {'storageBucket': BUCKET_NAME})
     print("Firebase initialized successfully!")
 except Exception as e:
     print(f"Firebase initialization failed. Error: {e}")
+
 db = firestore.client()
 bucket = storage.bucket()
 
