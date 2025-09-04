@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress - Study Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #ef4444;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-light: #f9fafb;
+            --background-white: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        html[data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger-color: #f87171;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --background-light: #111827;
+            --background-white: #1f2937;
+            --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-light);
+            margin: 0;
+            color: var(--text-main);
+            display: flex;
+        }
+        .side-panel {
+            width: 260px;
+            background-color: var(--background-white);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .side-panel .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 3rem;
+        }
+        .side-panel .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        .side-panel .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .side-panel .nav-tab:hover {
+            background-color: var(--background-light);
+            color: var(--text-main);
+        }
+        .side-panel .nav-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 2rem;
+            width: calc(100% - 260px);
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { 
+            margin-bottom: 2rem; 
+        }
+        header h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+        header p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0; }
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        .stat-card .value {
+            font-size: 3.5rem;
+            font-weight: 800;
+        }
+        .stat-card .value span {
+            font-size: 1.5rem;
+            opacity: 0.7;
+            margin-left: 0.5rem;
+        }
+        .time-card { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .streak-card { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+        .chart-container, .review-container {
+            background-color: var(--background-white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container h2, .review-container h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .review-list .review-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .review-list .review-item:last-child {
+            border-bottom: none;
+        }
+        .topic-details { display: flex; flex-direction: column; }
+        .topic-name { font-weight: 600; font-size: 1.1rem; }
+        .hub-name { font-size: 0.9rem; color: var(--text-secondary); }
+        .topic-score { font-weight: 700; font-size: 1.25rem; }
+        .score-low { color: var(--danger-color); }
+        .score-mid { color: #f59e0b; }
+    </style>
+</head>
+<body>
+
+    <aside class="side-panel">
+        <div class="logo">Foci</div>
+        <nav class="nav-tabs">
+            <a href="{{ url_for('dashboard') }}" class="nav-tab" data-tab="hubs">
+                <i data-lucide="layout-grid"></i>
+                <span>Hubs</span>
+            </a>
+            <a href="{{ url_for('overall_progress') }}" class="nav-tab active" data-tab="progress">
+                <i data-lucide="trending-up"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="profile">
+                <i data-lucide="user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="settings">
+                 <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Overall Progress 📈</h1>
+                <p>An overview of your study habits and performance across all your hubs.</p>
+            </header>
+
+            <div class="progress-grid">
+                <div class="stat-card time-card">
+                    <h3>Total Study Time</h3>
+                    <div class="value">{{ total_study_hours }}<span>hours</span></div>
+                </div>
+                <div class="stat-card streak-card">
+                    <h3>Longest Study Streak</h3>
+                    <div class="value">{{ longest_streak }}<span>days</span></div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Quiz Score Trends</h2>
+                <canvas id="quizScoresChart"></canvas>
+            </div>
+
+            <div class="review-container" style="margin-top: 2rem;">
+                <h2>Areas for Review</h2>
+                <div class="review-list">
+                    {% for topic in weak_topics %}
+                    <div class="review-item">
+                        <div class="topic-details">
+                            <span class="topic-name">{{ topic.topic }}</span>
+                            <span class="hub-name">From Hub: {{ topic.hub_name }}</span>
+                        </div>
+                        <div class="topic-score {{ 'score-low' if topic.score < 50 else 'score-mid' }}">
+                            {{ "%.0f"|format(topic.score) }}%
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No specific weaknesses identified yet. Keep taking quizzes to get feedback!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('quizScoresChart').getContext('2d');
+            
+            const quizData = {{ quiz_scores_json|safe }};
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Quiz Score',
+                        data: quizData,
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'MMM dd, yyyy'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Score (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
