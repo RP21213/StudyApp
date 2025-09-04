@@ -67,6 +67,7 @@
             left: 0;
             top: 0;
             box-shadow: var(--shadow-sm);
+            box-sizing: border-box;
         }
 
         .side-panel .logo {
@@ -80,7 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            flex-grow: 1;
+            flex-grow: 1; /* This is key: it makes the nav fill all available space, pushing the theme toggle down */
         }
 
         .side-panel .nav-tab {
@@ -191,9 +192,7 @@
         }
         .modal-content .button { width: 100%; justify-content: center; }
         
-        /* NEW THEME TOGGLE CSS */
         .theme-switch-wrapper {
-            margin-top: auto; /* Pushes it to the bottom of the side-panel flex container */
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
         }
@@ -208,7 +207,7 @@
         .slider {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #374151; /* Dark grey for light mode track */
+            background-color: #374151;
             border-radius: 34px;
             transition: .4s;
         }
@@ -235,7 +234,7 @@
             justify-content: center;
             height: 100%;
             width: 26px;
-            color: #111827; /* Dark icon color */
+            color: #111827;
             transition: opacity 0.2s ease-in-out;
             z-index: 10;
         }
@@ -248,7 +247,7 @@
         }
         input:checked + .slider:before {
             transform: translateX(30px);
-            background-color: #111827; /* Dark knob for dark mode */
+            background-color: #111827;
         }
         input:checked + .slider .sun { opacity: 0; }
         input:checked + .slider .moon { opacity: 1; }
@@ -316,6 +315,8 @@
         .score-mid { color: #f59e0b; }
     </style>
     <script>
+        // This IIFE (Immediately Invoked Function Expression) runs before the page content loads.
+        // It checks localStorage for a saved theme and applies it to prevent a "flash" of the wrong theme.
         (function() {
             const theme = localStorage.getItem('theme');
             if (theme === 'dark') {
@@ -380,7 +381,7 @@
                         {% endif %}
 
                         <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
-                        <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
+                        <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirm('Are you sure you want to delete ALL hubs? This cannot be undone.');">Delete All Hubs</a>
 
                         <button class="button" id="open-modal-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -537,8 +538,6 @@
                 }
             });
 
-            function confirmDeleteAll() { return confirm('Are you sure you want to delete ALL hubs? This cannot be undone.'); }
-
             // Tab functionality
             const tabs = document.querySelectorAll('.nav-tab');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -558,18 +557,20 @@
                                 content.classList.add('active');
                             }
                         });
-                        window.location.hash = targetId;
+                        // Use history.pushState to update the URL without reloading the page
+                        history.pushState(null, '', '#' + targetId);
                     });
                 }
             });
             
+            // Check for a hash in the URL on page load to set the correct active tab
             const currentHash = window.location.hash.substring(1);
             if (currentHash) {
                 const tabToActivate = document.querySelector(`.nav-tab[data-tab="${currentHash}"]`);
                 if (tabToActivate) tabToActivate.click();
             }
             
-            // Chart.js functionality
+            // Chart.js functionality for the Progress tab
             const ctx = document.getElementById('quizScoresChart').getContext('2d');
             const quizData = {{ quiz_scores_json|safe }};
 
