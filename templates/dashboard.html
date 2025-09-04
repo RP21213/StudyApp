@@ -333,7 +333,7 @@
                 <i data-lucide="trending-up"></i>
                 <span>Progress</span>
             </a>
-            <a href="#" class="nav-tab" data-tab="profile">
+            <a href="{{ url_for('profile') }}" class="nav-tab">
                 <i data-lucide="user"></i>
                 <span>Profile</span>
             </a>
@@ -473,13 +473,6 @@
             </div>
         </div>
 
-        <div id="profile" class="tab-content">
-            <div class="container">
-                <h1>Profile</h1>
-                <p>This is where your profile information will be displayed.</p>
-            </div>
-        </div>
-
         <div id="settings" class="tab-content">
             <div class="container">
                 <h1>Settings</h1>
@@ -547,21 +540,35 @@
             const tabContents = document.querySelectorAll('.tab-content');
 
             tabs.forEach(tab => {
-                tab.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    
-                    tabs.forEach(item => item.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    const targetId = tab.getAttribute('data-tab');
-                    tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === targetId) {
-                            content.classList.add('active');
-                        }
+                // We only add click listeners to tabs that switch content, not to external links
+                if (tab.hasAttribute('data-tab')) {
+                    tab.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        tabs.forEach(item => item.classList.remove('active'));
+                        tab.classList.add('active');
+                        
+                        const targetId = tab.getAttribute('data-tab');
+                        tabContents.forEach(content => {
+                            content.classList.remove('active'); // a little inefficient but safe
+                            if (content.id === targetId) {
+                                content.classList.add('active');
+                            }
+                        });
+                        // Update URL hash for bookmarking/linking
+                        window.location.hash = targetId;
                     });
-                });
+                }
             });
+            
+            // Check for hash on page load to show the correct tab
+            const currentHash = window.location.hash.substring(1);
+            if (currentHash) {
+                const tabToActivate = document.querySelector(`.nav-tab[data-tab="${currentHash}"]`);
+                if (tabToActivate) {
+                    tabToActivate.click();
+                }
+            }
             
             // Chart.js functionality
             const ctx = document.getElementById('quizScoresChart').getContext('2d');

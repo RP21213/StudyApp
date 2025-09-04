@@ -185,6 +185,29 @@ app.jinja_env.filters['timesince'] = timesince_filter
 # 2. CORE UTILITY & HELPER FUNCTIONS
 # ==============================================================================
 
+def _get_user_stats(user_id):
+    """Helper function to calculate stats for a given user."""
+    hubs_ref = db.collection('hubs').where('user_id', '==', user_id).stream()
+    hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]
+    
+    total_study_minutes = 0
+    longest_streak = 0
+    
+    for hub in hubs_list:
+        if hub.streak_days > longest_streak:
+            longest_streak = hub.streak_days
+        sessions_query = db.collection('sessions').where('hub_id', '==', hub.id).stream()
+        for _ in sessions_query:
+            total_study_minutes += 30 
+            
+    total_study_hours = round(total_study_minutes / 60, 1)
+
+    return {
+        "total_study_hours": total_study_hours,
+        "longest_streak": longest_streak,
+        "hubs": hubs_list
+    }
+
 # --- NEW: Helper function for updating hub progress ---
 def update_hub_progress(hub_id, xp_to_add):
     """
@@ -755,6 +778,37 @@ def dashboard():
         weak_topics=weak_topics
     )
 
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    user_ref = db.collection('users').document(current_user.id)
+
+    if request.method == 'POST':
+        display_name = request.form.get('display_name')
+        bio = request.form.get('bio')
+        update_data = {
+            'display_name': display_name,
+            'bio': bio
+        }
+        
+        if 'avatar' in request.files:
+            file = request.files['avatar']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file_path = f"avatars/{current_user.id}/{filename}"
+                blob = bucket.blob(file_path)
+                
+                blob.upload_from_file(file, content_type=file.content_type)
+                blob.make_public()
+                update_data['avatar_url'] = blob.public_url
+
+        user_ref.update(update_data)
+        flash('Your profile has been updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    stats = _get_user_stats(current_user.id)
+    return render_template('profile.html', stats=stats)
 
 @app.route("/add_hub", methods=["POST"])
 @login_required
