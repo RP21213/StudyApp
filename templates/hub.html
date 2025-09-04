@@ -9,8 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-    <!-- NEW: Adding Lucide Icons for the edit buttons -->
-    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.js"></script>
 
     <style>
         :root {
@@ -152,23 +150,24 @@
         
         .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid var(--border-color); }
         
+        /* --- CSS FIX: Ensure tabs stay in one line and scroll if needed --- */
         .tab-nav { 
             display: flex; 
             border-bottom: 1px solid var(--border-color); 
             padding: 0.5rem 2rem 0 2rem; 
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            flex-wrap: nowrap; /* Prevents wrapping */
+            overflow-x: auto; /* Allows horizontal scrolling */
+            -ms-overflow-style: none; /* for IE and Edge */
+            scrollbar-width: none; /* for Firefox */
         }
         .tab-nav::-webkit-scrollbar {
-            display: none;
+            display: none; /* for Chrome, Safari, and Opera */
         }
 
         .tab-button {
             padding: 1rem 0.5rem; margin-right: 1.5rem; margin-bottom: -1px; cursor: pointer; border: none; background: none; font-size: 1rem; font-weight: 600;
             color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
-            white-space: nowrap;
+            white-space: nowrap; /* Prevent button text from wrapping */
         }
         .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .tab-content { display: none; padding: 1.5rem; }
@@ -194,21 +193,6 @@
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
         .study-tools-container.disabled { pointer-events: none; user-select: none; }
         .study-tools-container.disabled .workflow-button, .study-tools-container.disabled .quick-tool-btn { opacity: 0.6; }
-
-        /* NEW: Styles for in-place editing */
-        .edit-btn {
-            background: none; border: none; cursor: pointer; color: var(--text-secondary);
-            opacity: 0.2; transition: opacity 0.2s; padding: 0.25rem;
-            line-height: 1; /* Helps with alignment */
-        }
-        .asset-item:hover .edit-btn, .folder-header:hover .edit-btn { opacity: 1; }
-        .edit-btn:hover { color: var(--primary-color); }
-        .edit-container { display: flex; align-items: center; gap: 0.5rem; width: 100%; }
-        .edit-container input {
-            flex-grow: 1; padding: 0.25rem 0.5rem; font-size: 1.1rem; font-family: 'Poppins', sans-serif; font-weight: 600;
-            border: 1px solid var(--primary-color); border-radius: 4px;
-            background-color: var(--background-body); color: var(--text-main);
-        }
         
         .workflow-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
         .workflow-button { 
@@ -634,8 +618,9 @@
         .theme-switch input:checked + .track .cloud { opacity: 0; transform: translateX(-20px); }
         .theme-switch input:checked + .track .star { opacity: 1; transform: scale(1); }
 
+        /* --- UPDATED: Calendar styles --- */
         #calendar-container {
-            padding: 0;
+            padding: 0; /* Let the tab-content provide padding */
         }
         #fullcalendar {
             min-height: 700px;
@@ -663,6 +648,7 @@
             background-color: var(--primary-color) !important;
             border-color: var(--primary-color) !important;
         }
+        /* -- FIX: Sidebar Schedule Section Layout -- */
         .sidebar-header {
             display: flex;
             justify-content: space-between;
@@ -680,6 +666,7 @@
             display: flex;
             gap: 0.5rem;
         }
+        /* --- NEW: Event Details Modal Styles --- */
         #event-details-modal .modal-body p {
             margin: 0.5rem 0 1.5rem 0;
             line-height: 1.6;
@@ -938,7 +925,7 @@
                             <input type="checkbox" class="asset-checkbox">
                             <a href="{{ url_for('session_report', session_id=session.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-session"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84"/></svg></div>
-                                <div class="asset-details"><h5 class="asset-title">{{ session.title }}</h5><span>Completed {{ session.created_at|timesince }} ago</span></div>
+                                <div class="asset-details"><h5>{{ session.title }}</h5><span>Completed {{ session.created_at|timesince }} ago</span></div>
                             </a>
                         </li>
                         {% else %}
@@ -959,18 +946,17 @@
                     </div>
                     <div id="folder-accordion-container">
                         {% for folder in all_folders %}
-                        <div class="folder-accordion-item" data-id="{{ folder.id }}" data-type="folder">
+                        <div class="folder-accordion-item">
                             <div class="folder-header" data-folder-id="{{ folder.id }}">
                                 <div class="folder-header-title">
                                     <div class="asset-icon" style="background-color: #fefce8; color: #a16207;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg></div>
                                     <div>
-                                        <h5 class="asset-title">{{ folder.name }}</h5>
+                                        <h5>{{ folder.name }}</h5>
                                         <span>{{ folder.hydrated_items|length }} items</span>
                                     </div>
                                 </div>
                                 <div class="folder-actions">
                                     <button class="button button-secondary add-items-to-folder-btn">Add Items</button>
-                                    <button class="button edit-btn" title="Edit folder name"><i data-lucide="pencil" size="16"></i></button>
                                     <button class="button button-danger delete-folder-btn">Delete</button>
                                 </div>
                             </div>
@@ -982,24 +968,24 @@
                                         {% if item_type == 'note' %}
                                         <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link">
                                             <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-                                            <div class="asset-details"><h5 class="asset-title">{{ item.title }}</h5><span>Note</span></div>
+                                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Note</span></div>
                                         </a>
                                         {% elif item_type == 'quiz' %}
                                             {% if item.status == 'graded' %}
                                                 <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link">
                                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                                    <div class="asset-details"><h5 class="asset-title">{{ item.title }}</h5><span>Quiz ({{ item.score }}%)</span></div>
+                                                    <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz ({{ item.score }}%)</span></div>
                                                 </a>
                                             {% else %}
                                                  <a href="{{ url_for('take_lecture_quiz', activity_id=item.id) }}" class="asset-link">
                                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                                    <div class="asset-details"><h5 class="asset-title">{{ item.title }}</h5><span>Quiz (Not Taken)</span></div>
+                                                    <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz (Not Taken)</span></div>
                                                 </a>
                                             {% endif %}
                                         {% elif item_type == 'flashcards' %}
                                         <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link">
                                            <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                           <div class="asset-details"><h5 class="asset-title">{{ item.title }}</h5><span>Flashcards</span></div>
+                                           <div class="asset-details"><h5>{{ item.title }}</h5><span>Flashcards</span></div>
                                         </a>
                                         {% endif %}
                                         <button class="button button-danger remove-item-btn">Remove</button>
@@ -1025,9 +1011,8 @@
                             <input type="checkbox" class="asset-checkbox">
                             <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-                                <div class="asset-details"><h5 class="asset-title">{{ note.title }}</h5><span>Created {{ note.created_at|timesince }} ago</span></div>
+                                <div class="asset-details"><h5 id="title-note-{{ note.id }}">{{ note.title }}</h5><span>Created {{ note.created_at|timesince }} ago</span></div>
                             </a>
-                            <button class="button edit-btn" title="Edit note title"><i data-lucide="pencil" size="16"></i></button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't generated any notes yet.</p></li>
@@ -1045,9 +1030,8 @@
                              <input type="checkbox" class="asset-checkbox">
                             <a href="{{ url_for('edit_flashcard_set', activity_id=card_set.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                <div class="asset-details"><h5 class="asset-title">{{ card_set.title or 'Flashcard Set' }}</h5><span>Created {{ card_set.created_at|timesince }} ago</span></div>
+                                <div class="asset-details"><h5 id="title-flashcards-{{ card_set.id }}">{{ card_set.title or 'Flashcard Set' }}</h5><span>Created {{ card_set.created_at|timesince }} ago</span></div>
                             </a>
-                             <button class="button edit-btn" title="Edit flashcard set title"><i data-lucide="pencil" size="16"></i></button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't generated any flashcards yet.</p></li>
@@ -1067,17 +1051,16 @@
                             {% if quiz.status == 'graded' %}
                                 <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                    <div class="asset-details"><h5 class="asset-title">{{ quiz.title or quiz.type }}</h5><span>Completed {{ quiz.created_at|timesince }} ago</span></div>
+                                    <div class="asset-details"><h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5><span>Completed {{ quiz.created_at|timesince }} ago</span></div>
                                 </a>
                                 <div class="asset-score"><span>{{ quiz.score }}%</span></div>
                             {% else %}
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                    <div class="asset-details"><h5 class="asset-title">{{ quiz.title or quiz.type }}</h5><span>Ready to take</span></div>
+                                    <div class="asset-details"><h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5><span>Ready to take</span></div>
                                 </a>
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="button button-primary" style="padding: 0.5rem 1rem;">Take Quiz</a>
                             {% endif %}
-                             <button class="button edit-btn" title="Edit quiz title"><i data-lucide="pencil" size="16"></i></button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't completed any quizzes yet.</p></li>
@@ -1251,8 +1234,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons(); // Initialize icons
-            
             const hubId = '{{ hub.id }}';
             let calendar; 
 
@@ -1607,7 +1588,7 @@
                 const deleteBtn = e.target.closest('.delete-folder-btn');
                 const removeBtn = e.target.closest('.remove-item-btn');
 
-                if (header && !addBtn && !deleteBtn && !e.target.closest('.edit-btn')) {
+                if (header && !addBtn && !deleteBtn) {
                     header.nextElementSibling.classList.toggle('open');
                 }
                 if (addBtn) {
@@ -1759,88 +1740,8 @@
                     panel.classList.remove('visible');
                 }
             });
-
-            // =================================================================
-            // NEW: IN-PLACE EDITING FUNCTIONALITY
-            // =================================================================
-            document.body.addEventListener('click', function(e) {
-                const editBtn = e.target.closest('.edit-btn');
-                if (!editBtn) return;
-
-                const itemElement = editBtn.closest('.asset-item, .folder-accordion-item');
-                if (!itemElement) return;
-
-                const titleElement = itemElement.querySelector('.asset-title');
-                if (!titleElement) return;
-
-                const currentTitle = titleElement.textContent.trim();
-                const container = titleElement.parentElement;
-
-                // Create input field
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = currentTitle;
-                
-                // Replace title with input
-                container.innerHTML = '';
-                const editContainer = document.createElement('div');
-                editContainer.className = 'edit-container';
-                editContainer.appendChild(input);
-                container.appendChild(editContainer);
-                input.focus();
-                input.select();
-
-                const saveChanges = async () => {
-                    const newTitle = input.value.trim();
-                    if (newTitle === '' || newTitle === currentTitle) {
-                        // If no change or empty, revert without saving
-                        container.innerHTML = `<h5 class="asset-title">${currentTitle}</h5>`;
-                        return;
-                    }
-
-                    const itemId = itemElement.dataset.id;
-                    const itemType = itemElement.dataset.type;
-                    
-                    let endpoint = '';
-                    if (itemType === 'note') endpoint = `/note/${itemId}/edit`;
-                    else if (itemType === 'flashcards') endpoint = `/flashcards/${itemId}/edit`;
-                    else if (itemType === 'quiz') endpoint = `/quiz/${itemId}/edit`;
-                    else if (itemType === 'folder') endpoint = `/folder/${itemId}/update_name`;
-                    
-                    if (!endpoint) return;
-
-                    try {
-                        const response = await fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ new_title: newTitle })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            container.innerHTML = `<h5 class="asset-title">${newTitle}</h5>`;
-                        } else {
-                            alert(result.message);
-                            container.innerHTML = `<h5 class="asset-title">${currentTitle}</h5>`;
-                        }
-                    } catch (err) {
-                        alert('An error occurred. Please try again.');
-                        container.innerHTML = `<h5 class="asset-title">${currentTitle}</h5>`;
-                    }
-                };
-                
-                input.addEventListener('keydown', e => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        saveChanges();
-                    } else if (e.key === 'Escape') {
-                         container.innerHTML = `<h5 class="asset-title">${currentTitle}</h5>`;
-                    }
-                });
-
-                input.addEventListener('blur', saveChanges);
-            });
-
         });
     </script>
 </body>
 </html>
+

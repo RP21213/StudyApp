@@ -813,7 +813,7 @@ def dashboard():
                 "hub_name": hub.name
             })
 
-    # FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part
+    # --- FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part ---
     hubs_for_json = [hub.to_dict() for hub in hubs_list]
 
     return render_template(
@@ -1557,6 +1557,19 @@ def delete_quiz(activity_id):
         print(f"Error deleting activity {activity_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
+@app.route("/quiz/<activity_id>/edit", methods=["POST"])
+@login_required
+def edit_quiz(activity_id):
+    data = request.get_json()
+    new_title = data.get('new_title')
+    if not new_title: return jsonify({"success": False, "message": "New title is required."}), 400
+    try:
+        db.collection('activities').document(activity_id).update({'title': new_title})
+        return jsonify({"success": True, "message": "Quiz title updated."})
+    except Exception as e:
+        print(f"Error updating activity {activity_id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred."}), 500
+
 @app.route("/hub/<hub_id>/delete_file")
 @login_required
 def delete_file(hub_id):
@@ -2275,16 +2288,13 @@ def batch_delete_assets():
         print(f"Error during batch delete: {e}")
         return jsonify({"success": False, "message": "An internal error occurred."}), 500
 
-# --- NEW: Route to edit a note's title ---
 @app.route("/note/<note_id>/edit", methods=["POST"])
 @login_required
 def edit_note(note_id):
     data = request.get_json()
     new_title = data.get('new_title')
-    if not new_title: 
-        return jsonify({"success": False, "message": "New title is required."}), 400
+    if not new_title: return jsonify({"success": False, "message": "New title is required."}), 400
     try:
-        # SECURITY: You might want to add a check here to ensure current_user owns the hub this note belongs to.
         db.collection('notes').document(note_id).update({'title': new_title})
         return jsonify({"success": True, "message": "Note title updated."})
     except Exception as e:
@@ -2301,34 +2311,17 @@ def delete_flashcards(activity_id):
         print(f"Error deleting flashcard set {activity_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
-# --- NEW: Route to edit a flashcard set's title ---
 @app.route("/flashcards/<activity_id>/edit", methods=["POST"])
 @login_required
 def edit_flashcards(activity_id):
     data = request.get_json()
     new_title = data.get('new_title')
-    if not new_title: 
-        return jsonify({"success": False, "message": "New title is required."}), 400
+    if not new_title: return jsonify({"success": False, "message": "New title is required."}), 400
     try:
         db.collection('activities').document(activity_id).update({'title': new_title})
         return jsonify({"success": True, "message": "Flashcard set title updated."})
     except Exception as e:
         print(f"Error updating flashcard set {activity_id}: {e}")
-        return jsonify({"success": False, "message": "An error occurred."}), 500
-        
-# --- NEW: Route to edit a quiz's title ---
-@app.route("/quiz/<activity_id>/edit", methods=["POST"])
-@login_required
-def edit_quiz(activity_id):
-    data = request.get_json()
-    new_title = data.get('new_title')
-    if not new_title: 
-        return jsonify({"success": False, "message": "New title is required."}), 400
-    try:
-        db.collection('activities').document(activity_id).update({'title': new_title})
-        return jsonify({"success": True, "message": "Quiz title updated."})
-    except Exception as e:
-        print(f"Error updating activity {activity_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
 @app.route("/delete_all_hubs")
@@ -2820,7 +2813,6 @@ def view_folder(folder_id):
     
     return render_template("folder.html", folder=folder, folder_items=folder_items, available_assets=available_assets)
 
-# --- NEW: Route to update a folder's name ---
 @app.route("/folder/<folder_id>/update_name", methods=["POST"])
 @login_required
 def update_folder_name(folder_id):
@@ -2828,7 +2820,6 @@ def update_folder_name(folder_id):
     if not new_name:
         return jsonify({"success": False, "message": "Name cannot be empty."}), 400
     try:
-        # SECURITY: Add check to ensure user owns this folder via its hub_id
         db.collection('folders').document(folder_id).update({'name': new_name})
         return jsonify({"success": True})
     except Exception as e:
@@ -3001,4 +2992,4 @@ def import_folder(shared_folder_id):
 # 9. MAIN EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True) 
