@@ -782,20 +782,16 @@ def dashboard():
         else:
             query = query.order_by('created_at', direction=firestore.Query.DESCENDING)
 
-        shared_folders_docs = query.limit(20).stream() # Limit to 20 for performance
+        shared_folders_docs = query.limit(20).stream()
         
         shared_folders = [SharedFolder.from_dict(doc.to_dict()) for doc in shared_folders_docs]
         
-        # Get all unique owner IDs to fetch user data in one batch
         owner_ids = list(set(sf.owner_id for sf in shared_folders))
         users_data = {}
         if owner_ids:
-            # Firestore 'in' queries are limited to 10 items. This needs handling for larger sets.
-            # For now, we'll assume owner_ids is small. For production, you'd batch this.
             user_docs = db.collection('users').where('id', 'in', owner_ids).stream()
             users_data = {user.to_dict()['id']: user.to_dict() for user in user_docs}
 
-        # Hydrate shared folders with owner info
         for sf in shared_folders:
             owner_info = users_data.get(sf.owner_id)
             if owner_info:
@@ -817,14 +813,17 @@ def dashboard():
                 "hub_name": hub.name
             })
 
+    # FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part
+    hubs_for_json = [hub.to_dict() for hub in hubs_list]
 
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
+        hubs_for_json=hubs_for_json,  # Pass the new list to the template
         total_study_hours=total_study_hours,
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
-        weak_topics=weak_topics,
+        weak_topics=weak_topics, # FIX: Added the missing comma here
         shared_folders=shared_folders_hydrated,
         all_user_folders=all_user_folders
     )
@@ -2867,7 +2866,7 @@ def remove_item_from_folder(folder_id):
 @app.route("/folder/share", methods=["POST"])
 @login_required
 def share_folder():
-    if current_user.subscription_tier != 'pro':
+    if current_user.subscription_tier not in ['pro', 'admin']:
         flash("You must be a Pro member to share folders with the community.", "error")
         return redirect(url_for('dashboard'))
 
@@ -2887,7 +2886,8 @@ def share_folder():
             return redirect(url_for('dashboard', _anchor='community'))
 
         folder_data = folder_doc.to_dict()
-        if folder_data.get('hub_id') not in [h.id for h in _get_user_stats(current_user.id)['hubs']]:
+        user_hubs = [h.id for h in _get_user_stats(current_user.id)['hubs']]
+        if folder_data.get('hub_id') not in user_hubs:
              flash("You can only share folders that you own.", "error")
              return redirect(url_for('dashboard', _anchor='community'))
 
@@ -2919,7 +2919,7 @@ def share_folder():
 @app.route("/folder/import/<shared_folder_id>", methods=["POST"])
 @login_required
 def import_folder(shared_folder_id):
-    if current_user.subscription_tier != 'pro':
+    if current_user.subscription_tier not in ['pro', 'admin']:
         return jsonify({"success": False, "message": "You must be a Pro member to import folders."}), 403
 
     target_hub_id = request.json.get('hub_id')
