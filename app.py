@@ -2905,25 +2905,25 @@ def remove_item_from_folder(folder_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 # ==============================================================================
-# 10. COMMUNITY ROUTES (NEW SECTION)
+# 10. COMMUNITY ROUTES (UPDATED)
 # ==============================================================================
 @app.route("/folder/share", methods=["POST"])
 @login_required
 def share_folder():
     if current_user.subscription_tier not in ['pro', 'admin']:
-        flash("You must be a Pro member to share folders with the community.", "error")
+        flash("You must be a Pro member to share folders.", "error")
         return redirect(url_for('dashboard'))
 
     folder_id = request.form.get('folder_id')
+    title = request.form.get('title') # NEW: Get editable title
     description = request.form.get('description')
     tags_raw = request.form.get('tags', '')
     
-    if not all([folder_id, description]):
-        flash("Folder and description are required.", "error")
+    if not all([folder_id, description, title]):
+        flash("Folder, title, and description are required.", "error")
         return redirect(url_for('dashboard', _anchor='community'))
 
     try:
-        # 1. Fetch the original folder to ensure it exists and belongs to the user
         folder_doc = db.collection('folders').document(folder_id).get()
         if not folder_doc.exists:
             flash("The selected folder could not be found.", "error")
@@ -2935,17 +2935,15 @@ def share_folder():
              flash("You can only share folders that you own.", "error")
              return redirect(url_for('dashboard', _anchor='community'))
 
-        # 2. Prepare tags
         tags = [tag.strip().lower() for tag in tags_raw.split(',') if tag.strip()]
 
-        # 3. Create the SharedFolder object
         shared_folder_ref = db.collection('shared_folders').document()
         new_shared_folder = SharedFolder(
             id=shared_folder_ref.id,
             original_folder_id=folder_id,
             original_hub_id=folder_data.get('hub_id'),
             owner_id=current_user.id,
-            title=folder_data.get('name'),
+            title=title, # UPDATED: Use the new title from the form
             description=description,
             tags=tags
         )
@@ -2955,7 +2953,7 @@ def share_folder():
 
     except Exception as e:
         print(f"Error sharing folder: {e}")
-        flash("An unexpected error occurred while sharing your folder.", "error")
+        flash("An unexpected error occurred while sharing.", "error")
 
     return redirect(url_for('dashboard', _anchor='community'))
 
@@ -2978,11 +2976,9 @@ def import_folder(shared_folder_id):
 
         shared_folder = SharedFolder.from_dict(shared_folder_doc.to_dict())
 
-        # Prevent users from importing their own folders
         if shared_folder.owner_id == current_user.id:
             return jsonify({"success": False, "message": "You cannot import your own folder."}), 400
 
-        # Fetch original folder and its items
         original_folder_doc = db.collection('folders').document(shared_folder.original_folder_id).get()
         if not original_folder_doc.exists:
              return jsonify({"success": False, "message": "The original folder no longer exists."}), 404
@@ -2992,7 +2988,6 @@ def import_folder(shared_folder_id):
         batch = db.batch()
         new_items_for_folder = []
 
-        # Deep copy all assets (notes, activities)
         for item_ref in original_folder.items:
             item_id = item_ref.get('id')
             item_type = item_ref.get('type')
@@ -3004,7 +2999,6 @@ def import_folder(shared_folder_id):
                 original_item_data = original_item_doc.to_dict()
                 new_item_ref = db.collection(collection_name).document()
                 
-                # Create new data, updating ID and hub_id
                 new_item_data = original_item_data
                 new_item_data['id'] = new_item_ref.id
                 new_item_data['hub_id'] = target_hub_id
@@ -3012,7 +3006,6 @@ def import_folder(shared_folder_id):
                 batch.set(new_item_ref, new_item_data)
                 new_items_for_folder.append({'id': new_item_ref.id, 'type': item_type})
 
-        # Create the new folder for the current user
         new_folder_ref = db.collection('folders').document()
         new_folder = Folder(
             id=new_folder_ref.id,
@@ -3022,8 +3015,11 @@ def import_folder(shared_folder_id):
         )
         batch.set(new_folder_ref, new_folder.to_dict())
 
-        # Increment the import count on the shared folder
-        batch.update(shared_folder_ref, {'imports': firestore.Increment(1)})
+        # UPDATED: Increment import count AND add user to imported_by list
+        batch.update(shared_folder_ref, {
+            'imports': firestore.Increment(1),
+            'imported_by': firestore.ArrayUnion([current_user.id])
+        })
 
         batch.commit()
         return jsonify({"success": True, "message": f"'{new_folder.name}' imported successfully!"})
@@ -3031,6 +3027,67 @@ def import_folder(shared_folder_id):
     except Exception as e:
         print(f"Error importing folder: {e}")
         return jsonify({"success": False, "message": "An internal server error occurred."}), 500
+
+# --- NEW: Route for Liking/Unliking a folder ---
+@app.route("/folder/like/<shared_folder_id>", methods=["POST"])
+@login_required
+def like_folder(shared_folder_id):
+    shared_folder_ref = db.collection('shared_folders').document(shared_folder_id)
+    shared_folder_doc = shared_folder_ref.get()
+
+    if not shared_folder_doc.exists:
+        return jsonify({"success": False, "message": "Folder not found."}), 404
+
+    folder_data = shared_folder_doc.to_dict()
+    
+    if folder_data.get('owner_id') == current_user.id:
+        return jsonify({"success": False, "message": "You cannot like your own folder."}), 403
+
+    # Business Rule: User must have imported the folder to be able to like it.
+    if current_user.id not in folder_data.get('imported_by', []):
+        return jsonify({"success": False, "message": "You must import a folder before you can like it."}), 403
+
+    liked_by = folder_data.get('liked_by', [])
+    user_has_liked = current_user.id in liked_by
+
+    if user_has_liked:
+        # User is unliking the folder
+        shared_folder_ref.update({
+            'likes': firestore.Increment(-1),
+            'liked_by': firestore.ArrayRemove([current_user.id])
+        })
+        new_like_count = folder_data.get('likes', 1) - 1
+        return jsonify({"success": True, "liked": False, "count": new_like_count})
+    else:
+        # User is liking the folder
+        shared_folder_ref.update({
+            'likes': firestore.Increment(1),
+            'liked_by': firestore.ArrayUnion([current_user.id])
+        })
+        new_like_count = folder_data.get('likes', 0) + 1
+        return jsonify({"success": True, "liked": True, "count": new_like_count})
+
+# --- NEW: Route for deleting a shared folder ---
+@app.route("/folder/share/delete/<shared_folder_id>", methods=["POST"])
+@login_required
+def delete_shared_folder(shared_folder_id):
+    shared_folder_ref = db.collection('shared_folders').document(shared_folder_id)
+    shared_folder_doc = shared_folder_ref.get()
+
+    if not shared_folder_doc.exists:
+        return jsonify({"success": False, "message": "Shared folder not found."}), 404
+
+    folder_data = shared_folder_doc.to_dict()
+
+    if folder_data.get('owner_id') != current_user.id:
+        return jsonify({"success": False, "message": "You do not have permission to delete this folder."}), 403
+
+    try:
+        shared_folder_ref.delete()
+        return jsonify({"success": True, "message": "Folder removed from community."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"An error occurred: {e}"}), 500
+
 
 # ==============================================================================
 # 9. MAIN EXECUTION

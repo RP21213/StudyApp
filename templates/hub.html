@@ -150,24 +150,21 @@
         
         .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid var(--border-color); }
         
-        /* --- CSS FIX: Ensure tabs stay in one line and scroll if needed --- */
         .tab-nav { 
             display: flex; 
             border-bottom: 1px solid var(--border-color); 
             padding: 0.5rem 2rem 0 2rem; 
-            flex-wrap: nowrap; /* Prevents wrapping */
-            overflow-x: auto; /* Allows horizontal scrolling */
-            -ms-overflow-style: none; /* for IE and Edge */
-            scrollbar-width: none; /* for Firefox */
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .tab-nav::-webkit-scrollbar {
-            display: none; /* for Chrome, Safari, and Opera */
-        }
+        .tab-nav::-webkit-scrollbar { display: none; }
 
         .tab-button {
             padding: 1rem 0.5rem; margin-right: 1.5rem; margin-bottom: -1px; cursor: pointer; border: none; background: none; font-size: 1rem; font-weight: 600;
             color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
-            white-space: nowrap; /* Prevent button text from wrapping */
+            white-space: nowrap;
         }
         .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .tab-content { display: none; padding: 1.5rem; }
@@ -192,108 +189,84 @@
         .asset-actions { display: flex; gap: 0.5rem; }
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
         .study-tools-container.disabled { pointer-events: none; user-select: none; }
-        .study-tools-container.disabled .workflow-button, .study-tools-container.disabled .quick-tool-btn { opacity: 0.6; }
+        .study-tools-container.disabled .workflow-button, .study-tools-container.disabled .quick-tool-btn, .study-tools-container.disabled .feature-card { opacity: 0.6; }
         
-        .workflow-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-        .workflow-button { 
-            border-radius: 12px; padding: calc(2rem - 2px); color: white; cursor: pointer; 
-            border: 2px solid transparent; box-shadow: var(--card-shadow); text-align: left; 
-            width: 100%; transition: box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-        .workflow-button.session-btn { background: linear-gradient(135deg, #6366f1 0%, var(--primary-color) 100%); }
-        .workflow-button.exam-btn { background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); }
-        .workflow-button.revision-btn { background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); }
-        
-        a.workflow-button:hover:not(:disabled) {
-            border-color: #a78bfa; 
-            box-shadow: 0 0 12px 2px rgba(167, 139, 250, 0.5);
-        }
-        .workflow-button.session-btn:hover:not(:disabled) {
-            border-color: #a78bfa;
-            box-shadow: 0 0 12px 2px rgba(167, 139, 250, 0.5);
-        }
-        .workflow-button.exam-btn:hover:not(:disabled) {
-            border-color: #fca5a5;
-            box-shadow: 0 0 12px 2px rgba(252, 165, 165, 0.5);
-        }
-        .workflow-button.revision-btn:hover:not(:disabled) {
-            border-color: #6ee7b7;
-            box-shadow: 0 0 12px 2px rgba(110, 231, 183, 0.6);
-        }
-
-        .workflow-content { display: flex; align-items: center; justify-content: space-between; }
-        .workflow-text { display: flex; align-items: center; gap: 1.5rem; }
-        .workflow-button h4 { font-size: 1.75rem; font-weight: 700; margin: 0; }
-        .workflow-button p { font-size: 1rem; margin: 0.5rem 0 0 0; opacity: 0.9; font-family: 'Poppins', sans-serif; }
-        .workflow-arrow { font-size: 2rem; opacity: 0.7; }
-
-        #study-tools-container {
-            position: relative;
-            overflow: hidden;
-        }
-        .workflow-page {
-            width: 100%;
-            transition: transform 0.5s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.5s;
-        }
         #tools-page-workflow-selection {
-            position: absolute;
-            top: 0; left: 0;
-            transform: translateX(105%);
-            opacity: 0;
-            z-index: 10;
+            display: none; /* Hidden by default now */
+            background-color: var(--background-interactive-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
         }
-        #study-tools-container.selection-active #tools-page-1,
-        #study-tools-container.selection-active #tools-page-2 {
-            transform: translateX(-105%);
-            opacity: 0;
-            position: absolute;
-        }
-        #study-tools-container.selection-active #tools-page-workflow-selection {
-            transform: translateX(0);
-            opacity: 1;
-            position: relative;
-        }
-        #back-to-tools-btn {
-            margin-bottom: 1.5rem;
-        }
-        #workflow-title {
-            margin-top: 0;
-            font-size: 1.75rem;
+        #workflow-title { margin-top: 0; font-size: 1.5rem; font-weight: 700; }
+        #workflow-options-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .checkbox-label { display: flex; align-items: center; padding: 1rem; background-color: var(--background-card); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; }
+        .checkbox-label:hover { border-color: var(--primary-color); background-color: var(--primary-light); }
+        .checkbox-label input { width: 1.2rem; height: 1.2rem; accent-color: var(--primary-color); margin-right: 1rem; }
+        .checkbox-label span { font-weight: 500; font-family: 'Poppins', sans-serif; }
+        #workflow-selection-form button[type="submit"] { padding: 0.75rem 2rem; font-size: 1rem; }
+        
+        .section-heading {
+            font-size: 1.5rem;
             font-weight: 700;
+            margin: 2.5rem 0 1.5rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
         }
-        #workflow-options-container {
+
+        .main-workflows-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
         }
-        .checkbox-label {
+
+        .workflow-card {
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.2s;
+            box-shadow: var(--card-shadow);
+            text-decoration: none;
+            color: var(--text-main);
+        }
+        .workflow-card:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--primary-color);
+        }
+        .workflow-card-content {
             display: flex;
             align-items: center;
-            padding: 1rem;
-            background-color: var(--background-interactive-hover);
+            gap: 1rem;
+            flex-grow: 1;
+        }
+        .workflow-icon {
+            width: 48px;
+            height: 48px;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .checkbox-label:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
+        .workflow-text h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
-        .checkbox-label input {
-            width: 1.2rem;
-            height: 1.2rem;
-            accent-color: var(--primary-color);
-            margin-right: 1rem;
-        }
-        .checkbox-label span {
-            font-weight: 500;
+        .workflow-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
             font-family: 'Poppins', sans-serif;
-        }
-        #workflow-selection-form button[type="submit"] {
-            padding: 0.75rem 2rem;
-            font-size: 1rem;
         }
 
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
@@ -304,15 +277,7 @@
         .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
         .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
         .feature-card:hover:not(:disabled) .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
-        .pro-label {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #854d0e;
-            background-color: #fef9c3;
-            padding: 0.1rem 0.5rem;
-            border-radius: 99px;
-            margin-left: 0.5rem;
-        }
+        .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.1rem 0.5rem; border-radius: 99px; margin-left: 0.5rem; }
         
         .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; box-shadow: var(--card-shadow); }
@@ -539,155 +504,103 @@
         .notification-item span { font-size: 0.75rem; color: var(--text-secondary); font-family: 'Poppins', sans-serif;}
         .notification-item.unread { background-color: var(--primary-light); }
 
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: auto; /* Pushes to the bottom */
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
         .theme-switch {
-            display: inline-block;
-            height: 34px;
             position: relative;
-            width: 70px;
+            display: inline-block;
+            width: 64px;
+            height: 34px;
             cursor: pointer;
         }
-        .theme-switch input { display:none; }
-        .theme-switch .track {
-            background: linear-gradient(to right, #89cff0, #b6d8f2);
-            bottom: 0;
-            left: 0;
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
             position: absolute;
-            right: 0;
-            top: 0;
-            transition: .4s ease-in-out;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
             border-radius: 34px;
-            overflow: hidden;
+            transition: .4s;
         }
-        .theme-switch .handle {
-            background-color: #f9d71c;
+        .slider:before {
             position: absolute;
             content: "";
             height: 26px;
             width: 26px;
             left: 4px;
             bottom: 4px;
-            transition: .4s ease-in-out;
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-            z-index: 2;
-        }
-        .theme-switch input:checked + .track {
-            background: linear-gradient(to right, #000428, #004e92);
-        }
-        .theme-switch input:checked + .track .handle {
-            transform: translateX(36px);
-            background-color: #f5f3ce;
-        }
-        .theme-switch .track-elements {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        .theme-switch .cloud, .theme-switch .star {
-            position: absolute;
-            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
-        }
-        .theme-switch .cloud {
             background-color: white;
             border-radius: 50%;
-            opacity: 1;
-        }
-        .theme-switch .cloud.c1 { width: 15px; height: 10px; top: 8px; left: 35px; }
-        .theme-switch .cloud.c2 { width: 10px; height: 8px; top: 15px; left: 45px; }
-        .theme-switch .cloud.c3 { width: 12px; height: 9px; top: 6px; left: 55px; }
-        .theme-switch .cloud:before, .theme-switch .cloud:after {
-            content: '';
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-        }
-        .theme-switch .cloud.c1:before { width: 8px; height: 8px; top: -4px; left: 3px; }
-        .theme-switch .cloud.c1:after { width: 10px; height: 10px; top: -2px; right: 2px; }
-        .theme-switch .star {
-            background-color: white;
-            border-radius: 50%;
-            opacity: 0;
-            transform: scale(0.5);
-        }
-        .theme-switch .star.s1 { width: 2px; height: 2px; top: 8px; left: 10px; }
-        .theme-switch .star.s2 { width: 3px; height: 3px; top: 18px; left: 20px; }
-        .theme-switch .star.s3 { width: 2px; height: 2px; top: 10px; left: 30px; }
-        .theme-switch .star.s4 { width: 1px; height: 1px; top: 20px; left: 5px; }
-        .theme-switch input:checked + .track .cloud { opacity: 0; transform: translateX(-20px); }
-        .theme-switch input:checked + .track .star { opacity: 1; transform: scale(1); }
-
-        /* --- UPDATED: Calendar styles --- */
-        #calendar-container {
-            padding: 0; /* Let the tab-content provide padding */
-        }
-        #fullcalendar {
-            min-height: 700px;
-            font-family: 'Poppins', sans-serif;
-        }
-        .fc-event {
-            cursor: pointer;
-            border: none !important;
-            padding: 5px 8px;
-            font-weight: 500;
-        }
-        .fc-daygrid-day.fc-day-today {
-             background-color: var(--fc-today-bg-color) !important;
-        }
-        html[data-theme="dark"] .fc-daygrid-day-number, 
-        html[data-theme="dark"] .fc-col-header-cell-cushion {
-            color: var(--text-secondary);
-        }
-        html[data-theme="dark"] .fc-button {
-            background-color: #374151 !important;
-            border-color: #4b5563 !important;
-            color: var(--text-main) !important;
-        }
-        html[data-theme="dark"] .fc-button-primary:not(:disabled).fc-button-active {
-            background-color: var(--primary-color) !important;
-            border-color: var(--primary-color) !important;
-        }
-        /* -- FIX: Sidebar Schedule Section Layout -- */
-        .sidebar-header {
+            transition: .4s;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 1rem;
+            justify-content: center;
         }
-        .sidebar-header h3 {
-            padding-bottom: 0;
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-        .sidebar-actions {
+        .slider .icon-wrapper {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
             display: flex;
-            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 26px;
+            color: #111827;
+            transition: opacity 0.2s ease-in-out;
+            z-index: 10;
         }
-        /* --- NEW: Event Details Modal Styles --- */
-        #event-details-modal .modal-body p {
-            margin: 0.5rem 0 1.5rem 0;
-            line-height: 1.6;
-            color: var(--text-secondary);
+        .slider .sun { left: 4px; opacity: 1; }
+        .slider .moon { right: 4px; opacity: 0; color: white; }
+        input:checked + .slider { background-color: white; border: 1px solid var(--border-color); }
+        input:checked + .slider:before { transform: translateX(30px); background-color: #111827; }
+        input:checked + .slider .sun { opacity: 0; }
+        input:checked + .slider .moon { opacity: 1; }
+        
+        #calendar-container { padding: 0; }
+        #fullcalendar { min-height: 700px; font-family: 'Poppins', sans-serif; }
+        .fc-event { cursor: pointer; border: none !important; padding: 5px 8px; font-weight: 500; }
+        .fc-daygrid-day.fc-day-today { background-color: var(--fc-today-bg-color) !important; }
+        html[data-theme="dark"] .fc-daygrid-day-number, html[data-theme="dark"] .fc-col-header-cell-cushion { color: var(--text-secondary); }
+        html[data-theme="dark"] .fc-button { background-color: #374151 !important; border-color: #4b5563 !important; color: var(--text-main) !important; }
+        html[data-theme="dark"] .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
+        
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+        .sidebar-header h3 { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
+        .sidebar-actions { display: flex; gap: 0.5rem; }
+        
+        #event-details-modal .modal-body p { margin: 0.5rem 0 1.5rem 0; line-height: 1.6; color: var(--text-secondary); }
+        #event-details-modal .modal-body strong { display: block; font-size: 0.8rem; color: var(--text-main); font-weight: 600; text-transform: uppercase; }
+        #event-details-modal .event-type-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 600; color: white; margin-left: 1rem; }
+
+        .hub-main-header {
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+            background-color: #4338ca;
+            background-image:
+                radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(28,100%,74%,0.3) 0px, transparent 50%),
+                radial-gradient(at 80% 50%, hsla(355,85%,65%,0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, hsla(340,100%,76%,0.2) 0px, transparent 50%),
+                radial-gradient(at 80% 100%, hsla(242,100%,70%,0.2) 0px, transparent 50%),
+                radial-gradient(at 0% 0%, hsla(343,100%,76%,0.2) 0px, transparent 50%);
         }
-        #event-details-modal .modal-body strong {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-main);
-            font-weight: 600;
-            text-transform: uppercase;
+        html[data-theme="dark"] .hub-main-header {
+             background-color: #1f2937;
+             background-image:
+                radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.2) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, hsla(28,100%,74%,0.1) 0px, transparent 50%);
         }
-        #event-details-modal .event-type-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            margin-left: 1rem;
+        .hub-main-header h1 { color: white; }
+        .hub-main-header .page-header {
+            align-items: flex-start;
         }
+
     </style>
     <script>
         (function() {
@@ -701,7 +614,7 @@
 <body>
     <div class="container">
         <main class="main-content">
-            <div class="content-card">
+            <div class="content-card hub-main-header">
                 <div class="page-header">
                     <div class="page-header-left">
                         <h1>{{ hub.name }}</h1>
@@ -724,34 +637,19 @@
                         </div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 1.5rem;">
-                         <label class="theme-switch" for="theme-toggle">
-                            <input type="checkbox" id="theme-toggle" />
-                            <div class="track">
-                                <div class="handle"></div>
-                                <div class="track-elements">
-                                    <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
-                                    <div class="star s1"></div><div class="star s2"></div><div class="star s3"></div><div class="star s4"></div>
+                         <div class="theme-switch-wrapper">
+                            <label class="theme-switch" for="theme-toggle">
+                                <input type="checkbox" id="theme-toggle" />
+                                <div class="slider">
+                                    <div class="icon-wrapper sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
+                                    <div class="icon-wrapper moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
                                 </div>
-                            </div>
-                        </label>
+                            </label>
+                        </div>
                         <a href="{{ url_for('dashboard') }}" class="button button-secondary">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
                             Dashboard
                         </a>
-                    </div>
-                </div>
-                <div class="progress-stats">
-                    <div class="stat-item">
-                        <span class="stat-value {% if hub.notes_count == 0 %}is-zero{% endif %}">{{ hub.notes_count or 0 }}</span>
-                        <span class="stat-label">Notes Saved</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value {% if hub.flashcard_count == 0 %}is-zero{% endif %}">{{ hub.flashcard_count or 0 }}</span>
-                        <span class="stat-label">Flashcards</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value {% if hub.quizzes_taken == 0 %}is-zero{% endif %}">{{ hub.quizzes_taken or 0 }}</span>
-                        <span class="stat-label">Quizzes Taken</span>
                     </div>
                 </div>
             </div>
@@ -772,103 +670,73 @@
                 
                 <div id="tools" class="tab-content active">
                     <div id="study-tools-container" class="study-tools-container">
-                        
-                        <div id="tools-page-1" class="workflow-page">
-                            <div class="workflow-grid">
-                                
-                                <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="workflow-button" style="background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);">
-                                    <div class="workflow-content">
-                                        <div class="workflow-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" /></svg>
-                                            <div><h4>Complete Your Assignment <span class="pro-label">PRO</span></h4><p>Turn your brief and sources into a first draft.</p></div>
-                                        </div>
-                                        <span class="workflow-arrow">→</span>
-                                    </div>
-                                </a>
-
-                                <form action="{{ url_for('setup_session', hub_id=hub.id) }}" method="POST" class="workflow-form">
-                                    <button type="submit" class="workflow-button session-btn">
-                                        <div class="workflow-content">
-                                            <div class="workflow-text">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84m-7.38-5.84l-2.58 5.84m2.58-5.84l5.84 2.58m-5.84-2.58l5.84-2.58m-5.84-2.58l-5.84 2.58m-2.58 5.84A14.98 14.98 0 002.18 9.63a14.98 14.98 0 007.38-5.84m-7.38 5.84l2.58-5.84" /></svg>
-                                                <div><h4>Start Interactive Session <span class="pro-label">PRO</span></h4><p>Let AI guide you through a personalized study walkthrough.</p></div>
-                                            </div>
-                                            <span class="workflow-arrow">→</span>
-                                        </div>
-                                    </button>
-                                </form>
-
-                                <button type="button" id="exam-prep-btn" class="workflow-button exam-btn">
-                                    <div class="workflow-content">
-                                        <div class="workflow-text">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                            <div><h4>Get Exam Ready <span class="pro-label">PRO</span></h4><p>Generate quizzes, cheat sheets, and more.</p></div>
-                                        </div>
-                                        <span class="workflow-arrow">→</span>
+                        <h2 class="section-heading">Guided Workflows</h2>
+                        <div class="main-workflows-grid">
+                             <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="workflow-card">
+                                <div class="workflow-card-content">
+                                    <div class="workflow-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                                    <div class="workflow-text"><h4>Assignment Writer <span class="pro-label">PRO</span></h4><p>Turn your brief and sources into a first draft.</p></div>
+                                </div>
+                            </a>
+                            <form action="{{ url_for('setup_session', hub_id=hub.id) }}" method="POST" class="workflow-form">
+                                <button type="submit" class="workflow-card">
+                                    <div class="workflow-card-content">
+                                        <div class="workflow-icon" style="background-color: #eef2ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84"/></svg></div>
+                                        <div class="workflow-text"><h4>Interactive Session <span class="pro-label">PRO</span></h4><p>Let AI guide you through a personalized study walkthrough.</p></div>
                                     </div>
                                 </button>
-                                
-                                <button type="button" id="revision-btn" class="workflow-button revision-btn">
-                                    <div class="workflow-content">
-                                        <div class="workflow-text">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                                            <div><h4>Make Revision Resources</h4><p>Create notes and flashcard decks.</p></div>
-                                        </div>
-                                        <span class="workflow-arrow">→</span>
-                                    </div>
-                                </button>
-                            </div>
-                            <div style="text-align: center; margin-top: 2rem;">
-                                <button id="show-page-2-btn" class="button button-secondary">Show All Individual Tools ↓</button>
-                            </div>
-                        </div>
-
-                        <div id="tools-page-workflow-selection" class="workflow-page">
-                            <button id="back-to-tools-btn" class="button button-secondary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                                Back
+                            </form>
+                            <button type="button" id="exam-prep-btn" class="workflow-card">
+                                <div class="workflow-card-content">
+                                    <div class="workflow-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
+                                    <div class="workflow-text"><h4>Get Exam Ready <span class="pro-label">PRO</span></h4><p>Generate quizzes, cheat sheets, and more.</p></div>
+                                </div>
                             </button>
+                             <button type="button" id="revision-btn" class="workflow-card">
+                                <div class="workflow-card-content">
+                                    <div class="workflow-icon" style="background-color: #d1fae5; color: #065f46;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+                                    <div class="workflow-text"><h4>Make Revision Resources</h4><p>Create notes and flashcard decks.</p></div>
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <div id="tools-page-workflow-selection">
                             <h3 id="workflow-title"></h3>
-                            <p style="color: var(--text-secondary); margin-top: 0;">Select the resources you want to create. They will be added to a new folder in 'My Folders'.</p>
+                            <p style="color: var(--text-secondary); margin-top: 0; margin-bottom: 1rem;">Select resources to generate. They will be added to a new folder in 'My Folders'.</p>
                             <form id="workflow-selection-form">
-                                <div id="workflow-options-container">
-                                    </div>
+                                <div id="workflow-options-container"></div>
                                 <input type="hidden" name="workflow_type" id="workflow-type-input">
                                 <button type="submit" class="button button-primary">Generate Folder</button>
                             </form>
                         </div>
 
-                        <div id="tools-page-2" class="workflow-page" style="display: none;">
-                            <div class="feature-grid">
-                                <button type="button" class="feature-card quick-tool-btn" value="notes">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
-                                    <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
-                                    <span class="feature-arrow">→</span>
-                                </button>
-                                <button type="button" class="feature-card quick-tool-btn" value="flashcards">
-                                    <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                    <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
-                                    <span class="feature-arrow">→</span>
-                                </button>
-                                <button type="button" class="feature-card quick-tool-btn" value="quiz">
-                                    <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                    <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
-                                    <span class="feature-arrow">→</span>
-                                </button>
-                                <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
-                                    <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                    <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
-                                    <span class="feature-arrow">→</span>
-                                </button>
-                                <button type="button" class="feature-card quick-tool-btn" value="analyse">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
-                                    <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
-                                    <span class="feature-arrow">→</span>
-                                </button>
-                            </div>
-                             <div style="text-align: center; margin-top: 2rem;">
-                                <button id="show-page-1-btn" class="button button-secondary">↑ Back to Main Workflows</button>
-                            </div>
+                        <h2 class="section-heading">Quick Tools</h2>
+                        <div class="feature-grid">
+                            <button type="button" class="feature-card quick-tool-btn" value="notes">
+                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+                                <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="button" class="feature-card quick-tool-btn" value="flashcards">
+                                <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
+                                <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="button" class="feature-card quick-tool-btn" value="quiz">
+                                <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
+                                <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
+                                <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
+                            <button type="button" class="feature-card quick-tool-btn" value="analyse">
+                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
+                                <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
+                                <span class="feature-arrow">→</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1327,19 +1195,7 @@
             const sidebarPanel = document.getElementById('files-panel-sidebar');
             let isAITaskRunning = false;
             
-            const page1 = document.getElementById('tools-page-1');
-            const page2 = document.getElementById('tools-page-2');
-            const showPage2Btn = document.getElementById('show-page-2-btn');
-            const showPage1Btn = document.getElementById('show-page-1-btn');
-            
-            showPage2Btn.addEventListener('click', () => {
-                page1.style.display = 'none';
-                page2.style.display = 'block';
-            });
-            showPage1Btn.addEventListener('click', () => {
-                page2.style.display = 'none';
-                page1.style.display = 'block';
-            });
+            const workflowSelectionContainer = document.getElementById('tools-page-workflow-selection');
 
             const workflowOptions = {
                 exam: {
@@ -1380,16 +1236,13 @@
                     `;
                     workflowOptionsContainer.appendChild(label);
                 });
-
-                studyToolsContainer.classList.add('selection-active');
+                
+                workflowSelectionContainer.style.display = 'block';
             }
 
             document.getElementById('exam-prep-btn').addEventListener('click', () => showWorkflowSelection('exam'));
             document.getElementById('revision-btn').addEventListener('click', () => showWorkflowSelection('revision'));
-            document.getElementById('back-to-tools-btn').addEventListener('click', () => {
-                studyToolsContainer.classList.remove('selection-active');
-            });
-
+            
             workflowForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (isAITaskRunning) return;
@@ -1411,9 +1264,7 @@
                 sidebarPanel.classList.add('disabled');
                 loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating your resources...</h4><p>This may take a moment. A new folder will be created upon completion.</p></div></div>`;
                 
-                studyToolsContainer.classList.remove('selection-active');
-                page2.style.display = 'none';
-                page1.style.display = 'block';
+                workflowSelectionContainer.style.display = 'none';
 
                 try {
                     const response = await fetch(`/hub/${hubId}/generate_workflow_folder`, {
@@ -1744,4 +1595,3 @@
     </script>
 </body>
 </html>
-

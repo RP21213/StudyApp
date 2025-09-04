@@ -445,12 +445,13 @@
         }
         .community-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
 
-        .community-card-header { padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
         .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .user-info { flex-grow: 1; }
         .user-info h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
         .user-info p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
         .card-type-icon { font-size: 1.5rem; }
+        .card-actions-menu { position: absolute; top: 1rem; right: 1rem; }
         .community-card-body { padding: 1rem 1.5rem; flex-grow: 1; }
         .community-card-body h2 { margin: 0; font-size: 1.25rem; }
         .community-card-body p { margin: 0.5rem 0 1rem 0; color: var(--text-secondary); font-size: 0.9rem; }
@@ -466,6 +467,21 @@
         .card-stats { display: flex; flex-wrap: wrap; gap: 1rem; color: var(--text-secondary); align-items: center; }
         .card-stats span { display: flex; align-items: center; gap: 0.35rem; font-weight: 500; }
         .card-stats i { color: var(--text-light); }
+        
+        .like-btn {
+            background-color: transparent; border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem; border-radius: 99px;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+        }
+        .like-btn:hover { background-color: #fce7f3; border-color: #f472b6; color: #db2777; }
+        html[data-theme="dark"] .like-btn:hover { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
+        .like-btn.liked { background-color: #fce7f3; border-color: #f472b6; color: #db2777; }
+        html[data-theme="dark"] .like-btn.liked { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
+        .like-btn .lucide-heart { transition: all 0.2s; }
+        .like-btn.liked .lucide-heart { fill: currentColor; }
+        .like-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+        .like-btn:disabled:hover { background: transparent; border-color: var(--border-color); color: var(--text-secondary); }
 
         .section-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
         .section-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
@@ -707,7 +723,13 @@
                         </div>
                         <div class="community-card-footer">
                             <div class="card-stats">
-                                <span><i data-lucide="heart" size="16"></i> {{ item.folder.likes }}</span>
+                                <button class="like-btn {% if current_user.id in item.folder.liked_by %}liked{% endif %}" 
+                                        data-shared-folder-id="{{ item.folder.id }}"
+                                        {% if current_user.id == item.folder.owner_id or current_user.id not in item.folder.imported_by %}disabled{% endif %}
+                                        title="{% if current_user.id not in item.folder.imported_by %}Import to like this folder{% endif %}">
+                                    <i data-lucide="heart" size="16"></i>
+                                    <span class="like-count">{{ item.folder.likes }}</span>
+                                </button>
                                 <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
                                 <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
                             </div>
@@ -746,11 +768,19 @@
                                 <h3>{{ item.owner_name }}</h3>
                                 <p>Shared {{ item.folder.created_at|timesince }} ago</p>
                             </div>
-                            <div class="card-type-icon">
-                                {% if item.folder_type == 'Notes' %}📒
-                                {% elif item.folder_type == 'Quiz' %}📊
-                                {% elif item.folder_type == 'Flashcards' %}🎴
-                                {% else %}📦
+                            <div class="card-actions-menu">
+                                {% if item.folder.owner_id == current_user.id %}
+                                <button class="delete-btn delete-shared-folder-btn" title="Remove from community" data-shared-folder-id="{{ item.folder.id }}">
+                                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                                </button>
+                                {% else %}
+                                <div class="card-type-icon">
+                                    {% if item.folder_type == 'Notes' %}📒
+                                    {% elif item.folder_type == 'Quiz' %}📊
+                                    {% elif item.folder_type == 'Flashcards' %}🎴
+                                    {% else %}📦
+                                    {% endif %}
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -767,7 +797,13 @@
                         </div>
                         <div class="community-card-footer">
                             <div class="card-stats">
-                                <span><i data-lucide="heart" size="16"></i> {{ item.folder.likes }}</span>
+                                 <button class="like-btn {% if current_user.id in item.folder.liked_by %}liked{% endif %}" 
+                                        data-shared-folder-id="{{ item.folder.id }}"
+                                        {% if current_user.id == item.folder.owner_id or current_user.id not in item.folder.imported_by %}disabled{% endif %}
+                                        title="{% if current_user.id not in item.folder.imported_by %}Import to like this folder{% endif %}">
+                                    <i data-lucide="heart" size="16"></i>
+                                    <span class="like-count">{{ item.folder.likes }}</span>
+                                </button>
                                 <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
                                 <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
                             </div>
@@ -1022,11 +1058,14 @@
                     <label for="folder-select">Select a Folder to Share</label>
                     <select id="folder-select" name="folder_id" required>
                         <option value="" disabled selected>-- Choose a folder --</option>
-                        <!-- NOTE: Your dashboard route must pass 'all_user_folders' for this to work -->
                         {% for folder in all_user_folders %}
                             <option value="{{ folder.id }}">{{ folder.hub_name }} / {{ folder.name }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                 <div class="form-group">
+                    <label for="folder-title">Share Title</label>
+                    <input type="text" id="folder-title" name="title" required placeholder="Enter a public title for this folder">
                 </div>
                  <div class="form-group">
                     <label for="folder-description">Description</label>
@@ -1069,6 +1108,9 @@
 
             // Share Folder Modal functionality
             const shareModalOverlay = document.getElementById('share-folder-modal');
+            const folderSelect = document.getElementById('folder-select');
+            const folderTitleInput = document.getElementById('folder-title');
+
             function openShareModal() {
                 shareModalOverlay.classList.add('visible');
             }
@@ -1076,6 +1118,17 @@
             document.getElementById('share-folder-btn-empty')?.addEventListener('click', openShareModal);
             document.getElementById('close-share-modal-btn')?.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
             if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
+            
+            // NEW: Populate title input when folder is selected
+            if (folderSelect && folderTitleInput) {
+                folderSelect.addEventListener('change', () => {
+                    const selectedOption = folderSelect.options[folderSelect.selectedIndex];
+                    const folderName = selectedOption.text.split(' / ')[1];
+                    if (folderName) {
+                        folderTitleInput.value = folderName;
+                    }
+                });
+            }
 
             // Import Folder Modal functionality
             const importModal = document.getElementById('import-hub-select-modal');
@@ -1117,7 +1170,7 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert(data.message); // Using alert for simplicity
+                    alert(data.message);
                     if (data.success) {
                         window.location.reload();
                     }
@@ -1210,9 +1263,43 @@
                 });
             }
 
-            // --- NEW: Community Search and Filter ---
+            // --- NEW: Community Interaction Listeners ---
             const communityTab = document.getElementById('community');
             if (communityTab) {
+                communityTab.addEventListener('click', async (e) => {
+                    const likeBtn = e.target.closest('.like-btn:not(:disabled)');
+                    const deleteBtn = e.target.closest('.delete-shared-folder-btn');
+
+                    if (likeBtn) {
+                        const folderId = likeBtn.dataset.sharedFolderId;
+                        const likeCountSpan = likeBtn.querySelector('.like-count');
+                        
+                        const response = await fetch(`/folder/like/${folderId}`, { method: 'POST' });
+                        const result = await response.json();
+
+                        if (result.success) {
+                            likeBtn.classList.toggle('liked', result.liked);
+                            likeCountSpan.textContent = result.count;
+                        } else {
+                            alert(result.message);
+                        }
+                    }
+
+                    if (deleteBtn) {
+                        const folderId = deleteBtn.dataset.sharedFolderId;
+                        if (confirm('Are you sure you want to remove this folder from the community? This cannot be undone.')) {
+                             const response = await fetch(`/folder/share/delete/${folderId}`, { method: 'POST' });
+                             const result = await response.json();
+                             if(result.success) {
+                                deleteBtn.closest('.community-card').remove();
+                             } else {
+                                alert(result.message);
+                             }
+                        }
+                    }
+                });
+
+                // Filtering logic
                 const filterTabs = communityTab.querySelector('#community-filter-tabs');
                 const searchInput = communityTab.querySelector('#community-search-input');
                 const communityGrid = communityTab.querySelector('#community-grid-main');
@@ -1248,7 +1335,6 @@
                     searchInput.addEventListener('input', applyFilters);
                 }
             }
-
 
             lucide.createIcons();
         });

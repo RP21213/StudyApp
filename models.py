@@ -5,7 +5,7 @@ from flask_login import UserMixin # NEW: Import UserMixin
 class SharedFolder:
     def __init__(self, id, original_folder_id, original_hub_id, owner_id, 
                  title, description, tags=None, created_at=None, 
-                 likes=0, imports=0, liked_by=None, **kwargs):
+                 likes=0, imports=0, liked_by=None, imported_by=None, **kwargs): # MODIFIED: added imported_by
         self.id = id
         self.original_folder_id = original_folder_id
         self.original_hub_id = original_hub_id
@@ -17,6 +17,7 @@ class SharedFolder:
         self.likes = likes
         self.imports = imports
         self.liked_by = liked_by if liked_by is not None else []
+        self.imported_by = imported_by if imported_by is not None else [] # NEW: Track users who have imported
 
     def to_dict(self):
         return {
@@ -31,6 +32,7 @@ class SharedFolder:
             'likes': self.likes,
             'imports': self.imports,
             'liked_by': self.liked_by,
+            'imported_by': self.imported_by, # NEW: Add to dictionary for Firestore
         }
 
     @staticmethod
@@ -65,23 +67,6 @@ class User(UserMixin):
             'stripe_customer_id': self.stripe_customer_id,
             'stripe_subscription_id': self.stripe_subscription_id
         }
-
-    @staticmethod
-    def from_dict(source):
-        # UPDATED: Ensure the default avatar is used if the field is missing from Firestore
-        default_avatar = 'https://storage.googleapis.com/ai-study-hub-f3040.appspot.com/avatars/default_avatar.png'
-        return User(
-            id=source.get('id'),
-            email=source.get('email'),
-            password_hash=source.get('password_hash'),
-            display_name=source.get('display_name'),
-            bio=source.get('bio'),
-            avatar_url=source.get('avatar_url', default_avatar),
-            subscription_tier=source.get('subscription_tier', 'free'),
-            subscription_active=source.get('subscription_active', False),
-            stripe_customer_id=source.get('stripe_customer_id'),
-            stripe_subscription_id=source.get('stripe_subscription_id')
-        )
 
     @staticmethod
     def from_dict(source):
