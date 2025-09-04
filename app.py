@@ -24,7 +24,7 @@ from firebase_admin import credentials, firestore, storage
 import stripe
 import base64 # Make sure this import is at the top with your others
 import json   # Make sure this import is at the top with your others
-from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder
 
 # --- NEW: Imports for Authentication ---
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -769,6 +769,40 @@ def dashboard():
             
     weak_topics = sorted(weak_topics, key=lambda x: x['score'])[:5]
 
+        # --- NEW: Fetch data for the Community Tab ---
+    shared_folders_hydrated = []
+    if current_user.subscription_tier == 'pro':
+        # Base query
+        query = db.collection('shared_folders')
+
+        # Sorting
+        sort_by = request.args.get('sort', 'created_at')
+        if sort_by == 'likes':
+            query = query.order_by('likes', direction=firestore.Query.DESCENDING)
+        else:
+            query = query.order_by('created_at', direction=firestore.Query.DESCENDING)
+
+        shared_folders_docs = query.limit(20).stream() # Limit to 20 for performance
+        
+        shared_folders = [SharedFolder.from_dict(doc.to_dict()) for doc in shared_folders_docs]
+        
+        # Get all unique owner IDs to fetch user data in one batch
+        owner_ids = list(set(sf.owner_id for sf in shared_folders))
+        users_data = {}
+        if owner_ids:
+            user_docs = db.collection('users').where('id', 'in', owner_ids).stream()
+            users_data = {user.to_dict()['id']: user.to_dict() for user in user_docs}
+
+        # Hydrate shared folders with owner info
+        for sf in shared_folders:
+            owner_info = users_data.get(sf.owner_id)
+            if owner_info:
+                shared_folders_hydrated.append({
+                    'folder': sf,
+                    'owner_name': owner_info.get('display_name', 'Unknown User'),
+                    'owner_avatar': owner_info.get('avatar_url', 'default_avatar_url_here')
+                })
+
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
@@ -776,6 +810,7 @@ def dashboard():
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
         weak_topics=weak_topics
+        shared_folders=shared_folders_hydrated
     )
 
 
@@ -2811,7 +2846,134 @@ def remove_item_from_folder(folder_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 # ==============================================================================
-# 9. MAIN EXECUTION
+# 9. COMMUNITY ROUTES (NEW SECTION)
+# ==============================================================================
+@app.route("/folder/share", methods=["POST"])
+@login_required
+def share_folder():
+    if current_user.subscription_tier != 'pro':
+        flash("You must be a Pro member to share folders with the community.", "error")
+        return redirect(url_for('dashboard'))
+
+    folder_id = request.form.get('folder_id')
+    description = request.form.get('description')
+    tags_raw = request.form.get('tags', '')
+    
+    if not all([folder_id, description]):
+        flash("Folder and description are required.", "error")
+        return redirect(url_for('dashboard', _anchor='community'))
+
+    try:
+        # 1. Fetch the original folder to ensure it exists and belongs to the user
+        folder_doc = db.collection('folders').document(folder_id).get()
+        if not folder_doc.exists:
+            flash("The selected folder could not be found.", "error")
+            return redirect(url_for('dashboard', _anchor='community'))
+
+        folder_data = folder_doc.to_dict()
+        if folder_data.get('hub_id') not in [h.id for h in _get_user_stats(current_user.id)['hubs']]:
+             flash("You can only share folders that you own.", "error")
+             return redirect(url_for('dashboard', _anchor='community'))
+
+        # 2. Prepare tags
+        tags = [tag.strip().lower() for tag in tags_raw.split(',') if tag.strip()]
+
+        # 3. Create the SharedFolder object
+        shared_folder_ref = db.collection('shared_folders').document()
+        new_shared_folder = SharedFolder(
+            id=shared_folder_ref.id,
+            original_folder_id=folder_id,
+            original_hub_id=folder_data.get('hub_id'),
+            owner_id=current_user.id,
+            title=folder_data.get('name'),
+            description=description,
+            tags=tags
+        )
+
+        shared_folder_ref.set(new_shared_folder.to_dict())
+        flash(f"Successfully shared '{new_shared_folder.title}' with the community!", "success")
+
+    except Exception as e:
+        print(f"Error sharing folder: {e}")
+        flash("An unexpected error occurred while sharing your folder.", "error")
+
+    return redirect(url_for('dashboard', _anchor='community'))
+
+
+@app.route("/folder/import/<shared_folder_id>", methods=["POST"])
+@login_required
+def import_folder(shared_folder_id):
+    if current_user.subscription_tier != 'pro':
+        return jsonify({"success": False, "message": "You must be a Pro member to import folders."}), 403
+
+    target_hub_id = request.json.get('hub_id')
+    if not target_hub_id:
+        return jsonify({"success": False, "message": "Target hub ID is required."}), 400
+
+    try:
+        shared_folder_ref = db.collection('shared_folders').document(shared_folder_id)
+        shared_folder_doc = shared_folder_ref.get()
+        if not shared_folder_doc.exists:
+            return jsonify({"success": False, "message": "Shared folder not found."}), 404
+
+        shared_folder = SharedFolder.from_dict(shared_folder_doc.to_dict())
+
+        # Prevent users from importing their own folders
+        if shared_folder.owner_id == current_user.id:
+            return jsonify({"success": False, "message": "You cannot import your own folder."}), 400
+
+        # Fetch original folder and its items
+        original_folder_doc = db.collection('folders').document(shared_folder.original_folder_id).get()
+        if not original_folder_doc.exists:
+             return jsonify({"success": False, "message": "The original folder no longer exists."}), 404
+        
+        original_folder = Folder.from_dict(original_folder_doc.to_dict())
+        
+        batch = db.batch()
+        new_items_for_folder = []
+
+        # Deep copy all assets (notes, activities)
+        for item_ref in original_folder.items:
+            item_id = item_ref.get('id')
+            item_type = item_ref.get('type')
+            
+            collection_name = 'notes' if item_type == 'note' else 'activities'
+            original_item_doc = db.collection(collection_name).document(item_id).get()
+
+            if original_item_doc.exists:
+                original_item_data = original_item_doc.to_dict()
+                new_item_ref = db.collection(collection_name).document()
+                
+                # Create new data, updating ID and hub_id
+                new_item_data = original_item_data
+                new_item_data['id'] = new_item_ref.id
+                new_item_data['hub_id'] = target_hub_id
+                
+                batch.set(new_item_ref, new_item_data)
+                new_items_for_folder.append({'id': new_item_ref.id, 'type': item_type})
+
+        # Create the new folder for the current user
+        new_folder_ref = db.collection('folders').document()
+        new_folder = Folder(
+            id=new_folder_ref.id,
+            hub_id=target_hub_id,
+            name=f"{shared_folder.title} (Imported)",
+            items=new_items_for_folder
+        )
+        batch.set(new_folder_ref, new_folder.to_dict())
+
+        # Increment the import count on the shared folder
+        batch.update(shared_folder_ref, {'imports': firestore.Increment(1)})
+
+        batch.commit()
+        return jsonify({"success": True, "message": f"'{new_folder.name}' imported successfully!"})
+
+    except Exception as e:
+        print(f"Error importing folder: {e}")
+        return jsonify({"success": False, "message": "An internal server error occurred."}), 500
+    
+# ==============================================================================
+# 10. MAIN EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
     app.run(debug=True)

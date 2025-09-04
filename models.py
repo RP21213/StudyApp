@@ -1,6 +1,42 @@
 from datetime import datetime, timezone
 from flask_login import UserMixin # NEW: Import UserMixin
 
+# NEW: Model for Community-Shared Folders
+class SharedFolder:
+    def __init__(self, id, original_folder_id, original_hub_id, owner_id, 
+                 title, description, tags=None, created_at=None, 
+                 likes=0, imports=0, liked_by=None, **kwargs):
+        self.id = id
+        self.original_folder_id = original_folder_id
+        self.original_hub_id = original_hub_id
+        self.owner_id = owner_id
+        self.title = title
+        self.description = description
+        self.tags = tags if tags is not None else []
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.likes = likes
+        self.imports = imports
+        self.liked_by = liked_by if liked_by is not None else []
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'original_folder_id': self.original_folder_id,
+            'original_hub_id': self.original_hub_id,
+            'owner_id': self.owner_id,
+            'title': self.title,
+            'description': self.description,
+            'tags': self.tags,
+            'created_at': self.created_at,
+            'likes': self.likes,
+            'imports': self.imports,
+            'liked_by': self.liked_by,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return SharedFolder(**source)
+    
 # --- NEW: User Model for Authentication ---
 class User(UserMixin):
     def __init__(self, id, email, password_hash, display_name=None, bio="", avatar_url=None, subscription_tier='free', subscription_active=False, stripe_customer_id=None, stripe_subscription_id=None):

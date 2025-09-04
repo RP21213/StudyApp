@@ -187,17 +187,19 @@
         .modal-overlay.visible { display: flex; opacity: 1; }
         .modal-content {
             background: var(--background-white); padding: 2rem; border-radius: 12px;
-            width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.3s ease;
+            width: 100%; max-width: 450px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.3s ease;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .modal-header h3 { font-size: 1.25rem; margin: 0; }
         .close-button { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 0.5rem; }
-        .modal-content input[type="text"] {
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);
-            font-size: 1rem; margin-bottom: 1rem; box-sizing: border-box;
-            background-color: var(--background-light); color: var(--text-main);
+            font-size: 1rem; box-sizing: border-box; background-color: var(--background-light); color: var(--text-main);
         }
+        .form-group textarea { min-height: 80px; }
         .modal-content .button { width: 100%; justify-content: center; }
         
         .theme-switch-wrapper {
@@ -260,7 +262,6 @@
         input:checked + .slider .sun { opacity: 0; }
         input:checked + .slider .moon { opacity: 1; }
         
-        /* Styles for Progress Tab */
         .progress-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -322,7 +323,6 @@
         .score-low { color: var(--danger-color); }
         .score-mid { color: #f59e0b; }
 
-        /* NEW: Styles for Settings Tab */
         .settings-container {
             max-width: 800px;
             margin: 0 auto;
@@ -380,24 +380,6 @@
             color: var(--text-secondary);
             margin: 0.25rem 0 0 0;
         }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--background-light);
-            color: var(--text-main);
-            box-sizing: border-box;
-        }
-        /* Toggle Switch for settings */
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -430,6 +412,121 @@
         input:checked + .toggle-slider:before {
             transform: translateX(22px);
         }
+        
+        .community-toolbar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+        .search-bar {
+            flex-grow: 1;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-light);
+            color: var(--text-main);
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .search-bar i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .community-card {
+            background-color: var(--background-white);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .community-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .community-card-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-info h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .user-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .community-card-body h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        .community-card-body p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+        .community-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: auto;
+        }
+        .card-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            align-items: center;
+        }
+        .card-stats span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .upgrade-prompt {
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: var(--background-white);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+        .upgrade-prompt i {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .upgrade-prompt h2 {
+            font-size: 1.75rem;
+            margin: 0 0 0.5rem 0;
+        }
+        .upgrade-prompt p {
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto 1.5rem auto;
+        }
+
     </style>
     <script>
         (function() {
@@ -452,6 +549,10 @@
             <a href="#" class="nav-tab" data-tab="progress">
                 <i data-lucide="trending-up"></i>
                 <span>Progress</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="community">
+                <i data-lucide="users"></i>
+                <span>Community</span>
             </a>
             <a href="{{ url_for('profile') }}" class="nav-tab">
                 <i data-lucide="user"></i>
@@ -593,6 +694,76 @@
                         {% endfor %}
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="community" class="tab-content">
+            <div class="container">
+                {% if current_user.subscription_tier in ['pro', 'admin'] %}
+                <header>
+                    <div class="header-text">
+                        <h1>Community Library 🌍</h1>
+                        <p>Discover and share study materials with students around the world.</p>
+                    </div>
+                    <div class="header-actions">
+                         <button class="button" id="share-folder-btn">
+                            <i data-lucide="share-2"></i> Share a Folder
+                        </button>
+                    </div>
+                </header>
+                
+                <div class="community-toolbar">
+                    <div class="search-bar">
+                         <i data-lucide="search"></i>
+                        <input type="text" placeholder="Search for notes, quizzes, subjects...">
+                    </div>
+                    <form method="GET" action="{{ url_for('dashboard') }}#community" id="sort-form" style="display: flex; align-items: center;">
+                        <input type="hidden" name="tab" value="community">
+                        <select name="sort" class="button button-secondary" onchange="document.getElementById('sort-form').submit();">
+                            <option value="created_at" {% if request.args.get('sort') == 'created_at' or not request.args.get('sort') %}selected{% endif %}>Sort by: Newest</option>
+                            <option value="likes" {% if request.args.get('sort') == 'likes' %}selected{% endif %}>Sort by: Most Liked</option>
+                        </select>
+                    </form>
+                </div>
+
+                <div class="community-grid">
+                    {% for item in shared_folders %}
+                    <div class="community-card" data-folder-id="{{ item.folder.id }}">
+                        <div class="community-card-header">
+                            <img src="{{ item.owner_avatar }}" alt="User Avatar">
+                            <div class="user-info">
+                                <h3>{{ item.folder.title }}</h3>
+                                <p>by {{ item.owner_name }}</p>
+                            </div>
+                        </div>
+                        <div class="community-card-body">
+                            <p>{{ item.folder.description }}</p>
+                        </div>
+                        <div class="community-card-footer">
+                            <div class="card-stats">
+                                <span><i data-lucide="heart" size="16"></i> {{ item.folder.likes }}</span>
+                                <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
+                            </div>
+                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
+                                <i data-lucide="download-cloud" size="16"></i> Import
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No folders have been shared to the community yet. Be the first!</p>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="upgrade-prompt">
+                    <i data-lucide="lock" size="48"></i>
+                    <h2>Unlock the Community Library</h2>
+                    <p>Access thousands of shared study folders from students worldwide, and share your own work. Upgrade to a Pro account to join the community.</p>
+                    <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                        <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
+                        <button type="submit" class="button">🚀 Upgrade to Pro</button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -784,21 +955,72 @@
         </div>
     </main>
 
-    <!-- Modal -->
+    <!-- Create Hub Modal -->
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Create New Hub</h3>
                 <button class="close-button" id="close-modal-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <i data-lucide="x"></i>
                 </button>
             </div>
             <form action="{{ url_for('add_hub') }}" method="POST">
-                <input type="text" name="hub_name" placeholder="Enter hub name" required>
+                <div class="form-group">
+                    <label for="hub_name">Hub Name</label>
+                    <input type="text" id="hub_name" name="hub_name" placeholder="e.g., Quantum Physics" required>
+                </div>
                 <button type="submit" class="button">Create Hub</button>
             </form>
         </div>
     </div>
+
+    <!-- Share Folder Modal -->
+    <div class="modal-overlay" id="share-folder-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Share a Folder</h3>
+                <button class="close-button" id="close-share-modal-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form action="{{ url_for('share_folder') }}" method="POST">
+                <div class="form-group">
+                    <label for="folder-select">Select a Folder to Share</label>
+                    <select id="folder-select" name="folder_id" required>
+                        <option value="" disabled selected>-- Choose a folder --</option>
+                        <!-- NOTE: Your dashboard route must pass 'all_user_folders' for this to work -->
+                        {% for folder in all_user_folders %}
+                            <option value="{{ folder.id }}">{{ folder.hub_name }} / {{ folder.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="folder-description">Description</label>
+                    <textarea id="folder-description" name="description" required placeholder="Briefly describe what's in this folder. e.g., Lecture notes and quizzes for the final exam."></textarea>
+                </div>
+                 <div class="form-group">
+                    <label for="folder-tags">Tags (comma-separated)</label>
+                    <input type="text" id="folder-tags" name="tags" placeholder="e.g., physics, quantum mechanics, exam prep">
+                </div>
+                <button type="submit" class="button">Share to Community</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal to select a hub for importing -->
+    <div class="modal-overlay" id="import-hub-select-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select a Hub</h3>
+                <button class="close-button" id="close-import-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <p style="margin-top:0; color: var(--text-secondary);">Choose which hub you'd like to import this folder into.</p>
+            <div id="hub-list-container">
+                <!-- Hubs will be dynamically inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -807,15 +1029,75 @@
             const closeModalBtn = document.getElementById('close-modal-btn');
             const modalOverlay = document.getElementById('modal-overlay');
 
-            if (openModalBtn) {
-                openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
+            if (openModalBtn) openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
+            if(closeModalBtn) closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
+            if(modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
+
+            // Share Folder Modal functionality
+            const openShareModalBtn = document.getElementById('share-folder-btn');
+            const closeShareModalBtn = document.getElementById('close-share-modal-btn');
+            const shareModalOverlay = document.getElementById('share-folder-modal');
+
+            if (openShareModalBtn) openShareModalBtn.addEventListener('click', () => shareModalOverlay.classList.add('visible'));
+            if(closeShareModalBtn) closeShareModalBtn.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
+            if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
+
+            // Import Folder Modal functionality
+            const importModal = document.getElementById('import-hub-select-modal');
+            const hubListContainer = document.getElementById('hub-list-container');
+            const closeImportModalBtn = document.getElementById('close-import-modal-btn');
+            let folderToImportId = null;
+
+            document.querySelectorAll('.import-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    folderToImportId = this.dataset.sharedFolderId;
+                    hubListContainer.innerHTML = '';
+                    const userHubs = {{ hubs|tojson }};
+                    if (userHubs && userHubs.length > 0) {
+                        userHubs.forEach(hub => {
+                            const hubButton = document.createElement('button');
+                            hubButton.textContent = hub.name;
+                            hubButton.classList.add('button');
+                            hubButton.style.width = '100%';
+                            hubButton.style.marginBottom = '0.5rem';
+                            hubButton.dataset.hubId = hub.id;
+                            hubButton.addEventListener('click', handleImportConfirm);
+                            hubListContainer.appendChild(hubButton);
+                        });
+                    } else {
+                        hubListContainer.innerHTML = `<p>You need to create a Hub before you can import a folder. <a href="#" id="create-hub-link">Create one now</a>.</p>`;
+                    }
+                    importModal.classList.add('visible');
+                });
+            });
+
+            function handleImportConfirm(event) {
+                const targetHubId = event.target.dataset.hubId;
+                if (!folderToImportId || !targetHubId) return;
+
+                fetch(`/folder/import/${folderToImportId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hub_id: targetHubId }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message); // Using alert for simplicity
+                    if (data.success) {
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during the import process.');
+                });
+                
+                importModal.classList.remove('visible');
             }
-            if(closeModalBtn) {
-                closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
-            }
-            if(modalOverlay) {
-                modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
-            }
+            
+            if(closeImportModalBtn) closeImportModalBtn.addEventListener('click', () => importModal.classList.remove('visible'));
+            if(importModal) importModal.addEventListener('click', e => { if (e.target === importModal) importModal.classList.remove('visible'); });
+
 
             // Universal Theme toggle functionality
             const themeToggle = document.getElementById('theme-toggle-input');
@@ -861,11 +1143,14 @@
             if (currentHash) {
                 const tabToActivate = document.querySelector(`.nav-tab[data-tab="${currentHash}"]`);
                 if (tabToActivate) tabToActivate.click();
+            } else {
+                 document.querySelector('.nav-tab[data-tab="hubs"]').classList.add('active');
+                 document.getElementById('hubs').classList.add('active');
             }
             
             // Chart.js functionality
             const ctx = document.getElementById('quizScoresChart');
-            if (ctx) { // Check if the chart element exists before trying to use it
+            if (ctx) {
                 const quizData = {{ quiz_scores_json|safe }};
                 new Chart(ctx.getContext('2d'), {
                     type: 'line',
