@@ -9,7 +9,7 @@ class User(UserMixin):
         self.password_hash = password_hash
         self.display_name = display_name if display_name else email.split('@')[0]
         self.bio = bio
-        # Default avatar if none is provided
+        # UPDATED: Set a default avatar URL if none is provided
         self.avatar_url = avatar_url if avatar_url else 'https://storage.googleapis.com/ai-study-hub-f3040.appspot.com/avatars/default_avatar.png'
         self.subscription_tier = subscription_tier
         self.subscription_active = subscription_active
@@ -32,13 +32,15 @@ class User(UserMixin):
 
     @staticmethod
     def from_dict(source):
+        # UPDATED: Ensure the default avatar is used if the field is missing from Firestore
+        default_avatar = 'https://storage.googleapis.com/ai-study-hub-f3040.appspot.com/avatars/default_avatar.png'
         return User(
             id=source.get('id'),
             email=source.get('email'),
             password_hash=source.get('password_hash'),
             display_name=source.get('display_name'),
             bio=source.get('bio'),
-            avatar_url=source.get('avatar_url'),
+            avatar_url=source.get('avatar_url', default_avatar),
             subscription_tier=source.get('subscription_tier', 'free'),
             subscription_active=source.get('subscription_active', False),
             stripe_customer_id=source.get('stripe_customer_id'),
