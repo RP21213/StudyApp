@@ -693,23 +693,11 @@ def logout():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    # UPDATED: This query now filters hubs by the logged-in user's ID
-    hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
-    
-    hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]
-    # In a full app, you'd also calculate stats for each hub here
-    
-    return render_template("dashboard.html", hubs=hubs_list)
-
-# ==============================================================================
-# NEW PROGRESS PAGE ROUTE
-# ==============================================================================
-@app.route("/progress")
-@login_required
-def overall_progress():
+    # --- Part 1: Hubs List for the main dashboard view ---
     hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
     hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]
     
+    # --- Part 2: Data aggregation for the Progress Tab ---
     total_study_minutes = 0
     longest_streak = 0
     all_quiz_scores = []
@@ -719,12 +707,12 @@ def overall_progress():
         if hub.streak_days > longest_streak:
             longest_streak = hub.streak_days
 
+        # Aggregate study time (assuming 30 mins per session for now)
         sessions_query = db.collection('sessions').where('hub_id', '==', hub.id).stream()
         for session_doc in sessions_query:
-            # Assuming each session is 30 minutes for simplicity.
-            # This can be enhanced if session duration is stored.
             total_study_minutes += 30 
         
+        # Aggregate quiz scores and topic performance
         activities_query = db.collection('activities').where('hub_id', '==', hub.id).where('status', '==', 'graded').stream()
         for activity_doc in activities_query:
             activity = Activity.from_dict(activity_doc.to_dict())
@@ -739,35 +727,34 @@ def overall_progress():
                     if topic not in topic_performance:
                         topic_performance[topic] = {'scores': [], 'hub_name': hub.name}
                     
-                    # Score is 0-10 for AI-graded, or 10 if 'correct' is true
                     score = answer.get('score', 10 if answer.get('correct') else 0)
                     topic_performance[topic]['scores'].append(score)
 
     total_study_hours = round(total_study_minutes / 60, 1)
     
-    # Calculate average score for each topic and identify weaknesses
+    # Calculate average scores and identify top 5 weaknesses
     weak_topics = []
     for topic, data in topic_performance.items():
         if data['scores']:
-            # Assumes each question/topic score is out of 10
-            average_score = (sum(data['scores']) / (len(data['scores']) * 10)) * 100 
-            if average_score < 70: # Only show topics with scores below 70%
+            average_score = (sum(data['scores']) / (len(data['scores']) * 10)) * 100
+            if average_score < 70:
                 weak_topics.append({
                     'topic': topic,
                     'score': average_score,
                     'hub_name': data['hub_name']
                 })
             
-    # Sort by score and get the top 5 weaknesses
     weak_topics = sorted(weak_topics, key=lambda x: x['score'])[:5]
 
     return render_template(
-        "progress.html",
+        "dashboard.html", 
+        hubs=hubs_list,
         total_study_hours=total_study_hours,
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
         weak_topics=weak_topics
     )
+
 
 @app.route("/add_hub", methods=["POST"])
 @login_required
