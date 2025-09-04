@@ -81,7 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            flex-grow: 1; /* This is key: it makes the nav fill all available space, pushing the theme toggle down */
+            flex-grow: 1;
         }
 
         .side-panel .nav-tab {
@@ -131,6 +131,14 @@
             align-items: center; gap: 0.5rem; font-size: 1rem; text-decoration: none;
         }
         .button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .button-secondary {
+            background-color: var(--background-white);
+            color: var(--text-main);
+            border-color: var(--border-color);
+        }
+        .button-secondary:hover {
+            background-color: var(--background-light);
+        }
         .button-danger { background-color: var(--danger-color); color: white; border-color: transparent; }
         html[data-theme="light"] .button-danger { background-color: #fee2e2; color: var(--danger-color); border-color: #fecaca; }
         .button-danger:hover { background-color: var(--danger-hover); border-color: var(--danger-hover); color: white; transform: translateY(-2px); box-shadow: var(--shadow-md); }
@@ -313,10 +321,117 @@
         .topic-score { font-weight: 700; font-size: 1.25rem; }
         .score-low { color: var(--danger-color); }
         .score-mid { color: #f59e0b; }
+
+        /* NEW: Styles for Settings Tab */
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .settings-card {
+            background-color: var(--background-white);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .settings-card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .settings-card-header h2 {
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 600;
+        }
+        .settings-card-header p {
+            margin: 0.25rem 0 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .settings-card-body {
+            padding: 1.5rem;
+        }
+        .settings-card-footer {
+            padding: 1rem 1.5rem;
+            background-color: var(--background-light);
+            border-top: 1px solid var(--border-color);
+            text-align: right;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-item-content {
+            flex-grow: 1;
+        }
+        .setting-item-content h3 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        .setting-item-content p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0.25rem 0 0 0;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-light);
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
+        /* Toggle Switch for settings */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input { display: none; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
     </style>
     <script>
-        // This IIFE (Immediately Invoked Function Expression) runs before the page content loads.
-        // It checks localStorage for a saved theme and applies it to prevent a "flash" of the wrong theme.
         (function() {
             const theme = localStorage.getItem('theme');
             if (theme === 'dark') {
@@ -482,9 +597,189 @@
         </div>
 
         <div id="settings" class="tab-content">
-            <div class="container">
-                <h1>Settings</h1>
-                <p>This is where your settings will be displayed.</p>
+            <div class="settings-container">
+                <header style="border-bottom: none; margin-bottom: 2rem;">
+                    <div class="header-text">
+                        <h1>Settings</h1>
+                        <p>Manage your account, privacy, and application preferences.</p>
+                    </div>
+                </header>
+
+                <!-- Account Settings Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Account</h2>
+                        <p>Update your login credentials and linked accounts.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ current_user.email }}" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">New Password</label>
+                            <input type="password" id="password" name="password" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Linked Accounts</h3>
+                                <p>Connect your Google or GitHub account for faster sign-in.</p>
+                            </div>
+                            <div class="setting-item-action" style="display: flex; gap: 0.5rem;">
+                                <button class="button button-secondary">Link Google</button>
+                                <button class="button button-secondary">Link GitHub</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-card-footer">
+                        <button class="button">Save Account Changes</button>
+                    </div>
+                </div>
+                
+                <!-- Privacy Controls Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Privacy Controls</h2>
+                        <p>Control who can see your profile and activity.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Profile Visibility</h3>
+                                <p>Allow other users to find your profile via search.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Activity Visibility</h3>
+                                <p>Show your study streaks and badges on your public profile.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Default Note Privacy</h3>
+                                <p>Set the default sharing option for new notes and resources.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <!-- Placeholder for a dropdown -->
+                                <button class="button button-secondary">Private</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme & Accessibility Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Theme & Accessibility</h2>
+                        <p>Customize the app's appearance and behavior.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Font Size</h3>
+                                <p>Adjust the text size across the application.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-secondary">Default</button>
+                            </div>
+                        </div>
+                         <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>High Contrast Mode</h3>
+                                <p>Increase text contrast for better readability.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <label class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Language & Region</h3>
+                                <p>Set your preferred language and date formats.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-secondary">English (US)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                 <!-- Help & Support Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Help & Support</h2>
+                        <p>Find answers or get in touch.</p>
+                    </div>
+                    <div class="settings-card-body">
+                         <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Help Center</h3>
+                                <p>Browse FAQs, tutorials, and guides.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-secondary">Visit Help Center</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Report a Bug</h3>
+                                <p>Encountered an issue? Let us know so we can fix it.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-secondary">Report Bug</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Management Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Account Management</h2>
+                        <p>Export your data or delete your account.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Download Your Data</h3>
+                                <p>Export all your notes, flashcards, and hub data.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-secondary">Request Data</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Delete Your Account</h3>
+                                <p>Permanently delete your account and all associated data.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button class="button button-danger">Delete Account</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
@@ -557,44 +852,43 @@
                                 content.classList.add('active');
                             }
                         });
-                        // Use history.pushState to update the URL without reloading the page
                         history.pushState(null, '', '#' + targetId);
                     });
                 }
             });
             
-            // Check for a hash in the URL on page load to set the correct active tab
             const currentHash = window.location.hash.substring(1);
             if (currentHash) {
                 const tabToActivate = document.querySelector(`.nav-tab[data-tab="${currentHash}"]`);
                 if (tabToActivate) tabToActivate.click();
             }
             
-            // Chart.js functionality for the Progress tab
-            const ctx = document.getElementById('quizScoresChart').getContext('2d');
-            const quizData = {{ quiz_scores_json|safe }};
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: [{
-                        label: 'Quiz Score',
-                        data: quizData,
-                        borderColor: 'rgba(79, 70, 229, 1)',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: { type: 'time', time: { unit: 'day', tooltipFormat: 'MMM dd, yyyy' }, title: { display: true, text: 'Date' } },
-                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score (%)' } }
+            // Chart.js functionality
+            const ctx = document.getElementById('quizScoresChart');
+            if (ctx) { // Check if the chart element exists before trying to use it
+                const quizData = {{ quiz_scores_json|safe }};
+                new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Quiz Score',
+                            data: quizData,
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
                     },
-                    plugins: { legend: { display: false } }
-                }
-            });
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { type: 'time', time: { unit: 'day', tooltipFormat: 'MMM dd, yyyy' }, title: { display: true, text: 'Date' } },
+                            y: { beginAtZero: true, max: 100, title: { display: true, text: 'Score (%)' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
 
             lucide.createIcons();
         });
