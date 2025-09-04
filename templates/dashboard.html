@@ -1052,7 +1052,7 @@
                 button.addEventListener('click', function() {
                     folderToImportId = this.dataset.sharedFolderId;
                     hubListContainer.innerHTML = '';
-                    const userHubs = {{ hubs|tojson }};
+                    const userHubs = {{ hubs_for_json|tojson }};
                     if (userHubs && userHubs.length > 0) {
                         userHubs.forEach(hub => {
                             const hubButton = document.createElement('button');

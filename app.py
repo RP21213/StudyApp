@@ -813,7 +813,7 @@ def dashboard():
                 "hub_name": hub.name
             })
 
-    # FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part
+    # --- FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part ---
     hubs_for_json = [hub.to_dict() for hub in hubs_list]
 
     return render_template(
@@ -823,7 +823,7 @@ def dashboard():
         total_study_hours=total_study_hours,
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
-        weak_topics=weak_topics, # FIX: Added the missing comma here
+        weak_topics=weak_topics,
         shared_folders=shared_folders_hydrated,
         all_user_folders=all_user_folders
     )
