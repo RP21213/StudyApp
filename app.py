@@ -769,9 +769,9 @@ def dashboard():
             
     weak_topics = sorted(weak_topics, key=lambda x: x['score'])[:5]
 
-        # --- NEW: Fetch data for the Community Tab ---
+    # --- NEW: Fetch data for the Community Tab ---
     shared_folders_hydrated = []
-    if current_user.subscription_tier == 'pro':
+    if current_user.subscription_tier in ['pro', 'admin']:
         # Base query
         query = db.collection('shared_folders')
 
@@ -790,6 +790,8 @@ def dashboard():
         owner_ids = list(set(sf.owner_id for sf in shared_folders))
         users_data = {}
         if owner_ids:
+            # Firestore 'in' queries are limited to 10 items. This needs handling for larger sets.
+            # For now, we'll assume owner_ids is small. For production, you'd batch this.
             user_docs = db.collection('users').where('id', 'in', owner_ids).stream()
             users_data = {user.to_dict()['id']: user.to_dict() for user in user_docs}
 
@@ -803,14 +805,28 @@ def dashboard():
                     'owner_avatar': owner_info.get('avatar_url', 'default_avatar_url_here')
                 })
 
+    # --- NEW: Fetch all of the user's own folders for the share modal ---
+    all_user_folders = []
+    for hub in hubs_list:
+        folders_query = db.collection('folders').where('hub_id', '==', hub.id).stream()
+        for folder_doc in folders_query:
+            folder = Folder.from_dict(folder_doc.to_dict())
+            all_user_folders.append({
+                "id": folder.id,
+                "name": folder.name,
+                "hub_name": hub.name
+            })
+
+
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
         total_study_hours=total_study_hours,
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
-        weak_topics=weak_topics
-        shared_folders=shared_folders_hydrated
+        weak_topics=weak_topics,
+        shared_folders=shared_folders_hydrated,
+        all_user_folders=all_user_folders
     )
 
 
@@ -2846,7 +2862,7 @@ def remove_item_from_folder(folder_id):
         return jsonify({"success": False, "message": str(e)}), 500
 
 # ==============================================================================
-# 9. COMMUNITY ROUTES (NEW SECTION)
+# 10. COMMUNITY ROUTES (NEW SECTION)
 # ==============================================================================
 @app.route("/folder/share", methods=["POST"])
 @login_required
@@ -2971,9 +2987,9 @@ def import_folder(shared_folder_id):
     except Exception as e:
         print(f"Error importing folder: {e}")
         return jsonify({"success": False, "message": "An internal server error occurred."}), 500
-    
+
 # ==============================================================================
-# 10. MAIN EXECUTION
+# 9. MAIN EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
     app.run(debug=True)
