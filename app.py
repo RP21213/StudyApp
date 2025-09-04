@@ -769,37 +769,79 @@ def dashboard():
             
     weak_topics = sorted(weak_topics, key=lambda x: x['score'])[:5]
 
-    # --- NEW: Fetch data for the Community Tab ---
+    # --- UPDATED: Fetch data for the Community Tab ---
     shared_folders_hydrated = []
+    trending_folders = []
+    total_shared_count = 0
     if current_user.subscription_tier in ['pro', 'admin']:
-        # Base query
-        query = db.collection('shared_folders')
+        
+        # --- Get total count for gamification ---
+        all_shared_docs = db.collection('shared_folders').stream()
+        total_shared_count = len(list(all_shared_docs))
 
-        # Sorting
+        # --- Base query for main list ---
+        query = db.collection('shared_folders')
         sort_by = request.args.get('sort', 'created_at')
         if sort_by == 'likes':
             query = query.order_by('likes', direction=firestore.Query.DESCENDING)
         else:
             query = query.order_by('created_at', direction=firestore.Query.DESCENDING)
-
-        shared_folders_docs = query.limit(20).stream()
         
+        shared_folders_docs = query.limit(20).stream()
         shared_folders = [SharedFolder.from_dict(doc.to_dict()) for doc in shared_folders_docs]
         
-        owner_ids = list(set(sf.owner_id for sf in shared_folders))
+        # --- Get trending folders (most liked) ---
+        trending_query = db.collection('shared_folders').order_by('likes', direction=firestore.Query.DESCENDING).limit(3).stream()
+        trending_folders_raw = [SharedFolder.from_dict(doc.to_dict()) for doc in trending_query]
+
+        # --- Hydrate folder data (get owner info and item details) ---
+        all_folders_to_hydrate = shared_folders + trending_folders_raw
+        owner_ids = list(set(sf.owner_id for sf in all_folders_to_hydrate))
+        original_folder_ids = list(set(sf.original_folder_id for sf in all_folders_to_hydrate))
+        
         users_data = {}
         if owner_ids:
             user_docs = db.collection('users').where('id', 'in', owner_ids).stream()
             users_data = {user.to_dict()['id']: user.to_dict() for user in user_docs}
 
-        for sf in shared_folders:
+        original_folders_data = {}
+        if original_folder_ids:
+            folder_docs = db.collection('folders').where('id', 'in', original_folder_ids).stream()
+            original_folders_data = {f.to_dict()['id']: f.to_dict() for f in folder_docs}
+
+        hydrated_cache = {}
+
+        def _hydrate_folder_info(sf):
+            if sf.id in hydrated_cache:
+                return hydrated_cache[sf.id]
+
             owner_info = users_data.get(sf.owner_id)
-            if owner_info:
-                shared_folders_hydrated.append({
-                    'folder': sf,
-                    'owner_name': owner_info.get('display_name', 'Unknown User'),
-                    'owner_avatar': owner_info.get('avatar_url', 'default_avatar_url_here')
-                })
+            original_folder_info = original_folders_data.get(sf.original_folder_id)
+            
+            item_count = 0
+            folder_type = "Pack"
+            if original_folder_info:
+                items = original_folder_info.get('items', [])
+                item_count = len(items)
+                types = set(item['type'] for item in items)
+                if len(types) == 1:
+                    folder_type = types.pop().capitalize()
+                elif 'note' in types:
+                    folder_type = "Notes"
+            
+            hydrated_info = {
+                'folder': sf,
+                'owner_name': owner_info.get('display_name', 'Unknown User') if owner_info else 'Unknown User',
+                'owner_avatar': owner_info.get('avatar_url', 'default_avatar.png') if owner_info else 'default_avatar.png',
+                'item_count': item_count,
+                'folder_type': folder_type,
+            }
+            hydrated_cache[sf.id] = hydrated_info
+            return hydrated_info
+
+        shared_folders_hydrated = [_hydrate_folder_info(sf) for sf in shared_folders]
+        trending_folders = [_hydrate_folder_info(sf) for sf in trending_folders_raw]
+
 
     # --- NEW: Fetch all of the user's own folders for the share modal ---
     all_user_folders = []
@@ -819,12 +861,14 @@ def dashboard():
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
-        hubs_for_json=hubs_for_json,  # Pass the new list to the template
+        hubs_for_json=hubs_for_json,
         total_study_hours=total_study_hours,
         longest_streak=longest_streak,
         quiz_scores_json=json.dumps(all_quiz_scores),
         weak_topics=weak_topics,
         shared_folders=shared_folders_hydrated,
+        trending_folders=trending_folders,
+        total_shared_count=total_shared_count,
         all_user_folders=all_user_folders
     )
 
@@ -2992,4 +3036,4 @@ def import_folder(shared_folder_id):
 # 9. MAIN EXECUTION
 # ==============================================================================
 if __name__ == "__main__":
-    app.run(debug=True) 
+    app.run(debug=True)

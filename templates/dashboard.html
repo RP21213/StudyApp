@@ -413,120 +413,79 @@
             transform: translateX(22px);
         }
         
+        /* --- NEW/UPDATED Community Styles --- */
         .community-toolbar {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             align-items: center;
         }
-        .search-bar {
-            flex-grow: 1;
-            position: relative;
-        }
+        .search-bar { flex-grow: 1; position: relative; min-width: 250px; }
         .search-bar input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--background-light);
-            color: var(--text-main);
-            box-sizing: border-box;
-            font-size: 1rem;
+            width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 8px;
+            border: 1px solid var(--border-color); background-color: var(--background-white);
+            color: var(--text-main); box-sizing: border-box; font-size: 1rem;
         }
-        .search-bar i {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
+        .search-bar i { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .filter-tabs { display: flex; gap: 0.5rem; }
+        .filter-tab {
+            padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            border: 1px solid var(--border-color); background-color: var(--background-white);
+            transition: all 0.2s ease;
         }
-        .community-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
+        .filter-tab:hover { background-color: var(--background-light); }
+        .filter-tab.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
         .community-card {
-            background-color: var(--background-white);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            box-shadow: var(--shadow-sm);
+            background-color: var(--background-white); border-radius: 16px; border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .community-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .community-card-header img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-        .user-info h3 {
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .user-info p {
-            margin: 0;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .community-card-body h2 {
-            margin: 0;
-            font-size: 1.25rem;
-        }
-        .community-card-body p {
-            margin: 0.5rem 0 0 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            flex-grow: 1;
+        .community-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+
+        .community-card-header { padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-info { flex-grow: 1; }
+        .user-info h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+        .user-info p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+        .card-type-icon { font-size: 1.5rem; }
+        .community-card-body { padding: 1rem 1.5rem; flex-grow: 1; }
+        .community-card-body h2 { margin: 0; font-size: 1.25rem; }
+        .community-card-body p { margin: 0.5rem 0 1rem 0; color: var(--text-secondary); font-size: 0.9rem; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .tag {
+            font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px;
+            background-color: var(--background-light); border: 1px solid var(--border-color);
         }
         .community-card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid var(--border-color);
-            padding-top: 1rem;
-            margin-top: auto;
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border-color); padding: 1rem 1.5rem; font-size: 0.9rem;
         }
-        .card-stats {
-            display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            align-items: center;
-        }
-        .card-stats span {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-        .upgrade-prompt {
-            text-align: center;
-            padding: 4rem 2rem;
-            background-color: var(--background-white);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-        }
-        .upgrade-prompt i {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        .upgrade-prompt h2 {
-            font-size: 1.75rem;
-            margin: 0 0 0.5rem 0;
-        }
-        .upgrade-prompt p {
-            color: var(--text-secondary);
-            max-width: 500px;
-            margin: 0 auto 1.5rem auto;
-        }
+        .card-stats { display: flex; flex-wrap: wrap; gap: 1rem; color: var(--text-secondary); align-items: center; }
+        .card-stats span { display: flex; align-items: center; gap: 0.35rem; font-weight: 500; }
+        .card-stats i { color: var(--text-light); }
 
+        .section-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .section-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+        .section-header p { color: var(--text-secondary); margin: 0.25rem 0 0 0; }
+        
+        .community-empty-state {
+            grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;
+            background-color: var(--background-white); border: 2px dashed var(--border-color); border-radius: 16px;
+        }
+        .community-empty-state i { color: var(--primary-color); margin-bottom: 1.5rem; }
+        .community-empty-state h2 { font-size: 1.5rem; margin: 0 0 0.5rem 0; }
+        .community-empty-state p { color: var(--text-secondary); max-width: 450px; margin: 0 auto 1.5rem auto; }
+
+        .upgrade-prompt {
+            text-align: center; padding: 4rem 2rem; background-color: var(--background-white);
+            border-radius: 16px; border: 1px solid var(--border-color);
+        }
+        .upgrade-prompt i { color: var(--primary-color); margin-bottom: 1rem; }
+        .upgrade-prompt h2 { font-size: 1.75rem; margin: 0 0 0.5rem 0; }
+        .upgrade-prompt p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; }
     </style>
     <script>
         (function() {
@@ -703,7 +662,9 @@
                 <header>
                     <div class="header-text">
                         <h1>Community Library 🌍</h1>
-                        <p>Discover and share study materials with students around the world.</p>
+                        <p>Discover and share study materials with students around the world. 
+                           <span style="font-weight: 600; color: var(--primary-color);">📚 {{ total_shared_count }} packs shared!</span>
+                        </p>
                     </div>
                     <div class="header-actions">
                          <button class="button" id="share-folder-btn">
@@ -712,45 +673,118 @@
                     </div>
                 </header>
                 
-                <div class="community-toolbar">
-                    <div class="search-bar">
-                         <i data-lucide="search"></i>
-                        <input type="text" placeholder="Search for notes, quizzes, subjects...">
-                    </div>
-                    <form method="GET" action="{{ url_for('dashboard') }}#community" id="sort-form" style="display: flex; align-items: center;">
-                        <input type="hidden" name="tab" value="community">
-                        <select name="sort" class="button button-secondary" onchange="document.getElementById('sort-form').submit();">
-                            <option value="created_at" {% if request.args.get('sort') == 'created_at' or not request.args.get('sort') %}selected{% endif %}>Sort by: Newest</option>
-                            <option value="likes" {% if request.args.get('sort') == 'likes' %}selected{% endif %}>Sort by: Most Liked</option>
-                        </select>
-                    </form>
+                {% if trending_folders %}
+                <div class="section-header">
+                    <h2>🔥 Trending this Week</h2>
                 </div>
-
-                <div class="community-grid">
-                    {% for item in shared_folders %}
-                    <div class="community-card" data-folder-id="{{ item.folder.id }}">
+                <div class="community-grid" style="margin-bottom: 3rem;">
+                    {% for item in trending_folders %}
+                    <div class="community-card" data-folder-type="{{ item.folder_type }}">
                         <div class="community-card-header">
                             <img src="{{ item.owner_avatar }}" alt="User Avatar">
                             <div class="user-info">
-                                <h3>{{ item.folder.title }}</h3>
-                                <p>by {{ item.owner_name }}</p>
+                                <h3>{{ item.owner_name }}</h3>
+                                <p>Shared {{ item.folder.created_at|timesince }} ago</p>
+                            </div>
+                            <div class="card-type-icon">
+                                {% if item.folder_type == 'Notes' %}📒
+                                {% elif item.folder_type == 'Quiz' %}📊
+                                {% elif item.folder_type == 'Flashcards' %}🎴
+                                {% else %}📦
+                                {% endif %}
                             </div>
                         </div>
                         <div class="community-card-body">
-                            <p>{{ item.folder.description }}</p>
+                             <h2>{{ item.folder.title }}</h2>
+                             <p>{{ item.folder.description }}</p>
+                             {% if item.folder.tags %}
+                             <div class="tag-list">
+                                {% for tag in item.folder.tags %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                             </div>
+                             {% endif %}
                         </div>
                         <div class="community-card-footer">
                             <div class="card-stats">
                                 <span><i data-lucide="heart" size="16"></i> {{ item.folder.likes }}</span>
                                 <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
+                                <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
                             </div>
-                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
+                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                <i data-lucide="download-cloud" size="16"></i> Import
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="section-header">
+                    <h2>🚀 Discover All Resources</h2>
+                </div>
+                <div class="community-toolbar">
+                    <div class="filter-tabs" id="community-filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="Notes">Notes 📒</button>
+                        <button class="filter-tab" data-filter="Quiz">Quizzes 📊</button>
+                        <button class="filter-tab" data-filter="Flashcards">Flashcards 🎴</button>
+                        <button class="filter-tab" data-filter="Pack">Packs 📦</button>
+                    </div>
+                    <div class="search-bar">
+                         <i data-lucide="search"></i>
+                        <input type="text" id="community-search-input" placeholder="Search by title, description, or tag...">
+                    </div>
+                </div>
+
+                <div class="community-grid" id="community-grid-main">
+                    {% for item in shared_folders %}
+                    <div class="community-card" data-folder-type="{{ item.folder_type }}" data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}">
+                        <div class="community-card-header">
+                            <img src="{{ item.owner_avatar }}" alt="User Avatar">
+                            <div class="user-info">
+                                <h3>{{ item.owner_name }}</h3>
+                                <p>Shared {{ item.folder.created_at|timesince }} ago</p>
+                            </div>
+                            <div class="card-type-icon">
+                                {% if item.folder_type == 'Notes' %}📒
+                                {% elif item.folder_type == 'Quiz' %}📊
+                                {% elif item.folder_type == 'Flashcards' %}🎴
+                                {% else %}📦
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="community-card-body">
+                             <h2>{{ item.folder.title }}</h2>
+                             <p>{{ item.folder.description }}</p>
+                             {% if item.folder.tags %}
+                             <div class="tag-list">
+                                {% for tag in item.folder.tags %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                             </div>
+                             {% endif %}
+                        </div>
+                        <div class="community-card-footer">
+                            <div class="card-stats">
+                                <span><i data-lucide="heart" size="16"></i> {{ item.folder.likes }}</span>
+                                <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
+                                <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
+                            </div>
+                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
                                 <i data-lucide="download-cloud" size="16"></i> Import
                             </button>
                         </div>
                     </div>
                     {% else %}
-                    <p>No folders have been shared to the community yet. Be the first!</p>
+                    <div class="community-empty-state">
+                        <i data-lucide="package-x" size="64"></i>
+                        <h2>The Library is Empty</h2>
+                        <p>No folders have been shared to the community yet. Why not be the first to contribute?</p>
+                        <button class="button" id="share-folder-btn-empty">
+                            <i data-lucide="share-2"></i> Share Your First Folder
+                        </button>
+                    </div>
                     {% endfor %}
                 </div>
                 {% else %}
@@ -1034,12 +1068,13 @@
             if(modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
 
             // Share Folder Modal functionality
-            const openShareModalBtn = document.getElementById('share-folder-btn');
-            const closeShareModalBtn = document.getElementById('close-share-modal-btn');
             const shareModalOverlay = document.getElementById('share-folder-modal');
-
-            if (openShareModalBtn) openShareModalBtn.addEventListener('click', () => shareModalOverlay.classList.add('visible'));
-            if(closeShareModalBtn) closeShareModalBtn.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
+            function openShareModal() {
+                shareModalOverlay.classList.add('visible');
+            }
+            document.getElementById('share-folder-btn')?.addEventListener('click', openShareModal);
+            document.getElementById('share-folder-btn-empty')?.addEventListener('click', openShareModal);
+            document.getElementById('close-share-modal-btn')?.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
             if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
 
             // Import Folder Modal functionality
@@ -1174,6 +1209,46 @@
                     }
                 });
             }
+
+            // --- NEW: Community Search and Filter ---
+            const communityTab = document.getElementById('community');
+            if (communityTab) {
+                const filterTabs = communityTab.querySelector('#community-filter-tabs');
+                const searchInput = communityTab.querySelector('#community-search-input');
+                const communityGrid = communityTab.querySelector('#community-grid-main');
+                const allCards = communityGrid ? Array.from(communityGrid.querySelectorAll('.community-card')) : [];
+                
+                function applyFilters() {
+                    const activeFilter = filterTabs.querySelector('.filter-tab.active').dataset.filter;
+                    const searchTerm = searchInput.value.toLowerCase();
+                    
+                    allCards.forEach(card => {
+                        const typeMatch = (activeFilter === 'all') || (card.dataset.folderType === activeFilter);
+                        const searchMatch = card.dataset.searchContent.toLowerCase().includes(searchTerm);
+                        
+                        if (typeMatch && searchMatch) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                }
+
+                if(filterTabs) {
+                    filterTabs.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('filter-tab')) {
+                            filterTabs.querySelector('.active').classList.remove('active');
+                            e.target.classList.add('active');
+                            applyFilters();
+                        }
+                    });
+                }
+                
+                if(searchInput) {
+                    searchInput.addEventListener('input', applyFilters);
+                }
+            }
+
 
             lucide.createIcons();
         });
