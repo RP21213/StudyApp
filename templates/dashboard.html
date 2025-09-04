@@ -111,14 +111,6 @@
             width: calc(100% - 260px);
         }
         
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
         .container { max-width: 1400px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
         .header-text { flex-grow: 1; }
@@ -266,135 +258,111 @@
     <aside class="side-panel">
         <div class="logo">Foci</div>
         <nav class="nav-tabs">
-            <a href="#" class="nav-tab active" data-tab="hubs">
+            <a href="{{ url_for('dashboard') }}" class="nav-tab active">
                 <i data-lucide="layout-grid"></i>
                 <span>Hubs</span>
             </a>
-            <a href="#" class="nav-tab" data-tab="progress">
+            <a href="{{ url_for('overall_progress') }}" class="nav-tab">
                 <i data-lucide="trending-up"></i>
                 <span>Progress</span>
             </a>
-            <a href="#" class="nav-tab" data-tab="profile">
+            <a href="#" class="nav-tab">
                 <i data-lucide="user"></i>
                 <span>Profile</span>
             </a>
-            <a href="#" class="nav-tab" data-tab="settings">
+            <a href="#" class="nav-tab">
                  <i data-lucide="settings"></i>
                 <span>Settings</span>
             </a>
         </nav>
-         <!-- You can add user profile info or other elements at the bottom of the panel -->
     </aside>
 
     <main class="main-content">
-        <div id="hubs" class="tab-content active">
-            <div class="container">
-                <header>
-                    <div class="header-text">
-                        <h1>Your Study Hub Dashboard ✨</h1>
-                        <p>All your courses, notes, and AI-powered tools in one place.</p>
-                    </div>
-                    <div class="header-actions">
-                        <!-- Theme Toggle -->
-                        <label class="theme-switch" for="theme-toggle">
-                            <input type="checkbox" id="theme-toggle" />
-                            <div class="track">
-                                <div class="handle"></div>
-                                <div class="track-elements">
-                                    <div class="cloud c1"></div>
-                                    <div class="cloud c2"></div>
-                                    <div class="cloud c3"></div>
-                                    <div class="star s1"></div>
-                                    <div class="star s2"></div>
-                                    <div class="star s3"></div>
-                                    <div class="star s4"></div>
-                                </div>
-                            </div>
-                        </label>
-
-                        <!-- Subscription Status -->
-                        {% if current_user.subscription_tier == 'free' %}
-                        <form action="{{ url_for('create_checkout_session') }}" method="POST">
-                            <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
-                            <button type="submit" class="button">🚀 Upgrade to Pro</button>
-                        </form>
-                        {% elif current_user.subscription_tier == 'pro' %}
-                            <div class="pro-badge"><span>PRO</span></div>
-                        {% endif %}
-
-                        <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
-                        <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
-
-                        <button class="button" id="open-modal-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            Create New Hub
-                        </button>
-                    </div>
-                </header>
-
-                <div class="hub-grid">
-                    {% for hub in hubs %}
-                    <article class="hub-card">
-                        <div class="card-header" style="background-color: {{ hub.header_color }}; background-image: url('{{ hub.header_pattern_url }}');">
-                            <h2>{{ hub.name }}</h2>
-                            <a href="{{ url_for('delete_hub', hub_id=hub.id) }}" 
-                               class="delete-btn" title="Delete Hub"
-                               onclick="event.preventDefault(); if (confirm('Are you sure you want to delete this hub?')) window.location.href=this.href;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
-                        </div>
-                        
-                        <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="hub-card-link">
-                            <div class="hub-card-body">
-                                {% if hub.files|length == 0 %}
-                                <div class="empty-state">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                                    <p>Upload documents to get started!</p>
-                                </div>
-                                {% else %}
-                                <div class="hub-stats">
-                                    <div class="stat">
-                                        <span class="stat-value">{{ hub.files|length }}</span>
-                                        <span class="stat-label">Files</span>
-                                    </div>
-                                    <div class="stat">
-                                        <span class="stat-value">{{ hub.flashcards_count }}</span>
-                                        <span class="stat-label">Flashcards</span>
-                                    </div>
-                                    <div class="stat">
-                                        <span class="stat-value">{{ hub.notes_count }}</span>
-                                        <span class="stat-label">Notes</span>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </a>
-                    </article>
-                    {% else %}
-                    <p style="text-align:center; color: var(--text-secondary); font-size: 1rem; grid-column: 1 / -1;">No study hubs yet. Create your first one!</p>
-                    {% endfor %}
+        <div class="container">
+            <header>
+                <div class="header-text">
+                    <h1>Your Study Hub Dashboard ✨</h1>
+                    <p>All your courses, notes, and AI-powered tools in one place.</p>
                 </div>
-            </div>
-        </div>
-        
-        <div id="progress" class="tab-content">
-            <div class="container">
-                <h1>Progress</h1>
-                <p>This is where your progress will be displayed.</p>
-            </div>
-        </div>
+                <div class="header-actions">
+                    <!-- Theme Toggle -->
+                    <label class="theme-switch" for="theme-toggle">
+                        <input type="checkbox" id="theme-toggle" />
+                        <div class="track">
+                            <div class="handle"></div>
+                            <div class="track-elements">
+                                <div class="cloud c1"></div>
+                                <div class="cloud c2"></div>
+                                <div class="cloud c3"></div>
+                                <div class="star s1"></div>
+                                <div class="star s2"></div>
+                                <div class="star s3"></div>
+                                <div class="star s4"></div>
+                            </div>
+                        </div>
+                    </label>
 
-        <div id="profile" class="tab-content">
-            <div class="container">
-                <h1>Profile</h1>
-                <p>This is where your profile information will be displayed.</p>
-            </div>
-        </div>
+                    <!-- Subscription Status -->
+                    {% if current_user.subscription_tier == 'free' %}
+                    <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                        <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
+                        <button type="submit" class="button">🚀 Upgrade to Pro</button>
+                    </form>
+                    {% elif current_user.subscription_tier == 'pro' %}
+                        <div class="pro-badge"><span>PRO</span></div>
+                    {% endif %}
 
-        <div id="settings" class="tab-content">
-            <div class="container">
-                <h1>Settings</h1>
-                <p>This is where your settings will be displayed.</p>
+                    <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
+                    <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
+
+                    <button class="button" id="open-modal-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Create New Hub
+                    </button>
+                </div>
+            </header>
+
+            <div class="hub-grid">
+                {% for hub in hubs %}
+                <article class="hub-card">
+                    <div class="card-header" style="background-color: {{ hub.header_color }}; background-image: url('{{ hub.header_pattern_url }}');">
+                        <h2>{{ hub.name }}</h2>
+                        <a href="{{ url_for('delete_hub', hub_id=hub.id) }}" 
+                           class="delete-btn" title="Delete Hub"
+                           onclick="event.preventDefault(); if (confirm('Are you sure you want to delete this hub?')) window.location.href=this.href;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </a>
+                    </div>
+                    
+                    <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="hub-card-link">
+                        <div class="hub-card-body">
+                            {% if hub.files|length == 0 %}
+                            <div class="empty-state">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                <p>Upload documents to get started!</p>
+                            </div>
+                            {% else %}
+                            <div class="hub-stats">
+                                <div class="stat">
+                                    <span class="stat-value">{{ hub.files|length }}</span>
+                                    <span class="stat-label">Files</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">{{ hub.flashcards_count }}</span>
+                                    <span class="stat-label">Flashcards</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">{{ hub.notes_count }}</span>
+                                    <span class="stat-label">Notes</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </a>
+                </article>
+                {% else %}
+                <p style="text-align:center; color: var(--text-secondary); font-size: 1rem; grid-column: 1 / -1;">No study hubs yet. Create your first one!</p>
+                {% endfor %}
             </div>
         </div>
     </main>
@@ -448,35 +416,301 @@
             });
         }
 
-
         // Confirm delete all hubs
         function confirmDeleteAll() {
             return confirm('Are you sure you want to delete ALL hubs? This cannot be undone.');
         }
 
-        // Tab functionality
-        const tabs = document.querySelectorAll('.nav-tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                tabs.forEach(item => item.classList.remove('active'));
-                tab.classList.add('active');
-                
-                const targetId = tab.getAttribute('data-tab');
-                tabContents.forEach(content => {
-                    content.classList.remove('active');
-                    if (content.id === targetId) {
-                        content.classList.add('active');
-                    }
-                });
-            });
-        });
-        
         // Initialize Lucide icons
         lucide.createIcons();
+    </script>
+</body>
+</html>
+```
+
+### 3. New File: `templates/progress.html`
+
+This is the new file for the progress page. Place it inside your `templates` folder. It includes placeholders for the data that will be supplied by the new `overall_progress` route in `app.py`.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress - Study Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #ef4444;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-light: #f9fafb;
+            --background-white: #ffffff;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+        }
+        html[data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger-color: #f87171;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --background-light: #111827;
+            --background-white: #1f2937;
+            --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-light);
+            margin: 0;
+            color: var(--text-main);
+            display: flex;
+        }
+        .side-panel {
+            width: 260px;
+            background-color: var(--background-white);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .side-panel .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 3rem;
+        }
+        .side-panel .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        .side-panel .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .side-panel .nav-tab:hover {
+            background-color: var(--background-light);
+            color: var(--text-main);
+        }
+        .side-panel .nav-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 2rem;
+            width: calc(100% - 260px);
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { 
+            margin-bottom: 2rem; 
+        }
+        header h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
+        header p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0; }
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+        .stat-card .value {
+            font-size: 3.5rem;
+            font-weight: 800;
+        }
+        .stat-card .value span {
+            font-size: 1.5rem;
+            opacity: 0.7;
+            margin-left: 0.5rem;
+        }
+        .time-card { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .streak-card { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+        .chart-container, .review-container {
+            background-color: var(--background-white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container h2, .review-container h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .review-list .review-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .review-list .review-item:last-child {
+            border-bottom: none;
+        }
+        .topic-details { display: flex; flex-direction: column; }
+        .topic-name { font-weight: 600; font-size: 1.1rem; }
+        .hub-name { font-size: 0.9rem; color: var(--text-secondary); }
+        .topic-score { font-weight: 700; font-size: 1.25rem; }
+        .score-low { color: var(--danger-color); }
+        .score-mid { color: #f59e0b; }
+    </style>
+</head>
+<body>
+
+    <aside class="side-panel">
+        <div class="logo">Foci</div>
+        <nav class="nav-tabs">
+            <a href="{{ url_for('dashboard') }}" class="nav-tab" data-tab="hubs">
+                <i data-lucide="layout-grid"></i>
+                <span>Hubs</span>
+            </a>
+            <a href="{{ url_for('overall_progress') }}" class="nav-tab active" data-tab="progress">
+                <i data-lucide="trending-up"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="profile">
+                <i data-lucide="user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="settings">
+                 <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Overall Progress 📈</h1>
+                <p>An overview of your study habits and performance across all your hubs.</p>
+            </header>
+
+            <div class="progress-grid">
+                <div class="stat-card time-card">
+                    <h3>Total Study Time</h3>
+                    <div class="value">{{ total_study_hours }}<span>hours</span></div>
+                </div>
+                <div class="stat-card streak-card">
+                    <h3>Longest Study Streak</h3>
+                    <div class="value">{{ longest_streak }}<span>days</span></div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Quiz Score Trends</h2>
+                <canvas id="quizScoresChart"></canvas>
+            </div>
+
+            <div class="review-container" style="margin-top: 2rem;">
+                <h2>Areas for Review</h2>
+                <div class="review-list">
+                    {% for topic in weak_topics %}
+                    <div class="review-item">
+                        <div class="topic-details">
+                            <span class="topic-name">{{ topic.topic }}</span>
+                            <span class="hub-name">From Hub: {{ topic.hub_name }}</span>
+                        </div>
+                        <div class="topic-score {{ 'score-low' if topic.score < 50 else 'score-mid' }}">
+                            {{ "%.0f"|format(topic.score) }}%
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No specific weaknesses identified yet. Keep taking quizzes to get feedback!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('quizScoresChart').getContext('2d');
+            
+            const quizData = {{ quiz_scores_json|safe }};
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Quiz Score',
+                        data: quizData,
+                        borderColor: 'rgba(79, 70, 229, 1)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'MMM dd, yyyy'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Score (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            lucide.createIcons();
+        });
     </script>
 </body>
 </html>
