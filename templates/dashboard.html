@@ -7,6 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.js"></script>
+
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -48,9 +50,76 @@
             transition: background-color 0.3s, color 0.3s;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            display: flex;
+        }
+
+        .side-panel {
+            width: 260px;
+            background-color: var(--background-white);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .side-panel .logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 3rem;
+        }
+
+        .side-panel .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .side-panel .nav-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .side-panel .nav-tab:hover {
+            background-color: var(--background-light);
+            color: var(--text-main);
+        }
+
+        .side-panel .nav-tab.active {
+            background-color: var(--primary-color);
+            color: white;
         }
         
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .main-content {
+            margin-left: 260px;
+            flex-grow: 1;
+            padding: 2rem;
+            width: calc(100% - 260px);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
         .header-text { flex-grow: 1; }
         .header-actions { display: flex; align-items: center; gap: 1.5rem; }
@@ -125,7 +194,6 @@
         }
         .modal-content .button { width: 100%; justify-content: center; }
 
-        /* Theme toggle styles */
         .theme-switch {
             display: inline-block;
             height: 34px;
@@ -194,101 +262,142 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="header-text">
-                <h1>Your Study Hub Dashboard ✨</h1>
-                <p>All your courses, notes, and AI-powered tools in one place.</p>
-            </div>
-            <div class="header-actions">
-                <!-- Theme Toggle -->
-                <label class="theme-switch" for="theme-toggle">
-                    <input type="checkbox" id="theme-toggle" />
-                    <div class="track">
-                        <div class="handle"></div>
-                        <div class="track-elements">
-                            <div class="cloud c1"></div>
-                            <div class="cloud c2"></div>
-                            <div class="cloud c3"></div>
-                            <div class="star s1"></div>
-                            <div class="star s2"></div>
-                            <div class="star s3"></div>
-                            <div class="star s4"></div>
-                        </div>
+
+    <aside class="side-panel">
+        <div class="logo">Foci</div>
+        <nav class="nav-tabs">
+            <a href="#" class="nav-tab active" data-tab="hubs">
+                <i data-lucide="layout-grid"></i>
+                <span>Hubs</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="progress">
+                <i data-lucide="trending-up"></i>
+                <span>Progress</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="profile">
+                <i data-lucide="user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="#" class="nav-tab" data-tab="settings">
+                 <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+         <!-- You can add user profile info or other elements at the bottom of the panel -->
+    </aside>
+
+    <main class="main-content">
+        <div id="hubs" class="tab-content active">
+            <div class="container">
+                <header>
+                    <div class="header-text">
+                        <h1>Your Study Hub Dashboard ✨</h1>
+                        <p>All your courses, notes, and AI-powered tools in one place.</p>
                     </div>
-                </label>
-
-                <!-- Subscription Status -->
-                {% if current_user.subscription_tier == 'free' %}
-                <form action="{{ url_for('create_checkout_session') }}" method="POST">
-                    <!-- 
-                        IMPORTANT: Replace this value with your actual Price ID from the Stripe Dashboard.
-                        This ID starts with 'price_...'.
-                    -->
-                    <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
-                    <button type="submit" class="button">🚀 Upgrade to Pro</button>
-                </form>
-                {% elif current_user.subscription_tier == 'pro' %}
-                    <div class="pro-badge"><span>PRO</span></div>
-                {% endif %}
-
-                <!-- New Sign Out button -->
-                <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
-
-                <!-- Delete All Hubs button -->
-                <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
-
-                <!-- Create Hub button -->
-                <button class="button" id="open-modal-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    Create New Hub
-                </button>
-            </div>
-        </header>
-
-        <main class="hub-grid">
-            {% for hub in hubs %}
-            <article class="hub-card">
-                <div class="card-header" style="background-color: {{ hub.header_color }}; background-image: url('{{ hub.header_pattern_url }}');">
-                    <h2>{{ hub.name }}</h2>
-                    <a href="{{ url_for('delete_hub', hub_id=hub.id) }}" 
-                       class="delete-btn" title="Delete Hub"
-                       onclick="event.preventDefault(); if (confirm('Are you sure you want to delete this hub?')) window.location.href=this.href;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </a>
-                </div>
-                
-                <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="hub-card-link">
-                    <div class="hub-card-body">
-                        {% if hub.files|length == 0 %}
-                        <div class="empty-state">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                            <p>Upload documents to get started!</p>
-                        </div>
-                        {% else %}
-                        <div class="hub-stats">
-                            <div class="stat">
-                                <span class="stat-value">{{ hub.files|length }}</span>
-                                <span class="stat-label">Files</span>
+                    <div class="header-actions">
+                        <!-- Theme Toggle -->
+                        <label class="theme-switch" for="theme-toggle">
+                            <input type="checkbox" id="theme-toggle" />
+                            <div class="track">
+                                <div class="handle"></div>
+                                <div class="track-elements">
+                                    <div class="cloud c1"></div>
+                                    <div class="cloud c2"></div>
+                                    <div class="cloud c3"></div>
+                                    <div class="star s1"></div>
+                                    <div class="star s2"></div>
+                                    <div class="star s3"></div>
+                                    <div class="star s4"></div>
+                                </div>
                             </div>
-                            <div class="stat">
-                                <span class="stat-value">{{ hub.flashcards_count }}</span>
-                                <span class="stat-label">Flashcards</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-value">{{ hub.notes_count }}</span>
-                                <span class="stat-label">Notes</span>
-                            </div>
-                        </div>
+                        </label>
+
+                        <!-- Subscription Status -->
+                        {% if current_user.subscription_tier == 'free' %}
+                        <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                            <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
+                            <button type="submit" class="button">🚀 Upgrade to Pro</button>
+                        </form>
+                        {% elif current_user.subscription_tier == 'pro' %}
+                            <div class="pro-badge"><span>PRO</span></div>
                         {% endif %}
+
+                        <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
+                        <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" onclick="return confirmDeleteAll();">Delete All Hubs</a>
+
+                        <button class="button" id="open-modal-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Create New Hub
+                        </button>
                     </div>
-                </a>
-            </article>
-            {% else %}
-            <p style="text-align:center; color: var(--text-secondary); font-size: 1rem; grid-column: 1 / -1;">No study hubs yet. Create your first one!</p>
-            {% endfor %}
-        </main>
-    </div>
+                </header>
+
+                <div class="hub-grid">
+                    {% for hub in hubs %}
+                    <article class="hub-card">
+                        <div class="card-header" style="background-color: {{ hub.header_color }}; background-image: url('{{ hub.header_pattern_url }}');">
+                            <h2>{{ hub.name }}</h2>
+                            <a href="{{ url_for('delete_hub', hub_id=hub.id) }}" 
+                               class="delete-btn" title="Delete Hub"
+                               onclick="event.preventDefault(); if (confirm('Are you sure you want to delete this hub?')) window.location.href=this.href;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
+                        
+                        <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="hub-card-link">
+                            <div class="hub-card-body">
+                                {% if hub.files|length == 0 %}
+                                <div class="empty-state">
+                                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                    <p>Upload documents to get started!</p>
+                                </div>
+                                {% else %}
+                                <div class="hub-stats">
+                                    <div class="stat">
+                                        <span class="stat-value">{{ hub.files|length }}</span>
+                                        <span class="stat-label">Files</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-value">{{ hub.flashcards_count }}</span>
+                                        <span class="stat-label">Flashcards</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-value">{{ hub.notes_count }}</span>
+                                        <span class="stat-label">Notes</span>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    </article>
+                    {% else %}
+                    <p style="text-align:center; color: var(--text-secondary); font-size: 1rem; grid-column: 1 / -1;">No study hubs yet. Create your first one!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div id="progress" class="tab-content">
+            <div class="container">
+                <h1>Progress</h1>
+                <p>This is where your progress will be displayed.</p>
+            </div>
+        </div>
+
+        <div id="profile" class="tab-content">
+            <div class="container">
+                <h1>Profile</h1>
+                <p>This is where your profile information will be displayed.</p>
+            </div>
+        </div>
+
+        <div id="settings" class="tab-content">
+            <div class="container">
+                <h1>Settings</h1>
+                <p>This is where your settings will be displayed.</p>
+            </div>
+        </div>
+    </main>
 
     <!-- Modal -->
     <div class="modal-overlay" id="modal-overlay">
@@ -312,27 +421,62 @@
         const closeModalBtn = document.getElementById('close-modal-btn');
         const modalOverlay = document.getElementById('modal-overlay');
 
-        openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
-        closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
-        modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
+        if (openModalBtn) {
+            openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
+        }
+        if(closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
+        }
+        if(modalOverlay) {
+            modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
+        }
+
 
         // Theme toggle functionality
         const themeToggle = document.getElementById('theme-toggle');
         if (localStorage.getItem('theme') === 'dark') themeToggle.checked = true;
-        themeToggle.addEventListener('change', () => {
-            if (themeToggle.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-                localStorage.setItem('theme', 'light');
-            }
-        });
+        
+        if(themeToggle) {
+            themeToggle.addEventListener('change', () => {
+                if (themeToggle.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
+
 
         // Confirm delete all hubs
         function confirmDeleteAll() {
             return confirm('Are you sure you want to delete ALL hubs? This cannot be undone.');
         }
+
+        // Tab functionality
+        const tabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                tabs.forEach(item => item.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const targetId = tab.getAttribute('data-tab');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
