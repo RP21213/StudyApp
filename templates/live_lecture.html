@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ✅ moved here so startRecording() can see it
+    // Moved here so startRecording() can see it
     function beginRecording() {
         if (mediaRecorder && mediaRecorder.state === "inactive") {
             mediaRecorder.start(1000); // Send chunks every second
@@ -101,14 +101,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             mediaRecorder = new MediaRecorder(stream);
             
-mediaRecorder.ondataavailable = async (event) => {
-    if (event.data.size > 0 && socket && socket.connected) {
-        const arrayBuffer = await event.data.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        socket.emit('audio_chunk', bytes);
-    }
-};
-
+            // --- THIS IS THE CORRECTED PART ---
+            mediaRecorder.ondataavailable = async (event) => {
+                if (event.data.size > 0 && socket && socket.connected) {
+                    const arrayBuffer = await event.data.arrayBuffer();
+                    // FIX: Convert the Uint8Array to a standard JavaScript Array before sending.
+                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                    socket.emit('audio_chunk', audioAsArray);
+                }
+            };
+            // --- END OF CORRECTION ---
 
             mediaRecorder.onstart = () => {
                 startBtn.style.display = 'none';
@@ -117,7 +119,7 @@ mediaRecorder.ondataavailable = async (event) => {
 
             connectWebSocket();
 
-            // ✅ now works (function is defined in scope)
+            // Now works because the function is defined in scope
             beginRecording();
 
         } catch (error) {
