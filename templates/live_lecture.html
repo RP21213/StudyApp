@@ -56,71 +56,64 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
     let mediaRecorder;
     let sampleRate;
-    let audioBuffer = [];
-    // NEW: A safe byte size threshold (~0.5 seconds of 16kHz audio)
-    // This is much more reliable than counting chunks.
-    const bufferSizeThreshold = 16384; 
 
     async function startRecording() {
         startBtn.disabled = true;
         statusIndicator.textContent = 'Status: Accessing microphone...';
+        console.log('Attempting to access microphone...');
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log('Microphone access granted.');
             
             const audioContext = new AudioContext();
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
+            console.log('MediaRecorder and sampleRate initialized.');
 
-            // --- FINAL ROBUST BUFFERING LOGIC ---
+            // This is the simplest, most direct way to handle audio.
+            // It sends chunks of audio directly to the server.
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
-                    audioBuffer.push(event.data);
-                    
-                    const totalSize = audioBuffer.reduce((acc, blob) => acc + blob.size, 0);
-
-                    // If we have collected enough audio data, send it as one batch
-                    if (totalSize >= bufferSizeThreshold) {
-                        const combinedBlob = new Blob(audioBuffer);
-                        const arrayBuffer = await combinedBlob.arrayBuffer();
-                        const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                        
-                        if (audioAsArray.length > 0) {
-                           socket.emit('audio_chunk', audioAsArray);
-                        }
-                        
-                        // Important: Clear the buffer for the next batch
-                        audioBuffer = [];
-                    }
+                    console.log(`Audio chunk created, size: ${event.data.size}`);
+                    const arrayBuffer = await event.data.arrayBuffer();
+                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                    socket.emit('audio_chunk', audioAsArray);
+                    console.log('Sent audio chunk to server.');
                 }
             };
-            // --- END OF FIX ---
             
+            // We only connect AFTER the recorder is ready.
             connectAndStart();
 
         } catch (error) {
-            console.error('Error accessing microphone:', error);
-            statusIndicator.textContent = 'Error: Could not access microphone.';
+            console.error('ERROR ACCESSING MICROPHONE:', error);
+            // This is a critical error message for the user.
+            alert('Could not access microphone. Please check your browser permissions and try again.');
+            statusIndicator.textContent = 'Error: Microphone access denied.';
             startBtn.disabled = false;
         }
     }
 
     function connectAndStart() {
+        console.log('Connecting to WebSocket...');
         socket = io.connect(
             location.protocol + '//' + document.domain + ':' + location.port,
             { transports: ['websocket'] }
         );
 
         socket.on('connect', () => {
-            console.log('WebSocket connected!');
+            console.log('WebSocket connected! Emitting start_transcription.');
             socket.emit('start_transcription', { sampleRate: sampleRate });
         });
         
         socket.on('status_update', (data) => {
+            console.log(`Received status_update: ${data.status}`);
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                // Record in very frequent, small slices to fill our buffer quickly
-                mediaRecorder.start(100); 
+                // Use a safe timeslice of 500ms to avoid the "duration violation" error.
+                mediaRecorder.start(500);
+                console.log('MediaRecorder started.');
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -149,27 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
-        }
-
-        // "Flush" any remaining audio from the buffer before stopping
-        if (audioBuffer.length > 0) {
-             const combinedBlob = new Blob(audioBuffer);
-             combinedBlob.arrayBuffer().then(arrayBuffer => {
-                const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                if (audioAsArray.length > 0 && socket && socket.connected) {
-                    socket.emit('audio_chunk', audioAsArray);
-                }
-                audioBuffer = [];
-             });
+            console.log('MediaRecorder stopped.');
         }
 
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
-            // Add a small delay to ensure the last audio chunk is sent before the stop message
-            setTimeout(() => {
-                socket.emit('stop_transcription', { hub_id: hubId, title: title });
-                statusIndicator.textContent = 'Status: Finalizing and saving...';
-            }, 500);
+            socket.emit('stop_transcription', { hub_id: hubId, title: title });
+            console.log('Emitted stop_transcription.');
+            statusIndicator.textContent = 'Status: Finalizing and saving...';
         }
         stopBtn.disabled = true;
     }
