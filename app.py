@@ -462,7 +462,10 @@ def handle_audio_chunk(audio_data):
     sid = request.sid
     if sid in session_handlers:
         handler = session_handlers[sid]
-        handler.stream(audio_data) # No asyncio.run()
+        # audio_data will be a list of integers from Uint8Array
+        audio_bytes = bytes(audio_data)
+        handler.stream(audio_bytes)
+
 
 @socketio.on('stop_transcription')
 def handle_stop_transcription(data):

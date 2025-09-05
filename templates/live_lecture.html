@@ -101,11 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
             
             mediaRecorder = new MediaRecorder(stream);
             
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0 && socket && socket.connected) {
-                    socket.emit('audio_chunk', event.data);
-                }
-            };
+mediaRecorder.ondataavailable = async (event) => {
+    if (event.data.size > 0 && socket && socket.connected) {
+        const arrayBuffer = await event.data.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        socket.emit('audio_chunk', bytes);
+    }
+};
+
 
             mediaRecorder.onstart = () => {
                 startBtn.style.display = 'none';
