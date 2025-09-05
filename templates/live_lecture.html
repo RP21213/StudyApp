@@ -56,7 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
     let mediaRecorder;
     let sampleRate;
-    let audioBuffer = []; // <-- NEW: Buffer to hold audio chunks
+    let audioBuffer = [];
+    // NEW: Set a byte size threshold for sending data (~0.5s of audio at 16kHz)
+    // This is a much more reliable way to buffer than counting chunks.
+    const bufferSizeThreshold = 16384; 
 
     async function startRecording() {
         startBtn.disabled = true;
@@ -69,14 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
 
-            // --- THIS IS THE CORRECTED PART ---
+            // --- FINAL ROBUST BUFFERING LOGIC ---
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
                     audioBuffer.push(event.data);
+                    
+                    // Calculate the total size of audio data in the buffer
+                    const totalSize = audioBuffer.reduce((acc, blob) => acc + blob.size, 0);
 
-                    // We will send data when we have 2 chunks (~500ms)
-                    // This prevents sending chunks that are too small.
-                    if (audioBuffer.length === 2) {
+                    // If the buffer has enough data, send it
+                    if (totalSize >= bufferSizeThreshold) {
                         const combinedBlob = new Blob(audioBuffer);
                         const arrayBuffer = await combinedBlob.arrayBuffer();
                         const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
@@ -90,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             };
-            // --- END OF CORRECTION ---
+            // --- END OF FIX ---
             
             connectAndStart();
 
@@ -115,8 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                // NEW: Record in smaller, more frequent chunks for buffering
-                mediaRecorder.start(250); 
+                // Record in frequent, small slices to fill the buffer quickly
+                mediaRecorder.start(100); 
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -147,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder.stop();
         }
 
-        // --- NEW: Flush any remaining audio from the buffer ---
+        // Flush any remaining audio from the buffer when stopping
         if (audioBuffer.length > 0) {
              const combinedBlob = new Blob(audioBuffer);
              combinedBlob.arrayBuffer().then(arrayBuffer => {
@@ -158,12 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 audioBuffer = [];
              });
         }
-        // --- END NEW PART ---
 
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
-            socket.emit('stop_transcription', { hub_id: hubId, title: title });
-            statusIndicator.textContent = 'Status: Finalizing and saving...';
+            // Add a small delay to ensure the last audio chunk is sent before the stop message
+            setTimeout(() => {
+                socket.emit('stop_transcription', { hub_id: hubId, title: title });
+                statusIndicator.textContent = 'Status: Finalizing and saving...';
+            }, 500);
         }
         stopBtn.disabled = true;
     }
