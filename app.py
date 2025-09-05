@@ -375,7 +375,8 @@ from assemblyai.streaming.v3 import (
     StreamingParameters,
     StreamingError
 )
-# CORRECTED IMPORTS: Import event DTOs from the .dto submodule
+
+# And add the specific event imports from the .dto submodule
 from assemblyai.streaming.v3.dto import (
     BeginEvent,
     FinalTranscriptEvent,
