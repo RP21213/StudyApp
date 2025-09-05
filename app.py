@@ -363,14 +363,27 @@ def live_lecture_page(hub_id):
         flash("Hub not found or you don't have access.", "error")
         return redirect(url_for('dashboard'))
     return render_template("live_lecture.html", hub_id=hub_id)
+
 # ==============================================================================
 # 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (FINAL REVISION)
 # ==============================================================================
 
+# Import the new, required classes from the modern SDK
+from assemblyai.streaming.v3 import (
+    StreamingClient,
+    StreamingClientOptions,
+    StreamingEvents,
+    StreamingParameters,
+    StreamingError,
+    BeginEvent,
+    TurnEvent,
+    TerminationEvent
+)
+
 # Store handler instances in memory
 session_handlers = {}
 
-# --- FINAL CORRECTED VERSION: Class-based approach ---
+# --- NEW V3 SDK-COMPATIBLE TranscriptionHandler ---
 class TranscriptionHandler:
     def __init__(self, sid):
         self.sid = sid
@@ -378,66 +391,81 @@ class TranscriptionHandler:
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
         
-        # FINAL FIX: Initialize TranscriptionConfig with NO arguments.
-        # The sample_rate is set later in the start() method, which is the correct way.
-        config = aai.TranscriptionConfig()
-
-        self.transcriber = aai.RealtimeTranscriber(
-            on_data=self._on_data,
-            on_error=self._on_error,
-            config=config
+        # 1. Create the StreamingClient with your API key
+        self.client = StreamingClient(
+            StreamingClientOptions(api_key=os.getenv("ASSEMBLYAI_API_KEY"))
         )
+        
+        # 2. Attach event handlers using the .on() method
+        self.client.on(StreamingEvents.Begin, self._on_begin)
+        self.client.on(StreamingEvents.Turn, self._on_turn)
+        self.client.on(StreamingEvents.Error, self._on_error)
+        self.client.on(StreamingEvents.Termination, self._on_terminated)
 
-    def _on_data(self, transcript: aai.RealtimeTranscript):
-        if not transcript.text or self.sid not in session_handlers:
-            return
+    # --- Event Handler Methods ---
+    def _on_begin(self, event: BeginEvent):
+        """Called when the transcription session starts."""
+        print(f"Session started for SID {self.sid}: {event.id}")
+        # This is the confirmation the client needs to start sending audio
+        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
-        if isinstance(transcript, aai.RealtimeFinalTranscript):
-            self.buffer += transcript.text + " "
-
-            if self.sid in session_handlers:
-                socketio.emit('transcript_update', {'text': transcript.text + " "}, room=self.sid)
-
-            if len(self.buffer.split()) > 150 and not self.is_summarizing:
-                self.is_summarizing = True
-                socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
-
-                chunk_to_summarize = self.buffer
-                self.buffer = ""
-
-                try:
-                    updated_notes_html = generate_live_summary_update(self.summary, chunk_to_summarize)
-                    self.summary = updated_notes_html
-                    if self.sid in session_handlers:
-                        socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
-                except Exception as e:
-                    print(f"Error during summarization for {self.sid}: {e}")
-                finally:
-                    self.is_summarizing = False
-                    if self.sid in session_handlers:
-                        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
-
-    def _on_error(self, error: aai.RealtimeError):
+    def _on_error(self, error: StreamingError):
+        """Called when a streaming error occurs."""
         error_message = str(error)
-        print(f"An error occurred for SID {self.sid}: {error_message}")
+        print(f"Streaming error for SID {self.sid}: {error_message}")
         if self.sid in session_handlers:
             socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
 
+    def _on_terminated(self, event: TerminationEvent):
+        """Called when the session is gracefully terminated."""
+        print(f"Session terminated for SID {self.sid}.")
+
+    def _on_turn(self, event: TurnEvent):
+        """This is the main event for receiving transcribed text."""
+        transcript = event.transcript
+        if not transcript or self.sid not in session_handlers:
+            return
+
+        # The new SDK provides turns of speech, which is cleaner than raw text
+        self.buffer += transcript + " "
+        socketio.emit('transcript_update', {'text': transcript + " "}, room=self.sid)
+
+        # Summarization logic remains the same
+        if len(self.buffer.split()) > 150 and not self.is_summarizing:
+            self.is_summarizing = True
+            socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
+
+            chunk_to_summarize = self.buffer
+            self.buffer = ""
+
+            try:
+                updated_notes_html = generate_live_summary_update(self.summary, chunk_to_summarize)
+                self.summary = updated_notes_html
+                if self.sid in session_handlers:
+                    socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
+            except Exception as e:
+                print(f"Error during summarization for {self.sid}: {e}")
+            finally:
+                self.is_summarizing = False
+                if self.sid in session_handlers:
+                    socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
+    
+    # --- Control Methods (called by SocketIO handlers) ---
     def start(self, sample_rate):
-        # This is the correct place to set the sample rate
-        self.transcriber.config.sample_rate = sample_rate
-        self.transcriber.connect()
+        """Connects to the AssemblyAI streaming service."""
+        # The new .connect() method takes a StreamingParameters object
+        self.client.connect(
+            StreamingParameters(sample_rate=sample_rate)
+        )
 
     def stream(self, audio_data):
-        self.transcriber.stream(audio_data)
+        """Streams audio data to AssemblyAI."""
+        self.client.stream(audio_data)
 
     def close(self):
-        try:
-            # Check if the transcriber is actually connected before trying to close
-            if self.transcriber and self.transcriber.is_connected():
-                self.transcriber.close()
-        except Exception as e:
-            print(f"Error closing transcriber for SID {self.sid}: {e}")
+        """Closes the connection to AssemblyAI."""
+        # The new .disconnect() method handles closing
+        self.client.disconnect()
 
 
 # --- REVISED: SocketIO Event Handlers ---
@@ -447,12 +475,11 @@ def handle_connect():
     session_handlers[sid] = TranscriptionHandler(sid)
 
 @socketio.on('disconnect')
-def handle_disconnect(): # FIX: Removed the incorrect 'sid' parameter
-    sid = request.sid    # FIX: Get the session ID from the request context instead
+def handle_disconnect():
+    sid = request.sid
     print(f"Client disconnected: {sid}")
     if sid in session_handlers:
-        # It's important to properly close the transcriber connection
-        session_handlers[sid].close() 
+        session_handlers[sid].close()
         del session_handlers[sid]
 
 @socketio.on('start_transcription')
@@ -462,8 +489,7 @@ def handle_start_transcription(data):
         handler = session_handlers[sid]
         sample_rate = data.get('sampleRate', 44100)
         try:
-            handler.start(sample_rate) # No asyncio.run()
-            emit('status_update', {'status': 'Listening...'})
+            handler.start(sample_rate)
             print(f"Transcription started for {sid}")
         except Exception as e:
             print(f"Error starting transcription for {sid}: {e}")
@@ -474,10 +500,8 @@ def handle_audio_chunk(audio_data):
     sid = request.sid
     if sid in session_handlers:
         handler = session_handlers[sid]
-        # audio_data will be a list of integers from Uint8Array
         audio_bytes = bytes(audio_data)
         handler.stream(audio_bytes)
-
 
 @socketio.on('stop_transcription')
 def handle_stop_transcription(data):
@@ -487,7 +511,7 @@ def handle_stop_transcription(data):
 
     if sid in session_handlers:
         handler = session_handlers[sid]
-        handler.close() # No asyncio.run()
+        handler.close()
         
         final_summary = handler.summary
         if len(handler.buffer.strip()) > 10:
