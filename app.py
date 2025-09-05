@@ -370,7 +370,7 @@ def live_lecture_page(hub_id):
 # Store handler instances in memory
 session_handlers = {}
 
-# --- UPDATED & CORRECTED: Class-based approach to handle transcription state ---
+# --- FINAL CORRECTED VERSION: Class-based approach ---
 class TranscriptionHandler:
     def __init__(self, sid):
         self.sid = sid
@@ -378,16 +378,14 @@ class TranscriptionHandler:
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
         
-        # CORRECTED: The config no longer specifies a model name.
-        # This allows the SDK to use the latest, non-deprecated default for streaming.
-        config = aai.TranscriptionConfig(
-            sample_rate=16_000 # This will be updated by the client's actual sample rate
-        )
+        # FINAL FIX: Initialize TranscriptionConfig with NO arguments.
+        # The sample_rate is set later in the start() method, which is the correct way.
+        config = aai.TranscriptionConfig()
 
         self.transcriber = aai.RealtimeTranscriber(
             on_data=self._on_data,
             on_error=self._on_error,
-            config=config # Pass the corrected configuration
+            config=config
         )
 
     def _on_data(self, transcript: aai.RealtimeTranscript):
@@ -420,13 +418,13 @@ class TranscriptionHandler:
                         socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
     def _on_error(self, error: aai.RealtimeError):
-        # We can provide a more user-friendly error message now
         error_message = str(error)
         print(f"An error occurred for SID {self.sid}: {error_message}")
         if self.sid in session_handlers:
             socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
 
     def start(self, sample_rate):
+        # This is the correct place to set the sample rate
         self.transcriber.config.sample_rate = sample_rate
         self.transcriber.connect()
 
@@ -434,9 +432,9 @@ class TranscriptionHandler:
         self.transcriber.stream(audio_data)
 
     def close(self):
-        # Use a try-except block for safe closing
         try:
-            if self.transcriber.is_connected():
+            # Check if the transcriber is actually connected before trying to close
+            if self.transcriber and self.transcriber.is_connected():
                 self.transcriber.close()
         except Exception as e:
             print(f"Error closing transcriber for SID {self.sid}: {e}")
