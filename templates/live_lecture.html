@@ -57,17 +57,58 @@ document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let sampleRate;
 
-    function connectWebSocket() {
+    async function startRecording() {
+        // 1. Disable the start button to prevent multiple clicks
+        startBtn.disabled = true;
+        statusIndicator.textContent = 'Status: Accessing microphone...';
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // 2. Prepare the MediaRecorder but DO NOT start it yet.
+            const audioContext = new AudioContext();
+            sampleRate = audioContext.sampleRate;
+            mediaRecorder = new MediaRecorder(stream);
+
+            // 3. Set up the event for when audio data is available
+            mediaRecorder.ondataavailable = async (event) => {
+                if (event.data.size > 0 && socket && socket.connected) {
+                    const arrayBuffer = await event.data.arrayBuffer();
+                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                    socket.emit('audio_chunk', audioAsArray);
+                }
+            };
+            
+            // 4. Connect to the server via WebSocket
+            connectAndStart();
+
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            statusIndicator.textContent = 'Error: Could not access microphone.';
+            startBtn.disabled = false;
+        }
+    }
+
+    function connectAndStart() {
         socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
+        // This event fires when the connection is successfully made
         socket.on('connect', () => {
             console.log('WebSocket connected!');
-            // Tell server we’re ready
+            // Tell the server we are ready to start transcribing with our audio sample rate
             socket.emit('start_transcription', { sampleRate: sampleRate });
         });
-
+        
+        // This is the confirmation from the server that it's ready
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
+            // 5. FIX: Only start the media recorder AFTER the server confirms it's 'Listening'.
+            if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
+                mediaRecorder.start(500); // Start recording and send data every 500ms
+                // Update UI
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+            }
         });
         
         socket.on('transcript_update', (data) => {
@@ -83,49 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Lecture notes saved successfully!');
             window.location.href = data.redirect_url;
         });
-    }
 
-    // Moved here so startRecording() can see it
-    function beginRecording() {
-        if (mediaRecorder && mediaRecorder.state === "inactive") {
-            mediaRecorder.start(1000); // Send chunks every second
-        }
-    }
-
-    async function startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            const audioContext = new AudioContext();
-            sampleRate = audioContext.sampleRate;
-            
-            mediaRecorder = new MediaRecorder(stream);
-            
-            // --- THIS IS THE CORRECTED PART ---
-            mediaRecorder.ondataavailable = async (event) => {
-                if (event.data.size > 0 && socket && socket.connected) {
-                    const arrayBuffer = await event.data.arrayBuffer();
-                    // FIX: Convert the Uint8Array to a standard JavaScript Array before sending.
-                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                    socket.emit('audio_chunk', audioAsArray);
-                }
-            };
-            // --- END OF CORRECTION ---
-
-            mediaRecorder.onstart = () => {
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-            };
-
-            connectWebSocket();
-
-            // Now works because the function is defined in scope
-            beginRecording();
-
-        } catch (error) {
-            console.error('Error accessing microphone:', error);
-            statusIndicator.textContent = 'Error: Could not access microphone.';
-        }
+        socket.on('disconnect', () => {
+            console.log("Socket disconnected.");
+            statusIndicator.textContent = 'Status: Disconnected';
+        });
     }
 
     function stopRecording() {

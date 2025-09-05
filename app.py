@@ -437,11 +437,12 @@ def handle_connect():
     session_handlers[sid] = TranscriptionHandler(sid)
 
 @socketio.on('disconnect')
-def handle_disconnect(): # CORRECTED: Removed the 'sid' parameter
-    sid = request.sid    # CORRECTED: Get the sid from the request context
+def handle_disconnect(): # FIX: Removed the incorrect 'sid' parameter
+    sid = request.sid    # FIX: Get the session ID from the request context instead
     print(f"Client disconnected: {sid}")
     if sid in session_handlers:
-        session_handlers[sid].transcriber.close()
+        # It's important to properly close the transcriber connection
+        session_handlers[sid].close() 
         del session_handlers[sid]
 
 @socketio.on('start_transcription')
