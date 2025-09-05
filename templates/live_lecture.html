@@ -13,7 +13,7 @@
         .controls-panel, .notes-panel { background-color: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .notes-panel { display: flex; flex-direction: column; }
         h1, h2 { margin-top: 0; }
-        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color: 0.2s; }
+        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
         .start-btn { background-color: var(--primary-color); color: white; }
         .stop-btn { background-color: var(--danger-color); color: white; display: none; }
         #status-indicator { margin-top: 1rem; font-weight: 500; text-align: center; }
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Buffering for safe chunk sizes ---
     let chunkBuffer = [];
     let chunkBufferSize = 0;
-    const MIN_CHUNK_SIZE = 4000;   // ~100 ms
+    const MIN_CHUNK_SIZE = 4000;   // ~100 ms @44.1kHz
     const MAX_CHUNK_SIZE = 32000;  // ~800 ms
 
     async function startRecording() {
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     chunkBuffer.push(bytes);
                     chunkBufferSize += bytes.length;
 
-                    // Flush if buffer is big enough
+                    // Flush if big enough
                     if (chunkBufferSize >= MIN_CHUNK_SIZE) {
                         flushBuffer();
                     }
@@ -99,14 +99,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function flushBuffer() {
-        if (chunkBufferSize > 0 && socket && socket.connected) {
-            const combined = new Uint8Array(chunkBufferSize);
-            let offset = 0;
-            for (const b of chunkBuffer) {
-                combined.set(b, offset);
-                offset += b.length;
-            }
+    function flushBuffer(force = false) {
+        if (chunkBufferSize === 0 || !socket || !socket.connected) return;
+
+        // Only flush if forced or buffer >= safe size
+        if (!force && chunkBufferSize < MIN_CHUNK_SIZE) {
+            return;
+        }
+
+        const combined = new Uint8Array(chunkBufferSize);
+        let offset = 0;
+        for (const b of chunkBuffer) {
+            combined.set(b, offset);
+            offset += b.length;
+        }
+
+        if (force || combined.length >= MIN_CHUNK_SIZE) {
+            // Calculate duration in ms (approx)
+            const bytesPerSample = 2; // 16-bit PCM assumption
+            const numSamples = combined.length / bytesPerSample;
+            const durationMs = (numSamples / sampleRate) * 1000;
+            console.log(`🔊 Flushing chunk: ${combined.length} bytes ≈ ${durationMs.toFixed(2)} ms`);
+
             socket.emit('audio_chunk', Array.from(combined));
             chunkBuffer = [];
             chunkBufferSize = 0;
@@ -126,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                mediaRecorder.start(500); // safe timeslice, actual buffering prevents violations
+                mediaRecorder.start(500); // request ~500ms chunks, buffer enforces safe size
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -156,8 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder.stop();
         }
 
-        // Flush any leftover buffered audio
-        flushBuffer();
+        // Force flush leftovers (even if < MIN_CHUNK_SIZE)
+        flushBuffer(true);
 
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
