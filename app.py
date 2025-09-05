@@ -376,11 +376,11 @@ class TranscriptionHandler:
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
         self.transcriber = aai.RealtimeTranscriber(
-            on_data=self._on_data,
-            on_error=self._on_error,
-            sample_rate=44100
-        )
-
+        on_data=self._on_data,
+        on_error=self._on_error,
+        sample_rate=44100,
+        model="universal-streaming"
+)
     def _on_data(self, transcript: aai.RealtimeTranscript):
         if not transcript.text or self.sid not in session_handlers:
             return
