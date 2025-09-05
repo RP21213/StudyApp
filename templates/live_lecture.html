@@ -13,7 +13,7 @@
         .controls-panel, .notes-panel { background-color: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .notes-panel { display: flex; flex-direction: column; }
         h1, h2 { margin-top: 0; }
-        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color: 0.2s; }
         .start-btn { background-color: var(--primary-color); color: white; }
         .stop-btn { background-color: var(--danger-color); color: white; display: none; }
         #status-indicator { margin-top: 1rem; font-weight: 500; text-align: center; }
@@ -58,19 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let sampleRate;
 
     async function startRecording() {
-        // 1. Disable the start button to prevent multiple clicks
         startBtn.disabled = true;
         statusIndicator.textContent = 'Status: Accessing microphone...';
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // 2. Prepare the MediaRecorder but DO NOT start it yet.
             const audioContext = new AudioContext();
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
 
-            // 3. Set up the event for when audio data is available
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
                     const arrayBuffer = await event.data.arrayBuffer();
@@ -79,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
             
-            // 4. Connect to the server via WebSocket
             connectAndStart();
 
         } catch (error) {
@@ -90,22 +86,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function connectAndStart() {
-        socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        // --- THIS IS THE FINAL FIX ---
+        // Force the connection to use the WebSocket transport protocol.
+        // This is more reliable than the default (polling) in many production environments.
+        socket = io.connect(
+            location.protocol + '//' + document.domain + ':' + location.port,
+            { transports: ['websocket'] }
+        );
+        // --- END OF FIX ---
 
-        // This event fires when the connection is successfully made
         socket.on('connect', () => {
             console.log('WebSocket connected!');
-            // Tell the server we are ready to start transcribing with our audio sample rate
             socket.emit('start_transcription', { sampleRate: sampleRate });
         });
         
-        // This is the confirmation from the server that it's ready
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
-            // 5. FIX: Only start the media recorder AFTER the server confirms it's 'Listening'.
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
                 mediaRecorder.start(500); // Start recording and send data every 500ms
-                // Update UI
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
