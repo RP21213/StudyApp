@@ -442,15 +442,18 @@ def handle_disconnect():
 def handle_start_transcription(data):
     sid = request.sid
     if sid in session_transcripts:
-        # Create and start the real-time transcriber
+        # Create the real-time transcriber WITHOUT user_data
         transcriber = aai.RealtimeTranscriber(
             on_data=on_data,
             on_error=on_error,
-            sample_rate=data.get('sampleRate', 44100),
-            # Pass the session ID so our on_data callback knows which user this is
-            user_data={'sid': sid} 
+            sample_rate=data.get('sampleRate', 44100)
         )
-        asyncio.run(transcriber.connect())
+        
+        # Connect to the service and PASS user_data HERE
+        asyncio.run(transcriber.connect(
+            user_data={'sid': sid}
+        ))
+
         session_transcripts[sid]['transcriber'] = transcriber
         emit('status_update', {'status': 'Listening...'})
         print(f"Transcription started for {sid}")
