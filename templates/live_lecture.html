@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
     let mediaRecorder;
     let sampleRate;
+    let audioBuffer = []; // <-- NEW: Buffer to hold audio chunks
 
     async function startRecording() {
         startBtn.disabled = true;
@@ -68,13 +69,28 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
 
+            // --- THIS IS THE CORRECTED PART ---
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
-                    const arrayBuffer = await event.data.arrayBuffer();
-                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                    socket.emit('audio_chunk', audioAsArray);
+                    audioBuffer.push(event.data);
+
+                    // We will send data when we have 2 chunks (~500ms)
+                    // This prevents sending chunks that are too small.
+                    if (audioBuffer.length === 2) {
+                        const combinedBlob = new Blob(audioBuffer);
+                        const arrayBuffer = await combinedBlob.arrayBuffer();
+                        const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                        
+                        if (audioAsArray.length > 0) {
+                           socket.emit('audio_chunk', audioAsArray);
+                        }
+                        
+                        // Clear the buffer for the next batch
+                        audioBuffer = [];
+                    }
                 }
             };
+            // --- END OF CORRECTION ---
             
             connectAndStart();
 
@@ -86,14 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function connectAndStart() {
-        // --- THIS IS THE FINAL FIX ---
-        // Force the connection to use the WebSocket transport protocol.
-        // This is more reliable than the default (polling) in many production environments.
         socket = io.connect(
             location.protocol + '//' + document.domain + ':' + location.port,
             { transports: ['websocket'] }
         );
-        // --- END OF FIX ---
 
         socket.on('connect', () => {
             console.log('WebSocket connected!');
@@ -103,7 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                mediaRecorder.start(500); // Start recording and send data every 500ms
+                // NEW: Record in smaller, more frequent chunks for buffering
+                mediaRecorder.start(250); 
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -133,6 +146,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
         }
+
+        // --- NEW: Flush any remaining audio from the buffer ---
+        if (audioBuffer.length > 0) {
+             const combinedBlob = new Blob(audioBuffer);
+             combinedBlob.arrayBuffer().then(arrayBuffer => {
+                const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                if (audioAsArray.length > 0 && socket && socket.connected) {
+                    socket.emit('audio_chunk', audioAsArray);
+                }
+                audioBuffer = [];
+             });
+        }
+        // --- END NEW PART ---
+
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
             socket.emit('stop_transcription', { hub_id: hubId, title: title });
