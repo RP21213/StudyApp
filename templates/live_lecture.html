@@ -62,6 +62,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         socket.on('connect', () => {
             console.log('WebSocket connected!');
+            // MODIFIED BLOCK START
+            // Now that the connection is secure, tell the server to start transcription
+            // and begin sending audio from the recorder.
+            socket.emit('start_transcription', { sampleRate: sampleRate });
+            mediaRecorder.start(1000); // Send audio data every 1000ms (1 second)
+            // MODIFIED BLOCK END
         });
 
         socket.on('status_update', (data) => {
@@ -97,18 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     socket.emit('audio_chunk', event.data);
                 }
             };
-
+            
+            // MODIFIED BLOCK START
+            // The onstart handler is now just for updating the UI.
+            // The functional logic is moved to the 'connect' event to prevent a race condition.
             mediaRecorder.onstart = () => {
-                connectWebSocket();
-                // Wait for connection before starting transcription
-                socket.on('connect', () => {
-                    socket.emit('start_transcription', { sampleRate: sampleRate });
-                });
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             };
             
-            mediaRecorder.start(1000); // Send audio data every 1000ms (1 second)
+            // Initiate the WebSocket connection. The 'connect' event will trigger the recording.
+            connectWebSocket();
+            // MODIFIED BLOCK END
 
         } catch (error) {
             console.error('Error accessing microphone:', error);

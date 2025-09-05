@@ -367,16 +367,17 @@ def live_lecture_page(hub_id):
         flash("Hub not found or you don't have access.", "error")
         return redirect(url_for('dashboard'))
     return render_template("live_lecture.html", hub_id=hub_id)
-
 # --- NEW: AssemblyAI Transcription Handlers ---
 async def on_data(transcript: aai.RealtimeTranscript):
     if not transcript.text:
         return
 
     # Get the session ID (sid) from the user_data
+    # MODIFIED BLOCK START
     sid = transcript.realtime_transcriber.user_data.get('sid')
     if not sid or sid not in session_transcripts:
         return
+    # MODIFIED BLOCK END
 
     # Append new text to the buffer
     if isinstance(transcript, aai.RealtimeFinalTranscript):
@@ -442,17 +443,19 @@ def handle_disconnect():
 def handle_start_transcription(data):
     sid = request.sid
     if sid in session_transcripts:
-        # Create the real-time transcriber WITHOUT user_data
+        # MODIFIED BLOCK START
+        # Create the real-time transcriber
         transcriber = aai.RealtimeTranscriber(
             on_data=on_data,
             on_error=on_error,
             sample_rate=data.get('sampleRate', 44100)
         )
         
-        # Connect to the service and PASS user_data HERE
+        # Connect to the service and PASS user_data containing the session ID
         asyncio.run(transcriber.connect(
             user_data={'sid': sid}
         ))
+        # MODIFIED BLOCK END
 
         session_transcripts[sid]['transcriber'] = transcriber
         emit('status_update', {'status': 'Listening...'})
