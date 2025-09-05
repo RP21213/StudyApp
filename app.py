@@ -375,43 +375,47 @@ class TranscriptionHandler:
         self.buffer = ""
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
-        # The callbacks passed to the transcriber MUST be async
         self.transcriber = aai.RealtimeTranscriber(
             on_data=self._on_data,
             on_error=self._on_error,
             sample_rate=44100
         )
 
-    # THIS IS AN ASYNC CALLBACK - The library expects this
-    async def _on_data(self, transcript: aai.RealtimeTranscript):
+    def _on_data(self, transcript: aai.RealtimeTranscript):
         if not transcript.text or self.sid not in session_handlers:
             return
 
         if isinstance(transcript, aai.RealtimeFinalTranscript):
             self.buffer += transcript.text + " "
-            socketio.emit('transcript_update', {'text': transcript.text + " "}, room=self.sid)
-            
-            word_count = len(self.buffer.split())
-            if word_count > 150 and not self.is_summarizing:
+
+            # Only emit if session still exists
+            if self.sid in session_handlers:
+                socketio.emit('transcript_update', {'text': transcript.text + " "}, room=self.sid)
+
+            # Summarize every ~150 words
+            if len(self.buffer.split()) > 150 and not self.is_summarizing:
                 self.is_summarizing = True
                 socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
 
                 chunk_to_summarize = self.buffer
                 self.buffer = ""
+
                 try:
                     updated_notes_html = generate_live_summary_update(self.summary, chunk_to_summarize)
                     self.summary = updated_notes_html
-                    socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
+                    if self.sid in session_handlers:
+                        socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
                 except Exception as e:
                     print(f"Error during summarization for {self.sid}: {e}")
                 finally:
-                    socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
                     self.is_summarizing = False
+                    if self.sid in session_handlers:
+                        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
-    # THIS IS AN ASYNC CALLBACK - The library expects this
-    async def _on_error(self, error: aai.RealtimeError):
+    def _on_error(self, error: aai.RealtimeError):
         print(f"An error occurred for SID {self.sid}: {error}")
-        socketio.emit('status_update', {'status': f'Error: {error}'}, room=self.sid)
+        if self.sid in session_handlers:
+            socketio.emit('status_update', {'status': f'Error: {error}'}, room=self.sid)
 
     # THESE ARE SYNCHRONOUS CONTROL METHODS
     def start(self, sample_rate):
@@ -488,7 +492,7 @@ def handle_stop_transcription(data):
         emit('transcription_complete', {'redirect_url': link})
         print(f"Transcription stopped and saved for {sid}")
         session_handlers.pop(sid, None)
-        
+
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""

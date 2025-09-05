@@ -60,15 +60,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function connectWebSocket() {
         socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-        socket.on('connect', () => {
-            console.log('WebSocket connected!');
-            // MODIFIED BLOCK START
-            // Now that the connection is secure, tell the server to start transcription
-            // and begin sending audio from the recorder.
-            socket.emit('start_transcription', { sampleRate: sampleRate });
-            mediaRecorder.start(1000); // Send audio data every 1000ms (1 second)
-            // MODIFIED BLOCK END
-        });
+socket.on('connect', () => {
+    console.log('WebSocket connected!');
+    // Tell server we’re ready
+    socket.emit('start_transcription', { sampleRate: sampleRate });
+});
+
+// Start recording once, after socket is connected
+function beginRecording() {
+    if (mediaRecorder && mediaRecorder.state === "inactive") {
+        mediaRecorder.start(1000); // Send chunks every second
+    }
+}
 
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
@@ -89,38 +92,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function startRecording() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            const audioContext = new AudioContext();
-            sampleRate = audioContext.sampleRate;
-            
-            mediaRecorder = new MediaRecorder(stream);
-            
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0 && socket && socket.connected) {
-                    socket.emit('audio_chunk', event.data);
-                }
-            };
-            
-            // MODIFIED BLOCK START
-            // The onstart handler is now just for updating the UI.
-            // The functional logic is moved to the 'connect' event to prevent a race condition.
-            mediaRecorder.onstart = () => {
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-            };
-            
-            // Initiate the WebSocket connection. The 'connect' event will trigger the recording.
-            connectWebSocket();
-            // MODIFIED BLOCK END
+async function startRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        const audioContext = new AudioContext();
+        sampleRate = audioContext.sampleRate;
+        
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0 && socket && socket.connected) {
+                socket.emit('audio_chunk', event.data);
+            }
+        };
 
-        } catch (error) {
-            console.error('Error accessing microphone:', error);
-            statusIndicator.textContent = 'Error: Could not access microphone.';
-        }
+        mediaRecorder.onstart = () => {
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+        };
+
+        connectWebSocket();
+
+        // Start recording once everything is ready
+        beginRecording();
+
+    } catch (error) {
+        console.error('Error accessing microphone:', error);
+        statusIndicator.textContent = 'Error: Could not access microphone.';
     }
+}
 
     function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
