@@ -477,14 +477,16 @@ def handle_disconnect():
         del session_handlers[sid]
 
 @socketio.on('start_transcription')
-def handle_start_transcription(data):
+def handle_start_transcription(data=None): # data is now optional
     sid = request.sid
     if sid in session_handlers:
         handler = session_handlers[sid]
-        sample_rate = data.get('sampleRate', 44100)
+        # The client now always sends 16kHz audio after resampling.
+        # Hardcoding this value makes the server more reliable.
+        sample_rate = 16000 
         try:
             handler.start(sample_rate)
-            print(f"Transcription started for {sid}")
+            print(f"Transcription started for {sid} at {sample_rate}Hz")
         except Exception as e:
             print(f"Error starting transcription for {sid}: {e}")
             emit('status_update', {'status': f'Error starting: {e}'})

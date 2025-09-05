@@ -55,13 +55,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let socket;
   let audioContext;
-  let workletNode; // <-- Replaces the old 'processor'
+  let workletNode;
   let globalStream;
-  let sampleRate;
+  
+  // FINAL CHANGE: We now control the sample rate, so we can define it as a constant.
+  const TARGET_SAMPLE_RATE = 16000;
+  
   let pcmBuffer = [];
   let pcmBufferSamples = 0;
-
-  const TARGET_DURATION_MS = 200; // Collect ~200ms per flush
+  const TARGET_DURATION_MS = 200;
 
   function floatTo16BitPCM(float32Array) {
     const buffer = new ArrayBuffer(float32Array.length * 2);
@@ -74,39 +76,59 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Int16Array(buffer);
   }
 
+  /**
+   * NEW FUNCTION: Resamples a Float32Array from an original sample rate
+   * to our target sample rate of 16000 Hz.
+   */
+  function resampleTo16k(audioData, originalSampleRate) {
+    if (originalSampleRate === TARGET_SAMPLE_RATE) {
+      return audioData;
+    }
+    const ratio = originalSampleRate / TARGET_SAMPLE_RATE;
+    const newLength = Math.round(audioData.length / ratio);
+    const result = new Float32Array(newLength);
+    let offsetResult = 0;
+    let offsetBuffer = 0;
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+      let accum = 0, count = 0;
+      for (let i = offsetBuffer; i < nextOffsetBuffer && i < audioData.length; i++) {
+        accum += audioData[i];
+        count++;
+      }
+      result[offsetResult] = count > 0 ? accum / count : 0;
+      offsetResult++;
+      offsetBuffer = nextOffsetBuffer;
+    }
+    return result;
+  }
+
   async function startRecording() {
     startBtn.disabled = true;
     statusIndicator.textContent = 'Status: Accessing microphone...';
 
     try {
       globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContext = new AudioContext();
-      sampleRate = audioContext.sampleRate;
+      // Request the browser's native sample rate, we will resample from it.
+      audioContext = new AudioContext({ sampleRate: navigator.mediaDevices.getSupportedConstraints().sampleRate ? undefined : 44100 });
+      const originalSampleRate = audioContext.sampleRate;
 
-      // --- NEW: AudioWorklet Implementation ---
-      
-      // 1. Load the worklet processor from the separate JS file
-      // Make sure 'audio-processor.js' is in the same directory!
-      // NEW, CORRECT LINE
-await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-processor.js') }}");
-
-      // 2. Create an AudioWorkletNode
+      await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-processor.js') }}");
       workletNode = new AudioWorkletNode(audioContext, 'audio-recorder-processor');
-
-      // 3. Connect the microphone source to our worklet
       const source = audioContext.createMediaStreamSource(globalStream);
       source.connect(workletNode);
 
-      // 4. Set up a listener to receive audio data from the worklet
       workletNode.port.onmessage = (event) => {
-        // The event.data is the Float32Array from the processor
-        const float32Data = event.data;
-        const int16Data = floatTo16BitPCM(float32Data);
+        const rawFloat32Data = event.data;
+        // --- RESAMPLING STEP ---
+        const resampledData = resampleTo16k(rawFloat32Data, originalSampleRate);
+        const int16Data = floatTo16BitPCM(resampledData);
 
         pcmBuffer.push(int16Data);
         pcmBufferSamples += int16Data.length;
 
-        const durationMs = (pcmBufferSamples / sampleRate) * 1000;
+        // Note: The duration is now calculated based on our TARGET rate.
+        const durationMs = (pcmBufferSamples / TARGET_SAMPLE_RATE) * 1000;
         if (durationMs >= TARGET_DURATION_MS) {
           flushPCM();
         }
@@ -132,12 +154,10 @@ await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-
       offset += chunk.length;
     }
 
-    const durationMs = (pcmBufferSamples / sampleRate) * 1000;
-    if (force || durationMs >= 50) { // Enforce a minimum flush size
-      console.log(`🔊 Flushing PCM: ${combined.length} samples ≈ ${durationMs.toFixed(2)} ms`);
+    const durationMs = (pcmBufferSamples / TARGET_SAMPLE_RATE) * 1000;
+    if (force || durationMs >= 50) {
+      console.log(`🔊 Flushing PCM: ${combined.length} samples @16kHz ≈ ${durationMs.toFixed(2)} ms`);
       socket.emit('audio_chunk', Array.from(new Uint8Array(combined.buffer)));
-      
-      // This reset is now reliable because it's not in a race condition
       pcmBuffer = [];
       pcmBufferSamples = 0;
     }
@@ -150,10 +170,12 @@ await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-
     );
 
     socket.on('connect', () => {
-      socket.emit('start_transcription', { sampleRate: sampleRate });
+      // We no longer need to send the sample rate, as the server will now assume 16000.
+      socket.emit('start_transcription');
       statusIndicator.textContent = 'Status: Connected, waiting for server...';
     });
 
+    // ... rest of socket.on listeners are unchanged ...
     socket.on('status_update', (data) => {
       statusIndicator.textContent = `Status: ${data.status}`;
       if (data.status === 'Listening...') {
@@ -161,21 +183,17 @@ await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-
         stopBtn.style.display = 'block';
       }
     });
-
     socket.on('transcript_update', (data) => {
       liveTranscriptDiv.textContent += data.text;
       liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
     });
-
     socket.on('notes_update', (data) => {
       notesEditor.innerHTML = data.notes;
     });
-
     socket.on('transcription_complete', (data) => {
       alert('Lecture notes saved successfully!');
       window.location.href = data.redirect_url;
     });
-
     socket.on('disconnect', () => {
       statusIndicator.textContent = 'Status: Disconnected';
     });
@@ -183,7 +201,7 @@ await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-
 
   function stopRecording() {
     if (workletNode) {
-      workletNode.port.onmessage = null; // Remove the listener
+      workletNode.port.onmessage = null;
       workletNode.disconnect();
     }
     if (audioContext) {
@@ -192,10 +210,7 @@ await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-
     if (globalStream) {
       globalStream.getTracks().forEach(track => track.stop());
     }
-
-    // Flush any leftover samples
     flushPCM(true);
-
     if (socket && socket.connected) {
       const title = document.getElementById('lecture-title').value;
       socket.emit('stop_transcription', { hub_id: hubId, title: title });
