@@ -368,7 +368,6 @@ def live_lecture_page(hub_id):
 # 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (FINAL REVISION)
 # ==============================================================================
 
-# Import the new, required classes from the modern SDK
 from assemblyai.streaming.v3 import (
     StreamingClient,
     StreamingClientOptions,
@@ -376,10 +375,10 @@ from assemblyai.streaming.v3 import (
     StreamingParameters,
     StreamingError,
     BeginEvent,
-    TurnEvent,
+    FinalTranscriptEvent,    # <-- ADD THIS
+    PartialTranscriptEvent,  # <-- ADD THIS
     TerminationEvent
 )
-
 # Store handler instances in memory
 session_handlers = {}
 
@@ -395,13 +394,16 @@ class TranscriptionHandler:
             StreamingClientOptions(api_key=os.getenv("ASSEMBLYAI_API_KEY"))
         )
         
+        # Subscribe to specific events for partial and final transcripts
+        self.client.on(StreamingEvents.PartialTranscript, self._on_partial)
+        self.client.on(StreamingEvents.FinalTranscript, self._on_final)
+        
+        # Keep the other standard event handlers
         self.client.on(StreamingEvents.Begin, self._on_begin)
-        self.client.on(StreamingEvents.Turn, self._on_turn)
         self.client.on(StreamingEvents.Error, self._on_error)
         self.client.on(StreamingEvents.Termination, self._on_terminated)
 
     # --- Event Handler Methods ---
-    # FINAL FIX: Added the 'client' parameter to all event handlers to match the SDK's calling signature.
     def _on_begin(self, client: StreamingClient, event: BeginEvent):
         """Called when the transcription session starts."""
         print(f"Session started for SID {self.sid}: {event.id}")
@@ -418,15 +420,26 @@ class TranscriptionHandler:
         """Called when the session is gracefully terminated."""
         print(f"Session terminated for SID {self.sid}.")
 
-    def _on_turn(self, client: StreamingClient, event: TurnEvent):
-        """This is the main event for receiving transcribed text."""
+    # NEW: Handler for PARTIAL results (flickering text)
+    def _on_partial(self, client: StreamingClient, event: PartialTranscriptEvent):
+        """Handles real-time, unstable transcripts."""
+        if not event.transcript or self.sid not in session_handlers:
+            return
+        # Emit a dedicated event for these partial updates
+        socketio.emit('partial_transcript_update', {'text': event.transcript}, room=self.sid)
+
+    # NEW: Handler for FINAL results (clean, corrected sentences)
+    def _on_final(self, client: StreamingClient, event: FinalTranscriptEvent):
+        """Handles the final, corrected transcript after a pause."""
         transcript = event.transcript
         if not transcript or self.sid not in session_handlers:
             return
 
-        self.buffer += transcript + " "
-        socketio.emit('transcript_update', {'text': transcript + " "}, room=self.sid)
+        # Emit the final, corrected text to a different event
+        socketio.emit('final_transcript_update', {'text': transcript + " "}, room=self.sid)
 
+        # Summarization logic only runs on clean, final sentences
+        self.buffer += transcript + " "
         if len(self.buffer.split()) > 150 and not self.is_summarizing:
             self.is_summarizing = True
             socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
@@ -447,11 +460,20 @@ class TranscriptionHandler:
                     socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
     
     # --- Control Methods (called by SocketIO handlers) ---
-    def start(self, sample_rate):
+    def start(self, sample_rate, boosted_keywords=None):
         """Connects to the AssemblyAI streaming service."""
-        self.client.connect(
-            StreamingParameters(sample_rate=sample_rate)
+        if boosted_keywords is None:
+            boosted_keywords = []
+
+        streaming_params = StreamingParameters(
+            sample_rate=sample_rate,
+            word_boost=boosted_keywords,
+            boost_param="high",
+            # Tell the AI to wait for a 700ms pause before finalizing a transcript.
+            # This prevents it from cutting off sentences too early.
+            end_utterance_silence_threshold=700
         )
+        self.client.connect(streaming_params)
 
     def stream(self, audio_data):
         """Streams audio data to AssemblyAI."""
@@ -460,6 +482,8 @@ class TranscriptionHandler:
     def close(self):
         """Closes the connection to AssemblyAI."""
         self.client.disconnect()
+
+        
 
 
 # --- REVISED: SocketIO Event Handlers ---

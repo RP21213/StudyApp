@@ -33,8 +33,12 @@
       <button id="start-btn" class="button start-btn">Start Recording</button>
       <button id="stop-btn" class="button stop-btn">Stop & Save Notes</button>
       <div id="status-indicator">Status: Idle</div>
-      <h2>Live Transcript</h2>
+<h2>Live Transcript</h2>
+      <!-- This is the main box for clean, final text -->
       <div id="live-transcript"></div>
+      
+      <!-- ADD THIS NEW DIV right here -->
+      <div id="live-partial-transcript" style="color: #9ca3af; min-height: 24px; padding: 0.5rem 1rem;"></div>
     </div>
     <div class="notes-panel">
       <h2>Generated Notes</h2>
@@ -51,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusIndicator = document.getElementById('status-indicator');
   const liveTranscriptDiv = document.getElementById('live-transcript');
   const notesEditor = document.getElementById('notes-editor');
+  const livePartialTranscriptDiv = document.getElementById('live-partial-transcript');
   const hubId = '{{ hub_id }}';
 
   let socket;
@@ -183,10 +188,19 @@ document.addEventListener('DOMContentLoaded', () => {
         stopBtn.style.display = 'block';
       }
     });
-    socket.on('transcript_update', (data) => {
-      liveTranscriptDiv.textContent += data.text;
-      liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
-    });
+// NEW LISTENER FOR PARTIALS (updates the gray, flickering text)
+socket.on('partial_transcript_update', (data) => {
+  livePartialTranscriptDiv.textContent = data.text;
+});
+
+// NEW LISTENER FOR FINALS (updates the main box with clean text)
+socket.on('final_transcript_update', (data) => {
+  // 1. Append the final, corrected text to the main box
+  liveTranscriptDiv.textContent += data.text;
+  liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
+  // 2. Clear the partial transcript box, ready for the next utterance
+  livePartialTranscriptDiv.textContent = "";
+});
     socket.on('notes_update', (data) => {
       notesEditor.innerHTML = data.notes;
     });
