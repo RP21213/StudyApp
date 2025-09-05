@@ -351,12 +351,6 @@ def generate_live_summary_update(previous_summary, new_transcript_chunk):
     )
     return response.choices[0].message.content
 
-# ==============================================================================
-# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS
-# ==============================================================================
-
-# Store transcript data in memory (in a real production app, consider Redis or a more robust solution)
-session_transcripts = {}
 
 # --- NEW: Route to render the live lecture page ---
 @app.route("/hub/<hub_id>/live_lecture")
@@ -367,106 +361,101 @@ def live_lecture_page(hub_id):
         flash("Hub not found or you don't have access.", "error")
         return redirect(url_for('dashboard'))
     return render_template("live_lecture.html", hub_id=hub_id)
-# --- NEW: AssemblyAI Transcription Handlers ---
-async def on_data(transcript: aai.RealtimeTranscript):
-    if not transcript.text:
-        return
+# ==============================================================================
+# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (REVISED)
+# ==============================================================================
 
-    # Get the session ID (sid) from the user_data
-    # MODIFIED BLOCK START
-    sid = transcript.realtime_transcriber.user_data.get('sid')
-    if not sid or sid not in session_transcripts:
-        return
-    # MODIFIED BLOCK END
+# Store handler instances in memory
+session_handlers = {}
 
-    # Append new text to the buffer
-    if isinstance(transcript, aai.RealtimeFinalTranscript):
-        session_transcripts[sid]['buffer'] += transcript.text + " "
-        
-        # Emit the live transcript to the user for immediate feedback
-        socketio.emit('transcript_update', {'text': transcript.text + " "}, room=sid)
-        
-        # Check if the buffer is large enough to summarize
-        word_count = len(session_transcripts[sid]['buffer'].split())
-        if word_count > 150: # Adjust buffer size as needed
+# --- NEW: Class-based approach to handle transcription state ---
+class TranscriptionHandler:
+    def __init__(self, sid):
+        self.sid = sid
+        self.buffer = ""
+        self.summary = "<h1>Lecture Notes</h1>"
+        self.is_summarizing = False
+        self.transcriber = aai.RealtimeTranscriber(
+            on_data=self._on_data,
+            on_error=self._on_error,
+            sample_rate=44100  # Default, can be updated
+        )
+
+    async def _on_data(self, transcript: aai.RealtimeTranscript):
+        if not transcript.text or self.sid not in session_handlers:
+            return
+
+        if isinstance(transcript, aai.RealtimeFinalTranscript):
+            self.buffer += transcript.text + " "
+            socketio.emit('transcript_update', {'text': transcript.text + " "}, room=self.sid)
             
-            # Prevent multiple summarization calls from running at once
-            if not session_transcripts[sid]['is_summarizing']:
-                session_transcripts[sid]['is_summarizing'] = True
-                
-                socketio.emit('status_update', {'status': 'Summarizing...'}, room=sid)
+            word_count = len(self.buffer.split())
+            if word_count > 150 and not self.is_summarizing:
+                self.is_summarizing = True
+                socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
 
-                # Get the chunk to summarize and clear the buffer
-                chunk_to_summarize = session_transcripts[sid]['buffer']
-                session_transcripts[sid]['buffer'] = ""
+                chunk_to_summarize = self.buffer
+                self.buffer = ""
+                try:
+                    updated_notes_html = generate_live_summary_update(self.summary, chunk_to_summarize)
+                    self.summary = updated_notes_html
+                    socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
+                except Exception as e:
+                    print(f"Error during summarization for {self.sid}: {e}")
+                finally:
+                    socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
+                    self.is_summarizing = False
 
-                # Call the AI to update the notes
-                updated_notes_html = generate_live_summary_update(
-                    session_transcripts[sid]['summary'],
-                    chunk_to_summarize
-                )
+    async def _on_error(self, error: aai.RealtimeError):
+        print(f"An error occurred for SID {self.sid}: {error}")
+        socketio.emit('status_update', {'status': f'Error: {error}'}, room=self.sid)
 
-                # Update the stored summary and send to the client
-                session_transcripts[sid]['summary'] = updated_notes_html
-                socketio.emit('notes_update', {'notes': updated_notes_html}, room=sid)
-                
-                socketio.emit('status_update', {'status': 'Listening...'}, room=sid)
-                session_transcripts[sid]['is_summarizing'] = False
+    async def start(self, sample_rate):
+        self.transcriber._sample_rate = sample_rate
+        await self.transcriber.connect()
 
-async def on_error(error: aai.RealtimeError):
-    print("An error occurred:", error)
+    async def stream(self, audio_data):
+        await self.transcriber.stream(audio_data)
 
-# --- NEW: SocketIO Event Handlers ---
+    async def close(self):
+        await self.transcriber.close()
+
+
+# --- REVISED: SocketIO Event Handlers ---
 @socketio.on('connect')
 def handle_connect():
     sid = request.sid
     print(f"Client connected: {sid}")
-    # Initialize session data
-    session_transcripts[sid] = {
-        'transcriber': None,
-        'buffer': "",
-        'summary': "<h1>Lecture Notes</h1>",
-        'is_summarizing': False,
-        'full_transcript': ""
-    }
+    session_handlers[sid] = TranscriptionHandler(sid)
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
     print(f"Client disconnected: {sid}")
-    # Clean up resources
-    if sid in session_transcripts and session_transcripts[sid]['transcriber']:
-        asyncio.run(session_transcripts[sid]['transcriber'].close())
-    session_transcripts.pop(sid, None)
+    handler = session_handlers.pop(sid, None)
+    if handler:
+        asyncio.run(handler.close())
 
 @socketio.on('start_transcription')
 def handle_start_transcription(data):
     sid = request.sid
-    if sid in session_transcripts:
-        # MODIFIED BLOCK START
-        # Create the real-time transcriber
-        transcriber = aai.RealtimeTranscriber(
-            on_data=on_data,
-            on_error=on_error,
-            sample_rate=data.get('sampleRate', 44100)
-        )
-        
-        # Connect to the service and PASS user_data containing the session ID
-        asyncio.run(transcriber.connect(
-            user_data={'sid': sid}
-        ))
-        # MODIFIED BLOCK END
-
-        session_transcripts[sid]['transcriber'] = transcriber
-        emit('status_update', {'status': 'Listening...'})
-        print(f"Transcription started for {sid}")
+    if sid in session_handlers:
+        handler = session_handlers[sid]
+        sample_rate = data.get('sampleRate', 44100)
+        try:
+            asyncio.run(handler.start(sample_rate))
+            emit('status_update', {'status': 'Listening...'})
+            print(f"Transcription started for {sid}")
+        except Exception as e:
+            print(f"Error starting transcription for {sid}: {e}")
+            emit('status_update', {'status': f'Error starting: {e}'})
 
 @socketio.on('audio_chunk')
 def handle_audio_chunk(audio_data):
     sid = request.sid
-    if sid in session_transcripts and session_transcripts[sid]['transcriber']:
-        transcriber = session_transcripts[sid]['transcriber']
-        asyncio.run(transcriber.stream(audio_data))
+    if sid in session_handlers:
+        handler = session_handlers[sid]
+        asyncio.run(handler.stream(audio_data))
 
 @socketio.on('stop_transcription')
 def handle_stop_transcription(data):
@@ -474,36 +463,27 @@ def handle_stop_transcription(data):
     hub_id = data.get('hub_id')
     title = data.get('title', 'Live Lecture Notes')
 
-    if sid in session_transcripts:
-        # Close the transcriber
-        transcriber = session_transcripts[sid].get('transcriber')
-        if transcriber:
-            asyncio.run(transcriber.close())
-            session_transcripts[sid]['transcriber'] = None
+    if sid in session_handlers:
+        handler = session_handlers[sid]
+        asyncio.run(handler.close())
         
-        # Do a final summarization pass if there's text left in the buffer
-        final_summary = session_transcripts[sid]['summary']
-        if len(session_transcripts[sid]['buffer'].strip()) > 10:
-             final_summary = generate_live_summary_update(
-                session_transcripts[sid]['summary'],
-                session_transcripts[sid]['buffer']
-            )
+        final_summary = handler.summary
+        if len(handler.buffer.strip()) > 10:
+            final_summary = generate_live_summary_update(handler.summary, handler.buffer)
 
-        # Save the final notes to Firestore
         note_ref = db.collection('notes').document()
         new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=final_summary)
         note_ref.set(new_note.to_dict())
 
-        # Notify the user
         notification_ref = db.collection('notifications').document()
         message = f"Your live lecture notes for '{title}' have been saved."
         link = url_for('view_note', note_id=note_ref.id)
         new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
         notification_ref.set(new_notification.to_dict())
 
-        # Send a final confirmation to the client with the redirect URL
         emit('transcription_complete', {'redirect_url': link})
         print(f"Transcription stopped and saved for {sid}")
+        session_handlers.pop(sid, None)
 
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
