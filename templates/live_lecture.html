@@ -57,63 +57,76 @@ document.addEventListener('DOMContentLoaded', () => {
     let mediaRecorder;
     let sampleRate;
 
+    // --- Buffering for safe chunk sizes ---
+    let chunkBuffer = [];
+    let chunkBufferSize = 0;
+    const MIN_CHUNK_SIZE = 4000;   // ~100 ms
+    const MAX_CHUNK_SIZE = 32000;  // ~800 ms
+
     async function startRecording() {
         startBtn.disabled = true;
         statusIndicator.textContent = 'Status: Accessing microphone...';
-        console.log('Attempting to access microphone...');
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            console.log('Microphone access granted.');
-            
             const audioContext = new AudioContext();
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
-            console.log('MediaRecorder and sampleRate initialized.');
 
-            // This is the simplest, most direct way to handle audio.
-            // It sends chunks of audio directly to the server.
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
-                    console.log(`Audio chunk created, size: ${event.data.size}`);
                     const arrayBuffer = await event.data.arrayBuffer();
-                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                    socket.emit('audio_chunk', audioAsArray);
-                    console.log('Sent audio chunk to server.');
+                    const bytes = new Uint8Array(arrayBuffer);
+
+                    // Add to buffer
+                    chunkBuffer.push(bytes);
+                    chunkBufferSize += bytes.length;
+
+                    // Flush if buffer is big enough
+                    if (chunkBufferSize >= MIN_CHUNK_SIZE) {
+                        flushBuffer();
+                    }
                 }
             };
-            
-            // We only connect AFTER the recorder is ready.
+
             connectAndStart();
 
         } catch (error) {
             console.error('ERROR ACCESSING MICROPHONE:', error);
-            // This is a critical error message for the user.
             alert('Could not access microphone. Please check your browser permissions and try again.');
             statusIndicator.textContent = 'Error: Microphone access denied.';
             startBtn.disabled = false;
         }
     }
 
+    function flushBuffer() {
+        if (chunkBufferSize > 0 && socket && socket.connected) {
+            const combined = new Uint8Array(chunkBufferSize);
+            let offset = 0;
+            for (const b of chunkBuffer) {
+                combined.set(b, offset);
+                offset += b.length;
+            }
+            socket.emit('audio_chunk', Array.from(combined));
+            chunkBuffer = [];
+            chunkBufferSize = 0;
+        }
+    }
+
     function connectAndStart() {
-        console.log('Connecting to WebSocket...');
         socket = io.connect(
             location.protocol + '//' + document.domain + ':' + location.port,
             { transports: ['websocket'] }
         );
 
         socket.on('connect', () => {
-            console.log('WebSocket connected! Emitting start_transcription.');
             socket.emit('start_transcription', { sampleRate: sampleRate });
         });
         
         socket.on('status_update', (data) => {
-            console.log(`Received status_update: ${data.status}`);
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                // Use a safe timeslice of 500ms to avoid the "duration violation" error.
-                mediaRecorder.start(500);
-                console.log('MediaRecorder started.');
+                mediaRecorder.start(500); // safe timeslice, actual buffering prevents violations
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -134,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         socket.on('disconnect', () => {
-            console.log("Socket disconnected.");
             statusIndicator.textContent = 'Status: Disconnected';
         });
     }
@@ -142,13 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
-            console.log('MediaRecorder stopped.');
         }
+
+        // Flush any leftover buffered audio
+        flushBuffer();
 
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
             socket.emit('stop_transcription', { hub_id: hubId, title: title });
-            console.log('Emitted stop_transcription.');
             statusIndicator.textContent = 'Status: Finalizing and saving...';
         }
         stopBtn.disabled = true;

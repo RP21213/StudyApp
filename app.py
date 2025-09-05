@@ -401,6 +401,7 @@ class TranscriptionHandler:
         self.client.on(StreamingEvents.Termination, self._on_terminated)
 
     # --- Event Handler Methods ---
+    # FINAL FIX: Added the 'client' parameter to all event handlers to match the SDK's calling signature.
     def _on_begin(self, client: StreamingClient, event: BeginEvent):
         """Called when the transcription session starts."""
         print(f"Session started for SID {self.sid}: {event.id}")
@@ -865,14 +866,8 @@ def generate_interactive_heatmap_data(text):
     return response.choices[0].message.content
 
 # --- Homepage and Auth Routes ---
-# CORRECTED: This single route now handles both logged-in and logged-out users.
 @app.route("/")
 def index():
-    # If the user is already logged in, send them to their dashboard.
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    
-    # Otherwise, show the public homepage.
     return render_template("index.html")
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1402,8 +1397,9 @@ def stripe_webhook():
 # 4. FLASK ROUTES
 # ==============================================================================
 
-# CORRECTED: This route was previously causing a redirect loop.
-# It has been removed from here and combined with the `index()` route.
+@app.route("/")
+def home():
+    return redirect(url_for('dashboard'))
 
 @app.route("/hub/<hub_id>/delete")
 @login_required
