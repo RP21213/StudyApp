@@ -362,7 +362,7 @@ def live_lecture_page(hub_id):
         return redirect(url_for('dashboard'))
     return render_template("live_lecture.html", hub_id=hub_id)
 # ==============================================================================
-# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (REVISED)
+# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (FINAL REVISION)
 # ==============================================================================
 
 # Store handler instances in memory
@@ -375,12 +375,14 @@ class TranscriptionHandler:
         self.buffer = ""
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
+        # The callbacks passed to the transcriber MUST be async
         self.transcriber = aai.RealtimeTranscriber(
             on_data=self._on_data,
             on_error=self._on_error,
-            sample_rate=44100  # Default, can be updated
+            sample_rate=44100
         )
 
+    # THIS IS AN ASYNC CALLBACK - The library expects this
     async def _on_data(self, transcript: aai.RealtimeTranscript):
         if not transcript.text or self.sid not in session_handlers:
             return
@@ -406,19 +408,21 @@ class TranscriptionHandler:
                     socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
                     self.is_summarizing = False
 
+    # THIS IS AN ASYNC CALLBACK - The library expects this
     async def _on_error(self, error: aai.RealtimeError):
         print(f"An error occurred for SID {self.sid}: {error}")
         socketio.emit('status_update', {'status': f'Error: {error}'}, room=self.sid)
 
-    async def start(self, sample_rate):
+    # THESE ARE SYNCHRONOUS CONTROL METHODS
+    def start(self, sample_rate):
         self.transcriber._sample_rate = sample_rate
-        await self.transcriber.connect()
+        self.transcriber.connect()
 
-    async def stream(self, audio_data):
-        await self.transcriber.stream(audio_data)
+    def stream(self, audio_data):
+        self.transcriber.stream(audio_data)
 
-    async def close(self):
-        await self.transcriber.close()
+    def close(self):
+        self.transcriber.close()
 
 
 # --- REVISED: SocketIO Event Handlers ---
@@ -434,7 +438,7 @@ def handle_disconnect():
     print(f"Client disconnected: {sid}")
     handler = session_handlers.pop(sid, None)
     if handler:
-        asyncio.run(handler.close())
+        handler.close()
 
 @socketio.on('start_transcription')
 def handle_start_transcription(data):
@@ -443,7 +447,7 @@ def handle_start_transcription(data):
         handler = session_handlers[sid]
         sample_rate = data.get('sampleRate', 44100)
         try:
-            asyncio.run(handler.start(sample_rate))
+            handler.start(sample_rate) # No asyncio.run()
             emit('status_update', {'status': 'Listening...'})
             print(f"Transcription started for {sid}")
         except Exception as e:
@@ -455,7 +459,7 @@ def handle_audio_chunk(audio_data):
     sid = request.sid
     if sid in session_handlers:
         handler = session_handlers[sid]
-        asyncio.run(handler.stream(audio_data))
+        handler.stream(audio_data) # No asyncio.run()
 
 @socketio.on('stop_transcription')
 def handle_stop_transcription(data):
@@ -465,7 +469,7 @@ def handle_stop_transcription(data):
 
     if sid in session_handlers:
         handler = session_handlers[sid]
-        asyncio.run(handler.close())
+        handler.close() # No asyncio.run()
         
         final_summary = handler.summary
         if len(handler.buffer.strip()) > 10:
@@ -484,7 +488,7 @@ def handle_stop_transcription(data):
         emit('transcription_complete', {'redirect_url': link})
         print(f"Transcription stopped and saved for {sid}")
         session_handlers.pop(sid, None)
-
+        
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""
