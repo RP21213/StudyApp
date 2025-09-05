@@ -56,6 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
     let mediaRecorder;
     let sampleRate;
+    let audioBuffer = [];
+    // NEW: A safe byte size threshold (~0.5 seconds of 16kHz audio)
+    // This is much more reliable than counting chunks.
+    const bufferSizeThreshold = 16384; 
 
     async function startRecording() {
         startBtn.disabled = true;
@@ -68,13 +72,26 @@ document.addEventListener('DOMContentLoaded', () => {
             sampleRate = audioContext.sampleRate;
             mediaRecorder = new MediaRecorder(stream);
 
-            // --- FINAL, SIMPLIFIED LOGIC ---
-            // Remove all manual buffering. Just send the data chunk directly.
+            // --- FINAL ROBUST BUFFERING LOGIC ---
             mediaRecorder.ondataavailable = async (event) => {
                 if (event.data.size > 0 && socket && socket.connected) {
-                    const arrayBuffer = await event.data.arrayBuffer();
-                    const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
-                    socket.emit('audio_chunk', audioAsArray);
+                    audioBuffer.push(event.data);
+                    
+                    const totalSize = audioBuffer.reduce((acc, blob) => acc + blob.size, 0);
+
+                    // If we have collected enough audio data, send it as one batch
+                    if (totalSize >= bufferSizeThreshold) {
+                        const combinedBlob = new Blob(audioBuffer);
+                        const arrayBuffer = await combinedBlob.arrayBuffer();
+                        const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                        
+                        if (audioAsArray.length > 0) {
+                           socket.emit('audio_chunk', audioAsArray);
+                        }
+                        
+                        // Important: Clear the buffer for the next batch
+                        audioBuffer = [];
+                    }
                 }
             };
             // --- END OF FIX ---
@@ -102,11 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
             if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                // --- FINAL FIX ---
-                // Use a larger, safer timeslice of 500ms (half a second).
-                // This guarantees every chunk is well above the 50ms minimum.
-                mediaRecorder.start(500); 
-                // --- END OF FIX ---
+                // Record in very frequent, small slices to fill our buffer quickly
+                mediaRecorder.start(100); 
                 startBtn.style.display = 'none';
                 stopBtn.style.display = 'block';
             }
@@ -137,10 +151,25 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder.stop();
         }
 
+        // "Flush" any remaining audio from the buffer before stopping
+        if (audioBuffer.length > 0) {
+             const combinedBlob = new Blob(audioBuffer);
+             combinedBlob.arrayBuffer().then(arrayBuffer => {
+                const audioAsArray = Array.from(new Uint8Array(arrayBuffer));
+                if (audioAsArray.length > 0 && socket && socket.connected) {
+                    socket.emit('audio_chunk', audioAsArray);
+                }
+                audioBuffer = [];
+             });
+        }
+
         if (socket && socket.connected) {
             const title = document.getElementById('lecture-title').value;
-            socket.emit('stop_transcription', { hub_id: hubId, title: title });
-            statusIndicator.textContent = 'Status: Finalizing and saving...';
+            // Add a small delay to ensure the last audio chunk is sent before the stop message
+            setTimeout(() => {
+                socket.emit('stop_transcription', { hub_id: hubId, title: title });
+                statusIndicator.textContent = 'Status: Finalizing and saving...';
+            }, 500);
         }
         stopBtn.disabled = true;
     }
