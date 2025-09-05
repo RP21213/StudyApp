@@ -188,6 +188,12 @@ def timesince_filter(dt, default="just now"):
     return default
 app.jinja_env.filters['timesince'] = timesince_filter
 
+# --- NEW: Context Processor to make datetime available in all templates ---
+@app.context_processor
+def inject_now():
+    """Injects the current UTC datetime into all templates."""
+    return {'now': datetime.now(timezone.utc)}
+
 # ==============================================================================
 # 2. CORE UTILITY & HELPER FUNCTIONS
 # ==============================================================================
@@ -492,7 +498,7 @@ def handle_stop_transcription(data):
         # Send a final confirmation to the client with the redirect URL
         emit('transcription_complete', {'redirect_url': link})
         print(f"Transcription stopped and saved for {sid}")
-        
+
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""

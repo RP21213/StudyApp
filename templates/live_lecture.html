@@ -28,7 +28,7 @@
             <p>Click "Start Recording" to begin capturing your lecture audio.</p>
             <div class="form-group">
                 <label for="lecture-title" style="font-weight: 500;">Lecture Title</label>
-                <input type="text" id="lecture-title" value="Live Lecture Notes - {{ now().strftime('%Y-%m-%d') }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 0.5rem;">
+                <input type="text" id="lecture-title" value="Live Lecture Notes - {{ now.strftime('%Y-%m-%d') }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 0.5rem;">
             </div>
             <button id="start-btn" class="button start-btn">Start Recording</button>
             <button id="stop-btn" class="button stop-btn">Stop & Save Notes</button>
