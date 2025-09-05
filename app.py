@@ -28,7 +28,7 @@ from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notificat
 import asyncio # NEW: For async operations
 from flask_socketio import SocketIO, emit # NEW: For WebSockets
 import assemblyai as aai # NEW: For real-time transcription
-print("AssemblyAI SDK version:", assemblyai.__version__)
+
 
 # --- NEW: Imports for Authentication ---
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
