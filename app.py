@@ -28,6 +28,7 @@ from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notificat
 import asyncio # NEW: For async operations
 from flask_socketio import SocketIO, emit # NEW: For WebSockets
 import assemblyai as aai # NEW: For real-time transcription
+print("AssemblyAI SDK version:", assemblyai.__version__)
 
 # --- NEW: Imports for Authentication ---
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -431,18 +432,16 @@ class TranscriptionHandler:
 
 # --- REVISED: SocketIO Event Handlers ---
 @socketio.on('connect')
-def handle_connect():
-    sid = request.sid
-    print(f"Client connected: {sid}")
+def handle_connect(sid):
     session_handlers[sid] = TranscriptionHandler(sid)
+    print(f"Client connected: {sid}")
 
 @socketio.on('disconnect')
-def handle_disconnect():
-    sid = request.sid
+def handle_disconnect(sid):
     print(f"Client disconnected: {sid}")
-    handler = session_handlers.pop(sid, None)
-    if handler:
-        handler.close()
+    if sid in session_handlers:
+        session_handlers[sid].transcriber.close()
+        del session_handlers[sid]
 
 @socketio.on('start_transcription')
 def handle_start_transcription(data):
