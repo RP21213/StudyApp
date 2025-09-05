@@ -383,7 +383,7 @@ from assemblyai.streaming.v3 import (
 # Store handler instances in memory
 session_handlers = {}
 
-# --- NEW V3 SDK-COMPATIBLE TranscriptionHandler ---
+# --- FINAL CORRECTED V3 SDK-COMPATIBLE TranscriptionHandler ---
 class TranscriptionHandler:
     def __init__(self, sid):
         self.sid = sid
@@ -391,46 +391,42 @@ class TranscriptionHandler:
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
         
-        # 1. Create the StreamingClient with your API key
         self.client = StreamingClient(
             StreamingClientOptions(api_key=os.getenv("ASSEMBLYAI_API_KEY"))
         )
         
-        # 2. Attach event handlers using the .on() method
         self.client.on(StreamingEvents.Begin, self._on_begin)
         self.client.on(StreamingEvents.Turn, self._on_turn)
         self.client.on(StreamingEvents.Error, self._on_error)
         self.client.on(StreamingEvents.Termination, self._on_terminated)
 
     # --- Event Handler Methods ---
-    def _on_begin(self, event: BeginEvent):
+    # FINAL FIX: Added the 'client' parameter to all event handlers to match the SDK's calling signature.
+    def _on_begin(self, client: StreamingClient, event: BeginEvent):
         """Called when the transcription session starts."""
         print(f"Session started for SID {self.sid}: {event.id}")
-        # This is the confirmation the client needs to start sending audio
         socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
-    def _on_error(self, error: StreamingError):
+    def _on_error(self, client: StreamingClient, error: StreamingError):
         """Called when a streaming error occurs."""
         error_message = str(error)
         print(f"Streaming error for SID {self.sid}: {error_message}")
         if self.sid in session_handlers:
             socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
 
-    def _on_terminated(self, event: TerminationEvent):
+    def _on_terminated(self, client: StreamingClient, event: TerminationEvent):
         """Called when the session is gracefully terminated."""
         print(f"Session terminated for SID {self.sid}.")
 
-    def _on_turn(self, event: TurnEvent):
+    def _on_turn(self, client: StreamingClient, event: TurnEvent):
         """This is the main event for receiving transcribed text."""
         transcript = event.transcript
         if not transcript or self.sid not in session_handlers:
             return
 
-        # The new SDK provides turns of speech, which is cleaner than raw text
         self.buffer += transcript + " "
         socketio.emit('transcript_update', {'text': transcript + " "}, room=self.sid)
 
-        # Summarization logic remains the same
         if len(self.buffer.split()) > 150 and not self.is_summarizing:
             self.is_summarizing = True
             socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
@@ -453,7 +449,6 @@ class TranscriptionHandler:
     # --- Control Methods (called by SocketIO handlers) ---
     def start(self, sample_rate):
         """Connects to the AssemblyAI streaming service."""
-        # The new .connect() method takes a StreamingParameters object
         self.client.connect(
             StreamingParameters(sample_rate=sample_rate)
         )
@@ -464,7 +459,6 @@ class TranscriptionHandler:
 
     def close(self):
         """Closes the connection to AssemblyAI."""
-        # The new .disconnect() method handles closing
         self.client.disconnect()
 
 
