@@ -60,18 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function connectWebSocket() {
         socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-socket.on('connect', () => {
-    console.log('WebSocket connected!');
-    // Tell server we’re ready
-    socket.emit('start_transcription', { sampleRate: sampleRate });
-});
-
-// Start recording once, after socket is connected
-function beginRecording() {
-    if (mediaRecorder && mediaRecorder.state === "inactive") {
-        mediaRecorder.start(1000); // Send chunks every second
-    }
-}
+        socket.on('connect', () => {
+            console.log('WebSocket connected!');
+            // Tell server we’re ready
+            socket.emit('start_transcription', { sampleRate: sampleRate });
+        });
 
         socket.on('status_update', (data) => {
             statusIndicator.textContent = `Status: ${data.status}`;
@@ -92,36 +85,43 @@ function beginRecording() {
         });
     }
 
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
-        const audioContext = new AudioContext();
-        sampleRate = audioContext.sampleRate;
-        
-        mediaRecorder = new MediaRecorder(stream);
-        
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0 && socket && socket.connected) {
-                socket.emit('audio_chunk', event.data);
-            }
-        };
-
-        mediaRecorder.onstart = () => {
-            startBtn.style.display = 'none';
-            stopBtn.style.display = 'block';
-        };
-
-        connectWebSocket();
-
-        // Start recording once everything is ready
-        beginRecording();
-
-    } catch (error) {
-        console.error('Error accessing microphone:', error);
-        statusIndicator.textContent = 'Error: Could not access microphone.';
+    // ✅ moved here so startRecording() can see it
+    function beginRecording() {
+        if (mediaRecorder && mediaRecorder.state === "inactive") {
+            mediaRecorder.start(1000); // Send chunks every second
+        }
     }
-}
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            const audioContext = new AudioContext();
+            sampleRate = audioContext.sampleRate;
+            
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0 && socket && socket.connected) {
+                    socket.emit('audio_chunk', event.data);
+                }
+            };
+
+            mediaRecorder.onstart = () => {
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+            };
+
+            connectWebSocket();
+
+            // ✅ now works (function is defined in scope)
+            beginRecording();
+
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            statusIndicator.textContent = 'Error: Could not access microphone.';
+        }
+    }
 
     function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
