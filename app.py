@@ -370,18 +370,26 @@ def live_lecture_page(hub_id):
 # Store handler instances in memory
 session_handlers = {}
 
-# --- NEW: Class-based approach to handle transcription state ---
+# --- UPDATED & CORRECTED: Class-based approach to handle transcription state ---
 class TranscriptionHandler:
     def __init__(self, sid):
         self.sid = sid
         self.buffer = ""
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
+        
+        # CORRECTED: The config no longer specifies a model name.
+        # This allows the SDK to use the latest, non-deprecated default for streaming.
+        config = aai.TranscriptionConfig(
+            sample_rate=16_000 # This will be updated by the client's actual sample rate
+        )
+
         self.transcriber = aai.RealtimeTranscriber(
-        on_data=self._on_data,
-        on_error=self._on_error,
-        sample_rate=16000
-)
+            on_data=self._on_data,
+            on_error=self._on_error,
+            config=config # Pass the corrected configuration
+        )
+
     def _on_data(self, transcript: aai.RealtimeTranscript):
         if not transcript.text or self.sid not in session_handlers:
             return
@@ -389,11 +397,9 @@ class TranscriptionHandler:
         if isinstance(transcript, aai.RealtimeFinalTranscript):
             self.buffer += transcript.text + " "
 
-            # Only emit if session still exists
             if self.sid in session_handlers:
                 socketio.emit('transcript_update', {'text': transcript.text + " "}, room=self.sid)
 
-            # Summarize every ~150 words
             if len(self.buffer.split()) > 150 and not self.is_summarizing:
                 self.is_summarizing = True
                 socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
@@ -414,20 +420,26 @@ class TranscriptionHandler:
                         socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
     def _on_error(self, error: aai.RealtimeError):
-        print(f"An error occurred for SID {self.sid}: {error}")
+        # We can provide a more user-friendly error message now
+        error_message = str(error)
+        print(f"An error occurred for SID {self.sid}: {error_message}")
         if self.sid in session_handlers:
-            socketio.emit('status_update', {'status': f'Error: {error}'}, room=self.sid)
+            socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
 
-    # THESE ARE SYNCHRONOUS CONTROL METHODS
     def start(self, sample_rate):
-        self.transcriber._sample_rate = sample_rate
+        self.transcriber.config.sample_rate = sample_rate
         self.transcriber.connect()
 
     def stream(self, audio_data):
         self.transcriber.stream(audio_data)
 
     def close(self):
-        self.transcriber.close()
+        # Use a try-except block for safe closing
+        try:
+            if self.transcriber.is_connected():
+                self.transcriber.close()
+        except Exception as e:
+            print(f"Error closing transcriber for SID {self.sid}: {e}")
 
 
 # --- REVISED: SocketIO Event Handlers ---
