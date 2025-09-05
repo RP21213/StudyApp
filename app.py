@@ -373,10 +373,13 @@ from assemblyai.streaming.v3 import (
     StreamingClientOptions,
     StreamingEvents,
     StreamingParameters,
-    StreamingError,
+    StreamingError
+)
+# CORRECTED IMPORTS: Import event DTOs from the .dto submodule
+from assemblyai.streaming.v3.dto import (
     BeginEvent,
-    FinalTranscriptEvent,    # <-- ADD THIS
-    PartialTranscriptEvent,  # <-- ADD THIS
+    FinalTranscriptEvent,
+    PartialTranscriptEvent,
     TerminationEvent
 )
 # Store handler instances in memory
