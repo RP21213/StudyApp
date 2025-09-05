@@ -87,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // 1. Load the worklet processor from the separate JS file
       // Make sure 'audio-processor.js' is in the same directory!
-      await audioContext.audioWorklet.addModule('audio-processor.js');
+      // NEW, CORRECT LINE
+await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-processor.js') }}");
 
       // 2. Create an AudioWorkletNode
       workletNode = new AudioWorkletNode(audioContext, 'audio-recorder-processor');
