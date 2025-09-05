@@ -28,6 +28,7 @@ from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notificat
 import asyncio # NEW: For async operations
 from flask_socketio import SocketIO, emit # NEW: For WebSockets
 import assemblyai as aai # NEW: For real-time transcription
+from flask import request
 
 
 # --- NEW: Imports for Authentication ---
@@ -379,8 +380,7 @@ class TranscriptionHandler:
         self.transcriber = aai.RealtimeTranscriber(
         on_data=self._on_data,
         on_error=self._on_error,
-        sample_rate=44100,
-        model="universal-streaming"
+        sample_rate=16000
 )
     def _on_data(self, transcript: aai.RealtimeTranscript):
         if not transcript.text or self.sid not in session_handlers:
@@ -432,9 +432,9 @@ class TranscriptionHandler:
 
 # --- REVISED: SocketIO Event Handlers ---
 @socketio.on('connect')
-def handle_connect(sid):
+def handle_connect():
+    sid = request.sid
     session_handlers[sid] = TranscriptionHandler(sid)
-    print(f"Client connected: {sid}")
 
 @socketio.on('disconnect')
 def handle_disconnect(sid):
