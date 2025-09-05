@@ -1,188 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Lecture Capture</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <style>
-        :root { --primary-color: #4f46e5; --danger-color: #ef4444; --border-color: #e5e7eb; }
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; margin: 0; padding: 2rem; }
-        .container { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; max-width: 1200px; margin: auto; height: calc(100vh - 4rem); }
-        .controls-panel, .notes-panel { background-color: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .notes-panel { display: flex; flex-direction: column; }
-        h1, h2 { margin-top: 0; }
-        .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
-        .start-btn { background-color: var(--primary-color); color: white; }
-        .stop-btn { background-color: var(--danger-color); color: white; display: none; }
-        #status-indicator { margin-top: 1rem; font-weight: 500; text-align: center; }
-        #live-transcript { font-family: 'Lora', serif; background-color: #f9fafb; border-radius: 8px; padding: 1rem; height: 200px; overflow-y: auto; color: #6b7280; border: 1px solid var(--border-color); }
-        #notes-editor { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; font-family: 'Lora', serif; line-height: 1.7; overflow-y: auto; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Lecture Capture</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    :root { --primary-color: #4f46e5; --danger-color: #ef4444; --border-color: #e5e7eb; }
+    body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; margin: 0; padding: 2rem; }
+    .container { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; max-width: 1200px; margin: auto; height: calc(100vh - 4rem); }
+    .controls-panel, .notes-panel { background-color: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .notes-panel { display: flex; flex-direction: column; }
+    h1, h2 { margin-top: 0; }
+    .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+    .start-btn { background-color: var(--primary-color); color: white; }
+    .stop-btn { background-color: var(--danger-color); color: white; display: none; }
+    #status-indicator { margin-top: 1rem; font-weight: 500; text-align: center; }
+    #live-transcript { font-family: 'Lora', serif; background-color: #f9fafb; border-radius: 8px; padding: 1rem; height: 200px; overflow-y: auto; color: #6b7280; border: 1px solid var(--border-color); }
+    #notes-editor { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; font-family: 'Lora', serif; line-height: 1.7; overflow-y: auto; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="controls-panel">
-            <h1>Live Capture</h1>
-            <p>Click "Start Recording" to begin capturing your lecture audio.</p>
-            <div class="form-group">
-                <label for="lecture-title" style="font-weight: 500;">Lecture Title</label>
-                <input type="text" id="lecture-title" value="Live Lecture Notes - {{ now.strftime('%Y-%m-%d') }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 0.5rem;">
-            </div>
-            <button id="start-btn" class="button start-btn">Start Recording</button>
-            <button id="stop-btn" class="button stop-btn">Stop & Save Notes</button>
-            <div id="status-indicator">Status: Idle</div>
-            <h2>Live Transcript</h2>
-            <div id="live-transcript"></div>
-        </div>
-        <div class="notes-panel">
-            <h2>Generated Notes</h2>
-            <div id="notes-editor" contenteditable="true">
-                <h1>Lecture Notes</h1>
-            </div>
-        </div>
+  <div class="container">
+    <div class="controls-panel">
+      <h1>Live Capture</h1>
+      <p>Click "Start Recording" to begin capturing your lecture audio.</p>
+      <div class="form-group">
+        <label for="lecture-title" style="font-weight: 500;">Lecture Title</label>
+        <input type="text" id="lecture-title" value="Live Lecture Notes - {{ now.strftime('%Y-%m-%d') }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 0.5rem;">
+      </div>
+      <button id="start-btn" class="button start-btn">Start Recording</button>
+      <button id="stop-btn" class="button stop-btn">Stop & Save Notes</button>
+      <div id="status-indicator">Status: Idle</div>
+      <h2>Live Transcript</h2>
+      <div id="live-transcript"></div>
     </div>
+    <div class="notes-panel">
+      <h2>Generated Notes</h2>
+      <div id="notes-editor" contenteditable="true">
+        <h1>Lecture Notes</h1>
+      </div>
+    </div>
+  </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('start-btn');
-    const stopBtn = document.getElementById('stop-btn');
-    const statusIndicator = document.getElementById('status-indicator');
-    const liveTranscriptDiv = document.getElementById('live-transcript');
-    const notesEditor = document.getElementById('notes-editor');
-    const hubId = '{{ hub_id }}';
+  const startBtn = document.getElementById('start-btn');
+  const stopBtn = document.getElementById('stop-btn');
+  const statusIndicator = document.getElementById('status-indicator');
+  const liveTranscriptDiv = document.getElementById('live-transcript');
+  const notesEditor = document.getElementById('notes-editor');
+  const hubId = '{{ hub_id }}';
 
-    let socket;
-    let mediaRecorder;
-    let sampleRate;
+  let socket;
+  let audioContext;
+  let processor;
+  let globalStream;
+  let sampleRate;
+  let pcmBuffer = [];
+  let pcmBufferSamples = 0;
 
-    // --- Buffering for safe chunk sizes ---
-    let chunkBuffer = [];
-    let chunkBufferSize = 0;
-    const MIN_CHUNK_SIZE = 4000;   // ~100 ms @44.1kHz
-    const MAX_CHUNK_SIZE = 32000;  // ~800 ms
+  const TARGET_DURATION_MS = 200; // collect ~200ms per flush
 
-    async function startRecording() {
-        startBtn.disabled = true;
-        statusIndicator.textContent = 'Status: Accessing microphone...';
+  function floatTo16BitPCM(float32Array) {
+    const buffer = new ArrayBuffer(float32Array.length * 2);
+    const view = new DataView(buffer);
+    let offset = 0;
+    for (let i = 0; i < float32Array.length; i++, offset += 2) {
+      let s = Math.max(-1, Math.min(1, float32Array[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+    return new Int16Array(buffer);
+  }
 
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioContext = new AudioContext();
-            sampleRate = audioContext.sampleRate;
-            mediaRecorder = new MediaRecorder(stream);
+  async function startRecording() {
+    startBtn.disabled = true;
+    statusIndicator.textContent = 'Status: Accessing microphone...';
 
-            mediaRecorder.ondataavailable = async (event) => {
-                if (event.data.size > 0 && socket && socket.connected) {
-                    const arrayBuffer = await event.data.arrayBuffer();
-                    const bytes = new Uint8Array(arrayBuffer);
+    try {
+      globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioContext = new AudioContext();
+      sampleRate = audioContext.sampleRate;
 
-                    // Add to buffer
-                    chunkBuffer.push(bytes);
-                    chunkBufferSize += bytes.length;
+      const source = audioContext.createMediaStreamSource(globalStream);
 
-                    // Flush if big enough
-                    if (chunkBufferSize >= MIN_CHUNK_SIZE) {
-                        flushBuffer();
-                    }
-                }
-            };
+      processor = audioContext.createScriptProcessor(4096, 1, 1);
+      source.connect(processor);
+      processor.connect(audioContext.destination);
 
-            connectAndStart();
+      processor.onaudioprocess = (event) => {
+        const float32Data = event.inputBuffer.getChannelData(0);
+        const int16Data = floatTo16BitPCM(float32Data);
 
-        } catch (error) {
-            console.error('ERROR ACCESSING MICROPHONE:', error);
-            alert('Could not access microphone. Please check your browser permissions and try again.');
-            statusIndicator.textContent = 'Error: Microphone access denied.';
-            startBtn.disabled = false;
+        pcmBuffer.push(int16Data);
+        pcmBufferSamples += int16Data.length;
+
+        // check duration in ms
+        const durationMs = (pcmBufferSamples / sampleRate) * 1000;
+        if (durationMs >= TARGET_DURATION_MS) {
+          flushPCM();
         }
+      };
+
+      connectAndStart();
+
+    } catch (err) {
+      console.error('Microphone access error:', err);
+      alert('Could not access microphone. Please check permissions.');
+      statusIndicator.textContent = 'Error: Mic access denied.';
+      startBtn.disabled = false;
+    }
+  }
+
+  function flushPCM(force = false) {
+    if (pcmBufferSamples === 0 || !socket || !socket.connected) return;
+
+    const combined = new Int16Array(pcmBufferSamples);
+    let offset = 0;
+    for (const chunk of pcmBuffer) {
+      combined.set(chunk, offset);
+      offset += chunk.length;
     }
 
-    function flushBuffer(force = false) {
-        if (chunkBufferSize === 0 || !socket || !socket.connected) return;
+    const durationMs = (pcmBufferSamples / sampleRate) * 1000;
+    if (force || durationMs >= 50) { // enforce >50ms
+      console.log(`🔊 Flushing PCM: ${combined.length} samples ≈ ${durationMs.toFixed(2)} ms`);
+      socket.emit('audio_chunk', Array.from(new Uint8Array(combined.buffer)));
+      pcmBuffer = [];
+      pcmBufferSamples = 0;
+    }
+  }
 
-        // Only flush if forced or buffer >= safe size
-        if (!force && chunkBufferSize < MIN_CHUNK_SIZE) {
-            return;
-        }
+  function connectAndStart() {
+    socket = io.connect(
+      location.protocol + '//' + document.domain + ':' + location.port,
+      { transports: ['websocket'] }
+    );
 
-        const combined = new Uint8Array(chunkBufferSize);
-        let offset = 0;
-        for (const b of chunkBuffer) {
-            combined.set(b, offset);
-            offset += b.length;
-        }
+    socket.on('connect', () => {
+      socket.emit('start_transcription', { sampleRate: sampleRate });
+      statusIndicator.textContent = 'Status: Connected, waiting for server...';
+    });
 
-        if (force || combined.length >= MIN_CHUNK_SIZE) {
-            // Calculate duration in ms (approx)
-            const bytesPerSample = 2; // 16-bit PCM assumption
-            const numSamples = combined.length / bytesPerSample;
-            const durationMs = (numSamples / sampleRate) * 1000;
-            console.log(`🔊 Flushing chunk: ${combined.length} bytes ≈ ${durationMs.toFixed(2)} ms`);
+    socket.on('status_update', (data) => {
+      statusIndicator.textContent = `Status: ${data.status}`;
+      if (data.status === 'Listening...') {
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
+      }
+    });
 
-            socket.emit('audio_chunk', Array.from(combined));
-            chunkBuffer = [];
-            chunkBufferSize = 0;
-        }
+    socket.on('transcript_update', (data) => {
+      liveTranscriptDiv.textContent += data.text;
+      liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
+    });
+
+    socket.on('notes_update', (data) => {
+      notesEditor.innerHTML = data.notes;
+    });
+
+    socket.on('transcription_complete', (data) => {
+      alert('Lecture notes saved successfully!');
+      window.location.href = data.redirect_url;
+    });
+
+    socket.on('disconnect', () => {
+      statusIndicator.textContent = 'Status: Disconnected';
+    });
+  }
+
+  function stopRecording() {
+    if (processor) {
+      processor.disconnect();
+      processor.onaudioprocess = null;
+    }
+    if (audioContext) {
+      audioContext.close();
+    }
+    if (globalStream) {
+      globalStream.getTracks().forEach(track => track.stop());
     }
 
-    function connectAndStart() {
-        socket = io.connect(
-            location.protocol + '//' + document.domain + ':' + location.port,
-            { transports: ['websocket'] }
-        );
+    // Flush any leftover samples
+    flushPCM(true);
 
-        socket.on('connect', () => {
-            socket.emit('start_transcription', { sampleRate: sampleRate });
-        });
-        
-        socket.on('status_update', (data) => {
-            statusIndicator.textContent = `Status: ${data.status}`;
-            if (data.status === 'Listening...' && mediaRecorder.state === 'inactive') {
-                mediaRecorder.start(500); // request ~500ms chunks, buffer enforces safe size
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-            }
-        });
-        
-        socket.on('transcript_update', (data) => {
-            liveTranscriptDiv.textContent += data.text;
-            liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
-        });
-
-        socket.on('notes_update', (data) => {
-            notesEditor.innerHTML = data.notes;
-        });
-        
-        socket.on('transcription_complete', (data) => {
-            alert('Lecture notes saved successfully!');
-            window.location.href = data.redirect_url;
-        });
-
-        socket.on('disconnect', () => {
-            statusIndicator.textContent = 'Status: Disconnected';
-        });
+    if (socket && socket.connected) {
+      const title = document.getElementById('lecture-title').value;
+      socket.emit('stop_transcription', { hub_id: hubId, title: title });
+      statusIndicator.textContent = 'Status: Finalizing and saving...';
     }
+    stopBtn.disabled = true;
+  }
 
-    function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-        }
-
-        // Force flush leftovers (even if < MIN_CHUNK_SIZE)
-        flushBuffer(true);
-
-        if (socket && socket.connected) {
-            const title = document.getElementById('lecture-title').value;
-            socket.emit('stop_transcription', { hub_id: hubId, title: title });
-            statusIndicator.textContent = 'Status: Finalizing and saving...';
-        }
-        stopBtn.disabled = true;
-    }
-
-    startBtn.addEventListener('click', startRecording);
-    stopBtn.addEventListener('click', stopRecording);
+  startBtn.addEventListener('click', startRecording);
+  stopBtn.addEventListener('click', stopRecording);
 });
 </script>
 </body>
