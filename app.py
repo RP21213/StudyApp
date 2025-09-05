@@ -25,6 +25,9 @@ import stripe
 import base64 # Make sure this import is at the top with your others
 import json   # Make sure this import is at the top with your others
 from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder
+import asyncio # NEW: For async operations
+from flask_socketio import SocketIO, emit # NEW: For WebSockets
+import assemblyai as aai # NEW: For real-time transcription
 
 # --- NEW: Imports for Authentication ---
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -146,11 +149,15 @@ except Exception as e:
 db = firestore.client()
 bucket = storage.bucket()
 
-# --- Flask App and OpenAI Client Initialization ---
+# --- Flask App and OpenAI Client Initialization (MODIFIED) ---
 app = Flask(__name__)
-# IMPORTANT: Set a secret key for session management in your environment variables
 app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
+socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# --- NEW: Configure AssemblyAI ---
+aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+
 # --- NEW: Configure Stripe ---
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 YOUR_DOMAIN = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000")
@@ -304,7 +311,188 @@ def safe_load_json(data):
 # 3. AI GENERATION SERVICES
 # ==============================================================================
 
+# --- NEW: AI function for live, contextual summarization ---
+def generate_live_summary_update(previous_summary, new_transcript_chunk):
+    """
+    Takes the previous summary and a new chunk of text, and returns an updated summary.
+    """
+    prompt = f"""
+    You are an AI note-taker for a university lecture. Your task is to continuously update a set of notes.
+    
+    This is the summary of the lecture so far:
+    --- PREVIOUS NOTES ---
+    {previous_summary}
+    --- END PREVIOUS NOTES ---
 
+    Here is the newest chunk of transcribed text from the lecture:
+    --- NEW TRANSCRIPT ---
+    {new_transcript_chunk}
+    --- END NEW TRANSCRIPT ---
+
+    Your instructions are:
+    1.  Read the "NEW TRANSCRIPT" and identify the key points, new concepts, or important details.
+    2.  Integrate these new points into the "PREVIOUS NOTES". You can add new bullet points, create new headings (using <h2> or <h3>), or elaborate on existing points.
+    3.  DO NOT repeat information that is already well-covered in the "PREVIOUS NOTES".
+    4.  Ensure the output is well-structured, clean HTML. Use headings, paragraphs, lists, and bold tags.
+    5.  Your output MUST be ONLY the complete, updated HTML notes. Do not include any other text or explanation.
+
+    Return the complete, updated set of notes as a single block of HTML.
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", # Use a faster model for real-time updates
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+# ==============================================================================
+# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS
+# ==============================================================================
+
+# Store transcript data in memory (in a real production app, consider Redis or a more robust solution)
+session_transcripts = {}
+
+# --- NEW: Route to render the live lecture page ---
+@app.route("/hub/<hub_id>/live_lecture")
+@login_required
+def live_lecture_page(hub_id):
+    hub_doc = db.collection('hubs').document(hub_id).get()
+    if not hub_doc.exists or Hub.from_dict(hub_doc.to_dict()).user_id != current_user.id:
+        flash("Hub not found or you don't have access.", "error")
+        return redirect(url_for('dashboard'))
+    return render_template("live_lecture.html", hub_id=hub_id)
+
+# --- NEW: AssemblyAI Transcription Handlers ---
+async def on_data(transcript: aai.RealtimeTranscript):
+    if not transcript.text:
+        return
+
+    # Get the session ID (sid) from the user_data
+    sid = transcript.realtime_transcriber.user_data.get('sid')
+    if not sid or sid not in session_transcripts:
+        return
+
+    # Append new text to the buffer
+    if isinstance(transcript, aai.RealtimeFinalTranscript):
+        session_transcripts[sid]['buffer'] += transcript.text + " "
+        
+        # Emit the live transcript to the user for immediate feedback
+        socketio.emit('transcript_update', {'text': transcript.text + " "}, room=sid)
+        
+        # Check if the buffer is large enough to summarize
+        word_count = len(session_transcripts[sid]['buffer'].split())
+        if word_count > 150: # Adjust buffer size as needed
+            
+            # Prevent multiple summarization calls from running at once
+            if not session_transcripts[sid]['is_summarizing']:
+                session_transcripts[sid]['is_summarizing'] = True
+                
+                socketio.emit('status_update', {'status': 'Summarizing...'}, room=sid)
+
+                # Get the chunk to summarize and clear the buffer
+                chunk_to_summarize = session_transcripts[sid]['buffer']
+                session_transcripts[sid]['buffer'] = ""
+
+                # Call the AI to update the notes
+                updated_notes_html = generate_live_summary_update(
+                    session_transcripts[sid]['summary'],
+                    chunk_to_summarize
+                )
+
+                # Update the stored summary and send to the client
+                session_transcripts[sid]['summary'] = updated_notes_html
+                socketio.emit('notes_update', {'notes': updated_notes_html}, room=sid)
+                
+                socketio.emit('status_update', {'status': 'Listening...'}, room=sid)
+                session_transcripts[sid]['is_summarizing'] = False
+
+async def on_error(error: aai.RealtimeError):
+    print("An error occurred:", error)
+
+# --- NEW: SocketIO Event Handlers ---
+@socketio.on('connect')
+def handle_connect():
+    sid = request.sid
+    print(f"Client connected: {sid}")
+    # Initialize session data
+    session_transcripts[sid] = {
+        'transcriber': None,
+        'buffer': "",
+        'summary': "<h1>Lecture Notes</h1>",
+        'is_summarizing': False,
+        'full_transcript': ""
+    }
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    sid = request.sid
+    print(f"Client disconnected: {sid}")
+    # Clean up resources
+    if sid in session_transcripts and session_transcripts[sid]['transcriber']:
+        asyncio.run(session_transcripts[sid]['transcriber'].close())
+    session_transcripts.pop(sid, None)
+
+@socketio.on('start_transcription')
+def handle_start_transcription(data):
+    sid = request.sid
+    if sid in session_transcripts:
+        # Create and start the real-time transcriber
+        transcriber = aai.RealtimeTranscriber(
+            on_data=on_data,
+            on_error=on_error,
+            sample_rate=data.get('sampleRate', 44100),
+            # Pass the session ID so our on_data callback knows which user this is
+            user_data={'sid': sid} 
+        )
+        asyncio.run(transcriber.connect())
+        session_transcripts[sid]['transcriber'] = transcriber
+        emit('status_update', {'status': 'Listening...'})
+        print(f"Transcription started for {sid}")
+
+@socketio.on('audio_chunk')
+def handle_audio_chunk(audio_data):
+    sid = request.sid
+    if sid in session_transcripts and session_transcripts[sid]['transcriber']:
+        transcriber = session_transcripts[sid]['transcriber']
+        asyncio.run(transcriber.stream(audio_data))
+
+@socketio.on('stop_transcription')
+def handle_stop_transcription(data):
+    sid = request.sid
+    hub_id = data.get('hub_id')
+    title = data.get('title', 'Live Lecture Notes')
+
+    if sid in session_transcripts:
+        # Close the transcriber
+        transcriber = session_transcripts[sid].get('transcriber')
+        if transcriber:
+            asyncio.run(transcriber.close())
+            session_transcripts[sid]['transcriber'] = None
+        
+        # Do a final summarization pass if there's text left in the buffer
+        final_summary = session_transcripts[sid]['summary']
+        if len(session_transcripts[sid]['buffer'].strip()) > 10:
+             final_summary = generate_live_summary_update(
+                session_transcripts[sid]['summary'],
+                session_transcripts[sid]['buffer']
+            )
+
+        # Save the final notes to Firestore
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=final_summary)
+        note_ref.set(new_note.to_dict())
+
+        # Notify the user
+        notification_ref = db.collection('notifications').document()
+        message = f"Your live lecture notes for '{title}' have been saved."
+        link = url_for('view_note', note_id=note_ref.id)
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        notification_ref.set(new_notification.to_dict())
+
+        # Send a final confirmation to the client with the redirect URL
+        emit('transcription_complete', {'redirect_url': link})
+        print(f"Transcription stopped and saved for {sid}")
+        
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""
@@ -771,7 +959,6 @@ def dashboard():
 
     # --- UPDATED: Fetch data for the Community Tab ---
     shared_folders_hydrated = []
-    trending_folders = []
     total_shared_count = 0
     if current_user.subscription_tier in ['pro', 'admin']:
         
@@ -779,7 +966,7 @@ def dashboard():
         all_shared_docs = db.collection('shared_folders').stream()
         total_shared_count = len(list(all_shared_docs))
 
-        # --- Base query for main list ---
+        # --- Base query for main list with sorting ---
         query = db.collection('shared_folders')
         sort_by = request.args.get('sort', 'created_at')
         if sort_by == 'likes':
@@ -789,15 +976,11 @@ def dashboard():
         else:
             query = query.order_by('created_at', direction=firestore.Query.DESCENDING)
         
-        shared_folders_docs = query.limit(20).stream()
+        shared_folders_docs = query.limit(50).stream()
         shared_folders = [SharedFolder.from_dict(doc.to_dict()) for doc in shared_folders_docs]
         
-        # --- Get trending folders (most liked) ---
-        trending_query = db.collection('shared_folders').order_by('likes', direction=firestore.Query.DESCENDING).limit(3).stream()
-        trending_folders_raw = [SharedFolder.from_dict(doc.to_dict()) for doc in trending_query]
-
         # --- Hydrate folder data (get owner info and item details) ---
-        all_folders_to_hydrate = shared_folders + trending_folders_raw
+        all_folders_to_hydrate = shared_folders
         owner_ids = list(set(sf.owner_id for sf in all_folders_to_hydrate))
         original_folder_ids = list(set(sf.original_folder_id for sf in all_folders_to_hydrate))
         
@@ -822,19 +1005,25 @@ def dashboard():
             
             item_count = 0
             folder_type = "Pack"
+            item_type_counts = {'Notes': 0, 'Quiz': 0, 'Flashcards': 0}
+
             if original_folder_info:
                 items = original_folder_info.get('items', [])
                 item_count = len(items)
-                types = set(item['type'] for item in items)
+
+                for item in items:
+                    item_type = item.get('type')
+                    if item_type == 'note':
+                        item_type_counts['Notes'] += 1
+                    elif item_type == 'quiz':
+                        item_type_counts['Quiz'] += 1
+                    elif item_type == 'flashcards':
+                        item_type_counts['Flashcards'] += 1
+                
+                types = {item.get('type') for item in items}
                 if len(types) == 1:
-                    type_map = {
-                        'note': 'Notes',
-                        'quiz': 'Quiz',
-                        'flashcards': 'Flashcards'
-                    }
+                    type_map = {'note': 'Notes', 'quiz': 'Quiz', 'flashcards': 'Flashcards'}
                     folder_type = type_map.get(types.pop(), "Pack")
-                elif 'note' in types:
-                    folder_type = "Notes"
             
             hydrated_info = {
                 'folder': sf,
@@ -842,13 +1031,12 @@ def dashboard():
                 'owner_avatar': owner_info.get('avatar_url', 'default_avatar.png') if owner_info else 'default_avatar.png',
                 'item_count': item_count,
                 'folder_type': folder_type,
+                'item_type_counts': item_type_counts
             }
             hydrated_cache[sf.id] = hydrated_info
             return hydrated_info
 
         shared_folders_hydrated = [_hydrate_folder_info(sf) for sf in shared_folders]
-        trending_folders = [_hydrate_folder_info(sf) for sf in trending_folders_raw]
-
 
     # --- NEW: Fetch all of the user's own folders for the share modal ---
     all_user_folders = []
@@ -874,7 +1062,6 @@ def dashboard():
         quiz_scores_json=json.dumps(all_quiz_scores),
         weak_topics=weak_topics,
         shared_folders=shared_folders_hydrated,
-        trending_folders=trending_folders,
         total_shared_count=total_shared_count,
         all_user_folders=all_user_folders
     )

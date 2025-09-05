@@ -436,6 +436,16 @@
         }
         .filter-tab:hover { background-color: var(--background-light); }
         .filter-tab.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .sort-filter select {
+            padding: 0.65rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-white);
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
 
         .community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
         .community-card {
@@ -460,6 +470,21 @@
             font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px;
             background-color: var(--background-light); border: 1px solid var(--border-color);
         }
+        .item-counts-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .item-counts-preview span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 500;
+        }
+
         .community-card-footer {
             display: flex; justify-content: space-between; align-items: center;
             border-top: 1px solid var(--border-color); padding: 1rem 1.5rem; font-size: 0.9rem;
@@ -478,8 +503,8 @@
         html[data-theme="dark"] .like-btn:hover { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
         .like-btn.liked { background-color: #fce7f3; border-color: #f472b6; color: #db2777; }
         html[data-theme="dark"] .like-btn.liked { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
-        .like-btn .lucide-heart { transition: all 0.2s; }
-        .like-btn.liked .lucide-heart { fill: currentColor; }
+        .like-btn .lucide-thumbs-up { transition: all 0.2s; }
+        .like-btn.liked .lucide-thumbs-up { fill: currentColor; }
         .like-btn:disabled { cursor: not-allowed; opacity: 0.6; }
         .like-btn:disabled:hover { background: transparent; border-color: var(--border-color); color: var(--text-secondary); }
 
@@ -607,7 +632,7 @@
                                         <span class="stat-label">Files</span>
                                     </div>
                                     <div class="stat">
-                                        <span class="stat-value">{{ hub.flashcards_count }}</span>
+                                        <span class="stat-value">{{ hub.flashcard_count }}</span>
                                         <span class="stat-label">Flashcards</span>
                                     </div>
                                     <div class="stat">
@@ -688,7 +713,7 @@
                         </button>
                     </div>
                 </header>
-
+                
                 <div class="section-header">
                     <h2>🚀 Discover All Resources</h2>
                 </div>
@@ -703,6 +728,13 @@
                     <div class="search-bar">
                          <i data-lucide="search"></i>
                         <input type="text" id="community-search-input" placeholder="Search by title, description, or tag...">
+                    </div>
+                    <div class="sort-filter">
+                        <select id="community-sort-select">
+                            <option value="created_at">Sort by: Most Recent</option>
+                            <option value="likes">Sort by: Most Liked</option>
+                            <option value="imports">Sort by: Most Imported</option>
+                        </select>
                     </div>
                 </div>
 
@@ -734,6 +766,19 @@
                         <div class="community-card-body">
                              <h2>{{ item.folder.title }}</h2>
                              <p>{{ item.folder.description }}</p>
+                             <div class="item-counts-preview">
+                                {% for type, count in item.item_type_counts.items() %}
+                                    {% if count > 0 %}
+                                        <span>
+                                            {% if type == 'Notes' %}<i data-lucide="notebook" size="16"></i>
+                                            {% elif type == 'Quiz' %}<i data-lucide="clipboard-list" size="16"></i>
+                                            {% elif type == 'Flashcards' %}<i data-lucide="layers" size="16"></i>
+                                            {% endif %}
+                                            {{ count }} {{ type }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
                              {% if item.folder.tags %}
                              <div class="tag-list">
                                 {% for tag in item.folder.tags %}
@@ -748,7 +793,7 @@
                                         data-shared-folder-id="{{ item.folder.id }}"
                                         {% if current_user.id == item.folder.owner_id or current_user.id not in item.folder.imported_by %}disabled{% endif %}
                                         title="{% if current_user.id not in item.folder.imported_by %}Import to like this folder{% endif %}">
-                                    <i data-lucide="heart" size="16"></i>
+                                    <i data-lucide="thumbs-up" size="16"></i>
                                     <span class="like-count">{{ item.folder.likes }}</span>
                                 </button>
                                 <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
@@ -1280,6 +1325,22 @@
                 
                 if(searchInput) {
                     searchInput.addEventListener('input', applyFilters);
+                }
+
+                const sortSelect = document.getElementById('community-sort-select');
+                if (sortSelect) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentSort = urlParams.get('sort');
+                    if (currentSort) {
+                        sortSelect.value = currentSort;
+                    }
+
+                    sortSelect.addEventListener('change', (e) => {
+                        const sortBy = e.target.value;
+                        const currentUrl = new URL(window.location);
+                        currentUrl.searchParams.set('sort', sortBy);
+                        window.location.href = currentUrl.href;
+                    });
                 }
             }
 
