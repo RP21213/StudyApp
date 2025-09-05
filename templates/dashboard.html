@@ -688,59 +688,6 @@
                         </button>
                     </div>
                 </header>
-                
-                {% if trending_folders %}
-                <div class="section-header">
-                    <h2>🔥 Trending this Week</h2>
-                </div>
-                <div class="community-grid" style="margin-bottom: 3rem;">
-                    {% for item in trending_folders %}
-                    <div class="community-card" data-folder-type="{{ item.folder_type }}">
-                        <div class="community-card-header">
-                            <img src="{{ item.owner_avatar }}" alt="User Avatar">
-                            <div class="user-info">
-                                <h3>{{ item.owner_name }}</h3>
-                                <p>Shared {{ item.folder.created_at|timesince }} ago</p>
-                            </div>
-                            <div class="card-type-icon">
-                                {% if item.folder_type == 'Notes' %}📒
-                                {% elif item.folder_type == 'Quiz' %}📊
-                                {% elif item.folder_type == 'Flashcards' %}🎴
-                                {% else %}📦
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="community-card-body">
-                             <h2>{{ item.folder.title }}</h2>
-                             <p>{{ item.folder.description }}</p>
-                             {% if item.folder.tags %}
-                             <div class="tag-list">
-                                {% for tag in item.folder.tags %}
-                                <span class="tag">{{ tag }}</span>
-                                {% endfor %}
-                             </div>
-                             {% endif %}
-                        </div>
-                        <div class="community-card-footer">
-                            <div class="card-stats">
-                                <button class="like-btn {% if current_user.id in item.folder.liked_by %}liked{% endif %}" 
-                                        data-shared-folder-id="{{ item.folder.id }}"
-                                        {% if current_user.id == item.folder.owner_id or current_user.id not in item.folder.imported_by %}disabled{% endif %}
-                                        title="{% if current_user.id not in item.folder.imported_by %}Import to like this folder{% endif %}">
-                                    <i data-lucide="heart" size="16"></i>
-                                    <span class="like-count">{{ item.folder.likes }}</span>
-                                </button>
-                                <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
-                                <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
-                            </div>
-                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                                <i data-lucide="download-cloud" size="16"></i> Import
-                            </button>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
 
                 <div class="section-header">
                     <h2>🚀 Discover All Resources</h2>

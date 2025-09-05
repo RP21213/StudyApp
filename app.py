@@ -784,6 +784,8 @@ def dashboard():
         sort_by = request.args.get('sort', 'created_at')
         if sort_by == 'likes':
             query = query.order_by('likes', direction=firestore.Query.DESCENDING)
+        elif sort_by == 'imports':
+            query = query.order_by('imports', direction=firestore.Query.DESCENDING)
         else:
             query = query.order_by('created_at', direction=firestore.Query.DESCENDING)
         
@@ -825,7 +827,12 @@ def dashboard():
                 item_count = len(items)
                 types = set(item['type'] for item in items)
                 if len(types) == 1:
-                    folder_type = types.pop().capitalize()
+                    type_map = {
+                        'note': 'Notes',
+                        'quiz': 'Quiz',
+                        'flashcards': 'Flashcards'
+                    }
+                    folder_type = type_map.get(types.pop(), "Pack")
                 elif 'note' in types:
                     folder_type = "Notes"
             
