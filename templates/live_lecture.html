@@ -55,13 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let socket;
   let audioContext;
-  let processor;
+  let workletNode; // <-- Replaces the old 'processor'
   let globalStream;
   let sampleRate;
   let pcmBuffer = [];
   let pcmBufferSamples = 0;
 
-  const TARGET_DURATION_MS = 200; // collect ~200ms per flush
+  const TARGET_DURATION_MS = 200; // Collect ~200ms per flush
 
   function floatTo16BitPCM(float32Array) {
     const buffer = new ArrayBuffer(float32Array.length * 2);
@@ -83,20 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
       audioContext = new AudioContext();
       sampleRate = audioContext.sampleRate;
 
+      // --- NEW: AudioWorklet Implementation ---
+      
+      // 1. Load the worklet processor from the separate JS file
+      // Make sure 'audio-processor.js' is in the same directory!
+      await audioContext.audioWorklet.addModule('audio-processor.js');
+
+      // 2. Create an AudioWorkletNode
+      workletNode = new AudioWorkletNode(audioContext, 'audio-recorder-processor');
+
+      // 3. Connect the microphone source to our worklet
       const source = audioContext.createMediaStreamSource(globalStream);
+      source.connect(workletNode);
 
-      processor = audioContext.createScriptProcessor(4096, 1, 1);
-      source.connect(processor);
-      processor.connect(audioContext.destination);
-
-      processor.onaudioprocess = (event) => {
-        const float32Data = event.inputBuffer.getChannelData(0);
+      // 4. Set up a listener to receive audio data from the worklet
+      workletNode.port.onmessage = (event) => {
+        // The event.data is the Float32Array from the processor
+        const float32Data = event.data;
         const int16Data = floatTo16BitPCM(float32Data);
 
         pcmBuffer.push(int16Data);
         pcmBufferSamples += int16Data.length;
 
-        // check duration in ms
         const durationMs = (pcmBufferSamples / sampleRate) * 1000;
         if (durationMs >= TARGET_DURATION_MS) {
           flushPCM();
@@ -106,9 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
       connectAndStart();
 
     } catch (err) {
-      console.error('Microphone access error:', err);
-      alert('Could not access microphone. Please check permissions.');
-      statusIndicator.textContent = 'Error: Mic access denied.';
+      console.error('Microphone access or Worklet error:', err);
+      alert('Could not start recording. Please check permissions and console for errors.');
+      statusIndicator.textContent = 'Error: Mic or Worklet failed.';
       startBtn.disabled = false;
     }
   }
@@ -124,9 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const durationMs = (pcmBufferSamples / sampleRate) * 1000;
-    if (force || durationMs >= 50) { // enforce >50ms
+    if (force || durationMs >= 50) { // Enforce a minimum flush size
       console.log(`🔊 Flushing PCM: ${combined.length} samples ≈ ${durationMs.toFixed(2)} ms`);
       socket.emit('audio_chunk', Array.from(new Uint8Array(combined.buffer)));
+      
+      // This reset is now reliable because it's not in a race condition
       pcmBuffer = [];
       pcmBufferSamples = 0;
     }
@@ -171,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function stopRecording() {
-    if (processor) {
-      processor.disconnect();
-      processor.onaudioprocess = null;
+    if (workletNode) {
+      workletNode.port.onmessage = null; // Remove the listener
+      workletNode.disconnect();
     }
     if (audioContext) {
       audioContext.close();
