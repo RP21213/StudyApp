@@ -365,184 +365,62 @@ def live_lecture_page(hub_id):
     return render_template("live_lecture.html", hub_id=hub_id)
 
 # ==============================================================================
-# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (CORRECTED)
+# 9. LECTURE RECORDER ROUTE (SIMPLE VERSION)
 # ==============================================================================
-
-# CORRECTED IMPORTS FOR THE LATEST ASSEMBLYAI SDK
 import assemblyai as aai
-from assemblyai.streaming import (
-    Stream,
-    StreamingTranscript,
-    PartialTranscript,
-    FinalTranscript,
-    StreamingError,
-)
 
-# Store handler instances in memory
-session_handlers = {}
+# Make sure this is configured near the top of your file
+aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 
-# --- FINAL CORRECTED TranscriptionHandler ---
-class TranscriptionHandler:
-    def __init__(self, sid):
-        self.sid = sid
-        self.buffer = ""
-        self.summary = "<h1>Lecture Notes</h1>"
-        self.is_summarizing = False
+@app.route("/hub/<hub_id>/process_lecture_audio", methods=["POST"])
+@login_required
+def process_lecture_audio(hub_id):
+    if 'audio_file' not in request.files:
+        return jsonify({"success": False, "message": "No audio file found."}), 400
+
+    audio_file = request.files['audio_file']
+    title = request.form.get('title', f"Lecture Notes - {datetime.now().strftime('%Y-%m-%d')}")
+
+    try:
+        # Use AssemblyAI's much simpler file transcription API
+        transcriber = aai.Transcriber()
+        transcript = transcriber.transcribe(audio_file)
+
+        if transcript.status == aai.TranscriptStatus.error:
+            return jsonify({"success": False, "message": transcript.error}), 500
         
-        # The new SDK uses a different class for the client
-        self.stream = Stream(
-            on_partial_transcript=self._on_partial,
-            on_final_transcript=self._on_final,
-            on_error=self._on_error,
-        )
+        full_transcript_text = transcript.text
+        if not full_transcript_text:
+             return jsonify({"success": False, "message": "Audio could not be transcribed or was empty."}), 400
 
-    # --- Event Handler Methods ---
-    def _on_error(self, error: StreamingError):
-        """Called when a streaming error occurs."""
-        error_message = str(error)
-        print(f"Streaming error for SID {self.sid}: {error_message}")
-        if self.sid in session_handlers:
-            socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
+        # --- RE-USE YOUR EXISTING NOTE GENERATION LOGIC ---
+        # This function is already perfect for this.
+        notes_html = generate_interactive_notes_html(full_transcript_text)
 
-    # Handler for PARTIAL results (flickering text)
-    def _on_partial(self, transcript: PartialTranscript):
-        """Handles real-time, unstable transcripts."""
-        if not transcript.text or self.sid not in session_handlers:
-            return
-        # Emit a dedicated event for these partial updates
-        socketio.emit('partial_transcript_update', {'text': transcript.text}, room=self.sid)
+        # --- Save the note and create a notification (also re-using your code) ---
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
+        note_ref.set(new_note.to_dict())
 
-    # Handler for FINAL results (clean, corrected sentences)
-    def _on_final(self, transcript: FinalTranscript):
-        """Handles the final, corrected transcript after a pause."""
-        final_text = transcript.text
-        if not final_text or self.sid not in session_handlers:
-            return
-
-        # Emit the final, corrected text to a different event
-        socketio.emit('final_transcript_update', {'text': final_text + " "}, room=self.sid)
-
-        # Summarization logic only runs on clean, final sentences
-        self.buffer += final_text + " "
-        if len(self.buffer.split()) > 150 and not self.is_summarizing:
-            self.is_summarizing = True
-            socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
-
-            chunk_to_summarize = self.buffer
-            self.buffer = ""
-
-            try:
-                updated_notes_html = generate_live_summary_update(self.summary, chunk_to_summarize)
-                self.summary = updated_notes_html
-                if self.sid in session_handlers:
-                    socketio.emit('notes_update', {'notes': updated_notes_html}, room=self.sid)
-            except Exception as e:
-                print(f"Error during summarization for {self.sid}: {e}")
-            finally:
-                self.is_summarizing = False
-                if self.sid in session_handlers:
-                    socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
-    
-    # --- Control Methods (called by SocketIO handlers) ---
-    async def start(self, sample_rate, boosted_keywords=None):
-        """Connects to the AssemblyAI streaming service."""
-        if boosted_keywords is None:
-            boosted_keywords = []
+        notification_ref = db.collection('notifications').document()
+        message = f"Your recorded lecture notes for '{title}' are ready."
+        link = url_for('view_note', note_id=note_ref.id)
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        notification_ref.set(new_notification.to_dict())
         
-        # The new SDK uses an async connect method
-        await self.stream.connect(
-            word_boost=boosted_keywords,
-            boost_param="high",
-            end_utterance_silence_threshold=700,
-            # The sample_rate is now configured within the connect method
-            # but your client-side resampling to 16000 makes this robust.
-        )
-        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
+        # Update hub progress for the activity
+        update_hub_progress(hub_id, 10) # Give 10 XP for a recorded lecture
 
-    async def stream_audio(self, audio_data):
-        """Streams audio data to AssemblyAI."""
-        await self.stream.send_audio(audio_data)
+        return jsonify({
+            "success": True, 
+            "message": "Notes generated successfully!",
+            "redirect_url": link
+        })
 
-    async def close(self):
-        """Closes the connection to AssemblyAI."""
-        await self.stream.close()
-        print(f"Session terminated for SID {self.sid}.")
+    except Exception as e:
+        print(f"Error processing lecture audio: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
-# --- REVISED: SocketIO Event Handlers (with async support) ---
-@socketio.on('connect')
-def handle_connect():
-    sid = request.sid
-    session_handlers[sid] = TranscriptionHandler(sid)
-    print(f"Client connected: {sid}")
-
-@socketio.on('disconnect')
-def handle_disconnect():
-    sid = request.sid
-    print(f"Client disconnected: {sid}")
-    if sid in session_handlers:
-        handler = session_handlers.pop(sid)
-        # The new SDK uses async, so we need to run this in a thread
-        # to avoid blocking the server.
-        socketio.start_background_task(handler.close)
-
-@socketio.on('start_transcription')
-def handle_start_transcription(data=None):
-    sid = request.sid
-    if sid in session_handlers:
-        handler = session_handlers[sid]
-        sample_rate = 16000 # Hardcoded as per your client-side logic
-        try:
-            # Run the async start method in a background task
-            socketio.start_background_task(handler.start, sample_rate)
-            print(f"Transcription started for {sid} at {sample_rate}Hz")
-        except Exception as e:
-            print(f"Error starting transcription for {sid}: {e}")
-            emit('status_update', {'status': f'Error starting: {e}'})
-
-@socketio.on('audio_chunk')
-def handle_audio_chunk(audio_data):
-    sid = request.sid
-    if sid in session_handlers:
-        handler = session_handlers[sid]
-        audio_bytes = bytes(audio_data)
-        # Run the async stream_audio method in a background task
-        socketio.start_background_task(handler.stream_audio, audio_bytes)
-
-@socketio.on('stop_transcription')
-def handle_stop_transcription(data):
-    sid = request.sid
-    hub_id = data.get('hub_id')
-    title = data.get('title', 'Live Lecture Notes')
-
-    if sid in session_handlers:
-        # Use a background task to handle the async close and subsequent processing
-        def stop_and_save():
-            handler = session_handlers.pop(sid, None)
-            if not handler: return
-
-            # This now needs to be an async function to call handler.close()
-            async def close_and_process():
-                await handler.close()
-                
-                final_summary = handler.summary
-                if len(handler.buffer.strip()) > 10:
-                    final_summary = generate_live_summary_update(handler.summary, handler.buffer)
-
-                note_ref = db.collection('notes').document()
-                new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=final_summary)
-                note_ref.set(new_note.to_dict())
-
-                notification_ref = db.collection('notifications').document()
-                message = f"Your live lecture notes for '{title}' have been saved."
-                link = url_for('view_note', note_id=note_ref.id)
-                new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-                notification_ref.set(new_notification.to_dict())
-
-                emit('transcription_complete', {'redirect_url': link})
-                print(f"Transcription stopped and saved for {sid}")
-
-            # Run the async function
-            
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""

@@ -3,238 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Lecture Capture</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <title>Lecture Recorder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary-color: #4f46e5; --danger-color: #ef4444; --border-color: #e5e7eb; }
-    body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; margin: 0; padding: 2rem; }
-    .container { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; max-width: 1200px; margin: auto; height: calc(100vh - 4rem); }
-    .controls-panel, .notes-panel { background-color: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .notes-panel { display: flex; flex-direction: column; }
-    h1, h2 { margin-top: 0; }
-    .button { width: 100%; padding: 0.75rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+    body { font-family: 'Poppins', sans-serif; background-color: #f4f5f7; margin: 0; padding: 2rem; display: flex; align-items: center; justify-content: center; min-height: 100vh;}
+    .container { max-width: 500px; width: 100%; background-color: white; border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+    h1 { margin-top: 0; }
+    p { color: #6b7280; margin-bottom: 2rem; }
+    .form-group { text-align: left; margin-bottom: 1.5rem; }
+    label { font-weight: 500; display: block; margin-bottom: 0.5rem; }
+    input[type="text"] { width: 100%; box-sizing: border-box; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; }
+    .button { width: 100%; padding: 0.85rem; border-radius: 8px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
     .start-btn { background-color: var(--primary-color); color: white; }
     .stop-btn { background-color: var(--danger-color); color: white; display: none; }
-    #status-indicator { margin-top: 1rem; font-weight: 500; text-align: center; }
-    #live-transcript { font-family: 'Lora', serif; background-color: #f9fafb; border-radius: 8px; padding: 1rem; height: 200px; overflow-y: auto; color: #6b7280; border: 1px solid var(--border-color); }
-    #notes-editor { flex-grow: 1; border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; font-family: 'Lora', serif; line-height: 1.7; overflow-y: auto; }
+    .button:disabled { opacity: 0.6; cursor: not-allowed; }
+    #status-indicator { margin-top: 1.5rem; font-weight: 500; min-height: 24px; }
+    .dot-flashing { position: relative; width: 10px; height: 10px; border-radius: 5px; background-color: var(--primary-color); color: var(--primary-color); animation: dotFlashing 1s infinite linear alternate; animation-delay: .5s; display: inline-block; margin-right: 8px; vertical-align: middle; }
+    @keyframes dotFlashing { 0% { background-color: var(--primary-color); } 50%, 100% { background-color: rgba(79, 70, 229, 0.2); } }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="controls-panel">
-      <h1>Live Capture</h1>
-      <p>Click "Start Recording" to begin capturing your lecture audio.</p>
-      <div class="form-group">
-        <label for="lecture-title" style="font-weight: 500;">Lecture Title</label>
-        <input type="text" id="lecture-title" value="Live Lecture Notes - {{ now.strftime('%Y-%m-%d') }}" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 0.5rem;">
-      </div>
-      <button id="start-btn" class="button start-btn">Start Recording</button>
-      <button id="stop-btn" class="button stop-btn">Stop & Save Notes</button>
-      <div id="status-indicator">Status: Idle</div>
-<h2>Live Transcript</h2>
-      <!-- This is the main box for clean, final text -->
-      <div id="live-transcript"></div>
-      
-      <!-- ADD THIS NEW DIV right here -->
-      <div id="live-partial-transcript" style="color: #9ca3af; min-height: 24px; padding: 0.5rem 1rem;"></div>
+    <h1>Lecture Recorder</h1>
+    <p>Record your lecture audio, and we'll automatically generate study notes for you when you're done.</p>
+    
+    <div class="form-group">
+      <label for="lecture-title">Lecture Title</label>
+      <input type="text" id="lecture-title" value="Lecture Notes - {{ now.strftime('%Y-%m-%d') }}">
     </div>
-    <div class="notes-panel">
-      <h2>Generated Notes</h2>
-      <div id="notes-editor" contenteditable="true">
-        <h1>Lecture Notes</h1>
-      </div>
-    </div>
+
+    <button id="start-btn" class="button start-btn">Start Recording</button>
+    <button id="stop-btn" class="button stop-btn">Stop & Generate Notes</button>
+
+    <div id="status-indicator">Status: Idle</div>
   </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const startBtn = document.getElementById('start-btn');
-  const stopBtn = document.getElementById('stop-btn');
-  const statusIndicator = document.getElementById('status-indicator');
-  const liveTranscriptDiv = document.getElementById('live-transcript');
-  const notesEditor = document.getElementById('notes-editor');
-  const livePartialTranscriptDiv = document.getElementById('live-partial-transcript');
-  const hubId = '{{ hub_id }}';
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const statusIndicator = document.getElementById('status-indicator');
+    const titleInput = document.getElementById('lecture-title');
+    const hubId = '{{ hub_id }}';
 
-  let socket;
-  let audioContext;
-  let workletNode;
-  let globalStream;
-  
-  // FINAL CHANGE: We now control the sample rate, so we can define it as a constant.
-  const TARGET_SAMPLE_RATE = 16000;
-  
-  let pcmBuffer = [];
-  let pcmBufferSamples = 0;
-  const TARGET_DURATION_MS = 200;
+    let mediaRecorder;
+    let audioChunks = [];
 
-  function floatTo16BitPCM(float32Array) {
-    const buffer = new ArrayBuffer(float32Array.length * 2);
-    const view = new DataView(buffer);
-    let offset = 0;
-    for (let i = 0; i < float32Array.length; i++, offset += 2) {
-      let s = Math.max(-1, Math.min(1, float32Array[i]));
-      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-    }
-    return new Int16Array(buffer);
-  }
+    // --- Function to start recording ---
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            // Use the MediaRecorder API - it's built into all modern browsers
+            mediaRecorder = new MediaRecorder(stream);
 
-  /**
-   * NEW FUNCTION: Resamples a Float32Array from an original sample rate
-   * to our target sample rate of 16000 Hz.
-   */
-  function resampleTo16k(audioData, originalSampleRate) {
-    if (originalSampleRate === TARGET_SAMPLE_RATE) {
-      return audioData;
-    }
-    const ratio = originalSampleRate / TARGET_SAMPLE_RATE;
-    const newLength = Math.round(audioData.length / ratio);
-    const result = new Float32Array(newLength);
-    let offsetResult = 0;
-    let offsetBuffer = 0;
-    while (offsetResult < result.length) {
-      const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
-      let accum = 0, count = 0;
-      for (let i = offsetBuffer; i < nextOffsetBuffer && i < audioData.length; i++) {
-        accum += audioData[i];
-        count++;
-      }
-      result[offsetResult] = count > 0 ? accum / count : 0;
-      offsetResult++;
-      offsetBuffer = nextOffsetBuffer;
-    }
-    return result;
-  }
+            // This event fires whenever a chunk of audio is ready
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
 
-  async function startRecording() {
-    startBtn.disabled = true;
-    statusIndicator.textContent = 'Status: Accessing microphone...';
+            // This event fires when we stop the recording
+            mediaRecorder.onstop = uploadRecording;
 
-    try {
-      globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      // Request the browser's native sample rate, we will resample from it.
-      audioContext = new AudioContext({ sampleRate: navigator.mediaDevices.getSupportedConstraints().sampleRate ? undefined : 44100 });
-      const originalSampleRate = audioContext.sampleRate;
+            // Start recording and update the UI
+            mediaRecorder.start();
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'block';
+            titleInput.disabled = true;
+            statusIndicator.innerHTML = '<span class="dot-flashing"></span>Recording...';
 
-      await audioContext.audioWorklet.addModule("{{ url_for('static', filename='audio-processor.js') }}");
-      workletNode = new AudioWorkletNode(audioContext, 'audio-recorder-processor');
-      const source = audioContext.createMediaStreamSource(globalStream);
-      source.connect(workletNode);
-
-      workletNode.port.onmessage = (event) => {
-        const rawFloat32Data = event.data;
-        // --- RESAMPLING STEP ---
-        const resampledData = resampleTo16k(rawFloat32Data, originalSampleRate);
-        const int16Data = floatTo16BitPCM(resampledData);
-
-        pcmBuffer.push(int16Data);
-        pcmBufferSamples += int16Data.length;
-
-        // Note: The duration is now calculated based on our TARGET rate.
-        const durationMs = (pcmBufferSamples / TARGET_SAMPLE_RATE) * 1000;
-        if (durationMs >= TARGET_DURATION_MS) {
-          flushPCM();
+        } catch (err) {
+            console.error('Error accessing microphone:', err);
+            alert('Could not access the microphone. Please check your browser permissions.');
         }
-      };
-
-      connectAndStart();
-
-    } catch (err) {
-      console.error('Microphone access or Worklet error:', err);
-      alert('Could not start recording. Please check permissions and console for errors.');
-      statusIndicator.textContent = 'Error: Mic or Worklet failed.';
-      startBtn.disabled = false;
-    }
-  }
-
-  function flushPCM(force = false) {
-    if (pcmBufferSamples === 0 || !socket || !socket.connected) return;
-
-    const combined = new Int16Array(pcmBufferSamples);
-    let offset = 0;
-    for (const chunk of pcmBuffer) {
-      combined.set(chunk, offset);
-      offset += chunk.length;
     }
 
-    const durationMs = (pcmBufferSamples / TARGET_SAMPLE_RATE) * 1000;
-    if (force || durationMs >= 50) {
-      console.log(`🔊 Flushing PCM: ${combined.length} samples @16kHz ≈ ${durationMs.toFixed(2)} ms`);
-      socket.emit('audio_chunk', Array.from(new Uint8Array(combined.buffer)));
-      pcmBuffer = [];
-      pcmBufferSamples = 0;
+    // --- Function to stop recording ---
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            // Update UI to show processing state
+            stopBtn.disabled = true;
+            statusIndicator.innerHTML = 'Processing audio... This may take a moment.';
+        }
     }
-  }
 
-  function connectAndStart() {
-    socket = io.connect(
-      location.protocol + '//' + document.domain + ':' + location.port,
-      { transports: ['websocket'] }
-    );
+    // --- Function to upload the final audio file ---
+    async function uploadRecording() {
+        // Combine all the audio chunks into a single "Blob" (a file-like object)
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        
+        // Use FormData to send the file and title to our Flask server
+        const formData = new FormData();
+        formData.append('audio_file', audioBlob, 'lecture.webm');
+        formData.append('title', titleInput.value);
 
-    socket.on('connect', () => {
-      // We no longer need to send the sample rate, as the server will now assume 16000.
-      socket.emit('start_transcription');
-      statusIndicator.textContent = 'Status: Connected, waiting for server...';
-    });
+        try {
+            // The endpoint we will create in Flask
+            const response = await fetch(`/hub/${hubId}/process_lecture_audio`, {
+                method: 'POST',
+                body: formData
+            });
 
-    // ... rest of socket.on listeners are unchanged ...
-    socket.on('status_update', (data) => {
-      statusIndicator.textContent = `Status: ${data.status}`;
-      if (data.status === 'Listening...') {
-        startBtn.style.display = 'none';
-        stopBtn.style.display = 'block';
-      }
-    });
-// NEW LISTENER FOR PARTIALS (updates the gray, flickering text)
-socket.on('partial_transcript_update', (data) => {
-  livePartialTranscriptDiv.textContent = data.text;
-});
+            if (!response.ok) {
+                throw new Error('Server returned an error.');
+            }
 
-// NEW LISTENER FOR FINALS (updates the main box with clean text)
-socket.on('final_transcript_update', (data) => {
-  // 1. Append the final, corrected text to the main box
-  liveTranscriptDiv.textContent += data.text;
-  liveTranscriptDiv.scrollTop = liveTranscriptDiv.scrollHeight;
-  // 2. Clear the partial transcript box, ready for the next utterance
-  livePartialTranscriptDiv.textContent = "";
-});
-    socket.on('notes_update', (data) => {
-      notesEditor.innerHTML = data.notes;
-    });
-    socket.on('transcription_complete', (data) => {
-      alert('Lecture notes saved successfully!');
-      window.location.href = data.redirect_url;
-    });
-    socket.on('disconnect', () => {
-      statusIndicator.textContent = 'Status: Disconnected';
-    });
-  }
+            const result = await response.json();
 
-  function stopRecording() {
-    if (workletNode) {
-      workletNode.port.onmessage = null;
-      workletNode.disconnect();
+            if (result.success) {
+                alert('Notes generated successfully!');
+                window.location.href = result.redirect_url; // Redirect to the new note
+            } else {
+                throw new Error(result.message || 'Failed to process audio.');
+            }
+
+        } catch (err) {
+            console.error('Error uploading file:', err);
+            alert('An error occurred while generating notes: ' + err.message);
+            // Reset UI
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            stopBtn.disabled = false;
+            titleInput.disabled = false;
+            statusIndicator.textContent = 'Status: Idle';
+        }
+
+        // Clear the chunks for the next recording
+        audioChunks = [];
     }
-    if (audioContext) {
-      audioContext.close();
-    }
-    if (globalStream) {
-      globalStream.getTracks().forEach(track => track.stop());
-    }
-    flushPCM(true);
-    if (socket && socket.connected) {
-      const title = document.getElementById('lecture-title').value;
-      socket.emit('stop_transcription', { hub_id: hubId, title: title });
-      statusIndicator.textContent = 'Status: Finalizing and saving...';
-    }
-    stopBtn.disabled = true;
-  }
 
-  startBtn.addEventListener('click', startRecording);
-  stopBtn.addEventListener('click', stopRecording);
+    startBtn.addEventListener('click', startRecording);
+    stopBtn.addEventListener('click', stopRecording);
 });
 </script>
 </body>
