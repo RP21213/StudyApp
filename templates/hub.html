@@ -1243,7 +1243,8 @@
             if (anchor === 'calendar') {
                 initializeCalendar();
             }
-
+            
+            // --- FIX: Dark Mode Toggle Logic ---
             const themeToggle = document.getElementById('theme-toggle');
             if (localStorage.getItem('theme') === 'dark') {
                 themeToggle.checked = true;
@@ -1261,7 +1262,7 @@
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
             
-            // --- NEW: Universal File Selection and Tool Handling ---
+            // --- Universal File Selection and Tool Handling ---
             const fileSelectModal = document.getElementById('file-select-modal');
             const fileSelectForm = document.getElementById('file-select-form');
             const fileListContainer = document.getElementById('modal-file-list-container');
@@ -1357,10 +1358,9 @@
                     isAITaskRunning = false;
                 }
             });
-
-            // --- NEW: Accordion Logic ---
-            const accordions = document.querySelectorAll('.accordion-item');
-            accordions.forEach(item => {
+            
+            // --- FIX: Accordion Logic ---
+            document.querySelectorAll('.accordion-item').forEach(item => {
                 const header = item.querySelector('.accordion-header');
                 header.addEventListener('click', () => {
                     item.classList.toggle('active');
