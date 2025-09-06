@@ -365,28 +365,23 @@ def live_lecture_page(hub_id):
     return render_template("live_lecture.html", hub_id=hub_id)
 
 # ==============================================================================
-# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (FINAL REVISION)
+# 9. NEW REAL-TIME LECTURE ROUTES & SOCKETS (CORRECTED)
 # ==============================================================================
 
-from assemblyai.streaming.v3 import (
-    StreamingClient,
-    StreamingClientOptions,
-    StreamingEvents,
-    StreamingParameters,
-    StreamingError
+# CORRECTED IMPORTS FOR THE LATEST ASSEMBLYAI SDK
+import assemblyai as aai
+from assemblyai.streaming import (
+    Stream,
+    StreamingTranscript,
+    PartialTranscript,
+    FinalTranscript,
+    StreamingError,
 )
 
-# And add the specific event imports from the .dto submodule
-from assemblyai.streaming.v3.dto import (
-    BeginEvent,
-    FinalTranscriptEvent,
-    PartialTranscriptEvent,
-    TerminationEvent
-)
 # Store handler instances in memory
 session_handlers = {}
 
-# --- FINAL CORRECTED V3 SDK-COMPATIBLE TranscriptionHandler ---
+# --- FINAL CORRECTED TranscriptionHandler ---
 class TranscriptionHandler:
     def __init__(self, sid):
         self.sid = sid
@@ -394,56 +389,41 @@ class TranscriptionHandler:
         self.summary = "<h1>Lecture Notes</h1>"
         self.is_summarizing = False
         
-        self.client = StreamingClient(
-            StreamingClientOptions(api_key=os.getenv("ASSEMBLYAI_API_KEY"))
+        # The new SDK uses a different class for the client
+        self.stream = Stream(
+            on_partial_transcript=self._on_partial,
+            on_final_transcript=self._on_final,
+            on_error=self._on_error,
         )
-        
-        # Subscribe to specific events for partial and final transcripts
-        self.client.on(StreamingEvents.PartialTranscript, self._on_partial)
-        self.client.on(StreamingEvents.FinalTranscript, self._on_final)
-        
-        # Keep the other standard event handlers
-        self.client.on(StreamingEvents.Begin, self._on_begin)
-        self.client.on(StreamingEvents.Error, self._on_error)
-        self.client.on(StreamingEvents.Termination, self._on_terminated)
 
     # --- Event Handler Methods ---
-    def _on_begin(self, client: StreamingClient, event: BeginEvent):
-        """Called when the transcription session starts."""
-        print(f"Session started for SID {self.sid}: {event.id}")
-        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
-
-    def _on_error(self, client: StreamingClient, error: StreamingError):
+    def _on_error(self, error: StreamingError):
         """Called when a streaming error occurs."""
         error_message = str(error)
         print(f"Streaming error for SID {self.sid}: {error_message}")
         if self.sid in session_handlers:
             socketio.emit('status_update', {'status': f'Error: {error_message}'}, room=self.sid)
 
-    def _on_terminated(self, client: StreamingClient, event: TerminationEvent):
-        """Called when the session is gracefully terminated."""
-        print(f"Session terminated for SID {self.sid}.")
-
-    # NEW: Handler for PARTIAL results (flickering text)
-    def _on_partial(self, client: StreamingClient, event: PartialTranscriptEvent):
+    # Handler for PARTIAL results (flickering text)
+    def _on_partial(self, transcript: PartialTranscript):
         """Handles real-time, unstable transcripts."""
-        if not event.transcript or self.sid not in session_handlers:
+        if not transcript.text or self.sid not in session_handlers:
             return
         # Emit a dedicated event for these partial updates
-        socketio.emit('partial_transcript_update', {'text': event.transcript}, room=self.sid)
+        socketio.emit('partial_transcript_update', {'text': transcript.text}, room=self.sid)
 
-    # NEW: Handler for FINAL results (clean, corrected sentences)
-    def _on_final(self, client: StreamingClient, event: FinalTranscriptEvent):
+    # Handler for FINAL results (clean, corrected sentences)
+    def _on_final(self, transcript: FinalTranscript):
         """Handles the final, corrected transcript after a pause."""
-        transcript = event.transcript
-        if not transcript or self.sid not in session_handlers:
+        final_text = transcript.text
+        if not final_text or self.sid not in session_handlers:
             return
 
         # Emit the final, corrected text to a different event
-        socketio.emit('final_transcript_update', {'text': transcript + " "}, room=self.sid)
+        socketio.emit('final_transcript_update', {'text': final_text + " "}, room=self.sid)
 
         # Summarization logic only runs on clean, final sentences
-        self.buffer += transcript + " "
+        self.buffer += final_text + " "
         if len(self.buffer.split()) > 150 and not self.is_summarizing:
             self.is_summarizing = True
             socketio.emit('status_update', {'status': 'Summarizing...'}, room=self.sid)
@@ -464,56 +444,56 @@ class TranscriptionHandler:
                     socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
     
     # --- Control Methods (called by SocketIO handlers) ---
-    def start(self, sample_rate, boosted_keywords=None):
+    async def start(self, sample_rate, boosted_keywords=None):
         """Connects to the AssemblyAI streaming service."""
         if boosted_keywords is None:
             boosted_keywords = []
-
-        streaming_params = StreamingParameters(
-            sample_rate=sample_rate,
+        
+        # The new SDK uses an async connect method
+        await self.stream.connect(
             word_boost=boosted_keywords,
             boost_param="high",
-            # Tell the AI to wait for a 700ms pause before finalizing a transcript.
-            # This prevents it from cutting off sentences too early.
-            end_utterance_silence_threshold=700
+            end_utterance_silence_threshold=700,
+            # The sample_rate is now configured within the connect method
+            # but your client-side resampling to 16000 makes this robust.
         )
-        self.client.connect(streaming_params)
+        socketio.emit('status_update', {'status': 'Listening...'}, room=self.sid)
 
-    def stream(self, audio_data):
+    async def stream_audio(self, audio_data):
         """Streams audio data to AssemblyAI."""
-        self.client.stream(audio_data)
+        await self.stream.send_audio(audio_data)
 
-    def close(self):
+    async def close(self):
         """Closes the connection to AssemblyAI."""
-        self.client.disconnect()
+        await self.stream.close()
+        print(f"Session terminated for SID {self.sid}.")
 
-        
-
-
-# --- REVISED: SocketIO Event Handlers ---
+# --- REVISED: SocketIO Event Handlers (with async support) ---
 @socketio.on('connect')
 def handle_connect():
     sid = request.sid
     session_handlers[sid] = TranscriptionHandler(sid)
+    print(f"Client connected: {sid}")
 
 @socketio.on('disconnect')
 def handle_disconnect():
     sid = request.sid
     print(f"Client disconnected: {sid}")
     if sid in session_handlers:
-        session_handlers[sid].close()
-        del session_handlers[sid]
+        handler = session_handlers.pop(sid)
+        # The new SDK uses async, so we need to run this in a thread
+        # to avoid blocking the server.
+        socketio.start_background_task(handler.close)
 
 @socketio.on('start_transcription')
-def handle_start_transcription(data=None): # data is now optional
+def handle_start_transcription(data=None):
     sid = request.sid
     if sid in session_handlers:
         handler = session_handlers[sid]
-        # The client now always sends 16kHz audio after resampling.
-        # Hardcoding this value makes the server more reliable.
-        sample_rate = 16000 
+        sample_rate = 16000 # Hardcoded as per your client-side logic
         try:
-            handler.start(sample_rate)
+            # Run the async start method in a background task
+            socketio.start_background_task(handler.start, sample_rate)
             print(f"Transcription started for {sid} at {sample_rate}Hz")
         except Exception as e:
             print(f"Error starting transcription for {sid}: {e}")
@@ -525,7 +505,8 @@ def handle_audio_chunk(audio_data):
     if sid in session_handlers:
         handler = session_handlers[sid]
         audio_bytes = bytes(audio_data)
-        handler.stream(audio_bytes)
+        # Run the async stream_audio method in a background task
+        socketio.start_background_task(handler.stream_audio, audio_bytes)
 
 @socketio.on('stop_transcription')
 def handle_stop_transcription(data):
@@ -534,27 +515,34 @@ def handle_stop_transcription(data):
     title = data.get('title', 'Live Lecture Notes')
 
     if sid in session_handlers:
-        handler = session_handlers[sid]
-        handler.close()
-        
-        final_summary = handler.summary
-        if len(handler.buffer.strip()) > 10:
-            final_summary = generate_live_summary_update(handler.summary, handler.buffer)
+        # Use a background task to handle the async close and subsequent processing
+        def stop_and_save():
+            handler = session_handlers.pop(sid, None)
+            if not handler: return
 
-        note_ref = db.collection('notes').document()
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=final_summary)
-        note_ref.set(new_note.to_dict())
+            # This now needs to be an async function to call handler.close()
+            async def close_and_process():
+                await handler.close()
+                
+                final_summary = handler.summary
+                if len(handler.buffer.strip()) > 10:
+                    final_summary = generate_live_summary_update(handler.summary, handler.buffer)
 
-        notification_ref = db.collection('notifications').document()
-        message = f"Your live lecture notes for '{title}' have been saved."
-        link = url_for('view_note', note_id=note_ref.id)
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        notification_ref.set(new_notification.to_dict())
+                note_ref = db.collection('notes').document()
+                new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=final_summary)
+                note_ref.set(new_note.to_dict())
 
-        emit('transcription_complete', {'redirect_url': link})
-        print(f"Transcription stopped and saved for {sid}")
-        session_handlers.pop(sid, None)
+                notification_ref = db.collection('notifications').document()
+                message = f"Your live lecture notes for '{title}' have been saved."
+                link = url_for('view_note', note_id=note_ref.id)
+                new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+                notification_ref.set(new_notification.to_dict())
 
+                emit('transcription_complete', {'redirect_url': link})
+                print(f"Transcription stopped and saved for {sid}")
+
+            # Run the async function
+            
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
     prompt = f"""
