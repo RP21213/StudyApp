@@ -365,7 +365,7 @@ def live_lecture_page(hub_id):
     return render_template("live_lecture.html", hub_id=hub_id)
 
 # ==============================================================================
-# 9. LECTURE RECORDER ROUTE (SIMPLE VERSION)
+# 9. LECTURE RECORDER ROUTES (MODIFIED)
 # ==============================================================================
 import assemblyai as aai
 
@@ -394,32 +394,139 @@ def process_lecture_audio(hub_id):
              return jsonify({"success": False, "message": "Audio could not be transcribed or was empty."}), 400
 
         # --- RE-USE YOUR EXISTING NOTE GENERATION LOGIC ---
-        # This function is already perfect for this.
         notes_html = generate_interactive_notes_html(full_transcript_text)
 
-        # --- Save the note and create a notification (also re-using your code) ---
-        note_ref = db.collection('notes').document()
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
-        note_ref.set(new_note.to_dict())
-
-        notification_ref = db.collection('notifications').document()
-        message = f"Your recorded lecture notes for '{title}' are ready."
-        link = url_for('view_note', note_id=note_ref.id)
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        notification_ref.set(new_notification.to_dict())
-        
-        # Update hub progress for the activity
-        update_hub_progress(hub_id, 10) # Give 10 XP for a recorded lecture
-
-        return jsonify({
-            "success": True, 
-            "message": "Notes generated successfully!",
-            "redirect_url": link
-        })
+        # --- MODIFIED: Instead of saving, render a new review page ---
+        return render_template(
+            "lecture_review.html", 
+            hub_id=hub_id,
+            title=title,
+            notes_html=notes_html,
+            full_transcript_text=full_transcript_text
+        )
 
     except Exception as e:
         print(f"Error processing lecture audio: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+# --- NEW: Route to save edited notes from the review page ---
+@app.route("/hub/<hub_id>/save_lecture_notes", methods=["POST"])
+@login_required
+def save_lecture_notes(hub_id):
+    title = request.form.get('title')
+    notes_html = request.form.get('notes_html')
+
+    if not title or not notes_html:
+        flash("Title and notes content are required.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        # --- Save the note ---
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
+        note_ref.set(new_note.to_dict())
+
+        # --- Create a notification ---
+        notification_ref = db.collection('notifications').document()
+        message = f"Your lecture notes for '{title}' have been saved."
+        link = url_for('view_note', note_id=note_ref.id)
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        notification_ref.set(new_notification.to_dict())
+        
+        # --- Update hub progress ---
+        update_hub_progress(hub_id, 10) # 10 XP for a recorded lecture
+
+        flash("Notes saved successfully!", "success")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='notes'))
+
+    except Exception as e:
+        print(f"Error saving lecture notes: {e}")
+        flash(f"An error occurred while saving your notes: {e}", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+
+# --- NEW: Route to create a full revision pack from the review page ---
+@app.route("/hub/<hub_id>/create_revision_pack_from_lecture", methods=["POST"])
+@login_required
+def create_revision_pack_from_lecture(hub_id):
+    title = request.form.get('title')
+    notes_html = request.form.get('notes_html')
+    # This is key for generating good flashcards/quizzes from the original source
+    full_transcript_text = request.form.get('full_transcript_text')
+
+    if not all([title, notes_html, full_transcript_text]):
+        flash("Missing required data to create a revision pack.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        batch = db.batch()
+        folder_items = []
+        
+        # --- 1. Save the edited notes ---
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
+        batch.set(note_ref, new_note.to_dict())
+        folder_items.append({'id': note_ref.id, 'type': 'note'})
+
+        # --- 2. Generate flashcards from the original transcript ---
+        flashcards_raw = generate_flashcards_from_text(full_transcript_text)
+        flashcards_parsed = parse_flashcards(flashcards_raw)
+        if flashcards_parsed:
+            fc_ref = db.collection('activities').document()
+            new_fc = Activity(
+                id=fc_ref.id, 
+                hub_id=hub_id, 
+                type='Flashcards', 
+                title=f"Flashcards for {title}", 
+                data={'cards': flashcards_parsed}, 
+                status='completed'
+            )
+            batch.set(fc_ref, new_fc.to_dict())
+            folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+
+        # --- 3. Generate 3 quizzes from the original transcript ---
+        for i in range(1, 4):
+            quiz_json = generate_quiz_from_text(full_transcript_text)
+            quiz_data = safe_load_json(quiz_json)
+            if quiz_data.get('questions'):
+                quiz_ref = db.collection('activities').document()
+                new_quiz = Activity(
+                    id=quiz_ref.id, 
+                    hub_id=hub_id, 
+                    type='Quiz', 
+                    title=f"Practice Quiz {i} for {title}", 
+                    data=quiz_data
+                )
+                batch.set(quiz_ref, new_quiz.to_dict())
+                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+
+        # --- 4. Create the folder ---
+        folder_name = f"Revision Pack: {title}"
+        folder_ref = db.collection('folders').document()
+        new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
+        batch.set(folder_ref, new_folder.to_dict())
+        
+        # --- 5. Create a notification ---
+        notification_ref = db.collection('notifications').document()
+        message = f"Your new revision pack '{folder_name}' is ready."
+        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+        
+        # --- 6. Commit all changes to Firestore ---
+        batch.commit()
+        
+        # --- 7. Update hub progress ---
+        update_hub_progress(hub_id, 25) # Give more XP for creating a full pack
+
+        flash(f"Successfully created revision pack '{folder_name}'!", "success")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='folders'))
+
+    except Exception as e:
+        print(f"Error creating revision pack: {e}")
+        flash(f"An error occurred while creating your revision pack: {e}", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
 
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""

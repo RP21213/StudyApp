@@ -55,18 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             
-            // Use the MediaRecorder API - it's built into all modern browsers
             mediaRecorder = new MediaRecorder(stream);
 
-            // This event fires whenever a chunk of audio is ready
             mediaRecorder.ondataavailable = event => {
                 audioChunks.push(event.data);
             };
 
-            // This event fires when we stop the recording
             mediaRecorder.onstop = uploadRecording;
 
-            // Start recording and update the UI
             mediaRecorder.start();
             startBtn.style.display = 'none';
             stopBtn.style.display = 'block';
@@ -83,41 +79,41 @@ document.addEventListener('DOMContentLoaded', () => {
     function stopRecording() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
-            // Update UI to show processing state
             stopBtn.disabled = true;
             statusIndicator.innerHTML = 'Processing audio... This may take a moment.';
         }
     }
 
-    // --- Function to upload the final audio file ---
+    // --- MODIFIED Function to upload the final audio file ---
     async function uploadRecording() {
-        // Combine all the audio chunks into a single "Blob" (a file-like object)
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         
-        // Use FormData to send the file and title to our Flask server
         const formData = new FormData();
         formData.append('audio_file', audioBlob, 'lecture.webm');
         formData.append('title', titleInput.value);
 
         try {
-            // The endpoint we will create in Flask
             const response = await fetch(`/hub/${hubId}/process_lecture_audio`, {
                 method: 'POST',
                 body: formData
             });
 
             if (!response.ok) {
-                throw new Error('Server returned an error.');
+                // Try to parse error as JSON, otherwise use status text
+                try {
+                    const errorResult = await response.json();
+                    throw new Error(errorResult.message || 'Server returned an error.');
+                } catch {
+                    throw new Error(`Server error: ${response.statusText}`);
+                }
             }
 
-            const result = await response.json();
-
-            if (result.success) {
-                alert('Notes generated successfully!');
-                window.location.href = result.redirect_url; // Redirect to the new note
-            } else {
-                throw new Error(result.message || 'Failed to process audio.');
-            }
+            // The response is the HTML of the new review page.
+            // Replace the entire document content with the new page.
+            const htmlContent = await response.text();
+            document.open();
+            document.write(htmlContent);
+            document.close();
 
         } catch (err) {
             console.error('Error uploading file:', err);
@@ -130,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             statusIndicator.textContent = 'Status: Idle';
         }
 
-        // Clear the chunks for the next recording
         audioChunks = [];
     }
 
@@ -138,5 +133,113 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.addEventListener('click', stopRecording);
 });
 </script>
+</body>
+</html>
+```
+
+### 3. New File: `lecture_review.html`
+
+This new template acts as the intermediate step, allowing users to edit their notes and choose their next action.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review & Save Lecture Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #10b981;
+            --secondary-hover: #059669;
+            --border-color: #e5e7eb;
+            --background-body: #f4f5f7;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        h1 { margin-top: 0; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { font-weight: 600; display: block; margin-bottom: 0.5rem; }
+        input[type="text"], textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 400px;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
+        }
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .save-btn:hover { background-color: var(--primary-hover); }
+        .pack-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        .pack-btn:hover { background-color: var(--secondary-hover); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Review Your Generated Notes</h1>
+        <p>Your lecture has been transcribed and converted into notes. You can edit them below before saving.</p>
+
+        <form method="POST" id="lecture-form">
+            <!-- Hidden input to pass the raw transcript for pack generation -->
+            <input type="hidden" name="full_transcript_text" value="{{ full_transcript_text }}">
+
+            <div class="form-group">
+                <label for="lecture-title">Title</label>
+                <input type="text" id="lecture-title" name="title" value="{{ title }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="notes-content">Notes Content (HTML)</label>
+                <textarea id="notes-content" name="notes_html">{{ notes_html }}</textarea>
+            </div>
+
+            <div class="button-group">
+                 <a href="{{ url_for('hub_page', hub_id=hub_id) }}" class="button" style="background-color: #6b7280; text-decoration: none; text-align: center;">Cancel</a>
+                <button type="submit" formaction="{{ url_for('save_lecture_notes', hub_id=hub_id) }}" class="button save-btn">Save Just the Notes</button>
+                <button type="submit" formaction="{{ url_for('create_revision_pack_from_lecture', hub_id=hub_id) }}" class="button pack-btn">Save Notes & Create Revision Pack</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
