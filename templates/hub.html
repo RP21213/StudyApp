@@ -24,7 +24,6 @@
             --border-color: #e5e7eb;
             --background-body: #f4f5f7;
             --background-card: #ffffff;
-            --background-sidebar: #f9fafb;
             --background-interactive-hover: #f3f4f6;
             --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
             --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
@@ -132,21 +131,6 @@
             display: flex; align-items: center; gap: 1rem; position: relative;
         }
         .page-header h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
-        .progress-stats {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem;
-        }
-        .stat-item { text-align: center; }
-        .stat-value {
-            display: block;
-            font-size: 2.75rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-        .stat-value.is-zero {
-            color: var(--text-secondary);
-            opacity: 0.6;
-        }
-        .stat-label { font-size: 0.9rem; color: var(--text-secondary); }
         
         .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid var(--border-color); }
         
@@ -188,68 +172,70 @@
         .asset-score { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); padding: 0 1rem; }
         .asset-actions { display: flex; gap: 0.5rem; }
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
-        .study-tools-container.disabled { pointer-events: none; user-select: none; }
-        .study-tools-container.disabled .workflow-button, .study-tools-container.disabled .quick-tool-btn, .study-tools-container.disabled .feature-card { opacity: 0.6; }
         
-        #tools-page-workflow-selection {
-            display: none; /* Hidden by default now */
+        .tool-panel {
             background-color: var(--background-interactive-hover);
+            html[data-theme="dark"] & { background-color: var(--background-body); }
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 1.5rem;
-            margin-top: 2rem;
+            margin-bottom: 2.5rem;
         }
-        #workflow-title { margin-top: 0; font-size: 1.5rem; font-weight: 700; }
-        #workflow-options-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .checkbox-label { display: flex; align-items: center; padding: 1rem; background-color: var(--background-card); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; }
-        .checkbox-label:hover { border-color: var(--primary-color); background-color: var(--primary-light); }
-        .checkbox-label input { width: 1.2rem; height: 1.2rem; accent-color: var(--primary-color); margin-right: 1rem; }
-        .checkbox-label span { font-weight: 500; font-family: 'Poppins', sans-serif; }
-        #workflow-selection-form button[type="submit"] { padding: 0.75rem 2rem; font-size: 1rem; }
-        
-        .section-heading {
+        .tool-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .tool-panel-header .panel-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tool-panel-header .panel-text h2 {
+            margin: 0;
             font-size: 1.5rem;
             font-weight: 700;
-            margin: 2.5rem 0 1.5rem 0;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
+        }
+        .tool-panel-header .panel-text p {
+            margin: 0;
+            color: var(--text-secondary);
         }
 
-        .main-workflows-grid {
+        .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
-        
-            
         }
-
-        .workflow-card {
+        .tool-card {
             background-color: var(--background-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
-            text-align: left;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             gap: 1rem;
             transition: all 0.2s;
             box-shadow: var(--card-shadow);
+            cursor: pointer;
             text-decoration: none;
             color: var(--text-main);
         }
-        .workflow-card:hover:not(:disabled) {
+        .tool-card:hover:not(.disabled) {
             transform: translateY(-5px) scale(1.02);
             box-shadow: var(--card-shadow-hover);
             border-color: var(--primary-color);
         }
-        .workflow-card-content {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            flex-grow: 1;
+        .tool-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: var(--background-interactive-hover);
         }
-        .workflow-icon {
+        .tool-card-content { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+        .tool-icon {
             width: 48px;
             height: 48px;
             border-radius: 8px;
@@ -258,29 +244,29 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .workflow-text h4 {
+        .tool-text h4 {
             margin: 0 0 0.25rem 0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
         }
-        .workflow-text p {
+        .tool-text p {
             margin: 0;
             font-size: 0.9rem;
             color: var(--text-secondary);
             line-height: 1.5;
             font-family: 'Poppins', sans-serif;
         }
+        .tool-tag {
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0.1rem 0.5rem;
+            border-radius: 99px;
+            margin-left: 0.5rem;
+        }
+        .pro-label { color: #854d0e; background-color: #fef9c3; }
+        html[data-theme="dark"] .pro-label { color: #fef9c3; background-color: #854d0e; }
+        .soon-label { color: var(--text-secondary); background-color: var(--background-interactive-hover); }
 
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-        .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow);}
-        .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
-        .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
-        .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
-        .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
-        .feature-card:hover:not(:disabled) .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
-        .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.1rem 0.5rem; border-radius: 99px; margin-left: 0.5rem; }
-        
         .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; box-shadow: var(--card-shadow); }
         .progress-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow-hover); }
@@ -320,9 +306,8 @@
         .files-panel h3 { font-size: 1.125rem; margin: 0; }
         .file-list .file-item { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 0.5rem; border-radius: 8px; transition: background-color 0.2s; margin-bottom: 0.25rem; }
         .file-list .file-item:hover { background-color: var(--background-interactive-hover); }
-        .file-item .file-info { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; cursor: pointer; overflow: hidden; }
+        .file-item .file-info { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; overflow: hidden; }
         .file-info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-item input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--primary-color); flex-shrink: 0; }
         .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; opacity: 0.5; flex-shrink: 0; }
         .file-item:hover .delete-btn { opacity: 1; }
         .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
@@ -340,16 +325,28 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text h4 { margin: 0 0 0.25rem 0; color: var(--text-main); }
         .loading-text p { margin: 0; color: var(--primary-color); }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
         
-        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; }
-        #add-items-modal .modal-content { max-width: 500px; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.visible { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background: var(--background-card); padding: 2rem; border-radius: 12px;
+            width: 90%; max-height: 90vh; display: flex; flex-direction: column;
+            transform: scale(0.95); transition: transform 0.3s;
+        }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
         .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
         .modal-body { overflow-y: auto; padding-right: 1rem; }
         .modal-footer { margin-top: 2rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
         .modal-body .form-group { margin-bottom: 1.25rem; }
+
+        #file-select-modal .modal-content { max-width: 500px; }
 
         #schedule-event-modal .modal-content, #import-ics-modal .modal-content, #event-details-modal .modal-content {
             background-color: var(--background-card);
@@ -421,6 +418,7 @@
             border-radius: 6px;
             padding: 0.5rem;
         }
+        #modal-file-list-container .file-item:hover { background-color: var(--background-card); }
         .modal-file-item {
             display: flex;
             align-items: center;
@@ -671,98 +669,131 @@
                 </div>
                 
                 <div id="tools" class="tab-content active">
-                    <div id="study-tools-container" class="study-tools-container">
-                        <h2 class="section-heading">Guided Workflows</h2>
-                        <div class="main-workflows-grid">
-                             <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                                    <div class="workflow-text"><h4>Assignment Writer <span class="pro-label">PRO</span></h4><p>Turn your brief and sources into a first draft.</p></div>
+                    
+                    <!-- Lecture Tools Panel -->
+                    <div class="tool-panel">
+                        <div class="tool-panel-header">
+                            <div class="panel-icon" style="background-color: #fef2f2; color: #b91c1c;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
+                            <div class="panel-text">
+                                <h2>Lecture Tools</h2>
+                                <p>Capture and process your lecture content.</p>
+                            </div>
+                        </div>
+                        <div class="tools-grid">
+                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="tool-card">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Live Lecture Capture<span class="tool-tag pro-label">PRO</span></h4><p>Record audio in real-time to generate structured notes.</p></div>
                                 </div>
                             </a>
-                                        <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="workflow-card">
-                <div class="workflow-card-content">
-                    <div class="workflow-icon" style="background-color: #fee2e2; color: #991b1b;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" />
-                        </svg>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Upload Lecture & Get Notes<span class="tool-tag soon-label">Coming Soon</span></h4><p>Process a pre-recorded audio file into notes.</p></div>
+                                </div>
+                            </div>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Annotate Slides<span class="tool-tag soon-label">Coming Soon</span></h4><p>Take notes directly onto your lecture slides.</p></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="workflow-text">
-                        <h4>Live Lecture Capture <span class="pro-label">PRO</span></h4>
-                        <p>Record your lecture in real-time to generate structured notes automatically.</p>
-                    </div>
-                </div>
-            </a>
 
-                            <form action="{{ url_for('setup_session', hub_id=hub.id) }}" method="POST" class="workflow-form">
-                                <button type="submit" class="workflow-card">
-                                    <div class="workflow-card-content">
-                                        <div class="workflow-icon" style="background-color: #eef2ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84"/></svg></div>
-                                        <div class="workflow-text"><h4>Interactive Session <span class="pro-label">PRO</span></h4><p>Let AI guide you through a personalized study walkthrough.</p></div>
-                                    </div>
-                                </button>
-                            </form>
-                            <button type="button" id="exam-prep-btn" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-                                    <div class="workflow-text"><h4>Get Exam Ready <span class="pro-label">PRO</span></h4><p>Generate quizzes, cheat sheets, and more.</p></div>
+                    <!-- Exam Tools Panel -->
+                    <div class="tool-panel">
+                        <div class="tool-panel-header">
+                            <div class="panel-icon" style="background-color: #fefce8; color: #a16207;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                            <div class="panel-text">
+                                <h2>Exam Tools</h2>
+                                <p>Prepare for tests with powerful practice generators.</p>
+                            </div>
+                        </div>
+                        <div class="tools-grid">
+                            <div class="tool-card" data-workflow="exam" data-tools="quiz,cheatsheet,analyse">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Get Exam Ready<span class="tool-tag pro-label">PRO</span></h4><p>Generate a folder with quizzes, cheat sheets, and analysis.</p></div>
+                                </div>
+                            </div>
+                             <button type="button" class="tool-card" data-tool="analyse">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Exam Predictor<span class="tool-tag pro-label">PRO</span></h4><p>Analyze past papers to find likely exam topics.</p></div>
                                 </div>
                             </button>
-                             <button type="button" id="revision-btn" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #d1fae5; color: #065f46;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-                                    <div class="workflow-text"><h4>Make Revision Resources</h4><p>Create notes and flashcard decks.</p></div>
+                             <button type="button" class="tool-card" data-tool="quiz">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Practice Quiz Generator<span class="tool-tag pro-label">PRO</span></h4><p>Create a 10-question practice quiz from your notes.</p></div>
                                 </div>
                             </button>
-                        </div>
-                        
-                        <div id="tools-page-workflow-selection">
-                            <h3 id="workflow-title"></h3>
-                            <p style="color: var(--text-secondary); margin-top: 0; margin-bottom: 1rem;">Select resources to generate. They will be added to a new folder in 'My Folders'.</p>
-                            <form id="workflow-selection-form">
-                                <div id="workflow-options-container"></div>
-                                <input type="hidden" name="workflow_type" id="workflow-type-input">
-                                <button type="submit" class="button button-primary">Generate Folder</button>
-                            </form>
-                        </div>
-
-                        <h2 class="section-heading">Quick Tools</h2>
-                        <div class="feature-grid">
-                            <button type="button" class="feature-card quick-tool-btn" value="notes">
-                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
-                                <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="flashcards">
-                                <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="quiz">
-                                <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
-                                <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="analyse">
-                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
-                                <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Mock Exam Generator<span class="tool-tag soon-label">Coming Soon</span></h4><p>Generate a full-length, timed mock exam.</p></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Revision Tools Panel -->
+                    <div class="tool-panel">
+                        <div class="tool-panel-header">
+                            <div class="panel-icon" style="background-color: #ecfdf5; color: #047857;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.182-3.182m0-4.991v4.99" /></svg></div>
+                            <div class="panel-text">
+                                <h2>Revision Tools</h2>
+                                <p>Create and review materials to solidify your knowledge.</p>
+                            </div>
+                        </div>
+                        <div class="tools-grid">
+                            <div class="tool-card" data-workflow="revision" data-tools="notes,flashcards">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Revision Pack Generator</h4><p>Create a folder with notes and flashcards.</p></div>
+                                </div>
+                            </div>
+                            <button type="button" class="tool-card" data-tool="notes">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Interactive Note Maker</h4><p>Generate notes with pop-up definitions.</p></div>
+                                </div>
+                            </button>
+                            <button type="button" class="tool-card" data-tool="flashcards">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Flashcard Maker</h4><p>Instantly create a deck from your documents.</p></div>
+                                </div>
+                            </button>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Mind Maps<span class="tool-tag soon-label">Coming Soon</span></h4><p>Visualize topics with auto-generated mind maps.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Tools Panel -->
+                    <div class="tool-panel">
+                         <div class="tool-panel-header">
+                            <div class="panel-icon" style="background-color: #eef2ff; color: #3730a3;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg></div>
+                            <div class="panel-text">
+                                <h2>Assignment Tools</h2>
+                                <p>Get help with writing and structuring your assignments.</p>
+                            </div>
+                        </div>
+                        <div class="tools-grid">
+                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="tool-card">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Assignment Drafter<span class="tool-tag pro-label">PRO</span></h4><p>Turn your brief and sources into a structured first draft.</p></div>
+                                </div>
+                            </a>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Help With Assignment<span class="tool-tag soon-label">Coming Soon</span></h4><p>Get AI-powered feedback and suggestions.</p></div>
+                                </div>
+                            </div>
+                            <div class="tool-card disabled">
+                                <div class="tool-card-content">
+                                    <div class="tool-text"><h4>Chat to a Tutor<span class="tool-tag soon-label">Coming Soon</span></h4><p>Ask questions and get instant help from an AI tutor.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div id="calendar" class="tab-content">
-                    <div id="calendar-container">
-                        <div id="fullcalendar"></div>
-                    </div>
-                </div>
-                
                 <div id="progress" class="tab-content">
                     <div class="progress-grid">
                         <div class="progress-card xp-card"><div class="card-icon">🏆</div><h2>Total XP</h2><div class="stat-large">{{ total_xp }} <span>XP</span></div></div>
@@ -798,6 +829,12 @@
                     </div>
                 </div>
 
+                <div id="calendar" class="tab-content">
+                    <div id="calendar-container">
+                        <div id="fullcalendar"></div>
+                    </div>
+                </div>
+                
                 <div id="sessions" class="tab-content">
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-sessions"><label for="select-all-sessions">Select All</label></div>
@@ -959,24 +996,21 @@
                 <div class="sidebar-header">
                     <h3>Documents</h3>
                 </div>
-                <form id="tools-form">
-                    <div class="file-list">
-                        {% for file in hub.files %}
-                        <div class="file-item">
-                            <label class="file-info" for="file-{{ loop.index }}">
-                                <input type="checkbox" class="file-checkbox" name="selected_files" value="{{ file.path }}" id="file-{{ loop.index }}" data-filename="{{ file.name }}">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                                <span>{{ file.name }}</span>
-                            </label>
-                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
+                <div class="file-list">
+                    {% for file in hub.files %}
+                    <div class="file-item">
+                        <div class="file-info">
+                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                            <span>{{ file.name }}</span>
                         </div>
-                        {% else %}
-                        <p style="color: var(--text-secondary); text-align: center; padding: 1rem 0;">Upload a PDF to begin.</p>
-                        {% endfor %}
+                        <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </a>
                     </div>
-                </form>
+                    {% else %}
+                    <p style="color: var(--text-secondary); text-align: center; padding: 1rem 0;">Upload a PDF to begin.</p>
+                    {% endfor %}
+                </div>
                 <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
                     <label for="pdf-upload" class="file-upload-wrapper">
                         <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
@@ -999,6 +1033,29 @@
 
         </aside>
     </div>
+
+    <!-- Universal File Selection Modal -->
+    <div class="modal-overlay" id="file-select-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="file-select-modal-title">Select Documents</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="file-select-form">
+                <div class="modal-body">
+                    <p id="file-select-modal-prompt">Choose the documents you want to use for this tool.</p>
+                    <div id="modal-file-list-container" class="file-list">
+                        <!-- File items will be injected by JS -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-secondary close-btn">Cancel</button>
+                    <button type="submit" class="button button-primary">Generate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <div class="modal-overlay" id="add-items-modal">
         <div class="modal-content">
@@ -1206,96 +1263,95 @@
                 }
             });
 
-            const studyToolsContainer = document.getElementById('study-tools-container');
             const loadingContainer = document.getElementById('loading-status-container');
-            const sidebarPanel = document.getElementById('files-panel-sidebar');
             let isAITaskRunning = false;
             
-            const workflowSelectionContainer = document.getElementById('tools-page-workflow-selection');
+            // --- NEW: Universal File Selection and Tool Handling ---
+            const fileSelectModal = document.getElementById('file-select-modal');
+            const fileSelectForm = document.getElementById('file-select-form');
+            const fileListContainer = document.getElementById('modal-file-list-container');
+            let currentToolConfig = {};
 
-            const workflowOptions = {
-                exam: {
-                    title: 'Get Exam Ready',
-                    tools: [
-                        { value: 'quiz', label: 'Practice Quiz' },
-                        { value: 'exam', label: 'Mock Exam' },
-                        { value: 'cheatsheet', label: 'Cheat Sheet' },
-                        { value: 'analyse', label: 'Past Paper Analysis' }
-                    ]
-                },
-                revision: {
-                    title: 'Make Revision Resources',
-                    tools: [
-                        { value: 'notes', label: 'Interactive Notes' },
-                        { value: 'flashcards', label: 'Flashcard Deck' }
-                    ]
+            document.querySelectorAll('.tool-card:not(.disabled)').forEach(card => {
+                if(card.tagName.toLowerCase() !== 'a') {
+                    card.addEventListener('click', () => {
+                        const workflowType = card.dataset.workflow;
+                        const individualTool = card.dataset.tool;
+
+                        if (workflowType) {
+                            currentToolConfig = {
+                                type: 'workflow',
+                                endpoint: `/hub/${hubId}/generate_workflow_folder`,
+                                body: {
+                                    workflow_type: workflowType,
+                                    selected_tools: card.dataset.tools.split(',')
+                                }
+                            };
+                        } else if (individualTool) {
+                             currentToolConfig = {
+                                type: 'single',
+                                endpoint: `/hub/${hubId}/run_async_tool`,
+                                body: { tool: individualTool }
+                            };
+                        }
+                        openFileSelectModal(currentToolConfig);
+                    });
                 }
-            };
+            });
+            
+            function openFileSelectModal(config) {
+                fileListContainer.innerHTML = ''; // Clear previous list
+                const allFiles = {% for file in hub.files %}{ name: '{{ file.name }}', path: '{{ file.path }}' },{% endfor %};
 
-            const workflowTitleEl = document.getElementById('workflow-title');
-            const workflowOptionsContainer = document.getElementById('workflow-options-container');
-            const workflowTypeInput = document.getElementById('workflow-type-input');
-            const workflowForm = document.getElementById('workflow-selection-form');
-
-            function showWorkflowSelection(type) {
-                const config = workflowOptions[type];
-                workflowTitleEl.textContent = config.title;
-                workflowTypeInput.value = type;
-
-                workflowOptionsContainer.innerHTML = '';
-                config.tools.forEach(tool => {
-                    const label = document.createElement('label');
-                    label.className = 'checkbox-label';
-                    label.innerHTML = `
-                        <input type="checkbox" name="selected_tools" value="${tool.value}">
-                        <span>${tool.label}</span>
-                    `;
-                    workflowOptionsContainer.appendChild(label);
-                });
-                
-                workflowSelectionContainer.style.display = 'block';
+                if (allFiles.length === 0) {
+                    fileListContainer.innerHTML = `<p class="empty-state-text">You need to upload at least one document to use the tools.</p>`;
+                    fileSelectForm.querySelector('button[type="submit"]').disabled = true;
+                } else {
+                     allFiles.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <label class="file-info" for="modal-file-${file.path}">
+                                <input type="checkbox" name="selected_files" value="${file.path}" id="modal-file-${file.path}" class="asset-checkbox">
+                                <span>${file.name}</span>
+                            </label>`;
+                        fileListContainer.appendChild(fileItem);
+                    });
+                    fileSelectForm.querySelector('button[type="submit"]').disabled = false;
+                }
+                fileSelectModal.classList.add('visible');
             }
 
-            document.getElementById('exam-prep-btn').addEventListener('click', () => showWorkflowSelection('exam'));
-            document.getElementById('revision-btn').addEventListener('click', () => showWorkflowSelection('revision'));
-            
-            workflowForm.addEventListener('submit', async (e) => {
+            fileSelectForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (isAITaskRunning) return;
 
-                const selectedFiles = Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
-                const selectedTools = Array.from(document.querySelectorAll('#workflow-options-container input:checked')).map(cb => cb.value);
-                
+                const selectedFiles = Array.from(fileSelectForm.querySelectorAll('input[name="selected_files"]:checked')).map(cb => cb.value);
                 if (selectedFiles.length === 0) {
-                    alert("Please select at least one document to generate resources.");
+                    alert("Please select at least one document.");
                     return;
                 }
-                if (selectedTools.length === 0) {
-                    alert("Please select at least one resource to generate.");
-                    return;
-                }
-
-                isAITaskRunning = true;
-                studyToolsContainer.classList.add('disabled');
-                sidebarPanel.classList.add('disabled');
-                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating your resources...</h4><p>This may take a moment. A new folder will be created upon completion.</p></div></div>`;
                 
-                workflowSelectionContainer.style.display = 'none';
+                isAITaskRunning = true;
+                fileSelectModal.classList.remove('visible');
+                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating your resources...</h4><p>This may take a moment. Please wait.</p></div></div>`;
+                
+                const requestBody = { ...currentToolConfig.body, selected_files: selectedFiles };
 
                 try {
-                    const response = await fetch(`/hub/${hubId}/generate_workflow_folder`, {
+                    const response = await fetch(currentToolConfig.endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            workflow_type: workflowTypeInput.value,
-                            selected_tools: selectedTools,
-                            selected_files: selectedFiles
-                        })
+                        body: JSON.stringify(requestBody)
                     });
                     const result = await response.json();
                     if (result.success) {
-                        window.location.hash = 'folders';
-                        window.location.reload();
+                        if (result.redirect_url) {
+                            window.location.href = result.redirect_url;
+                        } else {
+                             window.location.hash = 'folders';
+                             window.location.reload();
+                        }
                     } else {
                         alert(`An error occurred: ${result.message}`);
                     }
@@ -1304,85 +1360,13 @@
                 } finally {
                     loadingContainer.innerHTML = '';
                     isAITaskRunning = false;
-                    updateUIBasedOnSelection();
-                    sidebarPanel.classList.remove('disabled');
                 }
             });
             
-            document.querySelectorAll('.quick-tool-btn').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    if (isAITaskRunning) { return; }
-                    
-                    const toolName = e.currentTarget.value;
-                    const selectedFiles = Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
-                    if (selectedFiles.length === 0) {
-                        alert("Please select at least one document to use this tool.");
-                        return;
-                    }
-
-                    isAITaskRunning = true;
-                    studyToolsContainer.classList.add('disabled');
-                    sidebarPanel.classList.add('disabled');
-                    loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating ${toolName.charAt(0).toUpperCase() + toolName.slice(1)}...</h4><p>This may take a moment. Please wait.</p></div></div>`;
-                    
-                    try {
-                        const response = await fetch(`/hub/${hubId}/run_async_tool`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ tool: toolName, selected_files: selectedFiles })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            window.location.href = result.redirect_url;
-                        } else {
-                            alert(`An error occurred: ${result.message}`);
-                        }
-                    } catch (error) {
-                        alert('A network or server error occurred. Please try again.');
-                    } finally {
-                        isAITaskRunning = false; 
-                        loadingContainer.innerHTML = '';
-                        updateUIBasedOnSelection();
-                        sidebarPanel.classList.remove('disabled');
-                    }
-                });
+            fileSelectModal.querySelectorAll('.close-btn').forEach(btn => {
+                btn.addEventListener('click', () => fileSelectModal.classList.remove('visible'));
             });
 
-            function updateUIBasedOnSelection() {
-                if (isAITaskRunning) return;
-                const selectedCount = document.querySelectorAll('.sidebar-section .file-checkbox:checked').length;
-                const isDisabled = selectedCount === 0;
-                
-                studyToolsContainer.classList.toggle('disabled', isDisabled);
-            }
-
-            document.querySelectorAll('.sidebar-section .file-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateUIBasedOnSelection);
-            });
-            updateUIBasedOnSelection();
-
-            document.querySelectorAll('.workflow-form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    if (isAITaskRunning) { e.preventDefault(); return; }
-                    const selectedFiles = document.querySelectorAll('.sidebar-section .file-checkbox:checked');
-                    if (selectedFiles.length === 0) {
-                        e.preventDefault();
-                        alert("Please select at least one document to start a workflow.");
-                        return;
-                    }
-                    isAITaskRunning = true;
-                    sidebarPanel.classList.add('disabled');
-                    this.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
-                    selectedFiles.forEach(checkbox => {
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = 'selected_files';
-                        hiddenInput.value = checkbox.value;
-                        this.appendChild(hiddenInput);
-                    });
-                });
-            });
-            
             const tabsContainer = document.querySelector('.tabs-container');
             tabsContainer.addEventListener('click', async (e) => {
                 const target = e.target;
@@ -1460,7 +1444,7 @@
                 }
                 if (addBtn) {
                     currentFolderId = addBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
-                    addItemsModal.style.display = 'flex';
+                    addItemsModal.classList.add('visible');
                 }
                 if (deleteBtn) {
                     const folderItem = deleteBtn.closest('.folder-accordion-item');
@@ -1485,7 +1469,7 @@
                 }
             });
 
-            addItemsModal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => addItemsModal.style.display = 'none'));
+            addItemsModal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => addItemsModal.classList.remove('visible')));
             document.getElementById('save-added-items-btn').addEventListener('click', async () => {
                 const selectedItems = Array.from(addItemsModal.querySelectorAll('input[type="checkbox"]:checked'))
                     .map(cb => ({ id: cb.dataset.id, type: cb.dataset.type }));
@@ -1499,7 +1483,7 @@
                         if (res.ok) window.location.reload(); else alert('Failed to add items.');
                     });
                 } else {
-                    addItemsModal.style.display = 'none';
+                    addItemsModal.classList.remove('visible');
                 }
             });            
             const showScheduleModalBtn = document.getElementById('show-schedule-modal-btn');
@@ -1509,17 +1493,17 @@
             function populateModalFileList() {
                 const modalFileList = document.getElementById('modal-file-list');
                 modalFileList.innerHTML = '';
-                const hubFiles = document.querySelectorAll('.sidebar-section .file-checkbox');
+                const hubFiles = document.querySelectorAll('.sidebar-section .file-info span');
                 
                 if (hubFiles.length > 0) {
-                    hubFiles.forEach(fileCheckbox => {
-                        const fileName = fileCheckbox.dataset.filename;
-                        const filePath = fileCheckbox.value;
+                     // This is slightly brittle; a better way would be to pass file data via JS
+                    const allFiles = {% for file in hub.files %}{ name: '{{ file.name }}', path: '{{ file.path }}' },{% endfor %};
+                    allFiles.forEach(file => {
                         const div = document.createElement('div');
                         div.className = 'modal-file-item';
                         div.innerHTML = `
-                            <label for="modal-file-${filePath}">${fileName}</label>
-                            <input type="checkbox" name="source_files" value="${filePath}" id="modal-file-${filePath}">
+                            <label for="schedule-modal-file-${file.path}">${file.name}</label>
+                            <input type="checkbox" name="source_files" value="${file.path}" id="schedule-modal-file-${file.path}">
                         `;
                         modalFileList.appendChild(div);
                     });
@@ -1530,16 +1514,19 @@
 
             showScheduleModalBtn.addEventListener('click', () => {
                 populateModalFileList();
-                scheduleModal.style.display = 'flex';
+                scheduleModal.classList.add('visible');
             });
             showImportModalBtn.addEventListener('click', () => {
-                importModal.style.display = 'flex';
+                importModal.classList.add('visible');
             });
 
 
-            [scheduleModal, importModal, detailsModal, addItemsModal].forEach(modal => {
+            [scheduleModal, importModal, detailsModal, addItemsModal, fileSelectModal].forEach(modal => {
                 if(modal) {
-                    modal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
+                    modal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => modal.classList.remove('visible')));
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) modal.classList.remove('visible');
+                    });
                 }
             });
 
@@ -1563,7 +1550,7 @@
                     body: JSON.stringify(eventData)
                 }).then(res => res.json()).then(result => {
                     if (result.success) {
-                        scheduleModal.style.display = 'none';
+                        scheduleModal.classList.remove('visible');
                         scheduleForm.reset();
                         if(calendar) calendar.refetchEvents();
                     } else {
