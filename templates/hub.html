@@ -342,31 +342,67 @@
         .slider-group input[type="range"] { flex-grow: 1; }
         .slider-group .slider-value { font-weight: 600; min-width: 30px; text-align: center; }
         
-        #modal-file-list, .modal-file-list {
+        /* CORRECTED STYLES START */
+        .modal-body p.modal-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: -1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .modal-file-list {
             background-color: var(--background-interactive-hover);
-            html[data-theme="dark"] & { background-color: #374151; }
             border: 1px solid var(--border-color);
-            html[data-theme="dark"] & { border-color: #4b5563; }
             max-height: 150px;
             overflow-y: auto;
             border-radius: 6px;
             padding: 0.5rem;
         }
         .modal-file-item {
+            padding: 0;
+        }
+        .modal-file-item label {
             display: flex;
+            width: 100%;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
             border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
-        .modal-file-item:hover {
-             background-color: var(--background-card);
-             html[data-theme="dark"] & { background-color: #4b5563; }
+        .modal-file-item label:hover {
+            background-color: var(--background-card);
         }
-        .modal-file-item label { font-size: 0.9rem; color: var(--text-main); text-transform: none; font-weight: 500; cursor: pointer; }
-        .form-group.checkbox-group label { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
-        .form-group.checkbox-group input { width: 1.1rem; height: 1.1rem; }
-
+        html[data-theme="dark"] .modal-file-item label:hover {
+            background-color: #4b5563;
+        }
+        .modal-file-item input[type="checkbox"] {
+            width: 1.1rem;
+            height: 1.1rem;
+            flex-shrink: 0;
+            accent-color: var(--primary-color);
+        }
+        input[type="date"] {
+            position: relative;
+            background-color: var(--background-body);
+            color: var(--text-main);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+             filter: var(--text-secondary);
+             opacity: 0.6;
+             cursor: pointer;
+        }
+        html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+             filter: invert(0.5);
+        }
+        input[type="date"]:invalid {
+            color: var(--text-secondary);
+        }
+        /* CORRECTED STYLES END */
+        
         .folder-accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; }
         .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; }
         .folder-header:hover { background-color: var(--background-interactive-hover); }
@@ -636,7 +672,6 @@
                                 <div class="pipeline-action"><button class="button button-primary">Start Writing</button></div>
                             </a>
 
-                            <!-- RESTORED LECTURE CAPTURE CARD -->
                             <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;">
@@ -932,7 +967,7 @@
             <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
             <form id="exam-kit-form">
                 <div class="modal-body">
-                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: -1rem; margin-bottom: 1.5rem;">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
+                     <p class="modal-description">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
                     <div class="form-group">
                         <label>Select Main Lectures/Syllabi</label>
                         <div id="exam-kit-lecture-files" class="modal-file-list"></div>
@@ -952,7 +987,7 @@
             <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div>
             <form id="study-plan-form">
                 <div class="modal-body">
-                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: -1rem; margin-bottom: 1.5rem;">Upload your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
+                    <p class="modal-description">Upload your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
                     <div class="form-group">
                         <label>Select Syllabus File(s)</label>
                         <div id="study-plan-syllabus-files" class="modal-file-list"></div>
@@ -991,7 +1026,7 @@
                     </div>
                     <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div>
                     <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div>
-                    <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list"></div></div>
+                    <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list" class="modal-file-list"></div></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div>
             </form>
@@ -1003,7 +1038,7 @@
             <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div>
             <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <p>Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p>
+                    <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p>
                     <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div>
                 </div>
                 <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div>
@@ -1142,8 +1177,8 @@
                 pastPaperContainer.innerHTML = '';
 
                 allFiles.forEach(file => {
-                    const lectureItem = `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="lecture_files" value="${file.path}"></div>`;
-                    const pastPaperItem = `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="past_paper_files" value="${file.path}"></div>`;
+                    const lectureItem = `<div class="modal-file-item"><label><input type="checkbox" name="lecture_files" value="${file.path}"> ${file.name}</label></div>`;
+                    const pastPaperItem = `<div class="modal-file-item"><label><input type="checkbox" name="past_paper_files" value="${file.path}"> ${file.name}</label></div>`;
                     lectureContainer.insertAdjacentHTML('beforeend', lectureItem);
                     pastPaperContainer.insertAdjacentHTML('beforeend', pastPaperItem);
                 });
@@ -1191,7 +1226,7 @@
                 const container = document.getElementById('study-plan-syllabus-files');
                 container.innerHTML = '';
                 allFiles.forEach(file => {
-                    container.innerHTML += `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="syllabus_files" value="${file.path}"></div>`;
+                    container.innerHTML += `<div class="modal-file-item"><label><input type="checkbox" name="syllabus_files" value="${file.path}"> ${file.name}</label></div>`;
                 });
             }
 
