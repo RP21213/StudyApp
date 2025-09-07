@@ -30,7 +30,6 @@
             --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
             
-            /* FullCalendar variables */
             --fc-border-color: var(--border-color);
             --fc-daygrid-event-dot-width: 8px;
             --fc-today-bg-color: rgba(79, 70, 229, 0.05);
@@ -57,7 +56,6 @@
             --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
             --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.12);
 
-            /* FullCalendar dark theme variables */
             --fc-border-color: var(--border-color);
             --fc-today-bg-color: rgba(99, 102, 241, 0.15);
             --fc-event-bg-color: var(--primary-light);
@@ -167,7 +165,7 @@
             white-space: nowrap;
         }
         .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .tab-content { display: none; padding: 1.5rem; }
+        .tab-content { display: none; padding: 2rem; }
         .tab-content.active { display: block; }
         .asset-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0 0.5rem 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
         .select-all-container { display: flex; align-items: center; gap: 0.5rem; }
@@ -188,48 +186,27 @@
         .asset-score { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); padding: 0 1rem; }
         .asset-actions { display: flex; gap: 0.5rem; }
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
-        .study-tools-container.disabled { pointer-events: none; user-select: none; }
-        .study-tools-container.disabled .workflow-button, .study-tools-container.disabled .quick-tool-btn, .study-tools-container.disabled .feature-card { opacity: 0.6; }
         
-        #tools-page-workflow-selection {
-            display: none; /* Hidden by default now */
-            background-color: var(--background-interactive-hover);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-        }
-        #workflow-title { margin-top: 0; font-size: 1.5rem; font-weight: 700; }
-        #workflow-options-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .checkbox-label { display: flex; align-items: center; padding: 1rem; background-color: var(--background-card); border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; }
-        .checkbox-label:hover { border-color: var(--primary-color); background-color: var(--primary-light); }
-        .checkbox-label input { width: 1.2rem; height: 1.2rem; accent-color: var(--primary-color); margin-right: 1rem; }
-        .checkbox-label span { font-weight: 500; font-family: 'Poppins', sans-serif; }
-        #workflow-selection-form button[type="submit"] { padding: 0.75rem 2rem; font-size: 1rem; }
+        .study-tools-container.disabled { pointer-events: none; user-select: none; }
+        .study-tools-container.disabled .pipeline-card { opacity: 0.6; }
         
         .section-heading {
             font-size: 1.5rem;
             font-weight: 700;
-            margin: 2.5rem 0 1.5rem 0;
+            margin: 0 0 1.5rem 0;
             padding-bottom: 0.75rem;
             border-bottom: 1px solid var(--border-color);
         }
-
-        .main-workflows-grid {
+        .pipeline-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
-        
-            
         }
-
-        .workflow-card {
+        .pipeline-card {
             background-color: var(--background-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 1.5rem;
-            text-align: left;
-            cursor: pointer;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -237,38 +214,47 @@
             box-shadow: var(--card-shadow);
             text-decoration: none;
             color: var(--text-main);
+            cursor: pointer;
         }
-        .workflow-card:hover:not(:disabled) {
+        .pipeline-card:hover:not(:disabled) {
             transform: translateY(-5px) scale(1.02);
             box-shadow: var(--card-shadow-hover);
             border-color: var(--primary-color);
         }
-        .workflow-card-content {
+        .pipeline-header {
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex-grow: 1;
         }
-        .workflow-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .pipeline-icon {
+            width: 48px; height: 48px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .workflow-text h4 {
-            margin: 0 0 0.25rem 0;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        .workflow-text p {
+        .pipeline-title h3 {
             margin: 0;
-            font-size: 0.9rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .pipeline-title .pro-label {
+            font-size: 0.75rem; font-weight: bold; color: #854d0e; 
+            background-color: #fef9c3; padding: 0.2rem 0.6rem; 
+            border-radius: 99px; margin-left: 0.5rem;
+        }
+        .pipeline-description {
+            font-size: 0.95rem;
             color: var(--text-secondary);
-            line-height: 1.5;
-            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        .pipeline-action {
+            margin-top: auto;
+            align-self: flex-start;
+        }
+        .all-tools-toggle {
+            text-align: center;
+            margin-top: 2.5rem;
         }
 
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
@@ -279,7 +265,6 @@
         .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
         .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
         .feature-card:hover:not(:disabled) .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
-        .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.1rem 0.5rem; border-radius: 99px; margin-left: 0.5rem; }
         
         .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
         .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; box-shadow: var(--card-shadow); }
@@ -340,77 +325,23 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loading-text h4 { margin: 0 0 0.25rem 0; color: var(--text-main); }
         .loading-text p { margin: 0; color: var(--primary-color); }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
         
-        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; }
-        #add-items-modal .modal-content { max-width: 500px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
         .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
         .modal-body { overflow-y: auto; padding-right: 1rem; }
         .modal-footer { margin-top: 2rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
         .modal-body .form-group { margin-bottom: 1.25rem; }
-
-        #schedule-event-modal .modal-content, #import-ics-modal .modal-content, #event-details-modal .modal-content {
-            background-color: var(--background-card);
-            border: 1px solid var(--border-color);
-            max-width: 550px;
+        .modal-body label, .modal-body .label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
+        .modal-body input[type="text"], .modal-body input[type="date"], .modal-body input[type="datetime-local"], .modal-body select, .modal-body textarea {
+            width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); box-sizing: border-box; font-family: 'Poppins'; font-size: 0.9rem;
         }
-        #schedule-event-modal .modal-header h3, #import-ics-modal .modal-header h3, #event-details-modal .modal-header h3 {
-            color: var(--text-main);
-        }
-        #schedule-event-modal .modal-body label, #import-ics-modal .modal-body label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: block;
-        }
-        #schedule-event-modal .modal-body input[type="text"],
-        #schedule-event-modal .modal-body input[type="datetime-local"],
-        #schedule-event-modal .modal-body select,
-        #schedule-event-modal .modal-body textarea,
-        #import-ics-modal .modal-body input[type="file"] {
-            background-color: var(--background-interactive-hover);
-            html[data-theme="dark"] & { background-color: #374151; }
-            border: 1px solid var(--border-color);
-            html[data-theme="dark"] & { border-color: #4b5563; }
-            color: var(--text-main);
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 6px;
-            font-family: 'Poppins';
-            font-size: 0.9rem;
-            box-sizing: border-box;
-        }
-        #schedule-event-modal .modal-body input::placeholder,
-        #schedule-event-modal .modal-body textarea::placeholder {
-            color: var(--text-secondary);
-        }
-        #schedule-event-modal .modal-footer, #import-ics-modal .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 1rem;
-        }
-        #schedule-event-modal .modal-footer .close-btn, #import-ics-modal .modal-footer .close-btn {
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 0.625rem 1.25rem;
-            background-color: transparent;
-            color: var(--text-secondary);
-            border: none;
-        }
-        #schedule-event-modal .modal-footer .close-btn:hover, #import-ics-modal .modal-footer .close-btn:hover {
-            background-color: var(--background-interactive-hover);
-            transform: none;
-            box-shadow: none;
-        }
-        #schedule-event-modal .modal-footer .button-primary, #import-ics-modal .modal-footer .button-primary {
-            padding: 0.625rem 1.25rem;
-            background: var(--primary-color);
-        }
+        .slider-group { display: flex; align-items: center; gap: 1rem; }
+        .slider-group input[type="range"] { flex-grow: 1; }
+        .slider-group .slider-value { font-weight: 600; min-width: 30px; text-align: center; }
+        
         #modal-file-list {
             background-color: var(--background-interactive-hover);
             html[data-theme="dark"] & { background-color: #374151; }
@@ -432,13 +363,9 @@
              background-color: var(--background-card);
              html[data-theme="dark"] & { background-color: #4b5563; }
         }
-        .modal-file-item label {
-            font-size: 0.9rem;
-            color: var(--text-main);
-            text-transform: none;
-            font-weight: 500;
-            cursor: pointer;
-        }
+        .modal-file-item label { font-size: 0.9rem; color: var(--text-main); text-transform: none; font-weight: 500; cursor: pointer; }
+        .form-group.checkbox-group label { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 500; }
+        .form-group.checkbox-group input { width: 1.1rem; height: 1.1rem; }
 
         .folder-accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; }
         .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; }
@@ -663,96 +590,87 @@
                     <button class="tab-button active" onclick="openTab(event, 'tools')">Study Tools</button>
                     <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
                     <button class="tab-button" onclick="openTab(event, 'calendar')">Calendar</button>
-                    <button class="tab-button" onclick="openTab(event, 'sessions')">My Sessions</button>
                     <button class="tab-button" onclick="openTab(event, 'folders')">My Folders</button>
                     <button class="tab-button" onclick="openTab(event, 'notes')">My Notes</button>
-                    <button class="tab-button" onclick="openTab(event, 'flashcards')">My Flashcards</button>
                     <button class="tab-button" onclick="openTab(event, 'quizzes')">My Quizzes</button>
                 </div>
                 
                 <div id="tools" class="tab-content active">
                     <div id="study-tools-container" class="study-tools-container">
-                        <h2 class="section-heading">Guided Workflows</h2>
-                        <div class="main-workflows-grid">
-                             <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                                    <div class="workflow-text"><h4>Assignment Writer <span class="pro-label">PRO</span></h4><p>Turn your brief and sources into a first draft.</p></div>
-                                </div>
-                            </a>
-                                        <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="workflow-card">
-                <div class="workflow-card-content">
-                    <div class="workflow-icon" style="background-color: #fee2e2; color: #991b1b;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" />
-                        </svg>
-                    </div>
-                    <div class="workflow-text">
-                        <h4>Live Lecture Capture <span class="pro-label">PRO</span></h4>
-                        <p>Record your lecture in real-time to generate structured notes automatically.</p>
-                    </div>
-                </div>
-            </a>
+                        <h2 class="section-heading">Get Started with a Goal</h2>
+                        <div class="pipeline-grid">
 
-                            <form action="{{ url_for('setup_session', hub_id=hub.id) }}" method="POST" class="workflow-form">
-                                <button type="submit" class="workflow-card">
-                                    <div class="workflow-card-content">
-                                        <div class="workflow-icon" style="background-color: #eef2ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84"/></svg></div>
-                                        <div class="workflow-text"><h4>Interactive Session <span class="pro-label">PRO</span></h4><p>Let AI guide you through a personalized study walkthrough.</p></div>
-                                    </div>
-                                </button>
-                            </form>
-                            <button type="button" id="exam-prep-btn" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-                                    <div class="workflow-text"><h4>Get Exam Ready <span class="pro-label">PRO</span></h4><p>Generate quizzes, cheat sheets, and more.</p></div>
+                            <div class="pipeline-card" id="pipeline-revision-pack">
+                                <div class="pipeline-header">
+                                    <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                                    <div class="pipeline-title"><h3>Revision Pack Builder</h3></div>
                                 </div>
-                            </button>
-                             <button type="button" id="revision-btn" class="workflow-card">
-                                <div class="workflow-card-content">
-                                    <div class="workflow-icon" style="background-color: #d1fae5; color: #065f46;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-                                    <div class="workflow-text"><h4>Make Revision Resources</h4><p>Create notes and flashcard decks.</p></div>
+                                <p class="pipeline-description">Turn lecture documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p>
+                                <div class="pipeline-action"><button class="button button-primary">Build Pack</button></div>
+                            </div>
+
+                            <div class="pipeline-card" id="pipeline-exam-kit">
+                                <div class="pipeline-header">
+                                    <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                                    <div class="pipeline-title"><h3>Exam Readiness Kit<span class="pro-label">PRO</span></h3></div>
                                 </div>
-                            </button>
+                                <p class="pipeline-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p>
+                                <div class="pipeline-action"><button class="button button-primary">Prepare for Exam</button></div>
+                            </div>
+                            
+                            <div class="pipeline-card" id="pipeline-study-planner">
+                                <div class="pipeline-header">
+                                    <div class="pipeline-icon" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
+                                    <div class="pipeline-title"><h3>Smart Study Planner<span class="pro-label">PRO</span></h3></div>
+                                </div>
+                                <p class="pipeline-description">Upload a syllabus and your deadline to automatically create a structured, week-by-week study schedule in your calendar.</p>
+                                <div class="pipeline-action"><button class="button button-primary">Create Plan</button></div>
+                            </div>
+
+                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="pipeline-card">
+                                <div class="pipeline-header">
+                                    <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                                    <div class="pipeline-title"><h3>Assignment Assistant<span class="pro-label">PRO</span></h3></div>
+                                </div>
+                                <p class="pipeline-description">Go from an assignment brief and your source documents to a structured outline and first draft in minutes.</p>
+                                <div class="pipeline-action"><button class="button button-primary">Start Writing</button></div>
+                            </a>
+
                         </div>
                         
-                        <div id="tools-page-workflow-selection">
-                            <h3 id="workflow-title"></h3>
-                            <p style="color: var(--text-secondary); margin-top: 0; margin-bottom: 1rem;">Select resources to generate. They will be added to a new folder in 'My Folders'.</p>
-                            <form id="workflow-selection-form">
-                                <div id="workflow-options-container"></div>
-                                <input type="hidden" name="workflow_type" id="workflow-type-input">
-                                <button type="submit" class="button button-primary">Generate Folder</button>
-                            </form>
+                        <div class="all-tools-toggle">
+                            <button class="button button-secondary" id="all-tools-toggle-btn">Show All Individual Tools</button>
                         </div>
-
-                        <h2 class="section-heading">Quick Tools</h2>
-                        <div class="feature-grid">
-                            <button type="button" class="feature-card quick-tool-btn" value="notes">
-                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
-                                <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="flashcards">
-                                <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="quiz">
-                                <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
-                                <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                                <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
-                            <button type="button" class="feature-card quick-tool-btn" value="analyse">
-                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
-                                <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
-                                <span class="feature-arrow">→</span>
-                            </button>
+                        
+                        <div id="all-tools-container" style="display: none; margin-top: 2rem;">
+                            <h2 class="section-heading">All Tools</h2>
+                            <div class="feature-grid">
+                                <button type="button" class="feature-card quick-tool-btn" value="notes">
+                                    <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+                                    <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
+                                    <span class="feature-arrow">→</span>
+                                </button>
+                                <button type="button" class="feature-card quick-tool-btn" value="flashcards">
+                                    <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
+                                    <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
+                                    <span class="feature-arrow">→</span>
+                                </button>
+                                <button type="button" class="feature-card quick-tool-btn" value="quiz">
+                                    <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
+                                    <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
+                                    <span class="feature-arrow">→</span>
+                                </button>
+                                <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
+                                    <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                    <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
+                                    <span class="feature-arrow">→</span>
+                                </button>
+                                <button type="button" class="feature-card quick-tool-btn" value="analyse">
+                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
+                                    <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
+                                    <span class="feature-arrow">→</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -798,26 +716,6 @@
                     </div>
                 </div>
 
-                <div id="sessions" class="tab-content">
-                    <div class="asset-list-header">
-                        <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-sessions"><label for="select-all-sessions">Select All</label></div>
-                        <button class="button button-danger delete-selected-btn" style="display: none;">Delete Selected</button>
-                    </div>
-                    <ul class="asset-list">
-                        {% for session in all_sessions %}
-                        <li class="asset-item" data-id="{{ session.id }}" data-type="session">
-                            <input type="checkbox" class="asset-checkbox">
-                            <a href="{{ url_for('session_report', session_id=session.id) }}" class="asset-link">
-                                <div class="asset-icon asset-icon-session"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.63 2.18a14.98 14.98 0 00-5.84 7.38m5.84 2.58a14.98 14.98 0 017.38 5.84"/></svg></div>
-                                <div class="asset-details"><h5>{{ session.title }}</h5><span>Completed {{ session.created_at|timesince }} ago</span></div>
-                            </a>
-                        </li>
-                        {% else %}
-                        <li class="empty-state-text"><p>No sessions yet.</p></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                
                 <div id="folders" class="tab-content">
                     <div class="content-card" style="margin-bottom: 2rem; padding: 1.5rem;">
                         <form action="{{ url_for('create_folder', hub_id=hub.id) }}" method="POST">
@@ -903,25 +801,6 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <div id="flashcards" class="tab-content">
-                     <div class="asset-list-header">
-                        <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-flashcards"><label for="select-all-flashcards">Select All</label></div>
-                        <button class="button button-danger delete-selected-btn" style="display: none;">Delete Selected</button>
-                    </div>
-                    <ul class="asset-list">
-                        {% for card_set in all_flashcards %}
-                        <li class="asset-item" data-id="{{ card_set.id }}" data-type="flashcards">
-                             <input type="checkbox" class="asset-checkbox">
-                            <a href="{{ url_for('edit_flashcard_set', activity_id=card_set.id) }}" class="asset-link">
-                                <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-                                <div class="asset-details"><h5 id="title-flashcards-{{ card_set.id }}">{{ card_set.title or 'Flashcard Set' }}</h5><span>Created {{ card_set.created_at|timesince }} ago</span></div>
-                            </a>
-                        </li>
-                        {% else %}
-                        <li class="empty-state-text"><p>You haven't generated any flashcards yet.</p></li>
-                        {% endfor %}
-                    </ul>
-                </div>
                 
                 <div id="quizzes" class="tab-content">
                     <div class="asset-list-header">
@@ -1000,13 +879,85 @@
         </aside>
     </div>
 
+    <!-- Modals for Pipelines -->
+    <div class="modal-overlay" id="revision-pack-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div>
+            <form id="revision-pack-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="num-flashcards">Number of Flashcards</label>
+                        <div class="slider-group">
+                            <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5">
+                            <span class="slider-value" id="num-flashcards-value">20</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="num-quiz-questions">Number of Quiz Questions</label>
+                         <div class="slider-group">
+                            <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5">
+                            <span class="slider-value" id="num-quiz-questions-value">10</span>
+                        </div>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="include-notes" name="include_notes" checked>
+                            Include condensed revision notes
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="exam-kit-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
+            <form id="exam-kit-form">
+                <div class="modal-body">
+                     <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: -1rem; margin-bottom: 1.5rem;">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
+                    <div class="form-group">
+                        <label>Select Main Lectures/Syllabi</label>
+                        <div id="exam-kit-lecture-files" class="modal-file-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Past Papers (Optional)</label>
+                        <div id="exam-kit-past-paper-files" class="modal-file-list"></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="study-plan-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div>
+            <form id="study-plan-form">
+                <div class="modal-body">
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: -1rem; margin-bottom: 1.5rem;">Upload your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
+                    <div class="form-group">
+                        <label>Select Syllabus File(s)</label>
+                        <div id="study-plan-syllabus-files" class="modal-file-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="study-plan-deadline">Exam/Assignment Deadline</label>
+                        <input type="date" id="study-plan-deadline" name="deadline" required>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Other Modals -->
     <div class="modal-overlay" id="add-items-modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div>
             <div class="modal-body">
                 {% if all_notes %}<h4>Notes</h4><ul class="asset-list">{% for note in all_notes %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ note.id }}" data-type="note" style="margin-right:1rem;"> {{ note.title }}</label></li>{% endfor %}</ul>{% endif %}
                 {% if all_quizzes_and_exams %}<h4>Quizzes</h4><ul class="asset-list">{% for quiz in all_quizzes_and_exams %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz" style="margin-right:1rem;"> {{ quiz.title }}</label></li>{% endfor %}</ul>{% endif %}
-                {% if all_flashcards %}<h4>Flashcards</h4><ul class="asset-list">{% for fc in all_flashcards %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ fc.id }}" data-type="flashcards" style="margin-right:1rem;"> {{ fc.title }}</label></li>{% endfor %}</ul>{% endif %}
             </div>
             <div class="modal-footer"><button class="button button-secondary close-btn">Cancel</button><button class="button button-primary" id="save-added-items-btn">Add Selected Items</button></div>
         </div>
@@ -1014,99 +965,46 @@
 
     <div class="modal-overlay" id="schedule-event-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Schedule a New Session</h3>
-                <button class="close-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Schedule a New Session</h3><button class="close-btn">&times;</button></div>
             <form id="schedule-event-form">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="event-title">Event Title</label>
-                        <input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required>
-                    </div>
+                    <div class="form-group"><label for="event-title">Event Title</label><input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required></div>
                     <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div>
-                            <label for="event-type">Type</label>
-                            <select id="event-type" name="event_type">
-                                <option>Study Session</option>
-                                <option>Mock Exam</option>
-                                <option>Flashcard Review</option>
-                                <option>Draft Review</option>
-                                <option>Custom</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="event-duration">Duration (minutes)</label>
-                            <select id="event-duration" name="duration">
-                                <option value="20">20 mins</option>
-                                <option value="40" selected>40 mins</option>
-                                <option value="60">60 mins</option>
-                                <option value="90">90 mins</option>
-                            </select>
-                        </div>
+                        <div><label for="event-type">Type</label><select id="event-type" name="event_type"><option>Study Session</option><option>Mock Exam</option><option>Flashcard Review</option><option>Draft Review</option><option>Custom</option></select></div>
+                        <div><label for="event-duration">Duration (minutes)</label><select id="event-duration" name="duration"><option value="20">20 mins</option><option value="40" selected>40 mins</option><option value="60">60 mins</option><option value="90">90 mins</option></select></div>
                     </div>
-                    <div class="form-group">
-                        <label for="event-start-time">Start Time</label>
-                        <input type="datetime-local" id="event-start-time" name="start_time" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="event-focus">Focus / Goal</label>
-                        <textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Source Files (Optional)</label>
-                        <div id="modal-file-list">
-                        </div>
-                    </div>
+                    <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div>
+                    <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div>
+                    <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list"></div></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="button button-secondary close-btn">Cancel</button>
-                    <button type="submit" class="button button-primary">Create Event</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div>
             </form>
         </div>
     </div>
 
     <div class="modal-overlay" id="import-ics-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Import Calendar</h3>
-                <button class="close-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div>
             <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
                     <p>Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p>
-                    <div class="form-group">
-                        <label for="ics-file-upload">Select .ics file</label>
-                        <input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required>
-                    </div>
+                    <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="button button-secondary close-btn">Cancel</button>
-                    <button type="submit" class="button button-primary">Import Events</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div>
             </form>
         </div>
     </div>
 
     <div class="modal-overlay" id="event-details-modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="details-modal-title">Event Details</h3>
-                <button class="close-btn">&times;</button>
-            </div>
+            <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div>
             <div class="modal-body">
-                <strong>Time & Date</strong>
-                <p id="details-modal-time"></p>
-                <strong>Focus / Details</strong>
-                <p id="details-modal-focus"></p>
+                <strong>Time & Date</strong><p id="details-modal-time"></p>
+                <strong>Focus / Details</strong><p id="details-modal-focus"></p>
             </div>
-            <div class="modal-footer" style="justify-content: flex-end;">
-                <a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a>
-            </div>
+            <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div>
         </div>
     </div>
-
 
     <script>
         function openTab(evt, tabName) {
@@ -1121,209 +1019,210 @@
             const hubId = '{{ hub.id }}';
             let calendar; 
 
-            const calendarEl = document.getElementById('fullcalendar');
-            const scheduleModal = document.getElementById('schedule-event-modal');
-            const detailsModal = document.getElementById('event-details-modal');
-            const importModal = document.getElementById('import-ics-modal');
-
-            function initializeCalendar() {
-                if (calendar) {
-                    calendar.destroy();
-                }
-                calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    events: `/hub/${hubId}/events`,
-                    editable: false, 
-                    selectable: true,
-                    dateClick: function(info) {
-                        const startTimeInput = document.getElementById('event-start-time');
-                        const now = new Date();
-                        const selectedDate = info.date;
-                        selectedDate.setHours(now.getHours(), now.getMinutes());
-                        const localIsoString = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-                        startTimeInput.value = localIsoString;
-                        
-                        populateModalFileList();
-                        scheduleModal.style.display = 'flex';
-                    },
-                    eventClick: function(info) {
-                        const event = info.event;
-                        const props = event.extendedProps;
-                        
-                        document.getElementById('details-modal-title').innerHTML = `${event.title} <span class="event-type-badge" style="background-color:${event.backgroundColor};">${props.eventType}</span>`;
-
-                        const startTime = event.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                        const endTime = event.end ? event.end.toLocaleString([], { timeStyle: 'short' }) : '';
-                        document.getElementById('details-modal-time').textContent = endTime ? `${startTime} - ${endTime}` : startTime;
-                        document.getElementById('details-modal-focus').textContent = props.focus;
-                        document.getElementById('details-modal-export-btn').href = props.exportUrl;
-
-                        detailsModal.style.display = 'flex';
-                    }
-                });
-                calendar.render();
-            }
-
-            const anchor = window.location.hash.substring(1);
-            if (anchor) {
-                const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
-                if (tabButton) {
-                    tabButton.click();
-                }
-            } else {
-                document.querySelector(".tab-button[onclick*='tools']").classList.add('active');
-                document.getElementById('tools').style.display = 'block';
-            }
-
-            document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
-                 if (!calendar) {
-                    initializeCalendar();
-                 } else {
-                    setTimeout(() => calendar.render(), 10);
-                 }
-            });
-
-            if (anchor === 'calendar') {
-                initializeCalendar();
-            }
-
-            const themeToggle = document.getElementById('theme-toggle');
-            if (localStorage.getItem('theme') === 'dark') {
-                themeToggle.checked = true;
-            }
-            themeToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    localStorage.setItem('theme', 'light');
-                }
-            });
-
             const studyToolsContainer = document.getElementById('study-tools-container');
             const loadingContainer = document.getElementById('loading-status-container');
             const sidebarPanel = document.getElementById('files-panel-sidebar');
             let isAITaskRunning = false;
             
-            const workflowSelectionContainer = document.getElementById('tools-page-workflow-selection');
+            // --- UI Elements ---
+            const allModals = document.querySelectorAll('.modal-overlay');
+            const revisionModal = document.getElementById('revision-pack-modal');
+            const examKitModal = document.getElementById('exam-kit-modal');
+            const studyPlanModal = document.getElementById('study-plan-modal');
+            const calendarEl = document.getElementById('fullcalendar');
+            const scheduleModal = document.getElementById('schedule-event-modal');
+            const detailsModal = document.getElementById('event-details-modal');
+            const importModal = document.getElementById('import-ics-modal');
 
-            const workflowOptions = {
-                exam: {
-                    title: 'Get Exam Ready',
-                    tools: [
-                        { value: 'quiz', label: 'Practice Quiz' },
-                        { value: 'exam', label: 'Mock Exam' },
-                        { value: 'cheatsheet', label: 'Cheat Sheet' },
-                        { value: 'analyse', label: 'Past Paper Analysis' }
-                    ]
-                },
-                revision: {
-                    title: 'Make Revision Resources',
-                    tools: [
-                        { value: 'notes', label: 'Interactive Notes' },
-                        { value: 'flashcards', label: 'Flashcard Deck' }
-                    ]
-                }
-            };
-
-            const workflowTitleEl = document.getElementById('workflow-title');
-            const workflowOptionsContainer = document.getElementById('workflow-options-container');
-            const workflowTypeInput = document.getElementById('workflow-type-input');
-            const workflowForm = document.getElementById('workflow-selection-form');
-
-            function showWorkflowSelection(type) {
-                const config = workflowOptions[type];
-                workflowTitleEl.textContent = config.title;
-                workflowTypeInput.value = type;
-
-                workflowOptionsContainer.innerHTML = '';
-                config.tools.forEach(tool => {
-                    const label = document.createElement('label');
-                    label.className = 'checkbox-label';
-                    label.innerHTML = `
-                        <input type="checkbox" name="selected_tools" value="${tool.value}">
-                        <span>${tool.label}</span>
-                    `;
-                    workflowOptionsContainer.appendChild(label);
+            // --- Generic Modal Handling ---
+            allModals.forEach(modal => {
+                modal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.style.display = 'none';
                 });
-                
-                workflowSelectionContainer.style.display = 'block';
-            }
+            });
 
-            document.getElementById('exam-prep-btn').addEventListener('click', () => showWorkflowSelection('exam'));
-            document.getElementById('revision-btn').addEventListener('click', () => showWorkflowSelection('revision'));
-            
-            workflowForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (isAITaskRunning) return;
-
-                const selectedFiles = Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
-                const selectedTools = Array.from(document.querySelectorAll('#workflow-options-container input:checked')).map(cb => cb.value);
-                
-                if (selectedFiles.length === 0) {
-                    alert("Please select at least one document to generate resources.");
-                    return;
-                }
-                if (selectedTools.length === 0) {
-                    alert("Please select at least one resource to generate.");
-                    return;
-                }
-
+            function showLoading(message, subtext) {
                 isAITaskRunning = true;
                 studyToolsContainer.classList.add('disabled');
-                sidebarPanel.classList.add('disabled');
-                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating your resources...</h4><p>This may take a moment. A new folder will be created upon completion.</p></div></div>`;
-                
-                workflowSelectionContainer.style.display = 'none';
+                sidebarPanel.style.opacity = '0.5';
+                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>${message}</h4><p>${subtext}</p></div></div>`;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function hideLoading() {
+                isAITaskRunning = false;
+                loadingContainer.innerHTML = '';
+                studyToolsContainer.classList.remove('disabled');
+                sidebarPanel.style.opacity = '1';
+                updateUIBasedOnSelection();
+            }
+
+            // --- Pipeline 1: Revision Pack ---
+            document.getElementById('pipeline-revision-pack').addEventListener('click', () => {
+                if(getSelectedFiles().length === 0) return alert("Please select at least one document from the sidebar to create a revision pack.");
+                revisionModal.style.display = 'flex';
+            });
+
+            const numFlashcardsSlider = document.getElementById('num-flashcards');
+            const numFlashcardsValue = document.getElementById('num-flashcards-value');
+            numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
+
+            const numQuizSlider = document.getElementById('num-quiz-questions');
+            const numQuizValue = document.getElementById('num-quiz-questions-value');
+            numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
+
+            document.getElementById('revision-pack-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const selectedFiles = getSelectedFiles();
+                if(selectedFiles.length === 0) return alert("An error occurred. Please ensure documents are selected.");
+
+                const formData = new FormData(e.target);
+                const payload = {
+                    selected_files: selectedFiles,
+                    num_flashcards: formData.get('num_flashcards'),
+                    num_quiz_questions: formData.get('num_quiz_questions'),
+                    include_notes: formData.has('include_notes')
+                };
+
+                revisionModal.style.display = 'none';
+                showLoading("Building Your Revision Pack...", "This might take a moment. A new folder will be created when done.");
 
                 try {
-                    const response = await fetch(`/hub/${hubId}/generate_workflow_folder`, {
+                    const response = await fetch(`/hub/${hubId}/build_revision_pack`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            workflow_type: workflowTypeInput.value,
-                            selected_tools: selectedTools,
-                            selected_files: selectedFiles
-                        })
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload)
                     });
                     const result = await response.json();
                     if (result.success) {
                         window.location.hash = 'folders';
                         window.location.reload();
                     } else {
-                        alert(`An error occurred: ${result.message}`);
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
                     }
                 } catch (error) {
-                    alert('A network or server error occurred. Please try again.');
-                } finally {
-                    loadingContainer.innerHTML = '';
-                    isAITaskRunning = false;
-                    updateUIBasedOnSelection();
-                    sidebarPanel.classList.remove('disabled');
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
+            });
+
+            // --- Pipeline 2: Exam Readiness Kit ---
+            document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
+                if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
+                populateExamKitFilePickers();
+                examKitModal.style.display = 'flex';
+            });
+
+            function populateExamKitFilePickers() {
+                const allFiles = getAllFiles();
+                const lectureContainer = document.getElementById('exam-kit-lecture-files');
+                const pastPaperContainer = document.getElementById('exam-kit-past-paper-files');
+                lectureContainer.innerHTML = '';
+                pastPaperContainer.innerHTML = '';
+
+                allFiles.forEach(file => {
+                    const lectureItem = `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="lecture_files" value="${file.path}"></div>`;
+                    const pastPaperItem = `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="past_paper_files" value="${file.path}"></div>`;
+                    lectureContainer.insertAdjacentHTML('beforeend', lectureItem);
+                    pastPaperContainer.insertAdjacentHTML('beforeend', pastPaperItem);
+                });
+            }
+
+            document.getElementById('exam-kit-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const lectureFiles = Array.from(e.target.querySelectorAll('input[name="lecture_files"]:checked')).map(cb => cb.value);
+                const pastPaperFiles = Array.from(e.target.querySelectorAll('input[name="past_paper_files"]:checked')).map(cb => cb.value);
+
+                if(lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
+
+                examKitModal.style.display = 'none';
+                showLoading("Assembling Your Exam Kit...", "Analyzing documents and generating resources. Please wait.");
+
+                 try {
+                    const response = await fetch(`/hub/${hubId}/build_exam_kit`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ lecture_files: lectureFiles, past_paper_files: pastPaperFiles })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        window.location.hash = 'folders';
+                        window.location.reload();
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
                 }
             });
             
+            // --- Pipeline 3: Smart Study Planner ---
+            document.getElementById('pipeline-study-planner').addEventListener('click', () => {
+                if (getAllFiles().length === 0) return alert("Please upload a syllabus document to create a study plan.");
+                populateStudyPlanFilePicker();
+                studyPlanModal.style.display = 'flex';
+            });
+
+            function populateStudyPlanFilePicker() {
+                const allFiles = getAllFiles();
+                const container = document.getElementById('study-plan-syllabus-files');
+                container.innerHTML = '';
+                allFiles.forEach(file => {
+                    container.innerHTML += `<div class="modal-file-item"><label>${file.name}</label><input type="checkbox" name="syllabus_files" value="${file.path}"></div>`;
+                });
+            }
+
+            document.getElementById('study-plan-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const syllabusFiles = Array.from(e.target.querySelectorAll('input[name="syllabus_files"]:checked')).map(cb => cb.value);
+                const deadline = e.target.querySelector('input[name="deadline"]').value;
+                if(syllabusFiles.length === 0) return alert("Please select at least one syllabus document.");
+                if(!deadline) return alert("Please set a deadline.");
+                
+                studyPlanModal.style.display = 'none';
+                showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
+
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_study_plan`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline })
+                    });
+                    const result = await response.json();
+                     if (result.success) {
+                        window.location.hash = 'calendar';
+                        window.location.reload();
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
+            });
+
+            // --- All Tools Toggle ---
+            document.getElementById('all-tools-toggle-btn').addEventListener('click', (e) => {
+                const container = document.getElementById('all-tools-container');
+                const isHidden = container.style.display === 'none';
+                container.style.display = isHidden ? 'block' : 'none';
+                e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
+            });
+
+            // --- Quick Tools (Individual) ---
             document.querySelectorAll('.quick-tool-btn').forEach(button => {
                 button.addEventListener('click', async (e) => {
-                    if (isAITaskRunning) { return; }
-                    
+                    if (isAITaskRunning) return;
                     const toolName = e.currentTarget.value;
-                    const selectedFiles = Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
-                    if (selectedFiles.length === 0) {
-                        alert("Please select at least one document to use this tool.");
-                        return;
-                    }
+                    const selectedFiles = getSelectedFiles();
+                    if (selectedFiles.length === 0) return alert("Please select at least one document to use this tool.");
 
-                    isAITaskRunning = true;
-                    studyToolsContainer.classList.add('disabled');
-                    sidebarPanel.classList.add('disabled');
-                    loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>Generating ${toolName.charAt(0).toUpperCase() + toolName.slice(1)}...</h4><p>This may take a moment. Please wait.</p></div></div>`;
+                    showLoading(`Generating ${toolName}...`, "This may take a moment. Please wait.");
                     
                     try {
                         const response = await fetch(`/hub/${hubId}/run_async_tool`, {
@@ -1335,277 +1234,80 @@
                         if (result.success) {
                             window.location.href = result.redirect_url;
                         } else {
-                            alert(`An error occurred: ${result.message}`);
+                            alert(`Error: ${result.message}`);
+                            hideLoading();
                         }
                     } catch (error) {
-                        alert('A network or server error occurred. Please try again.');
-                    } finally {
-                        isAITaskRunning = false; 
-                        loadingContainer.innerHTML = '';
-                        updateUIBasedOnSelection();
-                        sidebarPanel.classList.remove('disabled');
+                        alert('A network or server error occurred.');
+                        hideLoading();
                     }
                 });
             });
 
+            // --- Helper Functions for File Selection ---
+            function getSelectedFiles() {
+                return Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
+            }
+            function getAllFiles() {
+                return Array.from(document.querySelectorAll('.sidebar-section .file-checkbox')).map(cb => ({ name: cb.dataset.filename, path: cb.value }));
+            }
             function updateUIBasedOnSelection() {
                 if (isAITaskRunning) return;
-                const selectedCount = document.querySelectorAll('.sidebar-section .file-checkbox:checked').length;
+                const selectedCount = getSelectedFiles().length;
                 const isDisabled = selectedCount === 0;
-                
                 studyToolsContainer.classList.toggle('disabled', isDisabled);
             }
-
             document.querySelectorAll('.sidebar-section .file-checkbox').forEach(cb => {
                 cb.addEventListener('change', updateUIBasedOnSelection);
             });
             updateUIBasedOnSelection();
 
-            document.querySelectorAll('.workflow-form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    if (isAITaskRunning) { e.preventDefault(); return; }
-                    const selectedFiles = document.querySelectorAll('.sidebar-section .file-checkbox:checked');
-                    if (selectedFiles.length === 0) {
-                        e.preventDefault();
-                        alert("Please select at least one document to start a workflow.");
-                        return;
+            // --- Calendar Logic ---
+            function initializeCalendar() {
+                if (calendar) calendar.destroy();
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+                    events: `/hub/${hubId}/events`,
+                    eventClick: function(info) {
+                        const event = info.event;
+                        const props = event.extendedProps;
+                        document.getElementById('details-modal-title').innerHTML = `${event.title} <span class="event-type-badge" style="background-color:${event.backgroundColor};">${props.eventType}</span>`;
+                        const startTime = event.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                        const endTime = event.end ? event.end.toLocaleString([], { timeStyle: 'short' }) : '';
+                        document.getElementById('details-modal-time').textContent = endTime ? `${startTime} - ${endTime}` : startTime;
+                        document.getElementById('details-modal-focus').textContent = props.focus;
+                        document.getElementById('details-modal-export-btn').href = props.exportUrl;
+                        detailsModal.style.display = 'flex';
                     }
-                    isAITaskRunning = true;
-                    sidebarPanel.classList.add('disabled');
-                    this.querySelectorAll('input[type="hidden"]').forEach(input => input.remove());
-                    selectedFiles.forEach(checkbox => {
-                        const hiddenInput = document.createElement('input');
-                        hiddenInput.type = 'hidden';
-                        hiddenInput.name = 'selected_files';
-                        hiddenInput.value = checkbox.value;
-                        this.appendChild(hiddenInput);
-                    });
                 });
-            });
-            
-            const tabsContainer = document.querySelector('.tabs-container');
-            tabsContainer.addEventListener('click', async (e) => {
-                const target = e.target;
-                const tabContent = target.closest('.tab-content');
-
-                function updateSelectionUI(currentTab) {
-                    if (!currentTab) return;
-                    const deleteBtn = currentTab.querySelector('.delete-selected-btn');
-                    const selectAllCheckbox = currentTab.querySelector('.select-all-checkbox');
-                    const allCheckboxes = currentTab.querySelectorAll('.asset-checkbox');
-                    const selectedCheckboxes = currentTab.querySelectorAll('.asset-checkbox:checked');
-
-                    if (deleteBtn) {
-                        deleteBtn.style.display = selectedCheckboxes.length > 0 ? 'inline-flex' : 'none';
-                        if (selectedCheckboxes.length > 0) {
-                            deleteBtn.textContent = `Delete Selected (${selectedCheckboxes.length})`;
-                        }
-                    }
-                    if (selectAllCheckbox) {
-                        selectAllCheckbox.checked = allCheckboxes.length > 0 && selectedCheckboxes.length === allCheckboxes.length;
-                    }
-                }
-
-                if (target.classList.contains('asset-checkbox')) {
-                    target.closest('.asset-item').classList.toggle('selected', target.checked);
-                    updateSelectionUI(tabContent);
-                }
-
-                if (target.classList.contains('select-all-checkbox')) {
-                    const isChecked = target.checked;
-                    tabContent.querySelectorAll('.asset-checkbox').forEach(cb => {
-                        cb.checked = isChecked;
-                        cb.closest('.asset-item').classList.toggle('selected', isChecked);
-                    });
-                    updateSelectionUI(tabContent);
-                }
-
-                if (target.classList.contains('delete-selected-btn')) {
-                    const selectedItems = tabContent.querySelectorAll('.asset-item.selected');
-                    if (selectedItems.length === 0 || !confirm(`Are you sure you want to delete these ${selectedItems.length} item(s)?`)) return;
-                    
-                    const itemsToDelete = Array.from(selectedItems).map(item => ({ id: item.dataset.id, type: item.dataset.type }));
-                    target.textContent = 'Deleting...';
-                    target.disabled = true;
-
-                    fetch('/hub/batch_delete', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ items: itemsToDelete })
-                    }).then(res => res.json()).then(result => {
-                        if (result.success) {
-                            selectedItems.forEach(item => item.remove());
-                        } else {
-                            alert(`Error: ${result.message}`);
-                        }
-                    }).catch(() => alert('A network error occurred.'))
-                    .finally(() => {
-                        updateSelectionUI(tabContent);
-                    });
-                }
-            });
-
-            const folderContainer = document.getElementById('folder-accordion-container');
-            const addItemsModal = document.getElementById('add-items-modal');
-            let currentFolderId = null;
-
-            folderContainer.addEventListener('click', async (e) => {
-                const header = e.target.closest('.folder-header');
-                const addBtn = e.target.closest('.add-items-to-folder-btn');
-                const deleteBtn = e.target.closest('.delete-folder-btn');
-                const removeBtn = e.target.closest('.remove-item-btn');
-
-                if (header && !addBtn && !deleteBtn) {
-                    header.nextElementSibling.classList.toggle('open');
-                }
-                if (addBtn) {
-                    currentFolderId = addBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
-                    addItemsModal.style.display = 'flex';
-                }
-                if (deleteBtn) {
-                    const folderItem = deleteBtn.closest('.folder-accordion-item');
-                    const folderId = folderItem.querySelector('.folder-header').dataset.folderId;
-                    if (confirm('Are you sure you want to delete this folder? (Items inside will not be deleted).')) {
-                        fetch(`/folder/${folderId}/delete`, { method: 'POST' }).then(res => {
-                            if (res.ok) folderItem.remove(); else alert('Failed to delete folder.');
-                        });
-                    }
-                }
-                if (removeBtn) {
-                    const itemEl = removeBtn.closest('.asset-item');
-                    const folderId = removeBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
-                    const item = { id: itemEl.dataset.id, type: itemEl.dataset.type };
-                    fetch(`/folder/${folderId}/remove_item`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ item: item })
-                    }).then(res => {
-                        if (res.ok) itemEl.remove(); else alert('Failed to remove item.');
-                    });
-                }
-            });
-
-            addItemsModal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => addItemsModal.style.display = 'none'));
-            document.getElementById('save-added-items-btn').addEventListener('click', async () => {
-                const selectedItems = Array.from(addItemsModal.querySelectorAll('input[type="checkbox"]:checked'))
-                    .map(cb => ({ id: cb.dataset.id, type: cb.dataset.type }));
-                
-                if (selectedItems.length > 0 && currentFolderId) {
-                    fetch(`/folder/${currentFolderId}/add_items`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ items: selectedItems })
-                    }).then(res => {
-                        if (res.ok) window.location.reload(); else alert('Failed to add items.');
-                    });
-                } else {
-                    addItemsModal.style.display = 'none';
-                }
-            });            
-            const showScheduleModalBtn = document.getElementById('show-schedule-modal-btn');
-            const scheduleForm = document.getElementById('schedule-event-form');
-            const showImportModalBtn = document.getElementById('show-import-modal-btn');
-            
-            function populateModalFileList() {
-                const modalFileList = document.getElementById('modal-file-list');
-                modalFileList.innerHTML = '';
-                const hubFiles = document.querySelectorAll('.sidebar-section .file-checkbox');
-                
-                if (hubFiles.length > 0) {
-                    hubFiles.forEach(fileCheckbox => {
-                        const fileName = fileCheckbox.dataset.filename;
-                        const filePath = fileCheckbox.value;
-                        const div = document.createElement('div');
-                        div.className = 'modal-file-item';
-                        div.innerHTML = `
-                            <label for="modal-file-${filePath}">${fileName}</label>
-                            <input type="checkbox" name="source_files" value="${filePath}" id="modal-file-${filePath}">
-                        `;
-                        modalFileList.appendChild(div);
-                    });
-                } else {
-                    modalFileList.innerHTML = '<p style="font-size: 0.9rem; color: var(--text-secondary); padding: 0.5rem;">No documents in hub.</p>';
-                }
+                calendar.render();
             }
 
-            showScheduleModalBtn.addEventListener('click', () => {
-                populateModalFileList();
-                scheduleModal.style.display = 'flex';
+            // --- Tab and Page Load Logic ---
+            const anchor = window.location.hash.substring(1);
+            if (anchor) {
+                const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
+                if (tabButton) tabButton.click();
+            } else {
+                document.querySelector(".tab-button[onclick*='tools']").classList.add('active');
+                document.getElementById('tools').style.display = 'block';
+            }
+            document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
+                 if (!calendar) initializeCalendar();
+                 else setTimeout(() => calendar.render(), 10);
             });
-            showImportModalBtn.addEventListener('click', () => {
-                importModal.style.display = 'flex';
-            });
+            if (anchor === 'calendar') initializeCalendar();
 
-
-            [scheduleModal, importModal, detailsModal, addItemsModal].forEach(modal => {
-                if(modal) {
-                    modal.querySelectorAll('.close-btn').forEach(btn => btn.addEventListener('click', () => modal.style.display = 'none'));
-                }
-            });
-
-            scheduleForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(scheduleForm);
-                const selectedFiles = Array.from(scheduleForm.querySelectorAll('input[name="source_files"]:checked')).map(cb => cb.value);
-
-                const eventData = {
-                    title: formData.get('title'),
-                    event_type: formData.get('event_type'),
-                    duration: formData.get('duration'),
-                    start_time: formData.get('start_time'),
-                    focus: formData.get('focus'),
-                    source_files: selectedFiles
-                };
-
-                fetch(`/hub/${hubId}/create_calendar_event`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(eventData)
-                }).then(res => res.json()).then(result => {
-                    if (result.success) {
-                        scheduleModal.style.display = 'none';
-                        scheduleForm.reset();
-                        if(calendar) calendar.refetchEvents();
-                    } else {
-                        alert(`Error: ${result.message}`);
-                    }
-                }).catch(() => alert('A network error occurred.'));
-            });
-
+            // --- Other UI listeners (Notifications, Theme, etc.) ---
             const bell = document.getElementById('notification-bell');
             const panel = document.getElementById('notification-panel');
-            const dot = document.getElementById('notification-dot');
-
             bell.addEventListener('click', async (event) => {
                 event.stopPropagation();
-                const isVisible = panel.classList.toggle('visible');
-
-                if (isVisible && dot.classList.contains('visible')) {
-                    const unreadItems = panel.querySelectorAll('.notification-item.unread');
-                    const idsToMarkRead = Array.from(unreadItems).map(item => item.dataset.id);
-                    
-                    if (idsToMarkRead.length > 0) {
-                        try {
-                            dot.classList.remove('visible');
-                            unreadItems.forEach(item => item.classList.remove('unread'));
-                            await fetch('/notifications/mark_read', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ids: idsToMarkRead })
-                            });
-                        } catch (error) {
-                            console.error("Failed to mark notifications as read:", error);
-                            dot.classList.add('visible');
-                            unreadItems.forEach(item => item.classList.add('unread'));
-                        }
-                    }
-                }
+                panel.classList.toggle('visible');
             });
-
             document.addEventListener('click', (event) => {
-                if (!panel.contains(event.target) && !bell.contains(event.target)) {
-                    panel.classList.remove('visible');
-                }
+                if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible');
             });
         });
     </script>

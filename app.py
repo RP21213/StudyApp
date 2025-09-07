@@ -156,6 +156,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
 socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+
 
 # --- NEW: Configure AssemblyAI ---
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
@@ -364,169 +366,6 @@ def live_lecture_page(hub_id):
         return redirect(url_for('dashboard'))
     return render_template("live_lecture.html", hub_id=hub_id)
 
-# ==============================================================================
-# 9. LECTURE RECORDER ROUTES (MODIFIED)
-# ==============================================================================
-import assemblyai as aai
-
-# Make sure this is configured near the top of your file
-aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
-
-@app.route("/hub/<hub_id>/process_lecture_audio", methods=["POST"])
-@login_required
-def process_lecture_audio(hub_id):
-    if 'audio_file' not in request.files:
-        return jsonify({"success": False, "message": "No audio file found."}), 400
-
-    audio_file = request.files['audio_file']
-    title = request.form.get('title', f"Lecture Notes - {datetime.now().strftime('%Y-%m-%d')}")
-
-    try:
-        # Use AssemblyAI's much simpler file transcription API
-        transcriber = aai.Transcriber()
-        transcript = transcriber.transcribe(audio_file)
-
-        if transcript.status == aai.TranscriptStatus.error:
-            return jsonify({"success": False, "message": transcript.error}), 500
-        
-        full_transcript_text = transcript.text
-        if not full_transcript_text:
-             return jsonify({"success": False, "message": "Audio could not be transcribed or was empty."}), 400
-
-        # --- RE-USE YOUR EXISTING NOTE GENERATION LOGIC ---
-        notes_html = generate_interactive_notes_html(full_transcript_text)
-
-        # --- MODIFIED: Instead of saving, render a new review page ---
-        return render_template(
-            "lecture_review.html", 
-            hub_id=hub_id,
-            title=title,
-            notes_html=notes_html,
-            full_transcript_text=full_transcript_text
-        )
-
-    except Exception as e:
-        print(f"Error processing lecture audio: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
-
-# --- NEW: Route to save edited notes from the review page ---
-@app.route("/hub/<hub_id>/save_lecture_notes", methods=["POST"])
-@login_required
-def save_lecture_notes(hub_id):
-    title = request.form.get('title')
-    notes_html = request.form.get('notes_html')
-
-    if not title or not notes_html:
-        flash("Title and notes content are required.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-
-    try:
-        # --- Save the note ---
-        note_ref = db.collection('notes').document()
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
-        note_ref.set(new_note.to_dict())
-
-        # --- Create a notification ---
-        notification_ref = db.collection('notifications').document()
-        message = f"Your lecture notes for '{title}' have been saved."
-        link = url_for('view_note', note_id=note_ref.id)
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        notification_ref.set(new_notification.to_dict())
-        
-        # --- Update hub progress ---
-        update_hub_progress(hub_id, 10) # 10 XP for a recorded lecture
-
-        flash("Notes saved successfully!", "success")
-        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='notes'))
-
-    except Exception as e:
-        print(f"Error saving lecture notes: {e}")
-        flash(f"An error occurred while saving your notes: {e}", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-
-
-# --- NEW: Route to create a full revision pack from the review page ---
-@app.route("/hub/<hub_id>/create_revision_pack_from_lecture", methods=["POST"])
-@login_required
-def create_revision_pack_from_lecture(hub_id):
-    title = request.form.get('title')
-    notes_html = request.form.get('notes_html')
-    # This is key for generating good flashcards/quizzes from the original source
-    full_transcript_text = request.form.get('full_transcript_text')
-
-    if not all([title, notes_html, full_transcript_text]):
-        flash("Missing required data to create a revision pack.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-
-    try:
-        batch = db.batch()
-        folder_items = []
-        
-        # --- 1. Save the edited notes ---
-        note_ref = db.collection('notes').document()
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
-        batch.set(note_ref, new_note.to_dict())
-        folder_items.append({'id': note_ref.id, 'type': 'note'})
-
-        # --- 2. Generate flashcards from the original transcript ---
-        flashcards_raw = generate_flashcards_from_text(full_transcript_text)
-        flashcards_parsed = parse_flashcards(flashcards_raw)
-        if flashcards_parsed:
-            fc_ref = db.collection('activities').document()
-            new_fc = Activity(
-                id=fc_ref.id, 
-                hub_id=hub_id, 
-                type='Flashcards', 
-                title=f"Flashcards for {title}", 
-                data={'cards': flashcards_parsed}, 
-                status='completed'
-            )
-            batch.set(fc_ref, new_fc.to_dict())
-            folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
-
-        # --- 3. Generate 3 quizzes from the original transcript ---
-        for i in range(1, 4):
-            quiz_json = generate_quiz_from_text(full_transcript_text)
-            quiz_data = safe_load_json(quiz_json)
-            if quiz_data.get('questions'):
-                quiz_ref = db.collection('activities').document()
-                new_quiz = Activity(
-                    id=quiz_ref.id, 
-                    hub_id=hub_id, 
-                    type='Quiz', 
-                    title=f"Practice Quiz {i} for {title}", 
-                    data=quiz_data
-                )
-                batch.set(quiz_ref, new_quiz.to_dict())
-                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
-
-        # --- 4. Create the folder ---
-        folder_name = f"Revision Pack: {title}"
-        folder_ref = db.collection('folders').document()
-        new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
-        batch.set(folder_ref, new_folder.to_dict())
-        
-        # --- 5. Create a notification ---
-        notification_ref = db.collection('notifications').document()
-        message = f"Your new revision pack '{folder_name}' is ready."
-        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        batch.set(notification_ref, new_notification.to_dict())
-        
-        # --- 6. Commit all changes to Firestore ---
-        batch.commit()
-        
-        # --- 7. Update hub progress ---
-        update_hub_progress(hub_id, 25) # Give more XP for creating a full pack
-
-        flash(f"Successfully created revision pack '{folder_name}'!", "success")
-        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='folders'))
-
-    except Exception as e:
-        print(f"Error creating revision pack: {e}")
-        flash(f"An error occurred while creating your revision pack: {e}", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-
 
 def generate_cheat_sheet_json(text):
     """Generates content for a multi-column cheat sheet as a JSON object."""
@@ -699,10 +538,10 @@ def generate_interactive_notes_html(text):
     )
     return response.choices[0].message.content
 
-def generate_flashcards_from_text(text):
-    """Generates flashcards from text using the AI."""
+def generate_flashcards_from_text(text, num_cards=20):
+    """Generates a specific number of flashcards from text using the AI."""
     prompt = f"""
-    Based on the following raw text, create a set of flashcards. Identify key terms, concepts, and questions.
+    Based on the following raw text, create a set of approximately {num_cards} flashcards. Identify key terms, concepts, and questions.
     
     Follow this format strictly for each card:
     Front: [Question or Term]
@@ -715,16 +554,17 @@ def generate_flashcards_from_text(text):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that creates flashcards from study materials. Separate each flashcard with '---'."},
+            {"role": "system", "content": f"You are a helpful assistant that creates approximately {num_cards} flashcards from study materials. Separate each flashcard with '---'."},
             {"role": "user", "content": prompt}
         ]
     )
     return response.choices[0].message.content
 
-def generate_quiz_from_text(text):
-    """Generates a quiz in JSON format from text using the AI."""
+
+def generate_quiz_from_text(text, num_questions=10):
+    """Generates a quiz with a specific number of questions in JSON format from text using the AI."""
     prompt = f"""
-    You are an expert educator. Your task is to create a 10-question practice quiz from the text below.
+    You are an expert educator. Your task is to create a {num_questions}-question practice quiz from the text below.
 
     Your response MUST be a single, valid JSON object and nothing else.
 
@@ -747,6 +587,7 @@ def generate_quiz_from_text(text):
         response_format={"type": "json_object"}
     )
     return response.choices[0].message.content
+
 
 def generate_exam_questions(text, difficulty, question_type, num_questions):
     """Generates a specific type of question (mcq, short, or essay)."""
@@ -860,6 +701,35 @@ def generate_interactive_heatmap_data(text):
     Here is the text containing one or more documents, separated by '--- DOCUMENT: ... ---':
     ---
     {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+def generate_study_plan_from_syllabus(syllabus_text, deadline_str):
+    """Analyzes a syllabus and creates a structured study plan as JSON."""
+    prompt = f"""
+    You are an expert academic advisor. Your task is to create a structured, week-by-week study plan from a syllabus.
+
+    Today's date is {datetime.now(timezone.utc).strftime('%Y-%m-%d')}.
+    The final exam/deadline is on {deadline_str}.
+
+    Your response MUST be a single, valid JSON object with one key: "plan".
+    The "plan" should be an array of "week" objects.
+    Each "week" object MUST contain:
+    - "week_number": An integer (e.g., 1).
+    - "topic": A concise string describing the main topic for that week (e.g., "Introduction to Microeconomics").
+    - "tasks": An array of 2-3 specific, actionable tasks for the week (e.g., "Read Chapter 1 & 2", "Generate flashcards for key terms", "Take a practice quiz on supply and demand").
+
+    Analyze the provided syllabus text to identify the weekly topics and structure. Create a logical progression of tasks for each topic. Distribute the topics evenly across the weeks available until the deadline.
+
+    Syllabus Text:
+    ---
+    {syllabus_text}
+    ---
     """
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -1937,13 +1807,13 @@ def generate_weakness_quiz(hub_id, topic):
     # --- NEW: Create Notification ---
     notification_ref = db.collection('notifications').document()
     message = f"Your targeted quiz for '{topic}' has been generated."
-    link = url_for('take_lecture_quiz', activity_id=new_activity.id) # FIX: Changed quiz_id to activity_id
+    link = url_for('take_lecture_quiz', activity_id=new_activity.id)
     new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
     batch.set(notification_ref, new_notification.to_dict())
     batch.commit()
 
     flash(f"Generated a special quiz to help you with {topic}!", "success")
-    return redirect(url_for('take_lecture_quiz', activity_id=new_activity.id)) # FIX: Changed quiz_id to activity_id
+    return redirect(url_for('take_lecture_quiz', activity_id=new_activity.id))
 
 # ==============================================================================
 # 5. UNIFIED AI TOOL & DOWNLOAD ROUTES
@@ -2133,7 +2003,6 @@ def lecture_page(lecture_id):
         if quiz_doc.exists: quizzes.append(Activity.from_dict(quiz_doc.to_dict()))
     return render_template("lecture_page.html", lecture=lecture, note=note, flashcards=flashcards_data, quizzes=quizzes)
 
-# --- FIX: Standardized route to use <activity_id> ---
 @app.route("/quiz/<activity_id>")
 @login_required
 def take_lecture_quiz(activity_id):
@@ -2622,51 +2491,40 @@ def delete_all_hubs():
     return redirect(url_for('dashboard'))
 
 # ==============================================================================
-# 7. GUIDED WORKFLOW ROUTES (NEW SECTION)
+# 7. GUIDED WORKFLOW & PIPELINE ROUTES (RESTRUCTURED)
 # ==============================================================================
 
-# --- NEW: This is the single route that handles the new workflow form ---
-@app.route("/hub/<hub_id>/generate_workflow_folder", methods=["POST"])
+@app.route("/hub/<hub_id>/build_revision_pack", methods=["POST"])
 @login_required
-def generate_workflow_folder(hub_id):
+def build_revision_pack(hub_id):
+    data = request.get_json()
+    selected_files = data.get('selected_files', [])
+    num_flashcards = int(data.get('num_flashcards', 20))
+    num_quiz_questions = int(data.get('num_quiz_questions', 10))
+    include_notes = data.get('include_notes', False)
+
+    if not selected_files:
+        return jsonify({"success": False, "message": "No files were selected."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
     try:
-        data = request.get_json()
-        workflow_type = data.get('workflow_type')
-        selected_tools = data.get('selected_tools', [])
-        selected_files = data.get('selected_files', [])
-
-        # --- ACCESS CONTROL ---
-        if current_user.subscription_tier == 'free':
-            pro_tools_requested = [tool for tool in selected_tools if tool not in ['notes', 'flashcards']]
-            if pro_tools_requested:
-                # Capitalize for display
-                pro_tools_str = ', '.join([t.capitalize() for t in pro_tools_requested])
-                return jsonify({"success": False, "message": f"Creating {pro_tools_str} is a Pro feature. Please upgrade to generate these resources."}), 403
-
-        if not all([workflow_type, selected_tools, selected_files]):
-            return jsonify({"success": False, "message": "Missing required data."}), 400
-
-        hub_text = get_text_from_hub_files(selected_files)
-        if not hub_text:
-            return jsonify({"success": False, "message": "Could not extract text from files."}), 500
-
-        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
-        folder_name = f"Exam Pack for {first_file_name}" if workflow_type == 'exam' else f"Revision Pack for {first_file_name}"
-        
         batch = db.batch()
         folder_items = []
-        folder_ref = db.collection('folders').document()
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        folder_name = f"Revision Pack for {first_file_name}"
 
-        # --- Generate selected resources ---
-        if 'notes' in selected_tools:
+        if include_notes:
             interactive_html = generate_interactive_notes_html(hub_text)
             note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Notes for {first_file_name}", content_html=interactive_html)
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
             batch.set(note_ref, new_note.to_dict())
             folder_items.append({'id': note_ref.id, 'type': 'note'})
 
-        if 'flashcards' in selected_tools:
-            flashcards_raw = generate_flashcards_from_text(hub_text)
+        if num_flashcards > 0:
+            flashcards_raw = generate_flashcards_from_text(hub_text, num_flashcards)
             flashcards_parsed = parse_flashcards(flashcards_raw)
             if flashcards_parsed:
                 fc_ref = db.collection('activities').document()
@@ -2674,51 +2532,158 @@ def generate_workflow_folder(hub_id):
                 batch.set(fc_ref, new_fc.to_dict())
                 folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
 
-        if 'quiz' in selected_tools or 'exam' in selected_tools:
-            quiz_json = generate_quiz_from_text(hub_text) # Generates a 10-q quiz
+        if num_quiz_questions > 0:
+            quiz_json = generate_quiz_from_text(hub_text, num_quiz_questions)
             quiz_data = safe_load_json(quiz_json)
             if quiz_data.get('questions'):
                 quiz_ref = db.collection('activities').document()
-                quiz_title = "Mock Exam" if 'exam' in selected_tools else "Practice Quiz"
-                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"{quiz_title} for {first_file_name}", data=quiz_data)
+                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
                 batch.set(quiz_ref, new_quiz.to_dict())
                 folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
         
-        if 'cheatsheet' in selected_tools:
-            cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
-            note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json_str)
-            batch.set(note_ref, new_note.to_dict())
-            folder_items.append({'id': note_ref.id, 'type': 'note'})
-            
-        if 'heatmap' in selected_tools:
-            # Note: Heatmap is a view, not a savable asset. We'll skip adding it to the folder.
-            # You could potentially save the JSON data as a note if desired.
-            pass
-
-        if 'analyse' in selected_tools:
-            # Note: Analysis is a view, not a savable asset.
-            pass
-
-        # --- Create the folder and notification ---
+        folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
         batch.set(folder_ref, new_folder.to_dict())
         
         notification_ref = db.collection('notifications').document()
-        message = f"Your new resource folder '{folder_name}' is ready."
+        message = f"Your new '{folder_name}' is ready."
         link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
         new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
         batch.set(notification_ref, new_notification.to_dict())
 
         batch.commit()
-        return jsonify({"success": True, "message": f"Successfully created folder '{folder_name}'!"})
+        return jsonify({"success": True, "message": "Revision Pack created successfully!"})
 
     except Exception as e:
-        print(f"Error in generate_workflow_folder: {e}")
+        print(f"Error in build_revision_pack: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+@app.route("/hub/<hub_id>/build_exam_kit", methods=["POST"])
+@login_required
+def build_exam_kit(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        return jsonify({"success": False, "message": "Exam Readiness Kits are a Pro feature."}), 403
 
-# --- NEW: ROUTE TO HANDLE INDIVIDUAL TOOL GENERATION ---
+    data = request.get_json()
+    lecture_files = data.get('lecture_files', [])
+    past_paper_files = data.get('past_paper_files', [])
+    
+    if not lecture_files:
+        return jsonify({"success": False, "message": "Please select at least one lecture document."}), 400
+
+    hub_text = get_text_from_hub_files(lecture_files)
+    past_papers_text = get_text_from_hub_files(past_paper_files) if past_paper_files else None
+
+    try:
+        batch = db.batch()
+        folder_items = []
+        first_file_name = os.path.basename(lecture_files[0]).replace('.pdf', '')
+        folder_name = f"Exam Kit for {first_file_name}"
+        
+        # 1. Generate Cheatsheet
+        cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
+        cs_note_ref = db.collection('notes').document()
+        new_cs_note = Note(id=cs_note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json_str)
+        batch.set(cs_note_ref, new_cs_note.to_dict())
+        folder_items.append({'id': cs_note_ref.id, 'type': 'note'})
+        
+        # 2. Generate Mock Exam
+        mock_exam_json = generate_quiz_from_text(hub_text, 15) # 15 questions for a mock
+        mock_exam_data = safe_load_json(mock_exam_json)
+        if mock_exam_data.get('questions'):
+            exam_ref = db.collection('activities').document()
+            new_exam = Activity(id=exam_ref.id, hub_id=hub_id, type='Quiz', title=f"Mock Exam for {first_file_name}", data=mock_exam_data)
+            batch.set(exam_ref, new_exam.to_dict())
+            folder_items.append({'id': exam_ref.id, 'type': 'quiz'})
+
+        # 3. Generate Exam Analysis if past papers are provided
+        if past_papers_text:
+            analysis_markdown = analyse_papers_with_ai(past_papers_text)
+            analysis_html = markdown.markdown(analysis_markdown)
+            analysis_note_ref = db.collection('notes').document()
+            new_analysis_note = Note(id=analysis_note_ref.id, hub_id=hub_id, title=f"Exam Analysis for {first_file_name}", content_html=analysis_html)
+            batch.set(analysis_note_ref, new_analysis_note.to_dict())
+            folder_items.append({'id': analysis_note_ref.id, 'type': 'note'})
+
+        folder_ref = db.collection('folders').document()
+        new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
+        batch.set(folder_ref, new_folder.to_dict())
+        
+        notification_ref = db.collection('notifications').document()
+        message = f"Your new '{folder_name}' is ready for review."
+        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+
+        batch.commit()
+        return jsonify({"success": True, "message": "Exam Kit created successfully!"})
+
+    except Exception as e:
+        print(f"Error in build_exam_kit: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/create_study_plan", methods=["POST"])
+@login_required
+def create_study_plan(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        return jsonify({"success": False, "message": "The Smart Study Planner is a Pro feature."}), 403
+
+    data = request.get_json()
+    syllabus_files = data.get('syllabus_files', [])
+    deadline = data.get('deadline')
+
+    if not syllabus_files or not deadline:
+        return jsonify({"success": False, "message": "Syllabus file and deadline are required."}), 400
+
+    syllabus_text = get_text_from_hub_files(syllabus_files)
+    if not syllabus_text:
+        return jsonify({"success": False, "message": "Could not extract text from the syllabus."}), 500
+
+    try:
+        plan_json_str = generate_study_plan_from_syllabus(syllabus_text, deadline)
+        plan_data = safe_load_json(plan_json_str)
+        plan_weeks = plan_data.get('plan', [])
+
+        if not plan_weeks:
+            return jsonify({"success": False, "message": "AI could not generate a study plan from the provided syllabus."}), 500
+        
+        start_date = datetime.now(timezone.utc)
+        deadline_date = datetime.fromisoformat(deadline).replace(tzinfo=timezone.utc)
+        
+        batch = db.batch()
+        
+        for week_plan in plan_weeks:
+            # Simple scheduling: place event in the middle of the week
+            event_date = start_date + timedelta(weeks=week_plan.get('week_number', 1) - 1, days=3)
+            if event_date > deadline_date:
+                continue
+
+            event_ref = db.collection('calendar_events').document()
+            new_event = CalendarEvent(
+                id=event_ref.id,
+                hub_id=hub_id,
+                title=f"Study: {week_plan.get('topic', 'Weekly Topic')}",
+                event_type="Study Session",
+                start_time=event_date.replace(hour=10, minute=0, second=0), # Schedule for 10 AM
+                end_time=event_date.replace(hour=11, minute=0, second=0), # 1 hour duration
+                focus="\n".join(week_plan.get('tasks', [])),
+                source_files=syllabus_files
+            )
+            batch.set(event_ref, new_event.to_dict())
+
+        notification_ref = db.collection('notifications').document()
+        message = "Your new smart study plan has been added to your calendar."
+        link = url_for('hub_page', hub_id=hub_id, _anchor='calendar')
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+
+        batch.commit()
+        return jsonify({"success": True, "message": "Study plan successfully created and added to your calendar!"})
+
+    except Exception as e:
+        print(f"Error in create_study_plan: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route("/hub/<hub_id>/run_async_tool", methods=["POST"])
 @login_required
 def run_async_tool(hub_id):
@@ -2726,9 +2691,8 @@ def run_async_tool(hub_id):
     tool = data.get('tool')
     selected_files = data.get('selected_files')
 
-    # --- ACCESS CONTROL ---
     if current_user.subscription_tier == 'free' and tool not in ['notes', 'flashcards']:
-        return jsonify({"success": False, "message": f"The '{tool.capitalize()}' tool is a Pro feature. Please upgrade to use it."}), 403
+        return jsonify({"success": False, "message": f"The '{tool.capitalize()}' tool is a Pro feature."}), 403
     
     if not all([tool, selected_files]):
         return jsonify({"success": False, "message": "Missing tool or selected files."}), 400
@@ -2761,15 +2725,8 @@ def run_async_tool(hub_id):
             quiz_ref = db.collection('activities').document()
             new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
             quiz_ref.set(new_quiz.to_dict())
-            redirect_url = url_for('take_lecture_quiz', activity_id=quiz_ref.id) # FIX: Changed quiz_id to activity_id
+            redirect_url = url_for('take_lecture_quiz', activity_id=quiz_ref.id)
 
-        elif tool == 'mindmap':
-            mind_map_json_str = generate_mind_map_json(hub_text)
-            note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Mind Map for {first_file_name}", content_html=mind_map_json_str)
-            note_ref.set(new_note.to_dict())
-            redirect_url = url_for('view_note', note_id=note_ref.id)
-            
         elif tool == 'cheatsheet':
             cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
             note_ref = db.collection('notes').document()
@@ -3132,6 +3089,164 @@ def remove_item_from_folder(folder_id):
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+# ==============================================================================
+# 9. LECTURE RECORDER ROUTES (MODIFIED)
+# ==============================================================================
+@app.route("/hub/<hub_id>/process_lecture_audio", methods=["POST"])
+@login_required
+def process_lecture_audio(hub_id):
+    if 'audio_file' not in request.files:
+        return jsonify({"success": False, "message": "No audio file found."}), 400
+
+    audio_file = request.files['audio_file']
+    title = request.form.get('title', f"Lecture Notes - {datetime.now().strftime('%Y-%m-%d')}")
+
+    try:
+        # Use AssemblyAI's much simpler file transcription API
+        transcriber = aai.Transcriber()
+        transcript = transcriber.transcribe(audio_file)
+
+        if transcript.status == aai.TranscriptStatus.error:
+            return jsonify({"success": False, "message": transcript.error}), 500
+        
+        full_transcript_text = transcript.text
+        if not full_transcript_text:
+             return jsonify({"success": False, "message": "Audio could not be transcribed or was empty."}), 400
+
+        # --- RE-USE YOUR EXISTING NOTE GENERATION LOGIC ---
+        notes_html = generate_interactive_notes_html(full_transcript_text)
+
+        # --- MODIFIED: Instead of saving, render a new review page ---
+        return render_template(
+            "lecture_review.html", 
+            hub_id=hub_id,
+            title=title,
+            notes_html=notes_html,
+            full_transcript_text=full_transcript_text
+        )
+
+    except Exception as e:
+        print(f"Error processing lecture audio: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# --- NEW: Route to save edited notes from the review page ---
+@app.route("/hub/<hub_id>/save_lecture_notes", methods=["POST"])
+@login_required
+def save_lecture_notes(hub_id):
+    title = request.form.get('title')
+    notes_html = request.form.get('notes_html')
+
+    if not title or not notes_html:
+        flash("Title and notes content are required.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        # --- Save the note ---
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
+        note_ref.set(new_note.to_dict())
+
+        # --- Create a notification ---
+        notification_ref = db.collection('notifications').document()
+        message = f"Your lecture notes for '{title}' have been saved."
+        link = url_for('view_note', note_id=note_ref.id)
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        notification_ref.set(new_notification.to_dict())
+        
+        # --- Update hub progress ---
+        update_hub_progress(hub_id, 10) # 10 XP for a recorded lecture
+
+        flash("Notes saved successfully!", "success")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='notes'))
+
+    except Exception as e:
+        print(f"Error saving lecture notes: {e}")
+        flash(f"An error occurred while saving your notes: {e}", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+
+# --- NEW: Route to create a full revision pack from the review page ---
+@app.route("/hub/<hub_id>/create_revision_pack_from_lecture", methods=["POST"])
+@login_required
+def create_revision_pack_from_lecture(hub_id):
+    title = request.form.get('title')
+    notes_html = request.form.get('notes_html')
+    # This is key for generating good flashcards/quizzes from the original source
+    full_transcript_text = request.form.get('full_transcript_text')
+
+    if not all([title, notes_html, full_transcript_text]):
+        flash("Missing required data to create a revision pack.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        batch = db.batch()
+        folder_items = []
+        
+        # --- 1. Save the edited notes ---
+        note_ref = db.collection('notes').document()
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=title, content_html=notes_html)
+        batch.set(note_ref, new_note.to_dict())
+        folder_items.append({'id': note_ref.id, 'type': 'note'})
+
+        # --- 2. Generate flashcards from the original transcript ---
+        flashcards_raw = generate_flashcards_from_text(full_transcript_text)
+        flashcards_parsed = parse_flashcards(flashcards_raw)
+        if flashcards_parsed:
+            fc_ref = db.collection('activities').document()
+            new_fc = Activity(
+                id=fc_ref.id, 
+                hub_id=hub_id, 
+                type='Flashcards', 
+                title=f"Flashcards for {title}", 
+                data={'cards': flashcards_parsed}, 
+                status='completed'
+            )
+            batch.set(fc_ref, new_fc.to_dict())
+            folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+
+        # --- 3. Generate 3 quizzes from the original transcript ---
+        for i in range(1, 4):
+            quiz_json = generate_quiz_from_text(full_transcript_text)
+            quiz_data = safe_load_json(quiz_json)
+            if quiz_data.get('questions'):
+                quiz_ref = db.collection('activities').document()
+                new_quiz = Activity(
+                    id=quiz_ref.id, 
+                    hub_id=hub_id, 
+                    type='Quiz', 
+                    title=f"Practice Quiz {i} for {title}", 
+                    data=quiz_data
+                )
+                batch.set(quiz_ref, new_quiz.to_dict())
+                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+
+        # --- 4. Create the folder ---
+        folder_name = f"Revision Pack: {title}"
+        folder_ref = db.collection('folders').document()
+        new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
+        batch.set(folder_ref, new_folder.to_dict())
+        
+        # --- 5. Create a notification ---
+        notification_ref = db.collection('notifications').document()
+        message = f"Your new revision pack '{folder_name}' is ready."
+        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
+        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
+        batch.set(notification_ref, new_notification.to_dict())
+        
+        # --- 6. Commit all changes to Firestore ---
+        batch.commit()
+        
+        # --- 7. Update hub progress ---
+        update_hub_progress(hub_id, 25) # Give more XP for creating a full pack
+
+        flash(f"Successfully created revision pack '{folder_name}'!", "success")
+        return redirect(url_for('hub_page', hub_id=hub_id, _anchor='folders'))
+
+    except Exception as e:
+        print(f"Error creating revision pack: {e}")
+        flash(f"An error occurred while creating your revision pack: {e}", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
 
 # ==============================================================================
 # 10. COMMUNITY ROUTES (UPDATED)
