@@ -321,11 +321,11 @@ def safe_load_json(data):
 # 3. AI GENERATION SERVICES
 # ==============================================================================
 
-# --- NEW: AI function for lecture upload preview ---
-def generate_lecture_preview_data(text):
-    """Generates a summary, key terms, and sample questions for a lecture preview."""
+# --- AI function for Revision Pack preview ---
+def generate_revision_preview(text):
+    """Generates a summary, key terms, and sample items for a revision pack preview."""
     prompt = f"""
-    You are an AI assistant analyzing a lecture document. Your task is to extract a concise preview of the content.
+    You are an AI assistant analyzing a lecture document for a student. Your task is to extract a concise preview for a revision pack.
     Your response MUST be a single, valid JSON object with the following keys: "summary", "key_terms", "sample_flashcards", "sample_quiz".
 
     - "summary": A 1-2 paragraph summary of the entire document.
@@ -338,14 +338,36 @@ def generate_lecture_preview_data(text):
     {text}
     """
     response = client.chat.completions.create(
-        model="gpt-4o-mini", # Use a fast and cost-effective model for previews
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+# --- AI function for Exam Prep Kit preview ---
+def generate_exam_preview(text):
+    """Generates key concepts and sample items for an exam prep kit preview."""
+    prompt = f"""
+    You are an AI assistant analyzing a lecture document to help a student prepare for an exam.
+    Your response MUST be a single, valid JSON object with the following keys: "key_concepts", "cheat_sheet_sample", "sample_questions".
+
+    - "key_concepts": An array of 3-4 advanced or frequently mentioned topics from the text.
+    - "cheat_sheet_sample": A single, well-structured HTML block for a cheat sheet, focusing on the most important formula, definition, or process in the text. Use `<h4>`, `<p>`, `<strong>`.
+    - "sample_questions": An array of 1-2 challenging short-answer questions. Each object must have "question" and "model_answer".
+
+    Analyze the following text to generate the preview:
+    ---
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"}
     )
     return response.choices[0].message.content
 
 
-# --- NEW: AI function for live, contextual summarization ---
+# --- AI function for live, contextual summarization ---
 def generate_live_summary_update(previous_summary, new_transcript_chunk):
     """
     Takes the previous summary and a new chunk of text, and returns an updated summary.
@@ -1771,35 +1793,53 @@ def upload_file(hub_id):
         file_path = f"hubs/{hub_id}/{filename}"
         blob = bucket.blob(file_path)
         
-        # Rewind file pointer before upload and text extraction
         file.seek(0)
         blob.upload_from_file(file, content_type='application/pdf')
         
-        # Update Firestore file list
         file.seek(0, os.SEEK_END)
         file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
         db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
         
-        # --- NEW: Process file for preview ---
-        file.seek(0)
-        text = pdf_to_text(file)
-        if not text or len(text) < 100:
-            return jsonify({"success": False, "message": "Could not extract sufficient text from the PDF."}), 500
-
-        preview_json_str = generate_lecture_preview_data(text)
-        preview_data = safe_load_json(preview_json_str)
-
         return jsonify({
             "success": True,
-            "message": "File uploaded and analyzed.",
-            "file_info": file_info,
-            "preview_data": preview_data
+            "message": "File uploaded successfully.",
+            "file_info": file_info
         })
 
     except Exception as e:
         print(f"Error in upload_file: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+# --- NEW: Route to generate preview data for a specific file and pipeline ---
+@app.route("/hub/<hub_id>/generate_preview", methods=["POST"])
+@login_required
+def generate_preview(hub_id):
+    data = request.get_json()
+    file_path = data.get('file_path')
+    preview_type = data.get('preview_type')
+
+    if not file_path or not preview_type:
+        return jsonify({"success": False, "message": "Missing file path or preview type."}), 400
+
+    text = get_text_from_hub_files([file_path])
+    if not text:
+        return jsonify({"success": False, "message": "Could not extract text from the selected file."}), 500
+
+    try:
+        preview_json_str = ""
+        if preview_type == 'revision':
+            preview_json_str = generate_revision_preview(text)
+        elif preview_type == 'exam':
+            preview_json_str = generate_exam_preview(text)
+        else:
+            return jsonify({"success": False, "message": "Invalid preview type specified."}), 400
+        
+        preview_data = safe_load_json(preview_json_str)
+        return jsonify({"success": True, "preview_data": preview_data})
+
+    except Exception as e:
+        print(f"Error generating preview for {file_path}: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 def generate_quiz_on_topic(text, topic):
     """Generates a targeted, 5-question quiz on a specific topic."""
