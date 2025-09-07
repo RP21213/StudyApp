@@ -317,7 +317,7 @@
         .loading-text p { margin: 0; color: var(--primary-color); }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
         .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
@@ -467,9 +467,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: auto; /* Pushes to the bottom */
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
         }
         .theme-switch {
             position: relative;
@@ -540,6 +537,7 @@
             padding: 2.5rem 2rem;
             position: relative;
             overflow: hidden;
+            border: none;
             background-color: #4338ca;
             background-image:
                 radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.4) 0px, transparent 50%),
@@ -555,10 +553,10 @@
                 radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.2) 0px, transparent 50%),
                 radial-gradient(at 80% 0%, hsla(28,100%,74%,0.1) 0px, transparent 50%);
         }
-        .hub-main-header h1 { color: white; }
-        .hub-main-header .page-header {
-            align-items: flex-start;
-        }
+        .hub-main-header .page-header { align-items: flex-start; }
+        .hub-main-header h1 { color: white; font-size: 2.25rem; }
+        .hub-main-header p.sub-header { color: white; opacity: 0.8; margin: 0.5rem 0 0 0; font-size: 1.1rem; font-family: 'Poppins'; }
+        .hub-main-header .notification-bell svg { color: white; }
 
     </style>
     <script>
@@ -576,7 +574,10 @@
             <div class="content-card hub-main-header">
                 <div class="page-header">
                     <div class="page-header-left">
-                        <h1>{{ hub.name }}</h1>
+                        <div>
+                             <h1>Welcome, {{ current_user.display_name or current_user.email.split('@')[0] }}!</h1>
+                             <p class="sub-header">You are in your '{{ hub.name }}' study hub.</p>
+                        </div>
                         <div class="notification-bell" id="notification-bell">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                             <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
@@ -617,8 +618,8 @@
 
             <div class="tabs-container">
                 <div class="tab-nav">
-                    <button class="tab-button active" onclick="openTab(event, 'tools')">Study Tools</button>
-                    <button class="tab-button" onclick="openTab(event, 'documents')">Documents</button>
+                    <button class="tab-button active" onclick="openTab(event, 'documents')">Documents</button>
+                    <button class="tab-button" onclick="openTab(event, 'tools')">Study Tools</button>
                     <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
                     <button class="tab-button" onclick="openTab(event, 'calendar')">Calendar</button>
                     <button class="tab-button" onclick="openTab(event, 'folders')">My Folders</button>
@@ -626,7 +627,32 @@
                     <button class="tab-button" onclick="openTab(event, 'quizzes')">My Quizzes</button>
                 </div>
                 
-                <div id="tools" class="tab-content active">
+                <div id="documents" class="tab-content active">
+                    <div class="file-list" id="main-file-list">
+                        {% for file in hub.files %}
+                        <div class="file-item">
+                            <div class="file-info" style="cursor: default;">
+                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                                <span data-path="{{ file.path }}">{{ file.name }}</span>
+                            </div>
+                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="empty-state-text">Upload a PDF to begin.</p>
+                        {% endfor %}
+                    </div>
+                     <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
+                        <label for="pdf-upload" class="file-upload-wrapper">
+                            <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
+                            <span class="file-upload-text">Click or drag to upload</span>
+                        </label>
+                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
+                    </form>
+                </div>
+
+                <div id="tools" class="tab-content">
                     <div id="study-tools-container" class="study-tools-container">
                         <h2 class="section-heading">Get Started with a Goal</h2>
                         <div class="pipeline-grid">
@@ -720,32 +746,7 @@
                         </div>
                     </div>
                 </div>
-
-                <div id="documents" class="tab-content">
-                    <div class="file-list" id="main-file-list">
-                        {% for file in hub.files %}
-                        <div class="file-item">
-                            <div class="file-info" style="cursor: default;">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                                <span data-path="{{ file.path }}">{{ file.name }}</span>
-                            </div>
-                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
-                        </div>
-                        {% else %}
-                        <p class="empty-state-text">Upload a PDF to begin.</p>
-                        {% endfor %}
-                    </div>
-                     <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
-                        <label for="pdf-upload" class="file-upload-wrapper">
-                            <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
-                            <span class="file-upload-text">Click or drag to upload</span>
-                        </label>
-                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
-                    </form>
-                </div>
-
+                
                 <div id="calendar" class="tab-content">
                      <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
                         <button id="show-import-modal-btn" class="button button-secondary">Import Calendar (.ics)</button>
@@ -1085,6 +1086,7 @@
             const detailsModal = document.getElementById('event-details-modal');
             const importModal = document.getElementById('import-ics-modal');
             const addItemsModal = document.getElementById('add-items-modal');
+            const themeToggle = document.getElementById('theme-toggle');
 
             // --- Generic Modal Handling ---
             allModals.forEach(modal => {
@@ -1130,7 +1132,7 @@
                             <label>
                                 <input type="${inputType}" name="tool_files" value="${file.path}">
                                 <span class="file-icon-modal">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                 </span>
                                 ${file.name}
                             </label>
@@ -1222,7 +1224,7 @@
                 }
             });
 
-            // --- REVERTED Pipeline 2: Exam Readiness Kit ---
+            // --- RESTORED Pipeline 2: Exam Readiness Kit ---
             document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
                 if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
                 populateExamKitFilePickers();
@@ -1362,8 +1364,7 @@
                 }));
             }
             
-
-            // --- **FIXED** Folder Accordion Logic ---
+            // --- Folder Accordion Logic ---
             const folderAccordionContainer = document.getElementById('folder-accordion-container');
             let currentOpenFolderId = null;
 
@@ -1433,7 +1434,6 @@
                 });
             }
 
-
             // --- Calendar Logic ---
             function initializeCalendar() {
                 if (calendar) calendar.destroy();
@@ -1456,14 +1456,37 @@
                 calendar.render();
             }
 
+            // --- Dark Mode Toggle Logic (FIXED) ---
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeToggle.checked = true;
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeToggle.checked = false;
+                }
+            }
+
+            themeToggle.addEventListener('change', () => {
+                const newTheme = themeToggle.checked ? 'dark' : 'light';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            });
+
+            // Set initial theme on page load
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+
+
             // --- Tab and Page Load Logic ---
             const anchor = window.location.hash.substring(1);
             if (anchor) {
                 const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
                 if (tabButton) tabButton.click();
             } else {
-                document.querySelector(".tab-button[onclick*='tools']").classList.add('active');
-                document.getElementById('tools').style.display = 'block';
+                 // Default to documents tab
+                document.querySelector(".tab-button[onclick*='documents']").classList.add('active');
+                document.getElementById('documents').style.display = 'block';
             }
             document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
                  if (!calendar) initializeCalendar();
@@ -1471,7 +1494,7 @@
             });
             if (anchor === 'calendar') initializeCalendar();
 
-            // --- Other UI listeners (Notifications, Theme, etc.) ---
+            // --- Other UI listeners (Notifications, etc.) ---
             const bell = document.getElementById('notification-bell');
             const panel = document.getElementById('notification-panel');
             bell.addEventListener('click', async (event) => {
