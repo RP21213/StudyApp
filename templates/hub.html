@@ -332,7 +332,6 @@
         .slider-group input[type="range"] { flex-grow: 1; }
         .slider-group .slider-value { font-weight: 600; min-width: 30px; text-align: center; }
         
-        /* CORRECTED STYLES START */
         .modal-body p.modal-description {
             font-size: 0.9rem;
             color: var(--text-secondary);
@@ -343,10 +342,10 @@
         .modal-file-list {
             background-color: var(--background-interactive-hover);
             border: 1px solid var(--border-color);
-            max-height: 150px;
+            max-height: 250px;
             overflow-y: auto;
-            border-radius: 6px;
-            padding: 0.5rem;
+            border-radius: 8px;
+            padding: 0.75rem;
         }
         .modal-file-item {
             padding: 0;
@@ -356,25 +355,31 @@
             width: 100%;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.6rem 0.75rem;
-            border-radius: 4px;
+            padding: 0.75rem;
+            border-radius: 6px;
             font-weight: 500;
+            font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s;
         }
         .modal-file-item label:hover {
             background-color: var(--background-card);
+            box-shadow: 0 0 0 1px var(--border-color);
         }
         html[data-theme="dark"] .modal-file-item label:hover {
             background-color: #4b5563;
+            box-shadow: 0 0 0 1px #5a6678;
         }
-        .modal-file-item input[type="checkbox"] {
+        .modal-file-item input[type="checkbox"],
+        .modal-file-item input[type="radio"] {
             width: 1.1rem;
             height: 1.1rem;
             flex-shrink: 0;
             accent-color: var(--primary-color);
         }
+        .modal-file-item .file-icon-modal { color: var(--text-secondary); }
+
         input[type="date"] {
             position: relative;
             background-color: var(--background-body);
@@ -391,7 +396,6 @@
         input[type="date"]:invalid {
             color: var(--text-secondary);
         }
-        /* CORRECTED STYLES END */
         
         .folder-accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; }
         .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; }
@@ -963,7 +967,7 @@
             <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
             <form id="exam-kit-form">
                 <div class="modal-body">
-                     <p class="modal-description">From your selected files, choose your main lecture content. Optionally, add past papers to improve topic prediction.</p>
+                     <p class="modal-description">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
                     <div class="form-group">
                         <label>Select Main Lectures/Syllabi</label>
                         <div id="exam-kit-lecture-files" class="modal-file-list"></div>
@@ -983,11 +987,7 @@
             <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div>
             <form id="study-plan-form">
                 <div class="modal-body">
-                    <p class="modal-description">Upload your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
-                    <div class="form-group">
-                        <label>Select Syllabus File(s)</label>
-                        <div id="study-plan-syllabus-files" class="modal-file-list"></div>
-                    </div>
+                    <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
                     <div class="form-group">
                         <label for="study-plan-deadline">Exam/Assignment Deadline</label>
                         <input type="date" id="study-plan-deadline" name="deadline" required>
@@ -1128,7 +1128,11 @@
                     const itemHTML = `
                         <div class="modal-file-item">
                             <label>
-                                <input type="${inputType}" name="tool_files" value="${file.path}"> ${file.name}
+                                <input type="${inputType}" name="tool_files" value="${file.path}">
+                                <span class="file-icon-modal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                </span>
+                                ${file.name}
                             </label>
                         </div>`;
                     fileListContainer.insertAdjacentHTML('beforeend', itemHTML);
@@ -1151,14 +1155,10 @@
                     case 'revision-pack':
                         revisionModal.style.display = 'flex';
                         break;
-                    case 'exam-kit':
-                        populateExamKitFilePickers(selectedFilesForTool);
-                        examKitModal.style.display = 'flex';
-                        break;
                     case 'study-plan':
-                         // For study plan, we use the selected files directly
                         const deadline = studyPlanModal.querySelector('input[name="deadline"]').value;
                         if (!deadline) {
+                           studyPlanModal.style.display = 'flex';
                            return alert("Please set a deadline.");
                         }
                         handleStudyPlanSubmit(selectedFilesForTool, deadline);
@@ -1222,16 +1222,15 @@
                 }
             });
 
-            // --- Pipeline 2: Exam Readiness Kit ---
+            // --- REVERTED Pipeline 2: Exam Readiness Kit ---
             document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
-                 openFileSelectionModal('exam-kit', {
-                    title: 'Build Exam Kit',
-                    description: 'Select ALL documents you might use, including lectures and past papers.'
-                });
+                if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
+                populateExamKitFilePickers();
+                examKitModal.style.display = 'flex';
             });
 
-            function populateExamKitFilePickers(selectedFiles) {
-                const allFiles = getAllFiles().filter(f => selectedFiles.includes(f.path));
+            function populateExamKitFilePickers() {
+                const allFiles = getAllFiles();
                 const lectureContainer = document.getElementById('exam-kit-lecture-files');
                 const pastPaperContainer = document.getElementById('exam-kit-past-paper-files');
                 lectureContainer.innerHTML = '';
@@ -1276,7 +1275,7 @@
             });
             
             // --- Pipeline 3: Smart Study Planner ---
-            document.getElementById('pipeline-study-planner').addEventListener('click', () => {
+             document.getElementById('pipeline-study-planner').addEventListener('click', () => {
                 studyPlanModal.style.display = 'flex';
             });
             
@@ -1285,7 +1284,7 @@
                  studyPlanModal.style.display = 'none';
                  openFileSelectionModal('study-plan', {
                     title: 'Select Syllabus',
-                    description: 'Choose the syllabus file to generate a plan from.',
+                    description: 'Choose the syllabus file(s) to generate a plan from.',
                     multiSelect: true
                 });
             });
