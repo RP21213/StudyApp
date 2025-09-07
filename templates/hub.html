@@ -80,10 +80,6 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 2rem;
-            align-items: start;
         }
         .button {
             display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -186,9 +182,6 @@
         .asset-score { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); padding: 0 1rem; }
         .asset-actions { display: flex; gap: 0.5rem; }
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
-        
-        .study-tools-container.disabled { pointer-events: none; user-select: none; }
-        .study-tools-container.disabled .pipeline-card { opacity: 0.6; }
         
         .section-heading {
             font-size: 1.5rem;
@@ -300,9 +293,6 @@
         .recent-activity-card p { margin: 0; font-weight: 500; font-family: 'Poppins', sans-serif;}
         .recent-activity-card strong { color: var(--text-main); }
         .recent-activity-card span { color: var(--text-secondary); }
-        .files-panel { background-color: var(--background-card); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 1.5rem; position: sticky; top: 2rem; transition: opacity 0.3s ease; }
-        .sidebar-section { margin-bottom: 2rem; } .sidebar-section:last-child { margin-bottom: 0; }
-        .files-panel h3 { font-size: 1.125rem; margin: 0; }
         .file-list .file-item { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 0.5rem; border-radius: 8px; transition: background-color 0.2s; margin-bottom: 0.25rem; }
         .file-list .file-item:hover { background-color: var(--background-interactive-hover); }
         .file-item .file-info { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; cursor: pointer; overflow: hidden; }
@@ -624,6 +614,7 @@
             <div class="tabs-container">
                 <div class="tab-nav">
                     <button class="tab-button active" onclick="openTab(event, 'tools')">Study Tools</button>
+                    <button class="tab-button" onclick="openTab(event, 'documents')">Documents</button>
                     <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
                     <button class="tab-button" onclick="openTab(event, 'calendar')">Calendar</button>
                     <button class="tab-button" onclick="openTab(event, 'folders')">My Folders</button>
@@ -726,7 +717,36 @@
                     </div>
                 </div>
 
+                <div id="documents" class="tab-content">
+                    <div class="file-list" id="main-file-list">
+                        {% for file in hub.files %}
+                        <div class="file-item">
+                            <div class="file-info" style="cursor: default;">
+                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                                <span data-path="{{ file.path }}">{{ file.name }}</span>
+                            </div>
+                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="empty-state-text">Upload a PDF to begin.</p>
+                        {% endfor %}
+                    </div>
+                     <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
+                        <label for="pdf-upload" class="file-upload-wrapper">
+                            <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
+                            <span class="file-upload-text">Click or drag to upload</span>
+                        </label>
+                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
+                    </form>
+                </div>
+
                 <div id="calendar" class="tab-content">
+                     <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
+                        <button id="show-import-modal-btn" class="button button-secondary">Import Calendar (.ics)</button>
+                        <button id="show-schedule-modal-btn" class="button button-primary">+ Schedule New Session</button>
+                    </div>
                     <div id="calendar-container">
                         <div id="fullcalendar"></div>
                     </div>
@@ -883,52 +903,28 @@
                 </div>
             </div>
         </main>
-        
-        <aside class="files-panel" id="files-panel-sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-header">
-                    <h3>Documents</h3>
-                </div>
-                <form id="tools-form">
-                    <div class="file-list">
-                        {% for file in hub.files %}
-                        <div class="file-item">
-                            <label class="file-info" for="file-{{ loop.index }}">
-                                <input type="checkbox" class="file-checkbox" name="selected_files" value="{{ file.path }}" id="file-{{ loop.index }}" data-filename="{{ file.name }}">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                                <span>{{ file.name }}</span>
-                            </label>
-                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
-                        </div>
-                        {% else %}
-                        <p style="color: var(--text-secondary); text-align: center; padding: 1rem 0;">Upload a PDF to begin.</p>
-                        {% endfor %}
-                    </div>
-                </form>
-                <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
-                    <label for="pdf-upload" class="file-upload-wrapper">
-                        <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
-                        <span class="file-upload-text">Click or drag to upload</span>
-                    </label>
-                    <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
-                </form>
-            </div>
-            
-            <div class="sidebar-section">
-                <div class="sidebar-header">
-                    <h3>My Schedule</h3>
-                    <div class="sidebar-actions">
-                        <button id="show-import-modal-btn" class="button button-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Import</button>
-                        <button id="show-schedule-modal-btn" class="button button-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">+ Schedule</button>
-                    </div>
-                </div>
-                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: -0.5rem; line-height: 1.5;">View and manage your events in the "Calendar" tab.</p>
-            </div>
-
-        </aside>
     </div>
+
+    <!-- NEW File Selection Modal -->
+    <div class="modal-overlay" id="file-selection-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="file-selection-title">Select Documents</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description" id="file-selection-description">Choose the files you want to use for this tool.</p>
+                <div id="file-selection-list" class="modal-file-list">
+                    <!-- File list will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="button button-secondary close-btn">Cancel</button>
+                <button type="button" class="button button-primary" id="confirm-file-selection-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modals for Pipelines -->
     <div class="modal-overlay" id="revision-pack-modal">
@@ -967,7 +963,7 @@
             <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
             <form id="exam-kit-form">
                 <div class="modal-body">
-                     <p class="modal-description">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
+                     <p class="modal-description">From your selected files, choose your main lecture content. Optionally, add past papers to improve topic prediction.</p>
                     <div class="form-group">
                         <label>Select Main Lectures/Syllabi</label>
                         <div id="exam-kit-lecture-files" class="modal-file-list"></div>
@@ -1072,11 +1068,15 @@
 
             const studyToolsContainer = document.getElementById('study-tools-container');
             const loadingContainer = document.getElementById('loading-status-container');
-            const sidebarPanel = document.getElementById('files-panel-sidebar');
             let isAITaskRunning = false;
+
+            // --- State for the new file selection flow ---
+            let currentToolIdentifier = null;
+            let selectedFilesForTool = [];
             
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
+            const fileSelectionModal = document.getElementById('file-selection-modal');
             const revisionModal = document.getElementById('revision-pack-modal');
             const examKitModal = document.getElementById('exam-kit-modal');
             const studyPlanModal = document.getElementById('study-plan-modal');
@@ -1098,8 +1098,6 @@
 
             function showLoading(message, subtext) {
                 isAITaskRunning = true;
-                studyToolsContainer.classList.add('disabled');
-                sidebarPanel.style.opacity = '0.5';
                 loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>${message}</h4><p>${subtext}</p></div></div>`;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -1107,15 +1105,80 @@
             function hideLoading() {
                 isAITaskRunning = false;
                 loadingContainer.innerHTML = '';
-                studyToolsContainer.classList.remove('disabled');
-                sidebarPanel.style.opacity = '1';
-                updateUIBasedOnSelection();
             }
+
+            // --- NEW FILE SELECTION LOGIC ---
+
+            function openFileSelectionModal(toolIdentifier, { title, description, multiSelect = true }) {
+                currentToolIdentifier = toolIdentifier;
+                document.getElementById('file-selection-title').textContent = title;
+                document.getElementById('file-selection-description').textContent = description;
+
+                const fileListContainer = document.getElementById('file-selection-list');
+                fileListContainer.innerHTML = '';
+                const allFiles = getAllFiles();
+
+                if (allFiles.length === 0) {
+                    alert("You must upload at least one document before using this tool.");
+                    return;
+                }
+
+                allFiles.forEach(file => {
+                    const inputType = multiSelect ? 'checkbox' : 'radio';
+                    const itemHTML = `
+                        <div class="modal-file-item">
+                            <label>
+                                <input type="${inputType}" name="tool_files" value="${file.path}"> ${file.name}
+                            </label>
+                        </div>`;
+                    fileListContainer.insertAdjacentHTML('beforeend', itemHTML);
+                });
+                
+                fileSelectionModal.style.display = 'flex';
+            }
+
+            document.getElementById('confirm-file-selection-btn').addEventListener('click', () => {
+                selectedFilesForTool = Array.from(fileSelectionModal.querySelectorAll('input[name="tool_files"]:checked')).map(cb => cb.value);
+
+                if (selectedFilesForTool.length === 0) {
+                    return alert("Please select at least one file to continue.");
+                }
+
+                fileSelectionModal.style.display = 'none';
+
+                // Route to the correct next step based on the tool
+                switch (currentToolIdentifier) {
+                    case 'revision-pack':
+                        revisionModal.style.display = 'flex';
+                        break;
+                    case 'exam-kit':
+                        populateExamKitFilePickers(selectedFilesForTool);
+                        examKitModal.style.display = 'flex';
+                        break;
+                    case 'study-plan':
+                         // For study plan, we use the selected files directly
+                        const deadline = studyPlanModal.querySelector('input[name="deadline"]').value;
+                        if (!deadline) {
+                           return alert("Please set a deadline.");
+                        }
+                        handleStudyPlanSubmit(selectedFilesForTool, deadline);
+                        break;
+                    case 'notes':
+                    case 'flashcards':
+                    case 'quiz':
+                    case 'cheatsheet':
+                    case 'analyse':
+                        handleQuickToolSubmit(currentToolIdentifier, selectedFilesForTool);
+                        break;
+                }
+            });
 
             // --- Pipeline 1: Revision Pack ---
             document.getElementById('pipeline-revision-pack').addEventListener('click', () => {
-                if(getSelectedFiles().length === 0) return alert("Please select at least one document from the sidebar to create a revision pack.");
-                revisionModal.style.display = 'flex';
+                openFileSelectionModal('revision-pack', {
+                    title: 'Build Revision Pack',
+                    description: 'Select the documents you want to include in your revision pack.'
+                });
             });
 
             const numFlashcardsSlider = document.getElementById('num-flashcards');
@@ -1128,12 +1191,9 @@
 
             document.getElementById('revision-pack-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const selectedFiles = getSelectedFiles();
-                if(selectedFiles.length === 0) return alert("An error occurred. Please ensure documents are selected.");
-
                 const formData = new FormData(e.target);
                 const payload = {
-                    selected_files: selectedFiles,
+                    selected_files: selectedFilesForTool,
                     num_flashcards: formData.get('num_flashcards'),
                     num_quiz_questions: formData.get('num_quiz_questions'),
                     include_notes: formData.has('include_notes')
@@ -1164,13 +1224,14 @@
 
             // --- Pipeline 2: Exam Readiness Kit ---
             document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
-                if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
-                populateExamKitFilePickers();
-                examKitModal.style.display = 'flex';
+                 openFileSelectionModal('exam-kit', {
+                    title: 'Build Exam Kit',
+                    description: 'Select ALL documents you might use, including lectures and past papers.'
+                });
             });
 
-            function populateExamKitFilePickers() {
-                const allFiles = getAllFiles();
+            function populateExamKitFilePickers(selectedFiles) {
+                const allFiles = getAllFiles().filter(f => selectedFiles.includes(f.path));
                 const lectureContainer = document.getElementById('exam-kit-lecture-files');
                 const pastPaperContainer = document.getElementById('exam-kit-past-paper-files');
                 lectureContainer.innerHTML = '';
@@ -1216,28 +1277,20 @@
             
             // --- Pipeline 3: Smart Study Planner ---
             document.getElementById('pipeline-study-planner').addEventListener('click', () => {
-                if (getAllFiles().length === 0) return alert("Please upload a syllabus document to create a study plan.");
-                populateStudyPlanFilePicker();
                 studyPlanModal.style.display = 'flex';
             });
-
-            function populateStudyPlanFilePicker() {
-                const allFiles = getAllFiles();
-                const container = document.getElementById('study-plan-syllabus-files');
-                container.innerHTML = '';
-                allFiles.forEach(file => {
-                    container.innerHTML += `<div class="modal-file-item"><label><input type="checkbox" name="syllabus_files" value="${file.path}"> ${file.name}</label></div>`;
+            
+            document.getElementById('study-plan-form').addEventListener('submit', (e) => {
+                 e.preventDefault();
+                 studyPlanModal.style.display = 'none';
+                 openFileSelectionModal('study-plan', {
+                    title: 'Select Syllabus',
+                    description: 'Choose the syllabus file to generate a plan from.',
+                    multiSelect: true
                 });
-            }
+            });
 
-            document.getElementById('study-plan-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const syllabusFiles = Array.from(e.target.querySelectorAll('input[name="syllabus_files"]:checked')).map(cb => cb.value);
-                const deadline = e.target.querySelector('input[name="deadline"]').value;
-                if(syllabusFiles.length === 0) return alert("Please select at least one syllabus document.");
-                if(!deadline) return alert("Please set a deadline.");
-                
-                studyPlanModal.style.display = 'none';
+            async function handleStudyPlanSubmit(syllabusFiles, deadline) {
                 showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
 
                 try {
@@ -1258,7 +1311,8 @@
                     alert('A network or server error occurred.');
                     hideLoading();
                 }
-            });
+            }
+
 
             // --- All Tools Toggle ---
             document.getElementById('all-tools-toggle-btn').addEventListener('click', (e) => {
@@ -1270,51 +1324,45 @@
 
             // --- Quick Tools (Individual) ---
             document.querySelectorAll('.quick-tool-btn').forEach(button => {
-                button.addEventListener('click', async (e) => {
-                    if (isAITaskRunning) return;
+                button.addEventListener('click', (e) => {
                     const toolName = e.currentTarget.value;
-                    const selectedFiles = getSelectedFiles();
-                    if (selectedFiles.length === 0) return alert("Please select at least one document to use this tool.");
-
-                    showLoading(`Generating ${toolName}...`, "This may take a moment. Please wait.");
-                    
-                    try {
-                        const response = await fetch(`/hub/${hubId}/run_async_tool`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ tool: toolName, selected_files: selectedFiles })
-                        });
-                        const result = await response.json();
-                        if (result.success) {
-                            window.location.href = result.redirect_url;
-                        } else {
-                            alert(`Error: ${result.message}`);
-                            hideLoading();
-                        }
-                    } catch (error) {
-                        alert('A network or server error occurred.');
-                        hideLoading();
-                    }
+                    openFileSelectionModal(toolName, {
+                        title: `Generate ${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`,
+                        description: `Select the document(s) you want to use to generate ${toolName}.`
+                    });
                 });
             });
 
-            // --- Helper Functions for File Selection ---
-            function getSelectedFiles() {
-                return Array.from(document.querySelectorAll('.sidebar-section .file-checkbox:checked')).map(cb => cb.value);
-            }
-            function getAllFiles() {
-                return Array.from(document.querySelectorAll('.sidebar-section .file-checkbox')).map(cb => ({ name: cb.dataset.filename, path: cb.value }));
-            }
-            function updateUIBasedOnSelection() {
+            async function handleQuickToolSubmit(toolName, selectedFiles) {
                 if (isAITaskRunning) return;
-                const selectedCount = getSelectedFiles().length;
-                const isDisabled = selectedCount === 0;
-                studyToolsContainer.classList.toggle('disabled', isDisabled);
+                showLoading(`Generating ${toolName}...`, "This may take a moment. Please wait.");
+                try {
+                    const response = await fetch(`/hub/${hubId}/run_async_tool`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tool: toolName, selected_files: selectedFiles })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
             }
-            document.querySelectorAll('.sidebar-section .file-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateUIBasedOnSelection);
-            });
-            updateUIBasedOnSelection();
+
+            // --- Helper Functions for File Info ---
+            function getAllFiles() {
+                return Array.from(document.querySelectorAll('#main-file-list .file-info span')).map(span => ({ 
+                    name: span.textContent.trim(), 
+                    path: span.dataset.path 
+                }));
+            }
+            
 
             // --- **FIXED** Folder Accordion Logic ---
             const folderAccordionContainer = document.getElementById('folder-accordion-container');
