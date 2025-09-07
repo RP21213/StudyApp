@@ -558,38 +558,12 @@
         .hub-main-header p.sub-header { color: white; opacity: 0.8; margin: 0.5rem 0 0 0; font-size: 1.1rem; font-family: 'Poppins'; }
         .hub-main-header .notification-bell svg { color: white; }
         
-        /* NEW STYLES FOR UPLOAD SUCCESS & PREVIEW */
-        .upload-success-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1rem 0;
-        }
-        .action-card {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.25rem;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .action-card:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-            transform: translateY(-3px);
-            box-shadow: var(--card-shadow);
-        }
-        .action-card h5 { margin: 0; font-size: 1.1rem; color: var(--text-main); }
-        .action-card p { margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary); font-family: 'Poppins', sans-serif; }
-        
-        .preview-content-area {
+        /* NEW STYLES FOR UPLOAD PREVIEW */
+        .upload-preview-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin-bottom: 2rem;
-            min-height: 200px;
         }
         .preview-section h4 {
             font-size: 1.1rem;
@@ -598,7 +572,7 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 0.5rem;
         }
-        #preview-summary, #preview-cheat-sheet {
+        #preview-summary {
             font-size: 0.95rem;
             line-height: 1.6;
             color: var(--text-secondary);
@@ -616,35 +590,76 @@
             font-size: 0.85rem;
             font-weight: 500;
         }
-        .sample-item {
+        .sample-flashcard {
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1rem;
             margin-bottom: 1rem;
         }
-        .sample-item strong {
+        .sample-flashcard strong {
             display: block;
             margin-bottom: 0.5rem;
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
-        .sample-question {
+        .sample-quiz-question {
             font-weight: 600;
             margin-bottom: 0.75rem;
         }
-        .sample-options {
+        .sample-quiz-options {
             list-style: none;
             padding-left: 0;
             margin: 0;
         }
-        .sample-options li { padding: 0.5rem; border-radius: 6px; }
-        .sample-options li.correct {
+        .sample-quiz-options li {
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+        .sample-quiz-options li.correct {
             background-color: #dcfce7;
             color: #16a34a;
         }
-        html[data-theme="dark"] .sample-options li.correct {
+        html[data-theme="dark"] .sample-quiz-options li.correct {
             background-color: #14532d;
             color: #4ade80;
+        }
+        .preview-actions-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+        .preview-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .preview-action-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preview-action-card:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        .preview-action-card h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .preview-action-card p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'Poppins', sans-serif;
         }
 
     </style>
@@ -732,7 +747,7 @@
                         <p class="empty-state-text" id="empty-file-list-message">Upload a PDF to begin.</p>
                         {% endfor %}
                     </div>
-                     <form class="upload-form" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
+                     <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
                         <label for="pdf-upload" class="file-upload-wrapper">
                             <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
                             <span class="file-upload-text">Click or drag to upload</span>
@@ -999,59 +1014,131 @@
         </main>
     </div>
 
-    <!-- NEW: Upload Success & Action Modal -->
-    <div class="modal-overlay" id="upload-success-modal">
+    <!-- NEW File Selection Modal -->
+    <div class="modal-overlay" id="file-selection-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="upload-success-title">✅ Lecture Processed!</h3>
+                <h3 id="file-selection-title">Select Documents</h3>
                 <button class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="modal-description" style="margin-top:0; text-align:center;">What would you like to do with <strong id="uploaded-filename">your file</strong>?</p>
-                <div class="upload-success-actions">
-                    <div class="action-card" data-action="revision-pack">
-                        <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
-                        <div><h5>📘 Build Revision Pack</h5><p>Generate notes, flashcards & quizzes.</p></div>
+                <p class="modal-description" id="file-selection-description">Choose the files you want to use for this tool.</p>
+                <div id="file-selection-list" class="modal-file-list">
+                    <!-- File list will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="button button-secondary close-btn">Cancel</button>
+                <button type="button" class="button button-primary" id="confirm-file-selection-btn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW Upload Preview Modal -->
+    <div class="modal-overlay" id="upload-preview-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="upload-preview-title"></h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-preview-grid">
+                    <div class="preview-section">
+                        <h4>📄 Summary</h4>
+                        <p id="preview-summary"></p>
                     </div>
-                    <div class="action-card" data-action="exam-kit">
-                        <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
-                        <div><h5>📝 Create Exam Pack</h5><p>Generate a cheat sheet & mock exam.</p></div>
+                    <div class="preview-section">
+                        <h4>🧩 Key Terms</h4>
+                        <div id="preview-key-terms"></div>
                     </div>
-                     <div class="action-card" data-action="assignment-source">
-                        <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                        <div><h5>📄 Use as Assignment Source</h5><p>Start a new assignment draft.</p></div>
+                    <div class="preview-section">
+                        <h4>🃏 Sample Flashcards</h4>
+                        <div id="preview-flashcards"></div>
                     </div>
+                    <div class="preview-section">
+                        <h4>❓ Sample Quiz Questions</h4>
+                        <div id="preview-quiz"></div>
+                    </div>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 2rem 0;">
+                <h4 class="preview-actions-title">What's Next?</h4>
+                <div class="preview-actions-grid" id="preview-actions">
+                    <!-- Actions will be populated by JavaScript -->
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- NEW: On-Demand Preview & Config Modal -->
-    <div class="modal-overlay" id="on-demand-preview-modal">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="modal-header">
-                <h3 id="preview-modal-title"></h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <form id="pipeline-form">
+
+
+    <!-- Modals for Pipelines -->
+    <div class="modal-overlay" id="revision-pack-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div>
+            <form id="revision-pack-form">
                 <div class="modal-body">
-                    <div id="preview-content-area" class="preview-content-area">
-                        <!-- Preview content will be injected here -->
+                    <div class="form-group">
+                        <label for="num-flashcards">Number of Flashcards</label>
+                        <div class="slider-group">
+                            <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5">
+                            <span class="slider-value" id="num-flashcards-value">20</span>
+                        </div>
                     </div>
-                    <div id="pipeline-config-area">
-                        <!-- Pipeline-specific options (e.g., sliders) will be injected here -->
+                    <div class="form-group">
+                        <label for="num-quiz-questions">Number of Quiz Questions</label>
+                         <div class="slider-group">
+                            <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5">
+                            <span class="slider-value" id="num-quiz-questions-value">10</span>
+                        </div>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="include-notes" name="include_notes" checked>
+                            Include condensed revision notes
+                        </label>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="button button-secondary close-btn">Cancel</button>
-                    <button type="submit" class="button button-primary" id="confirm-pipeline-btn">Continue</button>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="exam-kit-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
+            <form id="exam-kit-form">
+                <div class="modal-body">
+                     <p class="modal-description">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
+                    <div class="form-group">
+                        <label>Select Main Lectures/Syllabi</label>
+                        <div id="exam-kit-lecture-files" class="modal-file-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Past Papers (Optional)</label>
+                        <div id="exam-kit-past-paper-files" class="modal-file-list"></div>
+                    </div>
                 </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div>
             </form>
         </div>
     </div>
 
-    <!-- (Old modals for calendar, etc. remain unchanged) -->
+    <div class="modal-overlay" id="study-plan-modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div>
+            <form id="study-plan-form">
+                <div class="modal-body">
+                    <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
+                    <div class="form-group">
+                        <label for="study-plan-deadline">Exam/Assignment Deadline</label>
+                        <input type="date" id="study-plan-deadline" name="deadline" required>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div>
+            </form>
+        </div>
+    </div>
     
+    <!-- Other Modals -->
     <div class="modal-overlay" id="add-items-modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div>
@@ -1107,8 +1194,6 @@
     </div>
 
     <script>
-        // --- (Existing openTab, theme, and calendar logic remains the same) ---
-        
         function openTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
             document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
@@ -1116,22 +1201,32 @@
             evt.currentTarget.classList.add('active');
             window.location.hash = tabName;
         }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
             const hubId = '{{ hub.id }}';
             let calendar; 
 
-            // --- State Variables ---
+            const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
-            let lastUploadedFile = null;
 
+            // --- State for the new file selection/preview flow ---
+            let currentToolIdentifier = null;
+            let selectedFilesForTool = [];
+            
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
-            const uploadSuccessModal = document.getElementById('upload-success-modal');
-            const onDemandPreviewModal = document.getElementById('on-demand-preview-modal');
-            const loadingContainer = document.getElementById('loading-status-container');
-            const uploadInput = document.getElementById('pdf-upload');
+            const fileSelectionModal = document.getElementById('file-selection-modal');
+            const revisionModal = document.getElementById('revision-pack-modal');
+            const examKitModal = document.getElementById('exam-kit-modal');
+            const studyPlanModal = document.getElementById('study-plan-modal');
+            const uploadPreviewModal = document.getElementById('upload-preview-modal');
+            const calendarEl = document.getElementById('fullcalendar');
+            const scheduleModal = document.getElementById('schedule-event-modal');
+            const detailsModal = document.getElementById('event-details-modal');
+            const importModal = document.getElementById('import-ics-modal');
+            const addItemsModal = document.getElementById('add-items-modal');
             const themeToggle = document.getElementById('theme-toggle');
+            const uploadInput = document.getElementById('pdf-upload');
 
             // --- Generic Modal Handling ---
             allModals.forEach(modal => {
@@ -1143,22 +1238,24 @@
                 }
             });
 
-            function showLoading(message) {
-                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>${message}</h4></div></div>`;
+            function showLoading(message, subtext) {
+                isAITaskRunning = true;
+                loadingContainer.innerHTML = `<div class="loading-card"><div class="spinner"></div><div class="loading-text"><h4>${message}</h4><p>${subtext}</p></div></div>`;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             function hideLoading() {
+                isAITaskRunning = false;
                 loadingContainer.innerHTML = '';
             }
 
-            // --- NEW UPLOAD FLOW ---
+            // --- NEW LECTURE UPLOAD & PREVIEW FLOW ---
 
             uploadInput.addEventListener('change', async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                showLoading('Processing your document...');
+                showLoading('✨ Analyzing your lecture...', 'Extracting key topics, generating study tools...');
 
                 const formData = new FormData();
                 formData.append('pdf', file);
@@ -1173,21 +1270,26 @@
                     hideLoading();
 
                     if (result.success) {
-                        lastUploadedFile = result.file_info;
                         addFileToUI(result.file_info);
-                        showUploadSuccessModal(result.file_info);
+                        populateAndShowPreviewModal(result.preview_data, result.file_info);
                     } else {
                         alert(`Upload failed: ${result.message}`);
                     }
                 } catch (error) {
                     hideLoading();
                     alert('An error occurred during upload. Please try again.');
+                    console.error('Upload error:', error);
+                } finally {
+                    // Reset the input so the same file can be uploaded again
+                    event.target.value = '';
                 }
-                event.target.value = ''; // Reset input
             });
 
             function addFileToUI(fileInfo) {
-                document.getElementById('empty-file-list-message')?.remove();
+                // Remove the "empty" message if it exists
+                const emptyMessage = document.getElementById('empty-file-list-message');
+                if (emptyMessage) emptyMessage.remove();
+
                 const fileList = document.getElementById('main-file-list');
                 const fileItemHTML = `
                     <div class="file-item">
@@ -1202,139 +1304,174 @@
                 fileList.insertAdjacentHTML('beforeend', fileItemHTML);
             }
 
-            function showUploadSuccessModal(fileInfo) {
-                document.getElementById('uploaded-filename').textContent = fileInfo.name;
-                uploadSuccessModal.style.display = 'flex';
+            function populateAndShowPreviewModal(previewData, fileInfo) {
+                document.getElementById('upload-preview-title').textContent = `Analysis Complete: ${fileInfo.name}`;
+                document.getElementById('preview-summary').textContent = previewData.summary || 'No summary could be generated.';
+                
+                const keyTermsContainer = document.getElementById('preview-key-terms');
+                keyTermsContainer.innerHTML = previewData.key_terms.map(term => `<span class="key-term-badge">${term}</span>`).join('') || 'No key terms found.';
+
+                const flashcardsContainer = document.getElementById('preview-flashcards');
+                flashcardsContainer.innerHTML = previewData.sample_flashcards.map(card => `
+                    <div class="sample-flashcard">
+                        <strong>Front:</strong> ${card.front}<br>
+                        <strong>Back:</strong> ${card.back}
+                    </div>
+                `).join('') || 'No sample flashcards could be generated.';
+
+                const quizContainer = document.getElementById('preview-quiz');
+                quizContainer.innerHTML = previewData.sample_quiz.map(q => `
+                    <div>
+                        <p class="sample-quiz-question">${q.question}</p>
+                        <ul class="sample-quiz-options">
+                            ${q.options.map(opt => `<li class="${opt === q.correct_answer ? 'correct' : ''}">${opt}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('') || 'No sample questions could be generated.';
+                
+                // Populate actions
+                const actionsContainer = document.getElementById('preview-actions');
+                actionsContainer.innerHTML = `
+                    <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
+                         <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                        <div><h5>Build Revision Pack</h5><p>Notes, flashcards & quizzes.</p></div>
+                    </div>
+                    <div class="preview-action-card" data-action="exam-kit" data-path="${fileInfo.path}">
+                         <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                        <div><h5>Prepare for Exam</h5><p>Cheatsheet & mock exam.</p></div>
+                    </div>
+                     <div class="preview-action-card" data-action="assignment-writer" data-path="${fileInfo.path}">
+                        <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                        <div><h5>Use as a Source</h5><p>Start an assignment with this file.</p></div>
+                    </div>
+                `;
+
+                uploadPreviewModal.style.display = 'flex';
             }
             
-            // --- ON-DEMAND PREVIEW & PIPELINE LOGIC ---
-
-            uploadSuccessModal.addEventListener('click', async (e) => {
-                const actionCard = e.target.closest('.action-card');
+            // Handle clicks on the action cards inside the preview modal
+            uploadPreviewModal.addEventListener('click', (e) => {
+                const actionCard = e.target.closest('.preview-action-card');
                 if (!actionCard) return;
 
                 const action = actionCard.dataset.action;
-                uploadSuccessModal.style.display = 'none';
+                const filePath = actionCard.dataset.path;
+                selectedFilesForTool = [filePath]; // Set this file as the one to be used
 
-                if (action === 'assignment-source') {
-                    window.location.href = `/hub/${hubId}/start_assignment`;
-                    return;
-                }
-                
-                let previewType, title, buttonText;
+                uploadPreviewModal.style.display = 'none'; // Hide the preview modal
+
                 if (action === 'revision-pack') {
-                    previewType = 'revision';
-                    title = 'Preview: Revision Pack';
-                    buttonText = 'Build Full Revision Pack';
+                    revisionModal.style.display = 'flex';
                 } else if (action === 'exam-kit') {
-                    previewType = 'exam';
-                    title = 'Preview: Exam Readiness Kit';
-                    buttonText = 'Create Full Exam Kit';
-                }
-
-                document.getElementById('preview-modal-title').textContent = title;
-                document.getElementById('confirm-pipeline-btn').textContent = buttonText;
-                onDemandPreviewModal.querySelector('form').dataset.action = action;
-                onDemandPreviewModal.style.display = 'flex';
-                
-                const previewArea = document.getElementById('preview-content-area');
-                previewArea.innerHTML = `<div class="loading-card" style="grid-column: 1 / -1;"><div class="spinner"></div><div class="loading-text"><h4>Generating preview...</h4></div></div>`;
-                
-                try {
-                    const response = await fetch(`/hub/${hubId}/generate_preview`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ file_path: lastUploadedFile.path, preview_type: previewType })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        renderPreview(previewType, result.preview_data);
-                    } else {
-                        previewArea.innerHTML = `<p class="empty-state-text">Could not generate a preview: ${result.message}</p>`;
-                    }
-                } catch (error) {
-                     previewArea.innerHTML = `<p class="empty-state-text">A network error occurred while generating the preview.</p>`;
+                    populateExamKitFilePickers();
+                    // Auto-select the lecture file in the exam kit modal
+                    const lectureCheckbox = document.querySelector(`#exam-kit-lecture-files input[value="${filePath}"]`);
+                    if (lectureCheckbox) lectureCheckbox.checked = true;
+                    examKitModal.style.display = 'flex';
+                } else if (action === 'assignment-writer') {
+                    // Redirect to the assignment writer page, pre-selecting the file would be a more advanced feature
+                    window.location.href = `/hub/${hubId}/start_assignment`;
                 }
             });
 
-            function renderPreview(type, data) {
-                const previewArea = document.getElementById('preview-content-area');
-                const configArea = document.getElementById('pipeline-config-area');
-                let previewHTML = '';
-                let configHTML = '';
 
-                if (type === 'revision') {
-                    previewHTML = `
-                        <div class="preview-section">
-                            <h4>📄 Summary</h4><p id="preview-summary">${data.summary || 'N/A'}</p>
-                        </div>
-                        <div class="preview-section">
-                            <h4>🧩 Key Terms</h4><div id="preview-key-terms">${data.key_terms.map(t => `<span class="key-term-badge">${t}</span>`).join('')}</div>
-                        </div>
-                        <div class="preview-section">
-                            <h4>🃏 Sample Flashcards</h4>
-                            ${data.sample_flashcards.map(c => `<div class="sample-item"><strong>Front:</strong> ${c.front}<br><strong>Back:</strong> ${c.back}</div>`).join('')}
-                        </div>
-                        <div class="preview-section">
-                            <h4>❓ Sample Quiz</h4>
-                            ${data.sample_quiz.map(q => `<div><p class="sample-question">${q.question}</p><ul class="sample-options">${q.options.map(o => `<li class="${o === q.correct_answer ? 'correct' : ''}">${o}</li>`).join('')}</ul></div>`).join('')}
-                        </div>`;
-                    configHTML = `
-                        <div class="form-group"><label>Number of Flashcards</label><div class="slider-group"><input type="range" name="num_flashcards" min="0" max="100" value="20" step="5"><span class="slider-value">20</span></div></div>
-                        <div class="form-group"><label>Number of Quiz Questions</label><div class="slider-group"><input type="range" name="num_quiz_questions" min="0" max="50" value="10" step="5"><span class="slider-value">10</span></div></div>
-                        <div class="form-group"><label><input type="checkbox" name="include_notes" checked> Include condensed revision notes</label></div>`;
-                } else if (type === 'exam') {
-                    previewHTML = `
-                         <div class="preview-section">
-                            <h4>🧠 Key Concepts</h4><div id="preview-key-terms">${data.key_concepts.map(t => `<span class="key-term-badge">${t}</span>`).join('')}</div>
-                        </div>
-                        <div class="preview-section">
-                            <h4>📝 Cheat Sheet Sample</h4><div id="preview-cheat-sheet">${data.cheat_sheet_sample || 'N/A'}</div>
-                        </div>
-                        <div class="preview-section" style="grid-column: 1 / -1;">
-                            <h4>🧐 Sample Exam Questions</h4>
-                            ${data.sample_questions.map(q => `<div class="sample-item"><strong>Question:</strong> ${q.question}<br><strong>Answer:</strong> ${q.model_answer}</div>`).join('')}
-                        </div>`;
-                    configHTML = `<p class="modal-description">The full exam kit will include a complete cheat sheet and a 15-question mock exam.</p>`;
+            // --- FILE SELECTION LOGIC for other tools ---
+
+            function openFileSelectionModal(toolIdentifier, { title, description, multiSelect = true }) {
+                currentToolIdentifier = toolIdentifier;
+                document.getElementById('file-selection-title').textContent = title;
+                document.getElementById('file-selection-description').textContent = description;
+
+                const fileListContainer = document.getElementById('file-selection-list');
+                fileListContainer.innerHTML = '';
+                const allFiles = getAllFiles();
+
+                if (allFiles.length === 0) {
+                    alert("You must upload at least one document before using this tool.");
+                    return;
                 }
-                previewArea.innerHTML = previewHTML;
-                configArea.innerHTML = configHTML;
 
-                // Add event listeners to sliders
-                configArea.querySelectorAll('input[type="range"]').forEach(slider => {
-                    slider.addEventListener('input', e => {
-                        e.target.nextElementSibling.textContent = e.target.value;
-                    });
+                allFiles.forEach(file => {
+                    const inputType = multiSelect ? 'checkbox' : 'radio';
+                    const itemHTML = `
+                        <div class="modal-file-item">
+                            <label>
+                                <input type="${inputType}" name="tool_files" value="${file.path}">
+                                <span class="file-icon-modal">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                </span>
+                                ${file.name}
+                            </label>
+                        </div>`;
+                    fileListContainer.insertAdjacentHTML('beforeend', itemHTML);
                 });
+                
+                fileSelectionModal.style.display = 'flex';
             }
 
-            document.getElementById('pipeline-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const action = e.target.dataset.action;
-                
-                onDemandPreviewModal.style.display = 'none';
-                showLoading('Building your pack... this may take a moment.');
+            document.getElementById('confirm-file-selection-btn').addEventListener('click', () => {
+                selectedFilesForTool = Array.from(fileSelectionModal.querySelectorAll('input[name="tool_files"]:checked')).map(cb => cb.value);
 
-                let url, payload;
-                if (action === 'revision-pack') {
-                    const formData = new FormData(e.target);
-                    url = `/hub/${hubId}/build_revision_pack`;
-                    payload = {
-                        selected_files: [lastUploadedFile.path],
-                        num_flashcards: formData.get('num_flashcards'),
-                        num_quiz_questions: formData.get('num_quiz_questions'),
-                        include_notes: formData.has('include_notes')
-                    };
-                } else if (action === 'exam-kit') {
-                    url = `/hub/${hubId}/build_exam_kit`;
-                    payload = {
-                        lecture_files: [lastUploadedFile.path],
-                        past_paper_files: [] // Can be extended later
-                    };
+                if (selectedFilesForTool.length === 0) {
+                    return alert("Please select at least one file to continue.");
                 }
 
+                fileSelectionModal.style.display = 'none';
+
+                // Route to the correct next step based on the tool
+                switch (currentToolIdentifier) {
+                    case 'revision-pack':
+                        revisionModal.style.display = 'flex';
+                        break;
+                    case 'study-plan':
+                        const deadline = studyPlanModal.querySelector('input[name="deadline"]').value;
+                        if (!deadline) {
+                           studyPlanModal.style.display = 'flex';
+                           return alert("Please set a deadline.");
+                        }
+                        handleStudyPlanSubmit(selectedFilesForTool, deadline);
+                        break;
+                    case 'notes':
+                    case 'flashcards':
+                    case 'quiz':
+                    case 'cheatsheet':
+                    case 'analyse':
+                        handleQuickToolSubmit(currentToolIdentifier, selectedFilesForTool);
+                        break;
+                }
+            });
+
+            // --- Pipeline 1: Revision Pack ---
+            document.getElementById('pipeline-revision-pack').addEventListener('click', () => {
+                openFileSelectionModal('revision-pack', {
+                    title: 'Build Revision Pack',
+                    description: 'Select the documents you want to include in your revision pack.'
+                });
+            });
+
+            const numFlashcardsSlider = document.getElementById('num-flashcards');
+            const numFlashcardsValue = document.getElementById('num-flashcards-value');
+            numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
+
+            const numQuizSlider = document.getElementById('num-quiz-questions');
+            const numQuizValue = document.getElementById('num-quiz-questions-value');
+            numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
+
+            document.getElementById('revision-pack-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const payload = {
+                    selected_files: selectedFilesForTool,
+                    num_flashcards: formData.get('num_flashcards'),
+                    num_quiz_questions: formData.get('num_quiz_questions'),
+                    include_notes: formData.has('include_notes')
+                };
+
+                revisionModal.style.display = 'none';
+                showLoading("Building Your Revision Pack...", "This might take a moment. A new folder will be created when done.");
+
                 try {
-                    const response = await fetch(url, {
+                    const response = await fetch(`/hub/${hubId}/build_revision_pack`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify(payload)
@@ -1344,52 +1481,293 @@
                         window.location.hash = 'folders';
                         window.location.reload();
                     } else {
-                        hideLoading();
                         alert(`Error: ${result.message}`);
+                        hideLoading();
                     }
                 } catch (error) {
-                    hideLoading();
                     alert('A network or server error occurred.');
+                    hideLoading();
                 }
             });
 
+            // --- Pipeline 2: Exam Readiness Kit ---
+            document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
+                if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
+                populateExamKitFilePickers();
+                examKitModal.style.display = 'flex';
+            });
 
-            // --- (Existing calendar, theme, tab logic etc. from previous version) ---
+            function populateExamKitFilePickers() {
+                const allFiles = getAllFiles();
+                const lectureContainer = document.getElementById('exam-kit-lecture-files');
+                const pastPaperContainer = document.getElementById('exam-kit-past-paper-files');
+                lectureContainer.innerHTML = '';
+                pastPaperContainer.innerHTML = '';
+
+                allFiles.forEach(file => {
+                    const lectureItem = `<div class="modal-file-item"><label><input type="checkbox" name="lecture_files" value="${file.path}"> ${file.name}</label></div>`;
+                    const pastPaperItem = `<div class="modal-file-item"><label><input type="checkbox" name="past_paper_files" value="${file.path}"> ${file.name}</label></div>`;
+                    lectureContainer.insertAdjacentHTML('beforeend', lectureItem);
+                    pastPaperContainer.insertAdjacentHTML('beforeend', pastPaperItem);
+                });
+            }
+
+            document.getElementById('exam-kit-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const lectureFiles = Array.from(e.target.querySelectorAll('input[name="lecture_files"]:checked')).map(cb => cb.value);
+                const pastPaperFiles = Array.from(e.target.querySelectorAll('input[name="past_paper_files"]:checked')).map(cb => cb.value);
+
+                if(lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
+
+                examKitModal.style.display = 'none';
+                showLoading("Assembling Your Exam Kit...", "Analyzing documents and generating resources. Please wait.");
+
+                 try {
+                    const response = await fetch(`/hub/${hubId}/build_exam_kit`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ lecture_files: lectureFiles, past_paper_files: pastPaperFiles })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        window.location.hash = 'folders';
+                        window.location.reload();
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
+            });
+            
+            // --- Pipeline 3: Smart Study Planner ---
+             document.getElementById('pipeline-study-planner').addEventListener('click', () => {
+                studyPlanModal.style.display = 'flex';
+            });
+            
+            document.getElementById('study-plan-form').addEventListener('submit', (e) => {
+                 e.preventDefault();
+                 studyPlanModal.style.display = 'none';
+                 openFileSelectionModal('study-plan', {
+                    title: 'Select Syllabus',
+                    description: 'Choose the syllabus file(s) to generate a plan from.',
+                    multiSelect: true
+                });
+            });
+
+            async function handleStudyPlanSubmit(syllabusFiles, deadline) {
+                showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
+
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_study_plan`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline })
+                    });
+                    const result = await response.json();
+                     if (result.success) {
+                        window.location.hash = 'calendar';
+                        window.location.reload();
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
+            }
+
+
+            // --- All Tools Toggle ---
+            document.getElementById('all-tools-toggle-btn').addEventListener('click', (e) => {
+                const container = document.getElementById('all-tools-container');
+                const isHidden = container.style.display === 'none';
+                container.style.display = isHidden ? 'block' : 'none';
+                e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
+            });
+
+            // --- Quick Tools (Individual) ---
+            document.querySelectorAll('.quick-tool-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const toolName = e.currentTarget.value;
+                    openFileSelectionModal(toolName, {
+                        title: `Generate ${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`,
+                        description: `Select the document(s) you want to use to generate ${toolName}.`
+                    });
+                });
+            });
+
+            async function handleQuickToolSubmit(toolName, selectedFiles) {
+                if (isAITaskRunning) return;
+                showLoading(`Generating ${toolName}...`, "This may take a moment. Please wait.");
+                try {
+                    const response = await fetch(`/hub/${hubId}/run_async_tool`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tool: toolName, selected_files: selectedFiles })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        window.location.href = result.redirect_url;
+                    } else {
+                        alert(`Error: ${result.message}`);
+                        hideLoading();
+                    }
+                } catch (error) {
+                    alert('A network or server error occurred.');
+                    hideLoading();
+                }
+            }
+
+            // --- Helper Functions for File Info ---
+            function getAllFiles() {
+                return Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]')).map(span => ({ 
+                    name: span.textContent.trim(), 
+                    path: span.dataset.path 
+                }));
+            }
+            
+            // --- Folder Accordion Logic ---
+            const folderAccordionContainer = document.getElementById('folder-accordion-container');
+            let currentOpenFolderId = null;
+
+            if (folderAccordionContainer) {
+                folderAccordionContainer.addEventListener('click', async (e) => {
+                    const header = e.target.closest('.folder-header');
+                    const addBtn = e.target.closest('.add-items-to-folder-btn');
+                    const deleteBtn = e.target.closest('.delete-folder-btn');
+                    const removeBtn = e.target.closest('.remove-item-btn');
+
+                    if (header && !addBtn && !deleteBtn) {
+                        header.nextElementSibling.classList.toggle('open');
+                    }
+                    
+                    if (addBtn) {
+                        currentOpenFolderId = addBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
+                        addItemsModal.style.display = 'flex';
+                    }
+                    
+                    if (deleteBtn) {
+                        const folderItem = deleteBtn.closest('.folder-accordion-item');
+                        const folderId = folderItem.querySelector('.folder-header').dataset.folderId;
+                        if (confirm('Are you sure you want to delete this folder? (Items inside will not be deleted).')) {
+                            fetch(`/folder/${folderId}/delete`, { method: 'POST' })
+                                .then(res => res.json())
+                                .then(result => {
+                                    if(result.success) {
+                                        folderItem.remove();
+                                    } else {
+                                        alert('Failed to delete folder: ' + result.message);
+                                    }
+                                });
+                        }
+                    }
+                    
+                    if (removeBtn) {
+                        const itemEl = removeBtn.closest('.asset-item');
+                        const folderId = removeBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
+                        const item = { id: itemEl.dataset.id, type: itemEl.dataset.type };
+                        fetch(`/folder/${folderId}/remove_item`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ item: item })
+                        }).then(res => res.json()).then(result => {
+                            if (result.success) itemEl.remove(); else alert('Failed to remove item.');
+                        });
+                    }
+                });
+            }
+
+            if(addItemsModal){
+                document.getElementById('save-added-items-btn').addEventListener('click', async () => {
+                    const selectedItems = Array.from(addItemsModal.querySelectorAll('input[type="checkbox"]:checked'))
+                        .map(cb => ({ id: cb.dataset.id, type: cb.dataset.type }));
+                    
+                    if (selectedItems.length > 0 && currentOpenFolderId) {
+                        fetch(`/folder/${currentOpenFolderId}/add_items`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ items: selectedItems })
+                        }).then(res => res.json()).then(result => {
+                            if (result.success) window.location.reload(); else alert('Failed to add items.');
+                        });
+                    } else {
+                        addItemsModal.style.display = 'none';
+                    }
+                });
+            }
+
+            // --- Calendar Logic ---
             function initializeCalendar() {
                 if (calendar) calendar.destroy();
-                calendar = new FullCalendar.Calendar(document.getElementById('fullcalendar'), {
+                calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
                     headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
                     events: `/hub/${hubId}/events`,
                     eventClick: function(info) {
-                        // ... (calendar event click logic remains the same)
+                        const event = info.event;
+                        const props = event.extendedProps;
+                        document.getElementById('details-modal-title').innerHTML = `${event.title} <span class="event-type-badge" style="background-color:${event.backgroundColor};">${props.eventType}</span>`;
+                        const startTime = event.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                        const endTime = event.end ? event.end.toLocaleString([], { timeStyle: 'short' }) : '';
+                        document.getElementById('details-modal-time').textContent = endTime ? `${startTime} - ${endTime}` : startTime;
+                        document.getElementById('details-modal-focus').textContent = props.focus;
+                        document.getElementById('details-modal-export-btn').href = props.exportUrl;
+                        detailsModal.style.display = 'flex';
                     }
                 });
                 calendar.render();
             }
-            
+
+            // --- Dark Mode Toggle Logic ---
             function applyTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-                themeToggle.checked = theme === 'dark';
+                if (theme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeToggle.checked = true;
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeToggle.checked = false;
+                }
             }
+
             themeToggle.addEventListener('change', () => {
                 const newTheme = themeToggle.checked ? 'dark' : 'light';
                 localStorage.setItem('theme', newTheme);
                 applyTheme(newTheme);
             });
-            applyTheme(localStorage.getItem('theme') || 'light');
 
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+
+
+            // --- Tab and Page Load Logic ---
             const anchor = window.location.hash.substring(1);
             if (anchor) {
                 const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
                 if (tabButton) tabButton.click();
+            } else {
+                document.querySelector(".tab-button[onclick*='documents']").classList.add('active');
+                document.getElementById('documents').style.display = 'block';
             }
-            if (document.querySelector(".tab-button[onclick*='calendar']")) {
-                 document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
-                    if (!calendar) initializeCalendar(); else setTimeout(() => calendar.render(), 10);
-                });
-            }
+            document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
+                 if (!calendar) initializeCalendar();
+                 else setTimeout(() => calendar.render(), 10);
+            });
             if (anchor === 'calendar') initializeCalendar();
+
+            // --- Other UI listeners (Notifications, etc.) ---
+            const bell = document.getElementById('notification-bell');
+            const panel = document.getElementById('notification-panel');
+            bell.addEventListener('click', async (event) => {
+                event.stopPropagation();
+                panel.classList.toggle('visible');
+            });
+            document.addEventListener('click', (event) => {
+                if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible');
+            });
         });
     </script>
 </body>
