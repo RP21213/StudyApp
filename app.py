@@ -321,6 +321,30 @@ def safe_load_json(data):
 # 3. AI GENERATION SERVICES
 # ==============================================================================
 
+# --- NEW: AI function for lecture upload preview ---
+def generate_lecture_preview_data(text):
+    """Generates a summary, key terms, and sample questions for a lecture preview."""
+    prompt = f"""
+    You are an AI assistant analyzing a lecture document. Your task is to extract a concise preview of the content.
+    Your response MUST be a single, valid JSON object with the following keys: "summary", "key_terms", "sample_flashcards", "sample_quiz".
+
+    - "summary": A 1-2 paragraph summary of the entire document.
+    - "key_terms": An array of 5-10 of the most important single words or short phrases.
+    - "sample_flashcards": An array of exactly 3 flashcard objects. Each object must have "front" and "back" keys.
+    - "sample_quiz": An array of exactly 2 multiple-choice question objects. Each object must have "question", "options" (an array of 4 strings), and "correct_answer".
+
+    Analyze the following text to generate the preview:
+    ---
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", # Use a fast and cost-effective model for previews
+        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"}
+    )
+    return response.choices[0].message.content
+
+
 # --- NEW: AI function for live, contextual summarization ---
 def generate_live_summary_update(previous_summary, new_transcript_chunk):
     """
@@ -1735,24 +1759,47 @@ def delete_file(hub_id):
 @login_required
 def upload_file(hub_id):
     if 'pdf' not in request.files:
-        flash("No file part in the request.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
+        return jsonify({"success": False, "message": "No file part in the request."}), 400
     file = request.files['pdf']
     if file.filename == '':
-        flash("No file selected.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-    if file and file.filename.lower().endswith(".pdf"):
+        return jsonify({"success": False, "message": "No file selected."}), 400
+    if not file or not file.filename.lower().endswith(".pdf"):
+        return jsonify({"success": False, "message": "Invalid file type. Please upload a PDF."}), 400
+
+    try:
         filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', file.filename)
         file_path = f"hubs/{hub_id}/{filename}"
         blob = bucket.blob(file_path)
+        
+        # Rewind file pointer before upload and text extraction
+        file.seek(0)
         blob.upload_from_file(file, content_type='application/pdf')
+        
+        # Update Firestore file list
         file.seek(0, os.SEEK_END)
         file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
         db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
-        flash(f"File '{filename}' uploaded successfully!", "success")
-    else:
-        flash("Invalid file type. Please upload a PDF.", "error")
-    return redirect(url_for('hub_page', hub_id=hub_id))
+        
+        # --- NEW: Process file for preview ---
+        file.seek(0)
+        text = pdf_to_text(file)
+        if not text or len(text) < 100:
+            return jsonify({"success": False, "message": "Could not extract sufficient text from the PDF."}), 500
+
+        preview_json_str = generate_lecture_preview_data(text)
+        preview_data = safe_load_json(preview_json_str)
+
+        return jsonify({
+            "success": True,
+            "message": "File uploaded and analyzed.",
+            "file_info": file_info,
+            "preview_data": preview_data
+        })
+
+    except Exception as e:
+        print(f"Error in upload_file: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 def generate_quiz_on_topic(text, topic):
     """Generates a targeted, 5-question quiz on a specific topic."""

@@ -557,6 +557,110 @@
         .hub-main-header h1 { color: white; font-size: 2.25rem; }
         .hub-main-header p.sub-header { color: white; opacity: 0.8; margin: 0.5rem 0 0 0; font-size: 1.1rem; font-family: 'Poppins'; }
         .hub-main-header .notification-bell svg { color: white; }
+        
+        /* NEW STYLES FOR UPLOAD PREVIEW */
+        .upload-preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .preview-section h4 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        #preview-summary {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        #preview-key-terms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .key-term-badge {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .sample-flashcard {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .sample-flashcard strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .sample-quiz-question {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .sample-quiz-options {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .sample-quiz-options li {
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+        .sample-quiz-options li.correct {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+        html[data-theme="dark"] .sample-quiz-options li.correct {
+            background-color: #14532d;
+            color: #4ade80;
+        }
+        .preview-actions-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+        .preview-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .preview-action-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preview-action-card:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+        }
+        .preview-action-card h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .preview-action-card p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'Poppins', sans-serif;
+        }
 
     </style>
     <script>
@@ -640,7 +744,7 @@
                             </a>
                         </div>
                         {% else %}
-                        <p class="empty-state-text">Upload a PDF to begin.</p>
+                        <p class="empty-state-text" id="empty-file-list-message">Upload a PDF to begin.</p>
                         {% endfor %}
                     </div>
                      <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
@@ -648,7 +752,7 @@
                             <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
                             <span class="file-upload-text">Click or drag to upload</span>
                         </label>
-                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required onchange="this.form.submit()">
+                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required>
                     </form>
                 </div>
 
@@ -930,6 +1034,41 @@
         </div>
     </div>
 
+    <!-- NEW Upload Preview Modal -->
+    <div class="modal-overlay" id="upload-preview-modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="upload-preview-title"></h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-preview-grid">
+                    <div class="preview-section">
+                        <h4>📄 Summary</h4>
+                        <p id="preview-summary"></p>
+                    </div>
+                    <div class="preview-section">
+                        <h4>🧩 Key Terms</h4>
+                        <div id="preview-key-terms"></div>
+                    </div>
+                    <div class="preview-section">
+                        <h4>🃏 Sample Flashcards</h4>
+                        <div id="preview-flashcards"></div>
+                    </div>
+                    <div class="preview-section">
+                        <h4>❓ Sample Quiz Questions</h4>
+                        <div id="preview-quiz"></div>
+                    </div>
+                </div>
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 2rem 0;">
+                <h4 class="preview-actions-title">What's Next?</h4>
+                <div class="preview-actions-grid" id="preview-actions">
+                    <!-- Actions will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modals for Pipelines -->
     <div class="modal-overlay" id="revision-pack-modal">
@@ -1067,11 +1206,10 @@
             const hubId = '{{ hub.id }}';
             let calendar; 
 
-            const studyToolsContainer = document.getElementById('study-tools-container');
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
 
-            // --- State for the new file selection flow ---
+            // --- State for the new file selection/preview flow ---
             let currentToolIdentifier = null;
             let selectedFilesForTool = [];
             
@@ -1081,12 +1219,14 @@
             const revisionModal = document.getElementById('revision-pack-modal');
             const examKitModal = document.getElementById('exam-kit-modal');
             const studyPlanModal = document.getElementById('study-plan-modal');
+            const uploadPreviewModal = document.getElementById('upload-preview-modal');
             const calendarEl = document.getElementById('fullcalendar');
             const scheduleModal = document.getElementById('schedule-event-modal');
             const detailsModal = document.getElementById('event-details-modal');
             const importModal = document.getElementById('import-ics-modal');
             const addItemsModal = document.getElementById('add-items-modal');
             const themeToggle = document.getElementById('theme-toggle');
+            const uploadInput = document.getElementById('pdf-upload');
 
             // --- Generic Modal Handling ---
             allModals.forEach(modal => {
@@ -1109,7 +1249,133 @@
                 loadingContainer.innerHTML = '';
             }
 
-            // --- NEW FILE SELECTION LOGIC ---
+            // --- NEW LECTURE UPLOAD & PREVIEW FLOW ---
+
+            uploadInput.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                showLoading('✨ Analyzing your lecture...', 'Extracting key topics, generating study tools...');
+
+                const formData = new FormData();
+                formData.append('pdf', file);
+
+                try {
+                    const response = await fetch(`/hub/${hubId}/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    hideLoading();
+
+                    if (result.success) {
+                        addFileToUI(result.file_info);
+                        populateAndShowPreviewModal(result.preview_data, result.file_info);
+                    } else {
+                        alert(`Upload failed: ${result.message}`);
+                    }
+                } catch (error) {
+                    hideLoading();
+                    alert('An error occurred during upload. Please try again.');
+                    console.error('Upload error:', error);
+                } finally {
+                    // Reset the input so the same file can be uploaded again
+                    event.target.value = '';
+                }
+            });
+
+            function addFileToUI(fileInfo) {
+                // Remove the "empty" message if it exists
+                const emptyMessage = document.getElementById('empty-file-list-message');
+                if (emptyMessage) emptyMessage.remove();
+
+                const fileList = document.getElementById('main-file-list');
+                const fileItemHTML = `
+                    <div class="file-item">
+                        <div class="file-info" style="cursor: default;">
+                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                            <span data-path="${fileInfo.path}">${fileInfo.name}</span>
+                        </div>
+                        <a href="/hub/${hubId}/delete_file?file_path=${fileInfo.path}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </a>
+                    </div>`;
+                fileList.insertAdjacentHTML('beforeend', fileItemHTML);
+            }
+
+            function populateAndShowPreviewModal(previewData, fileInfo) {
+                document.getElementById('upload-preview-title').textContent = `Analysis Complete: ${fileInfo.name}`;
+                document.getElementById('preview-summary').textContent = previewData.summary || 'No summary could be generated.';
+                
+                const keyTermsContainer = document.getElementById('preview-key-terms');
+                keyTermsContainer.innerHTML = previewData.key_terms.map(term => `<span class="key-term-badge">${term}</span>`).join('') || 'No key terms found.';
+
+                const flashcardsContainer = document.getElementById('preview-flashcards');
+                flashcardsContainer.innerHTML = previewData.sample_flashcards.map(card => `
+                    <div class="sample-flashcard">
+                        <strong>Front:</strong> ${card.front}<br>
+                        <strong>Back:</strong> ${card.back}
+                    </div>
+                `).join('') || 'No sample flashcards could be generated.';
+
+                const quizContainer = document.getElementById('preview-quiz');
+                quizContainer.innerHTML = previewData.sample_quiz.map(q => `
+                    <div>
+                        <p class="sample-quiz-question">${q.question}</p>
+                        <ul class="sample-quiz-options">
+                            ${q.options.map(opt => `<li class="${opt === q.correct_answer ? 'correct' : ''}">${opt}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('') || 'No sample questions could be generated.';
+                
+                // Populate actions
+                const actionsContainer = document.getElementById('preview-actions');
+                actionsContainer.innerHTML = `
+                    <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
+                         <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                        <div><h5>Build Revision Pack</h5><p>Notes, flashcards & quizzes.</p></div>
+                    </div>
+                    <div class="preview-action-card" data-action="exam-kit" data-path="${fileInfo.path}">
+                         <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                        <div><h5>Prepare for Exam</h5><p>Cheatsheet & mock exam.</p></div>
+                    </div>
+                     <div class="preview-action-card" data-action="assignment-writer" data-path="${fileInfo.path}">
+                        <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                        <div><h5>Use as a Source</h5><p>Start an assignment with this file.</p></div>
+                    </div>
+                `;
+
+                uploadPreviewModal.style.display = 'flex';
+            }
+            
+            // Handle clicks on the action cards inside the preview modal
+            uploadPreviewModal.addEventListener('click', (e) => {
+                const actionCard = e.target.closest('.preview-action-card');
+                if (!actionCard) return;
+
+                const action = actionCard.dataset.action;
+                const filePath = actionCard.dataset.path;
+                selectedFilesForTool = [filePath]; // Set this file as the one to be used
+
+                uploadPreviewModal.style.display = 'none'; // Hide the preview modal
+
+                if (action === 'revision-pack') {
+                    revisionModal.style.display = 'flex';
+                } else if (action === 'exam-kit') {
+                    populateExamKitFilePickers();
+                    // Auto-select the lecture file in the exam kit modal
+                    const lectureCheckbox = document.querySelector(`#exam-kit-lecture-files input[value="${filePath}"]`);
+                    if (lectureCheckbox) lectureCheckbox.checked = true;
+                    examKitModal.style.display = 'flex';
+                } else if (action === 'assignment-writer') {
+                    // Redirect to the assignment writer page, pre-selecting the file would be a more advanced feature
+                    window.location.href = `/hub/${hubId}/start_assignment`;
+                }
+            });
+
+
+            // --- FILE SELECTION LOGIC for other tools ---
 
             function openFileSelectionModal(toolIdentifier, { title, description, multiSelect = true }) {
                 currentToolIdentifier = toolIdentifier;
@@ -1224,7 +1490,7 @@
                 }
             });
 
-            // --- RESTORED Pipeline 2: Exam Readiness Kit ---
+            // --- Pipeline 2: Exam Readiness Kit ---
             document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
                 if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
                 populateExamKitFilePickers();
@@ -1358,7 +1624,7 @@
 
             // --- Helper Functions for File Info ---
             function getAllFiles() {
-                return Array.from(document.querySelectorAll('#main-file-list .file-info span')).map(span => ({ 
+                return Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]')).map(span => ({ 
                     name: span.textContent.trim(), 
                     path: span.dataset.path 
                 }));
@@ -1456,7 +1722,7 @@
                 calendar.render();
             }
 
-            // --- Dark Mode Toggle Logic (FIXED) ---
+            // --- Dark Mode Toggle Logic ---
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
@@ -1473,7 +1739,6 @@
                 applyTheme(newTheme);
             });
 
-            // Set initial theme on page load
             const savedTheme = localStorage.getItem('theme') || 'light';
             applyTheme(savedTheme);
 
@@ -1484,7 +1749,6 @@
                 const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
                 if (tabButton) tabButton.click();
             } else {
-                 // Default to documents tab
                 document.querySelector(".tab-button[onclick*='documents']").classList.add('active');
                 document.getElementById('documents').style.display = 'block';
             }
