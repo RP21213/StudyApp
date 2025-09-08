@@ -558,71 +558,6 @@
         .hub-main-header p.sub-header { color: white; opacity: 0.8; margin: 0.5rem 0 0 0; font-size: 1.1rem; font-family: 'Poppins'; }
         .hub-main-header .notification-bell svg { color: white; }
         
-        /* NEW STYLES FOR UPLOAD PREVIEW */
-        .upload-preview-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        .preview-section h4 {
-            font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-        }
-        #preview-summary {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-        #preview-key-terms {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .key-term-badge {
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .sample-flashcard {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .sample-flashcard strong {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-        .sample-quiz-question {
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-        .sample-quiz-options {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
-        .sample-quiz-options li {
-            padding: 0.5rem;
-            border-radius: 6px;
-        }
-        .sample-quiz-options li.correct {
-            background-color: #dcfce7;
-            color: #16a34a;
-        }
-        html[data-theme="dark"] .sample-quiz-options li.correct {
-            background-color: #14532d;
-            color: #4ade80;
-        }
         .preview-actions-title {
             text-align: center;
             font-size: 1.2rem;
@@ -637,13 +572,15 @@
         }
         .preview-action-card {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 1rem;
-            padding: 1rem;
+            padding: 1.5rem;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: left;
         }
         .preview-action-card:hover {
             border-color: var(--primary-color);
@@ -651,15 +588,21 @@
             transform: translateY(-3px);
             box-shadow: var(--card-shadow);
         }
+        .preview-action-card .pipeline-header { width: 100%; }
         .preview-action-card h5 {
             margin: 0;
-            font-size: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
         }
         .preview-action-card p {
-            margin: 0.25rem 0 0 0;
-            font-size: 0.85rem;
+            margin: 0;
+            font-size: 0.9rem;
             color: var(--text-secondary);
             font-family: 'Poppins', sans-serif;
+            flex-grow: 1;
+        }
+        .preview-action-card .button {
+            margin-top: auto;
         }
 
     </style>
@@ -752,7 +695,7 @@
                             <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
                             <span class="file-upload-text">Click or drag to upload</span>
                         </label>
-                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf" required>
+                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf">
                     </form>
                 </div>
 
@@ -1014,61 +957,21 @@
         </main>
     </div>
 
-    <!-- NEW File Selection Modal -->
-    <div class="modal-overlay" id="file-selection-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="file-selection-title">Select Documents</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-description" id="file-selection-description">Choose the files you want to use for this tool.</p>
-                <div id="file-selection-list" class="modal-file-list">
-                    <!-- File list will be populated by JavaScript -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="button button-secondary close-btn">Cancel</button>
-                <button type="button" class="button button-primary" id="confirm-file-selection-btn">Continue</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- NEW Upload Preview Modal -->
-    <div class="modal-overlay" id="upload-preview-modal">
+    <!-- Post-Upload Options Modal -->
+    <div class="modal-overlay" id="upload-options-modal">
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h3 id="upload-preview-title"></h3>
+                <h3 id="upload-options-title"></h3>
                 <button class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="upload-preview-grid">
-                    <div class="preview-section">
-                        <h4>📄 Summary</h4>
-                        <p id="preview-summary"></p>
-                    </div>
-                    <div class="preview-section">
-                        <h4>🧩 Key Terms</h4>
-                        <div id="preview-key-terms"></div>
-                    </div>
-                    <div class="preview-section">
-                        <h4>🃏 Sample Flashcards</h4>
-                        <div id="preview-flashcards"></div>
-                    </div>
-                    <div class="preview-section">
-                        <h4>❓ Sample Quiz Questions</h4>
-                        <div id="preview-quiz"></div>
-                    </div>
-                </div>
-                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 2rem 0;">
-                <h4 class="preview-actions-title">What's Next?</h4>
-                <div class="preview-actions-grid" id="preview-actions">
+                <h4 class="preview-actions-title">What would you like to do with this document?</h4>
+                <div class="preview-actions-grid" id="upload-options-actions">
                     <!-- Actions will be populated by JavaScript -->
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- Modals for Pipelines -->
     <div class="modal-overlay" id="revision-pack-modal">
@@ -1076,6 +979,11 @@
             <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div>
             <form id="revision-pack-form">
                 <div class="modal-body">
+                    <p class="modal-description">Turn your documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p>
+                     <div class="form-group">
+                        <label class="label">Select Documents</label>
+                        <div id="revision-pack-files" class="modal-file-list"></div>
+                    </div>
                     <div class="form-group">
                         <label for="num-flashcards">Number of Flashcards</label>
                         <div class="slider-group">
@@ -1107,13 +1015,13 @@
             <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
             <form id="exam-kit-form">
                 <div class="modal-body">
-                     <p class="modal-description">Select your main lecture files. Optionally, add past papers to improve topic prediction.</p>
+                     <p class="modal-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p>
                     <div class="form-group">
-                        <label>Select Main Lectures/Syllabi</label>
+                        <label class="label">Select Main Lectures/Syllabi</label>
                         <div id="exam-kit-lecture-files" class="modal-file-list"></div>
                     </div>
                     <div class="form-group">
-                        <label>Select Past Papers (Optional)</label>
+                        <label class="label">Select Past Papers (Optional)</label>
                         <div id="exam-kit-past-paper-files" class="modal-file-list"></div>
                     </div>
                 </div>
@@ -1128,6 +1036,10 @@
             <form id="study-plan-form">
                 <div class="modal-body">
                     <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
+                    <div class="form-group">
+                        <label class="label">Select Syllabus Document(s)</label>
+                        <div id="study-plan-files" class="modal-file-list"></div>
+                    </div>
                     <div class="form-group">
                         <label for="study-plan-deadline">Exam/Assignment Deadline</label>
                         <input type="date" id="study-plan-deadline" name="deadline" required>
@@ -1211,15 +1123,13 @@
 
             // --- State for the new file selection/preview flow ---
             let currentToolIdentifier = null;
-            let selectedFilesForTool = [];
             
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
-            const fileSelectionModal = document.getElementById('file-selection-modal');
             const revisionModal = document.getElementById('revision-pack-modal');
             const examKitModal = document.getElementById('exam-kit-modal');
             const studyPlanModal = document.getElementById('study-plan-modal');
-            const uploadPreviewModal = document.getElementById('upload-preview-modal');
+            const uploadOptionsModal = document.getElementById('upload-options-modal');
             const calendarEl = document.getElementById('fullcalendar');
             const scheduleModal = document.getElementById('schedule-event-modal');
             const detailsModal = document.getElementById('event-details-modal');
@@ -1249,13 +1159,12 @@
                 loadingContainer.innerHTML = '';
             }
 
-            // --- NEW LECTURE UPLOAD & PREVIEW FLOW ---
-
+            // --- LECTURE UPLOAD & POST-UPLOAD OPTIONS FLOW ---
             uploadInput.addEventListener('change', async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                showLoading('✨ Analyzing your lecture...', 'Extracting key topics, generating study tools...');
+                showLoading('Uploading your document...', 'Please wait while we process the file.');
 
                 const formData = new FormData();
                 formData.append('pdf', file);
@@ -1271,7 +1180,7 @@
 
                     if (result.success) {
                         addFileToUI(result.file_info);
-                        populateAndShowPreviewModal(result.preview_data, result.file_info);
+                        populateAndShowUploadOptions(result.file_info);
                     } else {
                         alert(`Upload failed: ${result.message}`);
                     }
@@ -1280,13 +1189,11 @@
                     alert('An error occurred during upload. Please try again.');
                     console.error('Upload error:', error);
                 } finally {
-                    // Reset the input so the same file can be uploaded again
                     event.target.value = '';
                 }
             });
 
             function addFileToUI(fileInfo) {
-                // Remove the "empty" message if it exists
                 const emptyMessage = document.getElementById('empty-file-list-message');
                 if (emptyMessage) emptyMessage.remove();
 
@@ -1297,174 +1204,108 @@
                             <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
                             <span data-path="${fileInfo.path}">${fileInfo.name}</span>
                         </div>
-                        <a href="/hub/${hubId}/delete_file?file_path=${fileInfo.path}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                        <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </a>
                     </div>`;
                 fileList.insertAdjacentHTML('beforeend', fileItemHTML);
             }
 
-            function populateAndShowPreviewModal(previewData, fileInfo) {
-                document.getElementById('upload-preview-title').textContent = `Analysis Complete: ${fileInfo.name}`;
-                document.getElementById('preview-summary').textContent = previewData.summary || 'No summary could be generated.';
+            function populateAndShowUploadOptions(fileInfo) {
+                document.getElementById('upload-options-title').textContent = `Success! "${fileInfo.name}" has been uploaded.`;
+                const actionsContainer = document.getElementById('upload-options-actions');
                 
-                const keyTermsContainer = document.getElementById('preview-key-terms');
-                keyTermsContainer.innerHTML = previewData.key_terms.map(term => `<span class="key-term-badge">${term}</span>`).join('') || 'No key terms found.';
-
-                const flashcardsContainer = document.getElementById('preview-flashcards');
-                flashcardsContainer.innerHTML = previewData.sample_flashcards.map(card => `
-                    <div class="sample-flashcard">
-                        <strong>Front:</strong> ${card.front}<br>
-                        <strong>Back:</strong> ${card.back}
-                    </div>
-                `).join('') || 'No sample flashcards could be generated.';
-
-                const quizContainer = document.getElementById('preview-quiz');
-                quizContainer.innerHTML = previewData.sample_quiz.map(q => `
-                    <div>
-                        <p class="sample-quiz-question">${q.question}</p>
-                        <ul class="sample-quiz-options">
-                            ${q.options.map(opt => `<li class="${opt === q.correct_answer ? 'correct' : ''}">${opt}</li>`).join('')}
-                        </ul>
-                    </div>
-                `).join('') || 'No sample questions could be generated.';
-                
-                // Populate actions
-                const actionsContainer = document.getElementById('preview-actions');
                 actionsContainer.innerHTML = `
                     <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
-                         <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
-                        <div><h5>Build Revision Pack</h5><p>Notes, flashcards & quizzes.</p></div>
+                         <div class="pipeline-header">
+                            <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                            <div class="pipeline-title"><h5>Build Revision Pack</h5></div>
+                         </div>
+                        <p>Generate notes, flashcards, and quizzes from this document.</p>
+                        <button class="button button-primary">Select</button>
                     </div>
                     <div class="preview-action-card" data-action="exam-kit" data-path="${fileInfo.path}">
-                         <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
-                        <div><h5>Prepare for Exam</h5><p>Cheatsheet & mock exam.</p></div>
+                         <div class="pipeline-header">
+                            <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                            <div class="pipeline-title"><h5>Prepare for Exam</h5></div>
+                         </div>
+                        <p>Use this file to create cheatsheets and a mock exam.</p>
+                        <button class="button button-primary">Select</button>
                     </div>
                      <div class="preview-action-card" data-action="assignment-writer" data-path="${fileInfo.path}">
-                        <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                        <div><h5>Use as a Source</h5><p>Start an assignment with this file.</p></div>
+                        <div class="pipeline-header">
+                            <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                            <div class="pipeline-title"><h5>Assignment Assistant</h5></div>
+                        </div>
+                        <p>Use this document as a source for a new assignment.</p>
+                        <button class="button button-primary">Select</button>
                     </div>
                 `;
 
-                uploadPreviewModal.style.display = 'flex';
+                uploadOptionsModal.style.display = 'flex';
             }
             
-            // Handle clicks on the action cards inside the preview modal
-            uploadPreviewModal.addEventListener('click', (e) => {
+            uploadOptionsModal.addEventListener('click', (e) => {
                 const actionCard = e.target.closest('.preview-action-card');
                 if (!actionCard) return;
 
                 const action = actionCard.dataset.action;
                 const filePath = actionCard.dataset.path;
-                selectedFilesForTool = [filePath]; // Set this file as the one to be used
-
-                uploadPreviewModal.style.display = 'none'; // Hide the preview modal
+                
+                uploadOptionsModal.style.display = 'none';
 
                 if (action === 'revision-pack') {
-                    revisionModal.style.display = 'flex';
+                    openRevisionPackModal([filePath]);
                 } else if (action === 'exam-kit') {
-                    populateExamKitFilePickers();
-                    // Auto-select the lecture file in the exam kit modal
-                    const lectureCheckbox = document.querySelector(`#exam-kit-lecture-files input[value="${filePath}"]`);
-                    if (lectureCheckbox) lectureCheckbox.checked = true;
-                    examKitModal.style.display = 'flex';
+                    openExamKitModal([filePath]);
                 } else if (action === 'assignment-writer') {
-                    // Redirect to the assignment writer page, pre-selecting the file would be a more advanced feature
                     window.location.href = `/hub/${hubId}/start_assignment`;
                 }
             });
 
+            // --- PIPELINE MODAL HANDLING ---
 
-            // --- FILE SELECTION LOGIC for other tools ---
+            // Helper to populate a file list within any modal
+            function populateModalFileList(containerId, fileList, { multiSelect = true, preselectPaths = [] } = {}) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                const inputType = multiSelect ? 'checkbox' : 'radio';
 
-            function openFileSelectionModal(toolIdentifier, { title, description, multiSelect = true }) {
-                currentToolIdentifier = toolIdentifier;
-                document.getElementById('file-selection-title').textContent = title;
-                document.getElementById('file-selection-description').textContent = description;
-
-                const fileListContainer = document.getElementById('file-selection-list');
-                fileListContainer.innerHTML = '';
-                const allFiles = getAllFiles();
-
-                if (allFiles.length === 0) {
-                    alert("You must upload at least one document before using this tool.");
-                    return;
-                }
-
-                allFiles.forEach(file => {
-                    const inputType = multiSelect ? 'checkbox' : 'radio';
+                fileList.forEach(file => {
+                    const isChecked = preselectPaths.includes(file.path) ? 'checked' : '';
                     const itemHTML = `
                         <div class="modal-file-item">
                             <label>
-                                <input type="${inputType}" name="tool_files" value="${file.path}">
+                                <input type="${inputType}" name="${containerId}_files" value="${file.path}" ${isChecked}>
                                 <span class="file-icon-modal">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                 </span>
                                 ${file.name}
                             </label>
                         </div>`;
-                    fileListContainer.insertAdjacentHTML('beforeend', itemHTML);
+                    container.insertAdjacentHTML('beforeend', itemHTML);
                 });
-                
-                fileSelectionModal.style.display = 'flex';
             }
 
-            document.getElementById('confirm-file-selection-btn').addEventListener('click', () => {
-                selectedFilesForTool = Array.from(fileSelectionModal.querySelectorAll('input[name="tool_files"]:checked')).map(cb => cb.value);
-
-                if (selectedFilesForTool.length === 0) {
-                    return alert("Please select at least one file to continue.");
-                }
-
-                fileSelectionModal.style.display = 'none';
-
-                // Route to the correct next step based on the tool
-                switch (currentToolIdentifier) {
-                    case 'revision-pack':
-                        revisionModal.style.display = 'flex';
-                        break;
-                    case 'study-plan':
-                        const deadline = studyPlanModal.querySelector('input[name="deadline"]').value;
-                        if (!deadline) {
-                           studyPlanModal.style.display = 'flex';
-                           return alert("Please set a deadline.");
-                        }
-                        handleStudyPlanSubmit(selectedFilesForTool, deadline);
-                        break;
-                    case 'notes':
-                    case 'flashcards':
-                    case 'quiz':
-                    case 'cheatsheet':
-                    case 'analyse':
-                        handleQuickToolSubmit(currentToolIdentifier, selectedFilesForTool);
-                        break;
-                }
-            });
-
             // --- Pipeline 1: Revision Pack ---
-            document.getElementById('pipeline-revision-pack').addEventListener('click', () => {
-                openFileSelectionModal('revision-pack', {
-                    title: 'Build Revision Pack',
-                    description: 'Select the documents you want to include in your revision pack.'
-                });
-            });
-
-            const numFlashcardsSlider = document.getElementById('num-flashcards');
-            const numFlashcardsValue = document.getElementById('num-flashcards-value');
-            numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
-
-            const numQuizSlider = document.getElementById('num-quiz-questions');
-            const numQuizValue = document.getElementById('num-quiz-questions-value');
-            numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
+            function openRevisionPackModal(preselectPaths = []) {
+                if(getAllFiles().length === 0) return alert("Please upload at least one document first.");
+                populateModalFileList('revision-pack-files', getAllFiles(), { preselectPaths });
+                revisionModal.style.display = 'flex';
+            }
+            document.getElementById('pipeline-revision-pack').addEventListener('click', () => openRevisionPackModal());
 
             document.getElementById('revision-pack-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
+                const form = e.target;
+                const selectedFiles = Array.from(form.querySelectorAll('input[name="revision-pack-files_files"]:checked')).map(cb => cb.value);
+                if (selectedFiles.length === 0) return alert("Please select at least one document.");
+
                 const payload = {
-                    selected_files: selectedFilesForTool,
-                    num_flashcards: formData.get('num_flashcards'),
-                    num_quiz_questions: formData.get('num_quiz_questions'),
-                    include_notes: formData.has('include_notes')
+                    selected_files: selectedFiles,
+                    num_flashcards: form.querySelector('[name="num_flashcards"]').value,
+                    num_quiz_questions: form.querySelector('[name="num_quiz_questions"]').value,
+                    include_notes: form.querySelector('[name="include_notes"]').checked
                 };
 
                 revisionModal.style.display = 'none';
@@ -1491,31 +1332,20 @@
             });
 
             // --- Pipeline 2: Exam Readiness Kit ---
-            document.getElementById('pipeline-exam-kit').addEventListener('click', () => {
-                if(getAllFiles().length === 0) return alert("Please upload at least one document to create an exam kit.");
-                populateExamKitFilePickers();
-                examKitModal.style.display = 'flex';
-            });
-
-            function populateExamKitFilePickers() {
-                const allFiles = getAllFiles();
-                const lectureContainer = document.getElementById('exam-kit-lecture-files');
-                const pastPaperContainer = document.getElementById('exam-kit-past-paper-files');
-                lectureContainer.innerHTML = '';
-                pastPaperContainer.innerHTML = '';
-
-                allFiles.forEach(file => {
-                    const lectureItem = `<div class="modal-file-item"><label><input type="checkbox" name="lecture_files" value="${file.path}"> ${file.name}</label></div>`;
-                    const pastPaperItem = `<div class="modal-file-item"><label><input type="checkbox" name="past_paper_files" value="${file.path}"> ${file.name}</label></div>`;
-                    lectureContainer.insertAdjacentHTML('beforeend', lectureItem);
-                    pastPaperContainer.insertAdjacentHTML('beforeend', pastPaperItem);
-                });
+            function openExamKitModal(preselectPaths = []) {
+                 if(getAllFiles().length === 0) return alert("Please upload at least one document first.");
+                 const allFiles = getAllFiles();
+                 populateModalFileList('exam-kit-lecture-files', allFiles, { preselectPaths });
+                 populateModalFileList('exam-kit-past-paper-files', allFiles);
+                 examKitModal.style.display = 'flex';
             }
+            document.getElementById('pipeline-exam-kit').addEventListener('click', () => openExamKitModal());
 
             document.getElementById('exam-kit-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const lectureFiles = Array.from(e.target.querySelectorAll('input[name="lecture_files"]:checked')).map(cb => cb.value);
-                const pastPaperFiles = Array.from(e.target.querySelectorAll('input[name="past_paper_files"]:checked')).map(cb => cb.value);
+                const form = e.target;
+                const lectureFiles = Array.from(form.querySelectorAll('input[name="exam-kit-lecture-files_files"]:checked')).map(cb => cb.value);
+                const pastPaperFiles = Array.from(form.querySelectorAll('input[name="exam-kit-past-paper-files_files"]:checked')).map(cb => cb.value);
 
                 if(lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
 
@@ -1543,22 +1373,21 @@
             });
             
             // --- Pipeline 3: Smart Study Planner ---
-             document.getElementById('pipeline-study-planner').addEventListener('click', () => {
-                studyPlanModal.style.display = 'flex';
-            });
+            function openStudyPlanModal() {
+                 if(getAllFiles().length === 0) return alert("Please upload at least one syllabus document first.");
+                 populateModalFileList('study-plan-files', getAllFiles());
+                 studyPlanModal.style.display = 'flex';
+            }
+            document.getElementById('pipeline-study-planner').addEventListener('click', () => openStudyPlanModal());
             
-            document.getElementById('study-plan-form').addEventListener('submit', (e) => {
+            document.getElementById('study-plan-form').addEventListener('submit', async (e) => {
                  e.preventDefault();
-                 studyPlanModal.style.display = 'none';
-                 openFileSelectionModal('study-plan', {
-                    title: 'Select Syllabus',
-                    description: 'Choose the syllabus file(s) to generate a plan from.',
-                    multiSelect: true
-                });
-            });
+                 const form = e.target;
+                 const syllabusFiles = Array.from(form.querySelectorAll('input[name="study-plan-files_files"]:checked')).map(cb => cb.value);
+                 const deadline = form.querySelector('[name="deadline"]').value;
+                 if (syllabusFiles.length === 0) return alert("Please select a syllabus document.");
 
-            async function handleStudyPlanSubmit(syllabusFiles, deadline) {
-                showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
+                 showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
 
                 try {
                     const response = await fetch(`/hub/${hubId}/create_study_plan`, {
@@ -1578,7 +1407,7 @@
                     alert('A network or server error occurred.');
                     hideLoading();
                 }
-            }
+            });
 
 
             // --- All Tools Toggle ---
@@ -1588,15 +1417,30 @@
                 container.style.display = isHidden ? 'block' : 'none';
                 e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
             });
+            
+            // --- Sliders ---
+            const numFlashcardsSlider = document.getElementById('num-flashcards');
+            const numFlashcardsValue = document.getElementById('num-flashcards-value');
+            numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
+            const numQuizSlider = document.getElementById('num-quiz-questions');
+            const numQuizValue = document.getElementById('num-quiz-questions-value');
+            numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
 
             // --- Quick Tools (Individual) ---
             document.querySelectorAll('.quick-tool-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const toolName = e.currentTarget.value;
-                    openFileSelectionModal(toolName, {
-                        title: `Generate ${toolName.charAt(0).toUpperCase() + toolName.slice(1)}`,
-                        description: `Select the document(s) you want to use to generate ${toolName}.`
-                    });
+                    // This uses a prompt for now for simplicity, can be converted to a modal
+                    const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]'));
+                    if (fileSpans.length === 0) return alert("Please upload a document first.");
+                    
+                    const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
+                    const choice = prompt(`Which file do you want to use?\n${fileNames}`);
+                    const index = parseInt(choice, 10) - 1;
+
+                    if (index >= 0 && index < fileSpans.length) {
+                        handleQuickToolSubmit(toolName, [fileSpans[index].dataset.path]);
+                    }
                 });
             });
 
