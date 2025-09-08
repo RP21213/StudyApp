@@ -158,6 +158,8 @@ socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
 
+# --- NEW: In-memory cache for AI Tutor vector stores ---
+vector_store_cache = {}
 
 # --- NEW: Configure AssemblyAI ---
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
@@ -1800,6 +1802,10 @@ def upload_file(hub_id):
         file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
         db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
         
+        # When a file is uploaded, invalidate the tutor's vector store cache for this hub
+        if hub_id in vector_store_cache:
+            del vector_store_cache[hub_id]
+
         return jsonify({
             "success": True,
             "message": "File uploaded successfully.",
@@ -3518,6 +3524,87 @@ def delete_shared_folder(shared_folder_id):
         return jsonify({"success": True, "message": "Folder removed from community."})
     except Exception as e:
         return jsonify({"success": False, "message": f"An error occurred: {e}"}), 500
+
+# ==============================================================================
+# 11. AI TUTOR ROUTES (NEW)
+# ==============================================================================
+def get_or_create_vector_store(hub_id):
+    """
+    Retrieves a vector store from the cache or creates a new one 
+    by processing all files in a given hub.
+    """
+    if hub_id in vector_store_cache:
+        return vector_store_cache[hub_id]
+
+    hub_doc = db.collection('hubs').document(hub_id).get()
+    if not hub_doc.exists:
+        return None
+    
+    hub = Hub.from_dict(hub_doc.to_dict())
+    if not hub.files:
+        return None
+        
+    all_file_paths = [f['path'] for f in hub.files]
+    combined_text = get_text_from_hub_files(all_file_paths)
+
+    if not combined_text:
+        return None
+        
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    documents = text_splitter.create_documents([combined_text])
+    
+    vector_store = FAISS.from_documents(documents, embeddings)
+    vector_store_cache[hub_id] = vector_store
+    
+    return vector_store
+
+@app.route("/hub/<hub_id>/tutor_chat", methods=["POST"])
+@login_required
+def tutor_chat(hub_id):
+    if current_user.subscription_tier not in ['pro', 'admin']:
+        return jsonify({"answer": "The AI Tutor is a Pro feature. Please upgrade to chat."}), 403
+
+    data = request.get_json()
+    user_message = data.get('message')
+    chat_history_json = data.get('history', [])
+    
+    chat_history = [HumanMessage(content=msg['content']) if msg['role'] == 'user' 
+                    else AIMessage(content=msg['content']) 
+                    for msg in chat_history_json]
+
+    vector_store = get_or_create_vector_store(hub_id)
+    if not vector_store:
+        return jsonify({"answer": "I can't answer questions until you've uploaded at least one document to this hub."})
+
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.2)
+    retriever = vector_store.as_retriever()
+
+    # 1. Create a prompt for rephrasing the question based on history
+    rephrase_prompt = ChatPromptTemplate.from_messages([
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{input}"),
+        ("user", "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
+    ])
+    history_aware_retriever = create_history_aware_retriever(llm, retriever, rephrase_prompt)
+
+    # 2. Create the main prompt for answering the question
+    qa_prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are an expert AI tutor. Answer the user's questions based on the provided context. Be concise and helpful. If you don't know the answer from the context, say so politely. Context:\n\n{context}"),
+        MessagesPlaceholder(variable_name="chat_history"),
+        ("user", "{input}"),
+    ])
+    question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+    
+    # 3. Combine them into a retrieval chain
+    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+    # 4. Invoke the chain
+    response = rag_chain.invoke({
+        "chat_history": chat_history,
+        "input": user_message
+    })
+
+    return jsonify({"answer": response['answer']})
 
 
 # ==============================================================================

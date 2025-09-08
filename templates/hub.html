@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 
     <style>
         :root {
@@ -126,21 +128,6 @@
             display: flex; align-items: center; gap: 1rem; position: relative;
         }
         .page-header h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
-        .progress-stats {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem;
-        }
-        .stat-item { text-align: center; }
-        .stat-value {
-            display: block;
-            font-size: 2.75rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-        .stat-value.is-zero {
-            color: var(--text-secondary);
-            opacity: 0.6;
-        }
-        .stat-label { font-size: 0.9rem; color: var(--text-secondary); }
         
         .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid var(--border-color); }
         
@@ -176,11 +163,8 @@
         .asset-icon-note { background-color: #e0e7ff; color: #4338ca; }
         .asset-icon-flashcards { background-color: #dcfce7; color: #166534; }
         .asset-icon-quiz { background-color: #fef9c3; color: #854d0e; }
-        .asset-icon-session { background-color: #e0e7ff; color: #312e81; }
         .asset-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; color: var(--text-main); }
         .asset-details span { font-size: 0.85rem; color: var(--text-secondary); }
-        .asset-score { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); padding: 0 1rem; }
-        .asset-actions { display: flex; gap: 0.5rem; }
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
         
         .section-heading {
@@ -335,7 +319,7 @@
         .modal-body p.modal-description {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-top: -1rem;
+            margin-top: 0;
             margin-bottom: 1.5rem;
             line-height: 1.6;
         }
@@ -605,6 +589,125 @@
             margin-top: auto;
         }
 
+        /* --- NEW AI TUTOR STYLES --- */
+        #ai-tutor-panel {
+            display: flex;
+            flex-direction: column;
+            height: 70vh; /* Adjust height as needed */
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: var(--background-body);
+        }
+        #tutor-messages-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .tutor-message {
+            display: flex;
+            gap: 1rem;
+            max-width: 80%;
+        }
+        .tutor-message .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .tutor-message .message-content {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+        /* Styles for paragraphs inside the message content */
+        .tutor-message .message-content p {
+            margin: 0 0 0.5em 0;
+        }
+        .tutor-message .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        .tutor-message.user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .user-message .avatar {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        .user-message .message-content {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .tutor-message.ai-message {
+            align-self: flex-start;
+        }
+        .ai-message .avatar {
+            background-color: #e0e7ff;
+            color: #3730a3;
+        }
+        .ai-message .message-content {
+            background-color: var(--background-card);
+            color: var(--text-main);
+            border-bottom-left-radius: 2px;
+        }
+        #tutor-input-form {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--background-card);
+        }
+        #tutor-input-form input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-body);
+            color: var(--text-main);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+        #tutor-input-form button {
+            flex-shrink: 0;
+        }
+        #tutor-welcome-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+         #tutor-welcome-message h3 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .typing-indicator .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
     </style>
     <script>
         (function() {
@@ -648,8 +751,8 @@
                             <label class="theme-switch" for="theme-toggle">
                                 <input type="checkbox" id="theme-toggle" />
                                 <div class="slider">
-                                    <div class="icon-wrapper sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
-                                    <div class="icon-wrapper moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
+                                    <div class="icon-wrapper sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
+                                    <div class="icon-wrapper moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
                                 </div>
                             </label>
                         </div>
@@ -666,6 +769,7 @@
             <div class="tabs-container">
                 <div class="tab-nav">
                     <button class="tab-button active" onclick="openTab(event, 'documents')">Documents</button>
+                    <button class="tab-button" onclick="openTab(event, 'tutor')">AI Tutor</button>
                     <button class="tab-button" onclick="openTab(event, 'tools')">Study Tools</button>
                     <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
                     <button class="tab-button" onclick="openTab(event, 'calendar')">Calendar</button>
@@ -697,6 +801,24 @@
                         </label>
                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf">
                     </form>
+                </div>
+
+                <div id="tutor" class="tab-content">
+                    <div id="ai-tutor-panel">
+                        <div id="tutor-messages-list">
+                            <div id="tutor-welcome-message">
+                                <h3>Your Personal AI Tutor</h3>
+                                <p>Ask me anything about the documents you've uploaded in this hub. <br> For example: "Summarize the key arguments in lecture 3" or "Explain the formula for X".</p>
+                            </div>
+                        </div>
+                        <form id="tutor-input-form">
+                            <input type="text" id="tutor-user-input" placeholder="Ask a question about your documents..." autocomplete="off" required>
+                            <button type="submit" class="button button-primary">
+                                Send
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
                 <div id="tools" class="tab-content">
@@ -957,155 +1079,18 @@
         </main>
     </div>
 
-    <!-- Post-Upload Options Modal -->
-    <div class="modal-overlay" id="upload-options-modal">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="modal-header">
-                <h3 id="upload-options-title"></h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <h4 class="preview-actions-title">What would you like to do with this document?</h4>
-                <div class="preview-actions-grid" id="upload-options-actions">
-                    <!-- Actions will be populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals for Pipelines -->
-    <div class="modal-overlay" id="revision-pack-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div>
-            <form id="revision-pack-form">
-                <div class="modal-body">
-                    <p class="modal-description">Turn your documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p>
-                     <div class="form-group">
-                        <label class="label">Select Documents</label>
-                        <div id="revision-pack-files" class="modal-file-list"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="num-flashcards">Number of Flashcards</label>
-                        <div class="slider-group">
-                            <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5">
-                            <span class="slider-value" id="num-flashcards-value">20</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="num-quiz-questions">Number of Quiz Questions</label>
-                         <div class="slider-group">
-                            <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5">
-                            <span class="slider-value" id="num-quiz-questions-value">10</span>
-                        </div>
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <label>
-                            <input type="checkbox" id="include-notes" name="include_notes" checked>
-                            Include condensed revision notes
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div>
-            </form>
-        </div>
-    </div>
-    
-    <div class="modal-overlay" id="exam-kit-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div>
-            <form id="exam-kit-form">
-                <div class="modal-body">
-                     <p class="modal-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p>
-                    <div class="form-group">
-                        <label class="label">Select Main Lectures/Syllabi</label>
-                        <div id="exam-kit-lecture-files" class="modal-file-list"></div>
-                    </div>
-                    <div class="form-group">
-                        <label class="label">Select Past Papers (Optional)</label>
-                        <div id="exam-kit-past-paper-files" class="modal-file-list"></div>
-                    </div>
-                </div>
-                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="study-plan-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div>
-            <form id="study-plan-form">
-                <div class="modal-body">
-                    <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p>
-                    <div class="form-group">
-                        <label class="label">Select Syllabus Document(s)</label>
-                        <div id="study-plan-files" class="modal-file-list"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="study-plan-deadline">Exam/Assignment Deadline</label>
-                        <input type="date" id="study-plan-deadline" name="deadline" required>
-                    </div>
-                </div>
-                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Other Modals -->
-    <div class="modal-overlay" id="add-items-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div>
-            <div class="modal-body">
-                {% if all_notes %}<h4>Notes</h4><ul class="asset-list">{% for note in all_notes %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ note.id }}" data-type="note" style="margin-right:1rem;"> {{ note.title }}</label></li>{% endfor %}</ul>{% endif %}
-                {% if all_quizzes_and_exams %}<h4>Quizzes</h4><ul class="asset-list">{% for quiz in all_quizzes_and_exams %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz" style="margin-right:1rem;"> {{ quiz.title }}</label></li>{% endfor %}</ul>{% endif %}
-            </div>
-            <div class="modal-footer"><button class="button button-secondary close-btn">Cancel</button><button class="button button-primary" id="save-added-items-btn">Add Selected Items</button></div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="schedule-event-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Schedule a New Session</h3><button class="close-btn">&times;</button></div>
-            <form id="schedule-event-form">
-                <div class="modal-body">
-                    <div class="form-group"><label for="event-title">Event Title</label><input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required></div>
-                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div><label for="event-type">Type</label><select id="event-type" name="event_type"><option>Study Session</option><option>Mock Exam</option><option>Flashcard Review</option><option>Draft Review</option><option>Custom</option></select></div>
-                        <div><label for="event-duration">Duration (minutes)</label><select id="event-duration" name="duration"><option value="20">20 mins</option><option value="40" selected>40 mins</option><option value="60">60 mins</option><option value="90">90 mins</option></select></div>
-                    </div>
-                    <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div>
-                    <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div>
-                    <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list" class="modal-file-list"></div></div>
-                </div>
-                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="import-ics-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div>
-            <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p>
-                    <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div>
-                </div>
-                <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="event-details-modal">
-        <div class="modal-content">
-            <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div>
-            <div class="modal-body">
-                <strong>Time & Date</strong><p id="details-modal-time"></p>
-                <strong>Focus / Details</strong><p id="details-modal-focus"></p>
-            </div>
-            <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div>
-        </div>
-    </div>
+    <!-- Modals -->
+    <div class="modal-overlay" id="upload-options-modal"> <div class="modal-content" style="max-width: 900px;"> <div class="modal-header"> <h3 id="upload-options-title"></h3> <button class="close-btn">&times;</button> </div> <div class="modal-body"> <h4 class="preview-actions-title">What would you like to do with this document?</h4> <div class="preview-actions-grid" id="upload-options-actions"></div> </div> </div> </div>
+    <div class="modal-overlay" id="revision-pack-modal"> <div class="modal-content"> <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div> <form id="revision-pack-form"> <div class="modal-body"> <p class="modal-description">Turn your documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p> <div class="form-group"> <label class="label">Select Documents</label> <div id="revision-pack-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="num-flashcards">Number of Flashcards</label> <div class="slider-group"> <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5"> <span class="slider-value" id="num-flashcards-value">20</span> </div> </div> <div class="form-group"> <label for="num-quiz-questions">Number of Quiz Questions</label> <div class="slider-group"> <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5"> <span class="slider-value" id="num-quiz-questions-value">10</span> </div> </div> <div class="form-group checkbox-group"> <label> <input type="checkbox" id="include-notes" name="include_notes" checked> Include condensed revision notes </label> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div> </form> </div> </div>
+    <div class="modal-overlay" id="exam-kit-modal"> <div class="modal-content"> <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div> <form id="exam-kit-form"> <div class="modal-body"> <p class="modal-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p> <div class="form-group"> <label class="label">Select Main Lectures/Syllabi</label> <div id="exam-kit-lecture-files" class="modal-file-list"></div> </div> <div class="form-group"> <label class="label">Select Past Papers (Optional)</label> <div id="exam-kit-past-paper-files" class="modal-file-list"></div> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div> </form> </div> </div>
+    <div class="modal-overlay" id="study-plan-modal"> <div class="modal-content"> <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div> <form id="study-plan-form"> <div class="modal-body"> <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p> <div class="form-group"> <label class="label">Select Syllabus Document(s)</label> <div id="study-plan-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="study-plan-deadline">Exam/Assignment Deadline</label> <input type="date" id="study-plan-deadline" name="deadline" required> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div> </form> </div> </div>
+    <div class="modal-overlay" id="add-items-modal"> <div class="modal-content"> <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> {% if all_notes %}<h4>Notes</h4><ul class="asset-list">{% for note in all_notes %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ note.id }}" data-type="note" style="margin-right:1rem;"> {{ note.title }}</label></li>{% endfor %}</ul>{% endif %} {% if all_quizzes_and_exams %}<h4>Quizzes</h4><ul class="asset-list">{% for quiz in all_quizzes_and_exams %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz" style="margin-right:1rem;"> {{ quiz.title }}</label></li>{% endfor %}</ul>{% endif %} </div> <div class="modal-footer"><button class="button button-secondary close-btn">Cancel</button><button class="button button-primary" id="save-added-items-btn">Add Selected Items</button></div> </div> </div>
+    <div class="modal-overlay" id="schedule-event-modal"> <div class="modal-content"> <div class="modal-header"><h3>Schedule a New Session</h3><button class="close-btn">&times;</button></div> <form id="schedule-event-form"> <div class="modal-body"> <div class="form-group"><label for="event-title">Event Title</label><input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required></div> <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;"> <div><label for="event-type">Type</label><select id="event-type" name="event_type"><option>Study Session</option><option>Mock Exam</option><option>Flashcard Review</option><option>Draft Review</option><option>Custom</option></select></div> <div><label for="event-duration">Duration (minutes)</label><select id="event-duration" name="duration"><option value="20">20 mins</option><option value="40" selected>40 mins</option><option value="60">60 mins</option><option value="90">90 mins</option></select></div> </div> <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div> <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div> <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list" class="modal-file-list"></div></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div> </form> </div> </div>
+    <div class="modal-overlay" id="import-ics-modal"> <div class="modal-content"> <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div> <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data"> <div class="modal-body"> <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p> <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div> </form> </div> </div>
+    <div class="modal-overlay" id="event-details-modal"> <div class="modal-content"> <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> <strong>Time & Date</strong><p id="details-modal-time"></p> <strong>Focus / Details</strong><p id="details-modal-focus"></p> </div> <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div> </div> </div>
 
     <script>
+        // --- TABS, MODALS, THEME & OTHER UI LOGIC ---
         function openTab(evt, tabName) {
             document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
             document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
@@ -1117,12 +1102,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const hubId = '{{ hub.id }}';
             let calendar; 
-
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
-
-            // --- State for the new file selection/preview flow ---
-            let currentToolIdentifier = null;
             
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
@@ -1264,8 +1245,6 @@
             });
 
             // --- PIPELINE MODAL HANDLING ---
-
-            // Helper to populate a file list within any modal
             function populateModalFileList(containerId, fileList, { multiSelect = true, preselectPaths = [] } = {}) {
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
@@ -1409,7 +1388,6 @@
                 }
             });
 
-
             // --- All Tools Toggle ---
             document.getElementById('all-tools-toggle-btn').addEventListener('click', (e) => {
                 const container = document.getElementById('all-tools-container');
@@ -1421,16 +1399,15 @@
             // --- Sliders ---
             const numFlashcardsSlider = document.getElementById('num-flashcards');
             const numFlashcardsValue = document.getElementById('num-flashcards-value');
-            numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
+            if(numFlashcardsSlider) numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
             const numQuizSlider = document.getElementById('num-quiz-questions');
             const numQuizValue = document.getElementById('num-quiz-questions-value');
-            numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
+            if(numQuizSlider) numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
 
             // --- Quick Tools (Individual) ---
             document.querySelectorAll('.quick-tool-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const toolName = e.currentTarget.value;
-                    // This uses a prompt for now for simplicity, can be converted to a modal
                     const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]'));
                     if (fileSpans.length === 0) return alert("Please upload a document first.");
                     
@@ -1488,12 +1465,10 @@
                     if (header && !addBtn && !deleteBtn) {
                         header.nextElementSibling.classList.toggle('open');
                     }
-                    
                     if (addBtn) {
                         currentOpenFolderId = addBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
                         addItemsModal.style.display = 'flex';
                     }
-                    
                     if (deleteBtn) {
                         const folderItem = deleteBtn.closest('.folder-accordion-item');
                         const folderId = folderItem.querySelector('.folder-header').dataset.folderId;
@@ -1501,15 +1476,11 @@
                             fetch(`/folder/${folderId}/delete`, { method: 'POST' })
                                 .then(res => res.json())
                                 .then(result => {
-                                    if(result.success) {
-                                        folderItem.remove();
-                                    } else {
-                                        alert('Failed to delete folder: ' + result.message);
-                                    }
+                                    if(result.success) folderItem.remove();
+                                    else alert('Failed to delete folder: ' + result.message);
                                 });
                         }
                     }
-                    
                     if (removeBtn) {
                         const itemEl = removeBtn.closest('.asset-item');
                         const folderId = removeBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
@@ -1576,16 +1547,12 @@
                     themeToggle.checked = false;
                 }
             }
-
             themeToggle.addEventListener('change', () => {
                 const newTheme = themeToggle.checked ? 'dark' : 'light';
                 localStorage.setItem('theme', newTheme);
                 applyTheme(newTheme);
             });
-
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            applyTheme(savedTheme);
-
+            applyTheme(localStorage.getItem('theme') || 'light');
 
             // --- Tab and Page Load Logic ---
             const anchor = window.location.hash.substring(1);
@@ -1602,15 +1569,94 @@
             });
             if (anchor === 'calendar') initializeCalendar();
 
-            // --- Other UI listeners (Notifications, etc.) ---
+            // --- Other UI listeners ---
             const bell = document.getElementById('notification-bell');
             const panel = document.getElementById('notification-panel');
-            bell.addEventListener('click', async (event) => {
-                event.stopPropagation();
-                panel.classList.toggle('visible');
-            });
-            document.addEventListener('click', (event) => {
-                if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible');
+            bell.addEventListener('click', (event) => { event.stopPropagation(); panel.classList.toggle('visible'); });
+            document.addEventListener('click', (event) => { if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible'); });
+
+
+            // --- AI TUTOR CHAT LOGIC ---
+            const tutorForm = document.getElementById('tutor-input-form');
+            const tutorInput = document.getElementById('tutor-user-input');
+            const messagesList = document.getElementById('tutor-messages-list');
+            const welcomeMessage = document.getElementById('tutor-welcome-message');
+            let chatHistory = [];
+
+            function appendMessage(role, content) {
+                if (welcomeMessage) {
+                    welcomeMessage.style.display = 'none';
+                }
+                const messageClass = role === 'user' ? 'user-message' : 'ai-message';
+                const avatarText = role === 'user' ? 'You' : 'AI';
+                const messageHTML = `
+                    <div class="tutor-message ${messageClass}">
+                        <div class="avatar">${avatarText}</div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `;
+                messagesList.insertAdjacentHTML('beforeend', messageHTML);
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+
+            function showTypingIndicator() {
+                const typingHTML = `
+                    <div class="tutor-message ai-message" id="typing-indicator">
+                        <div class="avatar">AI</div>
+                        <div class="message-content">
+                            <div class="typing-indicator">
+                                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                messagesList.insertAdjacentHTML('beforeend', typingHTML);
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+
+            function removeTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) indicator.remove();
+            }
+
+            tutorForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userInput = tutorInput.value.trim();
+                if (!userInput) return;
+
+                appendMessage('user', userInput);
+                chatHistory.push({ role: 'user', content: userInput });
+                tutorInput.value = '';
+                showTypingIndicator();
+
+                try {
+                    const response = await fetch(`/hub/${hubId}/tutor_chat`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            message: userInput,
+                            history: chatHistory.slice(-10) // Send last 10 messages for context
+                        })
+                    });
+                    
+                    removeTypingIndicator();
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        appendMessage('ai', `<p style="color:var(--danger-color);">Error: ${errorData.answer || 'Could not get a response.'}</p>`);
+                        return;
+                    }
+
+                    const result = await response.json();
+                    const formattedAnswer = marked.parse(result.answer);
+                    appendMessage('ai', formattedAnswer);
+                    chatHistory.push({ role: 'assistant', content: result.answer });
+
+                } catch (error) {
+                    removeTypingIndicator();
+                    appendMessage('ai', `<p style="color:var(--danger-color);">Sorry, a connection error occurred.</p>`);
+                    console.error("Tutor chat error:", error);
+                }
             });
         });
     </script>
