@@ -11,7 +11,6 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -24,10 +23,12 @@
             --text-main: #1f2937;
             --text-secondary: #6b7280;
             --border-color: #e5e7eb;
-            --background-body: #f4f5f7;
+            --background-body: #f9fafb;
             --background-card: #ffffff;
-            --background-sidebar: #f9fafb;
             --background-interactive-hover: #f3f4f6;
+            --sidebar-width: 260px;
+            --sidebar-width-collapsed: 80px;
+            --top-bar-height: 72px;
             --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
             --card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
             --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
@@ -38,8 +39,6 @@
             --fc-button-bg-color: var(--primary-color);
             --fc-button-active-bg-color: var(--primary-hover);
             --fc-button-hover-bg-color: var(--primary-hover);
-            --fc-button-text-color: #fff;
-            --fc-button-border-color: var(--primary-color);
         }
 
         html[data-theme="dark"] {
@@ -53,381 +52,192 @@
             --border-color: #374151;
             --background-body: #111827;
             --background-card: #1f2937;
-            --background-sidebar: #1f2937;
             --background-interactive-hover: #374151;
             --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
             --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.12);
-
-            --fc-border-color: var(--border-color);
-            --fc-today-bg-color: rgba(99, 102, 241, 0.15);
-            --fc-event-bg-color: var(--primary-light);
-            --fc-event-border-color: var(--primary-color);
-            --fc-button-bg-color: var(--primary-color);
-            --fc-button-border-color: var(--primary-color);
         }
         
         body {
-            font-family: 'Lora', serif;
+            font-family: 'Poppins', sans-serif;
             background-color: var(--background-body);
             margin: 0;
-            padding: 2rem;
             color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        h1, h2, h3, h4, h5, .button, .tab-button, .stat-label, .upload-form .file-upload-text {
-            font-family: 'Poppins', sans-serif;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .button {
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-            text-decoration: none; font-weight: 600; padding: 0.625rem 1rem;
-            border-radius: 8px; border: 1px solid transparent;
-            transition: all 0.2s ease-in-out; cursor: pointer; font-size: 0.9rem;
-            outline: none;
-        }
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--card-shadow);
-        }
-        .button:disabled {
-             background: var(--text-secondary) !important;
-             border-color: var(--text-secondary) !important;
-             cursor: not-allowed !important;
-             transform: none !important;
-             box-shadow: none !important;
-             opacity: 0.7 !important;
-        }
-        .button-primary { background: linear-gradient(to right, #6366f1, var(--primary-color)); color: white; }
-        .button-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
-        .button-secondary { background-color: var(--background-card); border-color: var(--border-color); color: var(--text-secondary); }
-        .button-secondary:hover { background-color: var(--background-interactive-hover); color: var(--text-main); }
-        .button-danger { background-color: var(--danger-color); color: white; }
-        .button-danger:hover { background-color: var(--danger-hover); }
-        
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-        .content-card {
-            background-color: var(--background-card);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--card-shadow);
-            padding: 1.5rem 2rem;
-        }
-        .page-header {
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .page-header-left {
-            display: flex; align-items: center; gap: 1rem; position: relative;
-        }
-        .page-header h1 { font-size: 1.875rem; font-weight: 700; margin: 0; }
-        
-        .tabs-container { border-radius: 12px; box-shadow: var(--card-shadow); background-color: var(--background-card); border: 1px solid var(--border-color); }
-        
-        .tab-nav { 
-            display: flex; 
-            border-bottom: 1px solid var(--border-color); 
-            padding: 0.5rem 2rem 0 2rem; 
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .tab-nav::-webkit-scrollbar { display: none; }
 
-        .tab-button {
-            padding: 1rem 0.5rem; margin-right: 1.5rem; margin-bottom: -1px; cursor: pointer; border: none; background: none; font-size: 1rem; font-weight: 600;
-            color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
-            white-space: nowrap;
+        .hub-container {
+            display: flex;
         }
-        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
-        .tab-content { display: none; padding: 2rem; }
-        .tab-content.active { display: block; }
-        .asset-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0 0.5rem 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
-        .select-all-container { display: flex; align-items: center; gap: 0.5rem; }
-        .select-all-container label { font-weight: 500; cursor: pointer; }
-        .asset-checkbox, .select-all-checkbox { width: 1.1rem; height: 1.1rem; accent-color: var(--primary-color); cursor: pointer;}
-        .asset-list { list-style: none; padding: 0; margin: 0; }
-        .asset-item { display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border-radius: 8px; border: 1px solid transparent; transition: background-color 0.2s; }
-        .asset-item:not(:last-child) { margin-bottom: 0.5rem; }
-        .asset-item.selected { background-color: var(--primary-light); border-color: var(--primary-color); }
-        .asset-link { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex-grow: 1; }
-        .asset-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .asset-icon-note { background-color: #e0e7ff; color: #4338ca; }
-        .asset-icon-flashcards { background-color: #dcfce7; color: #166534; }
-        .asset-icon-quiz { background-color: #fef9c3; color: #854d0e; }
-        .asset-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; color: var(--text-main); }
-        .asset-details span { font-size: 0.85rem; color: var(--text-secondary); }
-        .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
-        
-        .section-heading {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 0 1.5rem 0;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .pipeline-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-        .pipeline-card {
+
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
             background-color: var(--background-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            transition: all 0.2s;
-            box-shadow: var(--card-shadow);
-            text-decoration: none;
-            color: var(--text-main);
-            cursor: pointer;
+            padding: 1.5rem 1rem;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            z-index: 100;
         }
-        .pipeline-card:hover:not(:disabled) {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: var(--card-shadow-hover);
-            border-color: var(--primary-color);
+        .sidebar.collapsed {
+            width: var(--sidebar-width-collapsed);
+            padding: 1.5rem 0.5rem;
         }
-        .pipeline-header {
+        .sidebar-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-        .pipeline-icon {
-            width: 48px; height: 48px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
+            justify-content: space-between;
+            padding: 0 0.5rem 1.5rem 0.5rem;
             flex-shrink: 0;
         }
-        .pipeline-title h3 {
-            margin: 0;
+        .sidebar-header .hub-title {
             font-size: 1.25rem;
             font-weight: 700;
+            white-space: nowrap;
+            opacity: 1;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        .pipeline-title .pro-label {
-            font-size: 0.75rem; font-weight: bold; color: #854d0e; 
-            background-color: #fef9c3; padding: 0.2rem 0.6rem; 
-            border-radius: 99px; margin-left: 0.5rem;
+        .sidebar.collapsed .sidebar-header .hub-title {
+            opacity: 0;
+            transform: translateX(-20px);
+            pointer-events: none;
         }
-        .pipeline-description {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            flex-grow: 1;
+        #sidebar-toggle {
+            background: none; border: none; cursor: pointer; color: var(--text-secondary);
+            padding: 0.5rem; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
         }
-        .pipeline-action {
-            margin-top: auto;
-            align-self: flex-start;
-        }
-        .all-tools-toggle {
-            text-align: center;
-            margin-top: 2.5rem;
-        }
-
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-        .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow);}
-        .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
-        .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
-        .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
-        .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
-        .feature-card:hover:not(:disabled) .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
-        
-        .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; box-shadow: var(--card-shadow); }
-        .progress-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow-hover); }
-        .progress-card h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.5rem 0; opacity: 0.8; font-weight: 600; }
-        .stat-large { font-size: 3rem; font-weight: 700; }
-        .stat-large span { font-size: 1.25rem; font-weight: 500; opacity: 0.7; margin-left: 0.5rem; }
-        .card-icon { position: absolute; right: 1rem; top: 1rem; opacity: 0.2; font-size: 3rem; }
-        .xp-card { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
-        .streak-card { background: linear-gradient(135deg, #f59e0b, #ef4444); }
-        .score-card { background: linear-gradient(135deg, #22c55e, #10b981); }
-        .spotlight-card { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
-        .spotlight-card h2 { opacity: 1; font-weight: 600; }
-        .spotlight-topic { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0; }
-        .spotlight-topic-score { color: var(--red); font-weight: 700; background: white; padding: 0.1rem 0.5rem; border-radius: 6px; }
-        .spotlight-topic-improvement { color: var(--green); font-weight: 700; background: white; padding: 0.1rem 0.5rem; border-radius: 6px; }
-        .spotlight-card .button { background: rgba(255,255,255,0.2); color: white; margin-top: 1rem; border: 1px solid rgba(255,255,255,0.5); }
-        .spotlight-card .button:hover { background: rgba(255,255,255,0.3); }
-        .large-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .large-grid-card { background-color: var(--background-card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); }
-        .large-grid-card h2 { color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin: 0 0 1.5rem 0;}
-        .topic-list .topic-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-        .topic-name { font-weight: 600; }
-        .topic-bar-container { flex-grow: 1; height: 10px; background-color: var(--background-interactive-hover); border-radius: 5px; margin: 0 1rem; overflow: hidden; }
-        .topic-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease-in-out; }
-        .mastery-high { background-color: var(--green); }
-        .mastery-mid { background-color: var(--yellow); }
-        .mastery-low { background-color: var(--red); }
-        .topic-score { font-weight: 700; font-size: 1.1rem; }
-        .level-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; }
-        .level-bar-container { width: 100%; height: 20px; background-color: var(--primary-light); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
-        .level-bar { height: 100%; border-radius: 10px; background: var(--primary-color); transition: width 0.5s ease-in-out; }
-        .recent-activity-card p { margin: 0; font-weight: 500; font-family: 'Poppins', sans-serif;}
-        .recent-activity-card strong { color: var(--text-main); }
-        .recent-activity-card span { color: var(--text-secondary); }
-        .file-list .file-item { display: flex; justify-content: space-between; align-items: center; padding: 0.625rem 0.5rem; border-radius: 8px; transition: background-color 0.2s; margin-bottom: 0.25rem; }
-        .file-list .file-item:hover { background-color: var(--background-interactive-hover); }
-        .file-item .file-info { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; cursor: pointer; overflow: hidden; }
-        .file-info span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .file-item input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--primary-color); flex-shrink: 0; }
-        .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; opacity: 0.5; flex-shrink: 0; }
-        .file-item:hover .delete-btn { opacity: 1; }
-        .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
-        html[data-theme="dark"] .delete-btn:hover { background-color: var(--danger-hover); color: white; }
-        .delete-btn svg { width: 16px; height: 16px; }
-        .upload-form { margin-top: 1.5rem; }
-        .upload-form .file-upload-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; border: 2px dashed var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
-        .upload-form .file-upload-wrapper:hover { border-color: var(--primary-color); background-color: var(--background-interactive-hover); }
-        .upload-form input[type="file"] { display: none; }
-        .upload-form .file-upload-text { color: var(--text-secondary); font-weight: 500; }
-        .upload-form .upload-icon { color: var(--text-secondary); transition: color 0.2s; }
-        .upload-form .file-upload-wrapper:hover .upload-icon { color: var(--primary-color); }
-        .loading-card { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; background-color: var(--primary-light); border: 1px solid var(--primary-color); border-radius: 12px; margin-bottom: 2rem; }
-        .spinner { border: 4px solid rgba(79, 70, 229, 0.2); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; flex-shrink: 0; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loading-text h4 { margin: 0 0 0.25rem 0; color: var(--text-main); }
-        .loading-text p { margin: 0; color: var(--primary-color); }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-        .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
-        .modal-body { overflow-y: auto; padding-right: 1rem; }
-        .modal-footer { margin-top: 2rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
-        .modal-body .form-group { margin-bottom: 1.25rem; }
-        .modal-body label, .modal-body .label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
-        .modal-body input[type="text"], .modal-body input[type="date"], .modal-body input[type="datetime-local"], .modal-body select, .modal-body textarea {
-            width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); box-sizing: border-box; font-family: 'Poppins'; font-size: 0.9rem;
-        }
-        .slider-group { display: flex; align-items: center; gap: 1rem; }
-        .slider-group input[type="range"] { flex-grow: 1; }
-        .slider-group .slider-value { font-weight: 600; min-width: 30px; text-align: center; }
-        
-        .modal-body p.modal-description {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
-        }
-        .modal-file-list {
+        #sidebar-toggle:hover {
             background-color: var(--background-interactive-hover);
-            border: 1px solid var(--border-color);
-            max-height: 250px;
-            overflow-y: auto;
-            border-radius: 8px;
-            padding: 0.75rem;
-        }
-        .modal-file-item {
-            padding: 0;
-        }
-        .modal-file-item label {
-            display: flex;
-            width: 100%;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color 0.2s, box-shadow 0.2s;
-        }
-        .modal-file-item label:hover {
-            background-color: var(--background-card);
-            box-shadow: 0 0 0 1px var(--border-color);
-        }
-        html[data-theme="dark"] .modal-file-item label:hover {
-            background-color: #4b5563;
-            box-shadow: 0 0 0 1px #5a6678;
-        }
-        .modal-file-item input[type="checkbox"],
-        .modal-file-item input[type="radio"] {
-            width: 1.1rem;
-            height: 1.1rem;
-            flex-shrink: 0;
-            accent-color: var(--primary-color);
-        }
-        .modal-file-item .file-icon-modal { color: var(--text-secondary); }
-
-        input[type="date"] {
-            position: relative;
-            background-color: var(--background-body);
             color: var(--text-main);
         }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-             filter: var(--text-secondary);
-             opacity: 0.6;
-             cursor: pointer;
+        .sidebar-nav {
+            flex-grow: 1;
+            overflow-y: auto;
+            -ms-overflow-style: none; scrollbar-width: none;
         }
-        html[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
-             filter: invert(0.5);
+        .sidebar-nav::-webkit-scrollbar { display: none; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            transition: background-color 0.2s, color 0.2s;
         }
-        input[type="date"]:invalid {
+        .sidebar-nav a:hover {
+            background-color: var(--background-interactive-hover);
+            color: var(--text-main);
+        }
+        .sidebar-nav a.active {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .sidebar-nav a .nav-icon {
+            flex-shrink: 0;
+            width: 24px; height: 24px;
+        }
+        .sidebar-nav a .nav-text {
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-nav a .nav-text {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .sidebar-footer {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* --- Main Content Wrapper --- */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            transition: margin-left 0.3s ease, width 0.3s ease;
+        }
+        .sidebar.collapsed + .main-wrapper {
+            margin-left: var(--sidebar-width-collapsed);
+            width: calc(100% - var(--sidebar-width-collapsed));
+        }
+
+        /* --- Top Bar Styles --- */
+        .top-bar {
+            height: var(--top-bar-height);
+            background-color: var(--background-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .search-container {
+            position: relative;
             color: var(--text-secondary);
         }
-        
-        .folder-accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; }
-        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; }
-        .folder-header:hover { background-color: var(--background-interactive-hover); }
-        .folder-header-title { display: flex; align-items: center; gap: 1rem; }
-        .folder-header-title h5 { margin: 0; font-size: 1.1rem; }
-        .folder-header-title span { font-size: 0.9rem; color: var(--text-secondary); }
-        .folder-actions { display: flex; align-items: center; gap: 0.5rem; }
-        .folder-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: #fdfdff; }
-        html[data-theme="dark"] .folder-content { background-color: var(--background-body); }
-        .folder-content.open { max-height: 1000px; transition: max-height 0.5s ease-in; }
-        .folder-content .asset-list { padding: 1rem; border-top: 1px solid var(--border-color); }
-        .folder-content .remove-item-btn { padding: 0.3rem 0.8rem; }
-
+        .search-container .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .search-container input {
+            background-color: var(--background-body);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.6rem 1rem 0.6rem 2.75rem;
+            width: 300px;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+        }
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .quick-actions { display: flex; gap: 0.75rem; }
+        .user-controls { display: flex; align-items: center; gap: 1.25rem; position: relative; }
         .notification-bell {
             position: relative;
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 50%;
             transition: background-color 0.2s;
+            color: var(--text-secondary);
         }
-        .notification-bell:hover { background-color: var(--primary-light); }
+        .notification-bell:hover { background-color: var(--primary-light); color: var(--primary-color);}
         .notification-dot {
-            position: absolute;
-            top: 6px; right: 6px;
-            width: 10px; height: 10px;
-            background-color: var(--danger-color);
-            border-radius: 50%;
-            border: 2px solid var(--background-card);
-            display: none;
+            position: absolute; top: 6px; right: 6px; width: 10px; height: 10px;
+            background-color: var(--danger-color); border-radius: 50%;
+            border: 2px solid var(--background-card); display: none;
         }
         .notification-dot.visible { display: block; }
-
         #notification-panel {
-            display: none;
-            position: absolute;
-            top: 50px;
-            left: 0;
-            width: 350px;
-            background-color: var(--background-card);
-            border-radius: 8px;
-            box-shadow: var(--card-shadow-hover);
-            border: 1px solid var(--border-color);
-            z-index: 100;
-            max-height: 400px;
-            overflow-y: auto;
+            display: none; position: absolute; top: 50px; right: 0; width: 350px;
+            background-color: var(--background-card); border-radius: 8px;
+            box-shadow: var(--card-shadow-hover); border: 1px solid var(--border-color);
+            z-index: 100; max-height: 400px; overflow-y: auto;
         }
-        #notification-panel.visible { display: block; }
+         #notification-panel.visible { display: block; }
         .notification-header {
             padding: 0.75rem 1rem;
             font-weight: 600;
@@ -446,364 +256,349 @@
         .notification-item p { margin: 0; font-size: 0.9rem; line-height: 1.4; font-family: 'Poppins', sans-serif;}
         .notification-item span { font-size: 0.75rem; color: var(--text-secondary); font-family: 'Poppins', sans-serif;}
         .notification-item.unread { background-color: var(--primary-light); }
+        .profile-container {
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .profile-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background-color: var(--primary-light); color: var(--primary-color);
+            display: flex; align-items: center; justify-content: center; font-weight: 600;
+        }
+        .profile-name { font-weight: 600; }
 
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* --- Workspace Styles --- */
+        .workspace {
+            padding: 2.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .theme-switch {
-            position: relative;
-            display: inline-block;
-            width: 64px;
-            height: 34px;
-            cursor: pointer;
+        .workspace-header {
+            margin-bottom: 2rem;
         }
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #374151;
-            border-radius: 34px;
-            transition: .4s;
+        .workspace-header h1 {
+            font-size: 2.25rem; font-weight: 700; margin: 0;
         }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            border-radius: 50%;
-            transition: .4s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .workspace-header p {
+            font-size: 1.1rem; color: var(--text-secondary); margin: 0.5rem 0 0 0;
+            font-family: 'Lora', serif;
         }
-        .slider .icon-wrapper {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            width: 26px;
-            color: #111827;
-            transition: opacity 0.2s ease-in-out;
-            z-index: 10;
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* --- Retained and Adapted Styles --- */
+        .button {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            text-decoration: none; font-weight: 600; padding: 0.6rem 1rem;
+            border-radius: 8px; border: 1px solid transparent;
+            transition: all 0.2s ease-in-out; cursor: pointer; font-size: 0.9rem;
         }
-        .slider .sun { left: 4px; opacity: 1; }
-        .slider .moon { right: 4px; opacity: 0; color: white; }
-        input:checked + .slider { background-color: white; border: 1px solid var(--border-color); }
-        input:checked + .slider:before { transform: translateX(30px); background-color: #111827; }
-        input:checked + .slider .sun { opacity: 0; }
-        input:checked + .slider .moon { opacity: 1; }
+        .button-primary { background-color: var(--primary-color); color: white; }
+        .button-primary:hover { background-color: var(--primary-hover); }
+        .button-secondary { background-color: var(--background-interactive-hover); border-color: var(--border-color); color: var(--text-main); }
+        .button-secondary:hover { background-color: var(--border-color); }
+        .button-danger { background-color: var(--danger-color); color: white; }
+        .button-danger:hover { background-color: var(--danger-hover); }
+        .button:disabled {
+             background: var(--text-secondary) !important;
+             border-color: var(--text-secondary) !important;
+             cursor: not-allowed !important;
+             transform: none !important;
+             box-shadow: none !important;
+             opacity: 0.7 !important;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .file-item-card {
+            background-color: var(--background-card); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 1.5rem;
+            display: flex; flex-direction: column;
+            gap: 1rem;
+            box-shadow: var(--card-shadow);
+        }
+        .file-item-card .file-info { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
+        .file-item-card .file-info .file-icon { color: var(--primary-color); }
+        .file-item-card .file-info .file-name { font-weight: 600; color: var(--text-main); }
+        .file-item-card .file-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .file-item-card .file-actions .file-size { font-size: 0.85rem; color: var(--text-secondary); }
+        .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; }
+        .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
+
+        /* --- ALL ORIGINAL STYLES FOR COMPONENTS --- */
+        h1, h2, h3, h4, h5, .button, .tab-button, .stat-label, .upload-form .file-upload-text {
+            font-family: 'Poppins', sans-serif;
+        }
+        .content-card {
+            background-color: var(--background-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem 2rem;
+        }
+        .asset-list-header { display: flex; justify-content: space-between; align-items: center; padding: 0 0.5rem 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+        .select-all-container { display: flex; align-items: center; gap: 0.5rem; }
+        .select-all-container label { font-weight: 500; cursor: pointer; }
+        .asset-checkbox, .select-all-checkbox { width: 1.1rem; height: 1.1rem; accent-color: var(--primary-color); cursor: pointer;}
+        .asset-list { list-style: none; padding: 0; margin: 0; }
+        .asset-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-radius: 8px; transition: background-color 0.2s; border: 1px solid var(--border-color); }
+        .asset-item:not(:last-child) { margin-bottom: 0.5rem; }
+        .asset-item:hover { background-color: var(--background-interactive-hover); border-color: var(--primary-color);}
+        .asset-item.selected { background-color: var(--primary-light); border-color: var(--primary-color); }
+        .asset-link { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; flex-grow: 1; }
+        .asset-icon { flex-shrink: 0; width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .asset-icon-note { background-color: #e0e7ff; color: #4338ca; }
+        .asset-icon-flashcards { background-color: #dcfce7; color: #166534; }
+        .asset-icon-quiz { background-color: #fef9c3; color: #854d0e; }
+        .asset-details h5 { margin: 0 0 0.25rem 0; font-weight: 600; color: var(--text-main); }
+        .asset-details span { font-size: 0.85rem; color: var(--text-secondary); }
+        .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
         
-        #calendar-container { padding: 0; }
+        .section-heading { font-size: 1.5rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+        .pipeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .pipeline-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main); cursor: pointer; }
+        .pipeline-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
+        .pipeline-header { display: flex; align-items: center; gap: 1rem; }
+        .pipeline-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pipeline-title h3 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+        .pipeline-title .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
+        .pipeline-description { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1; font-family: 'Lora', serif; }
+        .pipeline-action { margin-top: auto; align-self: flex-start; }
+        .all-tools-toggle { text-align: center; margin-top: 2.5rem; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+        .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow);}
+        .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
+        .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .feature-text p { margin: 0; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; font-family: 'Poppins', sans-serif; }
+        .feature-arrow { margin-top: auto; align-self: flex-end; font-size: 1.5rem; color: var(--text-secondary); transition: color 0.2s, transform 0.2s; }
+        .feature-card:hover:not(:disabled) .feature-arrow { color: var(--primary-color); transform: translateX(4px); }
+        .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .progress-card { border-radius: 12px; padding: 1.5rem; color: white; position: relative; overflow: hidden; transition: transform 0.2s; box-shadow: var(--card-shadow); }
+        .progress-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow-hover); }
+        .progress-card h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 0.5rem 0; opacity: 0.8; font-weight: 600; }
+        .stat-large { font-size: 3rem; font-weight: 700; }
+        .stat-large span { font-size: 1.25rem; font-weight: 500; opacity: 0.7; margin-left: 0.5rem; }
+        .xp-card { background: linear-gradient(135deg, #8b5cf6, #6366f1); }
+        .streak-card { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .score-card { background: linear-gradient(135deg, #22c55e, #10b981); }
+        .spotlight-card { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+        .spotlight-topic { font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0; }
+        .large-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .large-grid-card { background-color: var(--background-card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--card-shadow); }
+        .large-grid-card h2 { color: var(--text-main); font-size: 1.1rem; font-weight: 600; margin: 0 0 1.5rem 0;}
+        .topic-list .topic-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .topic-name { font-weight: 600; }
+        .topic-bar-container { flex-grow: 1; height: 10px; background-color: var(--background-interactive-hover); border-radius: 5px; margin: 0 1rem; overflow: hidden; }
+        .topic-bar { height: 100%; border-radius: 5px; transition: width 0.5s ease-in-out; }
+        .mastery-high { background-color: var(--green); }
+        .mastery-mid { background-color: var(--yellow); }
+        .mastery-low { background-color: var(--red); }
+        .topic-score { font-weight: 700; font-size: 1.1rem; }
+        .level-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 0.5rem; }
+        .level-bar-container { width: 100%; height: 20px; background-color: var(--primary-light); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-color); }
+        .level-bar { height: 100%; border-radius: 10px; background: var(--primary-color); transition: width 0.5s ease-in-out; }
+        .recent-activity-card p { margin: 0; font-weight: 500; font-family: 'Poppins', sans-serif;}
+        .recent-activity-card strong { color: var(--text-main); }
+        .recent-activity-card span { color: var(--text-secondary); }
+        .loading-card { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; background-color: var(--primary-light); border: 1px solid var(--primary-color); border-radius: 12px; margin-bottom: 2rem; }
+        .spinner { border: 4px solid rgba(79, 70, 229, 0.2); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; flex-shrink: 0; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text h4 { margin: 0 0 0.25rem 0; color: var(--text-main); }
+        .loading-text p { margin: 0; color: var(--primary-color); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--background-card); padding: 2rem; border-radius: 12px; width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        .modal-body { overflow-y: auto; padding-right: 1rem; }
+        .modal-footer { margin-top: 2rem; text-align: right; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
+        .modal-body .form-group { margin-bottom: 1.25rem; }
+        .modal-body label, .modal-body .label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; display: block; }
+        .modal-body input[type="text"], .modal-body input[type="date"], .modal-body input[type="datetime-local"], .modal-body select, .modal-body textarea { width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); box-sizing: border-box; font-family: 'Poppins'; font-size: 0.9rem; }
+        .slider-group { display: flex; align-items: center; gap: 1rem; }
+        .slider-group input[type="range"] { flex-grow: 1; }
+        .slider-group .slider-value { font-weight: 600; min-width: 30px; text-align: center; }
+        .modal-body p.modal-description { font-size: 0.9rem; color: var(--text-secondary); margin-top: 0; margin-bottom: 1.5rem; line-height: 1.6; font-family: 'Lora', serif; }
+        .modal-file-list { background-color: var(--background-interactive-hover); border: 1px solid var(--border-color); max-height: 250px; overflow-y: auto; border-radius: 8px; padding: 0.75rem; }
+        .modal-file-item label { display: flex; width: 100%; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 6px; font-weight: 500; font-family: 'Poppins', sans-serif; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s; }
+        .modal-file-item input[type="checkbox"], .modal-file-item input[type="radio"] { width: 1.1rem; height: 1.1rem; flex-shrink: 0; accent-color: var(--primary-color); }
+        
+        .folder-accordion-item { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; }
+        .folder-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem; cursor: pointer; }
+        .folder-header:hover { background-color: var(--background-interactive-hover); }
+        .folder-header-title { display: flex; align-items: center; gap: 1rem; }
+        .folder-header-title h5 { margin: 0; font-size: 1.1rem; }
+        .folder-header-title span { font-size: 0.9rem; color: var(--text-secondary); }
+        .folder-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .folder-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: var(--background-body); }
+        .folder-content.open { max-height: 1000px; transition: max-height 0.5s ease-in; }
+        .folder-content .asset-list { padding: 1rem; border-top: 1px solid var(--border-color); }
+        
         #fullcalendar { min-height: 700px; font-family: 'Poppins', sans-serif; }
         .fc-event { cursor: pointer; border: none !important; padding: 5px 8px; font-weight: 500; }
         .fc-daygrid-day.fc-day-today { background-color: var(--fc-today-bg-color) !important; }
-        html[data-theme="dark"] .fc-daygrid-day-number, html[data-theme="dark"] .fc-col-header-cell-cushion { color: var(--text-secondary); }
-        html[data-theme="dark"] .fc-button { background-color: #374151 !important; border-color: #4b5563 !important; color: var(--text-main) !important; }
-        html[data-theme="dark"] .fc-button-primary:not(:disabled).fc-button-active { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; }
         
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
-        .sidebar-header h3 { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
-        .sidebar-actions { display: flex; gap: 0.5rem; }
-        
-        #event-details-modal .modal-body p { margin: 0.5rem 0 1.5rem 0; line-height: 1.6; color: var(--text-secondary); }
-        #event-details-modal .modal-body strong { display: block; font-size: 0.8rem; color: var(--text-main); font-weight: 600; text-transform: uppercase; }
-        #event-details-modal .event-type-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 600; color: white; margin-left: 1rem; }
-
-        .hub-main-header {
-            padding: 2.5rem 2rem;
-            position: relative;
-            overflow: hidden;
-            border: none;
-            background-color: #4338ca;
-            background-image:
-                radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.4) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(28,100%,74%,0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, hsla(355,85%,65%,0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, hsla(340,100%,76%,0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 100%, hsla(242,100%,70%,0.2) 0px, transparent 50%),
-                radial-gradient(at 0% 0%, hsla(343,100%,76%,0.2) 0px, transparent 50%);
-        }
-        html[data-theme="dark"] .hub-main-header {
-             background-color: #1f2937;
-             background-image:
-                radial-gradient(at 10% 20%, hsla(216, 88%, 55%, 0.2) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, hsla(28,100%,74%,0.1) 0px, transparent 50%);
-        }
-        .hub-main-header .page-header { align-items: flex-start; }
-        .hub-main-header h1 { color: white; font-size: 2.25rem; }
-        .hub-main-header p.sub-header { color: white; opacity: 0.8; margin: 0.5rem 0 0 0; font-size: 1.1rem; font-family: 'Poppins'; }
-        .hub-main-header .notification-bell svg { color: white; }
-        
-        .preview-actions-title {
-            text-align: center;
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--text-main);
-        }
-        .preview-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-        .preview-action-card {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-        }
-        .preview-action-card:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-            transform: translateY(-3px);
-            box-shadow: var(--card-shadow);
-        }
-        .preview-action-card .pipeline-header { width: 100%; }
-        .preview-action-card h5 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-        .preview-action-card p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-family: 'Poppins', sans-serif;
-            flex-grow: 1;
-        }
-        .preview-action-card .button {
-            margin-top: auto;
-        }
-
-        /* --- NEW AI TUTOR STYLES --- */
-        #ai-tutor-panel {
-            display: flex;
-            flex-direction: column;
-            height: 70vh; /* Adjust height as needed */
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: var(--background-body);
-        }
-        #tutor-messages-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .tutor-message {
-            display: flex;
-            gap: 1rem;
-            max-width: 80%;
-        }
-        .tutor-message .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            flex-shrink: 0;
-        }
-        .tutor-message .message-content {
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            line-height: 1.6;
-        }
-        /* Styles for paragraphs inside the message content */
-        .tutor-message .message-content p {
-            margin: 0 0 0.5em 0;
-        }
-        .tutor-message .message-content p:last-child {
-            margin-bottom: 0;
-        }
-        .tutor-message.user-message {
-            align-self: flex-end;
-            flex-direction: row-reverse;
-        }
-        .user-message .avatar {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        .user-message .message-content {
-            background-color: var(--primary-color);
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-        .tutor-message.ai-message {
-            align-self: flex-start;
-        }
-        .ai-message .avatar {
-            background-color: #e0e7ff;
-            color: #3730a3;
-        }
-        .ai-message .message-content {
-            background-color: var(--background-card);
-            color: var(--text-main);
-            border-bottom-left-radius: 2px;
-        }
-        #tutor-input-form {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--background-card);
-        }
-        #tutor-input-form input {
-            flex-grow: 1;
-            padding: 0.75rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background-color: var(--background-body);
-            color: var(--text-main);
-            font-family: 'Poppins', sans-serif;
-            font-size: 1rem;
-        }
-        #tutor-input-form button {
-            flex-shrink: 0;
-        }
-        #tutor-welcome-message {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-secondary);
-        }
-         #tutor-welcome-message h3 {
-            font-size: 1.5rem;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-        }
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .typing-indicator .dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--text-secondary);
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1.0); }
-        }
-
+        #ai-tutor-panel { display: flex; flex-direction: column; height: 70vh; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background-color: var(--background-body); }
+        #tutor-messages-list { flex-grow: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .tutor-message { display: flex; gap: 1rem; max-width: 80%; }
+        .tutor-message .avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
+        .tutor-message .message-content { padding: 0.75rem 1rem; border-radius: 12px; line-height: 1.6; }
+        .tutor-message.user-message { align-self: flex-end; flex-direction: row-reverse; }
+        .user-message .avatar { background-color: #dcfce7; color: #166534; }
+        .user-message .message-content { background-color: var(--primary-color); color: white; border-bottom-right-radius: 2px; }
+        .tutor-message.ai-message { align-self: flex-start; }
+        .ai-message .avatar { background-color: #e0e7ff; color: #3730a3; }
+        .ai-message .message-content { background-color: var(--background-card); color: var(--text-main); border-bottom-left-radius: 2px; }
+        #tutor-input-form { display: flex; gap: 1rem; padding: 1rem; border-top: 1px solid var(--border-color); background-color: var(--background-card); }
+        #tutor-input-form input { flex-grow: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); font-size: 1rem; }
+        #tutor-welcome-message { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+        #tutor-welcome-message h3 { font-size: 1.5rem; color: var(--text-main); margin-bottom: 0.5rem; }
     </style>
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme');
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        })();
-    </script>
 </head>
 <body>
-    <div class="container">
-        <main class="main-content">
-            <div class="content-card hub-main-header">
-                <div class="page-header">
-                    <div class="page-header-left">
-                        <div>
-                             <h1>Welcome, {{ current_user.display_name or current_user.email.split('@')[0] }}!</h1>
-                             <p class="sub-header">You are in your '{{ hub.name }}' study hub.</p>
-                        </div>
-                        <div class="notification-bell" id="notification-bell">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
-                        </div>
-                        <div id="notification-panel">
-                            <div class="notification-header">Notifications</div>
-                            <ul class="notification-list">
-                                {% for notification in notifications %}
-                                <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
-                                    <p>{{ notification.message }}</p>
-                                    <span>{{ notification.created_at|timesince }} ago</span>
-                                </a>
-                                {% else %}
-                                <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 1.5rem;">
-                         <div class="theme-switch-wrapper">
-                            <label class="theme-switch" for="theme-toggle">
-                                <input type="checkbox" id="theme-toggle" />
-                                <div class="slider">
-                                    <div class="icon-wrapper sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
-                                    <div class="icon-wrapper moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
-                                </div>
-                            </label>
-                        </div>
-                        <a href="{{ url_for('dashboard') }}" class="button button-secondary">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                            Dashboard
-                        </a>
-                    </div>
-                </div>
+    <div class="hub-container">
+        <!-- ======================= -->
+        <!--      SIDEBAR          -->
+        <!-- ======================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span class="hub-title">{{ hub.name }}</span>
+                <button id="sidebar-toggle" title="Toggle Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                </button>
             </div>
 
-            <div id="loading-status-container"></div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#documents" class="nav-link active" data-tab="documents">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span class="nav-text">Documents</span>
+                    </a></li>
+                    <li><a href="#tutor" class="nav-link" data-tab="tutor">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        <span class="nav-text">AI Tutor</span>
+                    </a></li>
+                    <li><a href="#tools" class="nav-link" data-tab="tools">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                        <span class="nav-text">Study Tools</span>
+                    </a></li>
+                    <li><a href="#progress" class="nav-link" data-tab="progress">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20V16"></path></svg>
+                        <span class="nav-text">Progress</span>
+                    </a></li>
+                    <li><a href="#calendar" class="nav-link" data-tab="calendar">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span class="nav-text">Calendar</span>
+                    </a></li>
+                     <li><a href="#folders" class="nav-link" data-tab="folders">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        <span class="nav-text">My Folders</span>
+                    </a></li>
+                    <li><a href="#notes" class="nav-link" data-tab="notes">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                        <span class="nav-text">My Notes</span>
+                    </a></li>
+                    <li><a href="#quizzes" class="nav-link" data-tab="quizzes">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                        <span class="nav-text">My Quizzes</span>
+                    </a></li>
+                </ul>
+            </nav>
 
-            <div class="tabs-container">
-                <div class="tab-nav">
-                    <button class="tab-button active" onclick="openTab(event, 'documents')">Documents</button>
-                    <button class="tab-button" onclick="openTab(event, 'tutor')">AI Tutor</button>
-                    <button class="tab-button" onclick="openTab(event, 'tools')">Study Tools</button>
-                    <button class="tab-button" onclick="openTab(event, 'progress')">Progress</button>
-                    <button class="tab-button" onclick="openTab(event, 'calendar')">Calendar</button>
-                    <button class="tab-button" onclick="openTab(event, 'folders')">My Folders</button>
-                    <button class="tab-button" onclick="openTab(event, 'notes')">My Notes</button>
-                    <button class="tab-button" onclick="openTab(event, 'quizzes')">My Quizzes</button>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('dashboard') }}" class="nav-link">
+                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    <span class="nav-text">Back to Dashboard</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ======================= -->
+        <!--    MAIN CONTENT       -->
+        <!-- ======================= -->
+        <div class="main-wrapper">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="search-container">
+                     <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+                     <input type="search" placeholder="Search within this hub...">
                 </div>
+                <div class="top-bar-actions">
+                    <div class="quick-actions">
+                        <button class="button button-secondary" id="quick-action-tutor">Ask AI</button>
+                        <button class="button button-secondary quick-tool-btn" value="notes">New Note</button>
+                        <button class="button button-secondary" id="quick-action-flashcards">New Flashcards</button>
+                        <button class="button button-primary" id="quick-action-upload">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Upload
+                        </button>
+                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
+                    </div>
+                    <div class="user-controls">
+                        <div class="notification-bell" id="notification-bell">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
+                             <div id="notification-panel">
+                                <div class="notification-header">Notifications</div>
+                                <ul class="notification-list">
+                                    {% for notification in notifications %}
+                                    <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                                        <p>{{ notification.message }}</p>
+                                        <span>{{ notification.created_at|timesince }} ago</span>
+                                    </a>
+                                    {% else %}
+                                    <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="profile-container">
+                            <div class="profile-avatar">{{ current_user.email[0]|upper }}</div>
+                            <span class="profile-name">{{ current_user.display_name or current_user.email.split('@')[0] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Workspace -->
+            <main class="workspace">
+                <div id="loading-status-container"></div>
                 
                 <div id="documents" class="tab-content active">
+                     <div class="workspace-header">
+                        <h1>Documents</h1>
+                        <p>Manage and upload your course materials and lecture notes here.</p>
+                    </div>
                     <div class="file-list" id="main-file-list">
                         {% for file in hub.files %}
-                        <div class="file-item">
-                            <div class="file-info" style="cursor: default;">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                                <span data-path="{{ file.path }}">{{ file.name }}</span>
+                        <div class="file-item-card">
+                            <div class="file-info">
+                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                                <span class="file-name" data-path="{{ file.path }}">{{ file.name }}</span>
                             </div>
-                            <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
+                            <div class="file-actions">
+                                <span class="file-size">{{ (file.size / 1024)|round(1) }} KB</span>
+                                <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </a>
+                            </div>
                         </div>
                         {% else %}
                         <p class="empty-state-text" id="empty-file-list-message">Upload a PDF to begin.</p>
                         {% endfor %}
                     </div>
-                     <form class="upload-form" action="{{ url_for('upload_file', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" style="margin-top: 2rem;">
-                        <label for="pdf-upload" class="file-upload-wrapper">
-                            <span class="upload-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></span>
-                            <span class="file-upload-text">Click or drag to upload</span>
-                        </label>
-                        <input id="pdf-upload" type="file" name="pdf" accept=".pdf">
-                    </form>
                 </div>
 
                 <div id="tutor" class="tab-content">
+                    <div class="workspace-header">
+                        <h1>AI Tutor</h1>
+                        <p>Ask questions and get instant help based on your uploaded documents.</p>
+                    </div>
                     <div id="ai-tutor-panel">
                         <div id="tutor-messages-list">
                             <div id="tutor-welcome-message">
@@ -813,73 +608,49 @@
                         </div>
                         <form id="tutor-input-form">
                             <input type="text" id="tutor-user-input" placeholder="Ask a question about your documents..." autocomplete="off" required>
-                            <button type="submit" class="button button-primary">
-                                Send
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                            </button>
+                            <button type="submit" class="button button-primary">Send</button>
                         </form>
                     </div>
                 </div>
-
+                
                 <div id="tools" class="tab-content">
+                    <div class="workspace-header">
+                        <h1>Study Tools</h1>
+                        <p>Generate study materials, get ready for exams, and plan your schedule.</p>
+                    </div>
                     <div id="study-tools-container" class="study-tools-container">
                         <h2 class="section-heading">Get Started with a Goal</h2>
                         <div class="pipeline-grid">
-
-                            <div class="pipeline-card" id="pipeline-revision-pack">
+                             <div class="pipeline-card" id="pipeline-revision-pack">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
                                     <div class="pipeline-title"><h3>Revision Pack Builder</h3></div>
                                 </div>
                                 <p class="pipeline-description">Turn lecture documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p>
-                                <div class="pipeline-action"><button class="button button-primary">Build Pack</button></div>
                             </div>
-
                             <div class="pipeline-card" id="pipeline-exam-kit">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
                                     <div class="pipeline-title"><h3>Exam Readiness Kit<span class="pro-label">PRO</span></h3></div>
                                 </div>
                                 <p class="pipeline-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p>
-                                <div class="pipeline-action"><button class="button button-primary">Prepare for Exam</button></div>
                             </div>
-                            
                             <div class="pipeline-card" id="pipeline-study-planner">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
                                     <div class="pipeline-title"><h3>Smart Study Planner<span class="pro-label">PRO</span></h3></div>
                                 </div>
                                 <p class="pipeline-description">Upload a syllabus and your deadline to automatically create a structured, week-by-week study schedule in your calendar.</p>
-                                <div class="pipeline-action"><button class="button button-primary">Create Plan</button></div>
                             </div>
-
-                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="pipeline-card">
+                             <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card">
                                 <div class="pipeline-header">
-                                    <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                                    <div class="pipeline-title"><h3>Assignment Assistant<span class="pro-label">PRO</span></h3></div>
-                                </div>
-                                <p class="pipeline-description">Go from an assignment brief and your source documents to a structured outline and first draft in minutes.</p>
-                                <div class="pipeline-action"><button class="button button-primary">Start Writing</button></div>
-                            </a>
-
-                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card">
-                                <div class="pipeline-header">
-                                    <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" />
-                                        </svg>
-                                    </div>
-                                    <div class="pipeline-title">
-                                        <h3>Live Lecture Capture<span class="pro-label">PRO</span></h3>
-                                    </div>
+                                    <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
+                                    <div class="pipeline-title"><h3>Live Lecture Capture<span class="pro-label">PRO</span></h3></div>
                                 </div>
                                 <p class="pipeline-description">Record your lecture in real-time and let AI generate structured notes and summaries automatically.</p>
-                                 <div class="pipeline-action"><button class="button button-primary">Start Recording</button></div>
                             </a>
-
                         </div>
-                        
-                        <div class="all-tools-toggle">
+                         <div class="all-tools-toggle">
                             <button class="button button-secondary" id="all-tools-toggle-btn">Show All Individual Tools</button>
                         </div>
                         
@@ -915,38 +686,27 @@
                         </div>
                     </div>
                 </div>
-                
-                <div id="calendar" class="tab-content">
-                     <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
-                        <button id="show-import-modal-btn" class="button button-secondary">Import Calendar (.ics)</button>
-                        <button id="show-schedule-modal-btn" class="button button-primary">+ Schedule New Session</button>
-                    </div>
-                    <div id="calendar-container">
-                        <div id="fullcalendar"></div>
-                    </div>
-                </div>
-                
+
                 <div id="progress" class="tab-content">
+                    <div class="workspace-header">
+                        <h1>Your Progress</h1>
+                        <p>Track your study habits, topic mastery, and overall performance.</p>
+                    </div>
                     <div class="progress-grid">
-                        <div class="progress-card xp-card"><div class="card-icon">🏆</div><h2>Total XP</h2><div class="stat-large">{{ total_xp }} <span>XP</span></div></div>
-                        <div class="progress-card streak-card"><div class="card-icon">🔥</div><h2>Study Streak</h2><div class="stat-large">{{ streak_days }} <span>Days</span></div></div>
-                        <div class="progress-card score-card"><div class="card-icon">🎯</div><h2>Average Score</h2><div class="stat-large">{{ (topic_mastery | map(attribute='score') | sum / (topic_mastery | length if (topic_mastery | length) > 0 else 1)) | round(0) | int }}<span>%</span></div></div>
+                        <div class="progress-card xp-card"><h2>Total XP</h2><div class="stat-large">{{ total_xp }} <span>XP</span></div></div>
+                        <div class="progress-card streak-card"><h2>Study Streak</h2><div class="stat-large">{{ streak_days }} <span>Days</span></div></div>
+                        <div class="progress-card score-card"><h2>Average Score</h2><div class="stat-large">{{ (topic_mastery | map(attribute='score') | sum / (topic_mastery | length if (topic_mastery | length) > 0 else 1)) | round(0) | int }}<span>%</span></div></div>
                     </div>
-                    <div style="margin-top: 1.5rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
-                        <div class="progress-card spotlight-card">
-                            {% if spotlight %}
-                                {% if spotlight.type == 'weakest' %}{% set topic_str = spotlight.topic|string %}{% set hub_id_str = hub.id|string %}<h2>Weakness Spotlight</h2><p class="spotlight-topic">{{ spotlight.topic }} <span class="spotlight-topic-score">{{ spotlight.score }}%</span></p><a href="{{ url_for('generate_weakness_quiz', hub_id=hub_id_str, topic=topic_str) }}" class="button">5-Question Quiz Now</a>
-                                {% elif spotlight.type == 'improved' %}<h2>Most Improved!</h2><p class="spotlight-topic">{{ spotlight.topic }} <span class="spotlight-topic-improvement">+{{ spotlight.change }}%</span></p><p style="opacity: 0.8; margin-top: 1rem;">Great work! Keep up the momentum.</p>
-                                {% elif spotlight.type == 'recommend' %}{% set topic_str = spotlight.topic|string %}{% set hub_id_str = hub.id|string %}<h2>Time to Review</h2><p class="spotlight-topic">{{ spotlight.topic }}</p><a href="{{ url_for('generate_weakness_quiz', hub_id=hub_id_str, topic=topic_str) }}" class="button">Review with a Quiz</a>
-                                {% endif %}
-                            {% else %}<h2>Study Tip</h2><p>Complete a few more quizzes to unlock personalized recommendations!</p>{% endif %}
-                        </div>
-                        <div class="large-grid-card recent-activity-card">
-                            <h2>Recent Activity</h2>
-                            <p><strong>Today:</strong> <span>You've earned +{{ today_xp }} XP.</span></p>
-                            <p style="margin-top: 1rem;"><strong>Yesterday:</strong><span>{% if yesterday_activities.quizzes > 0 or yesterday_activities.flashcards > 0 %}Completed {% if yesterday_activities.quizzes > 0 %}{{ yesterday_activities.quizzes }} quiz(zes){% endif %}{% if yesterday_activities.quizzes > 0 and yesterday_activities.flashcards > 0 %} and {% endif %}{% if yesterday_activities.flashcards > 0 %}{{ yesterday_activities.flashcards }} flashcard session(s).{% endif %}{% else %}No activity recorded.{% endif %}</span></p>
-                        </div>
-                    </div>
+                     {% if spotlight %}
+                     <div style="margin-top: 2rem;">
+                         <div class="progress-card spotlight-card">
+                            {% if spotlight.type == 'weakest' %}{% set topic_str = spotlight.topic|string %}{% set hub_id_str = hub.id|string %}<h2>Weakness Spotlight</h2><p class="spotlight-topic">{{ spotlight.topic }}</p><a href="{{ url_for('generate_weakness_quiz', hub_id=hub_id_str, topic=topic_str) }}" class="button">5-Question Quiz Now</a>
+                            {% elif spotlight.type == 'improved' %}<h2>Most Improved!</h2><p class="spotlight-topic">{{ spotlight.topic }}</p><p>Great work! Keep up the momentum.</p>
+                            {% elif spotlight.type == 'recommend' %}{% set topic_str = spotlight.topic|string %}{% set hub_id_str = hub.id|string %}<h2>Time to Review</h2><p class="spotlight-topic">{{ spotlight.topic }}</p><a href="{{ url_for('generate_weakness_quiz', hub_id=hub_id_str, topic=topic_str) }}" class="button">Review with a Quiz</a>
+                            {% endif %}
+                         </div>
+                     </div>
+                    {% endif %}
                     <div class="large-grid" style="margin-top: 1.5rem;">
                         <div class="large-grid-card">
                             <h2>Topic Mastery</h2>
@@ -961,7 +721,25 @@
                     </div>
                 </div>
 
+                <div id="calendar" class="tab-content">
+                     <div class="workspace-header">
+                        <h1>Study Calendar</h1>
+                        <p>Schedule study sessions and keep track of important deadlines.</p>
+                    </div>
+                     <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 1.5rem;">
+                        <button id="show-import-modal-btn" class="button button-secondary">Import Calendar (.ics)</button>
+                        <button id="show-schedule-modal-btn" class="button button-primary">+ Schedule New Session</button>
+                    </div>
+                    <div class="content-card">
+                        <div id="fullcalendar"></div>
+                    </div>
+                </div>
+
                 <div id="folders" class="tab-content">
+                    <div class="workspace-header">
+                        <h1>My Folders</h1>
+                        <p>Organize your generated notes, quizzes, and flashcards into folders.</p>
+                    </div>
                     <div class="content-card" style="margin-bottom: 2rem; padding: 1.5rem;">
                         <form action="{{ url_for('create_folder', hub_id=hub.id) }}" method="POST">
                             <h4 style="margin-top:0; margin-bottom: 1rem;">Create a New Folder</h4>
@@ -1028,6 +806,10 @@
                 </div>
 
                 <div id="notes" class="tab-content">
+                     <div class="workspace-header">
+                        <h1>My Notes</h1>
+                        <p>All the notes you have generated or created.</p>
+                    </div>
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-notes"><label for="select-all-notes">Select All</label></div>
                         <button class="button button-danger delete-selected-btn" style="display: none;">Delete Selected</button>
@@ -1048,6 +830,10 @@
                 </div>
                 
                 <div id="quizzes" class="tab-content">
+                    <div class="workspace-header">
+                        <h1>My Quizzes</h1>
+                        <p>Review your completed quizzes or take new ones.</p>
+                    </div>
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-quizzes"><label for="select-all-quizzes">Select All</label></div>
                         <button class="button button-danger delete-selected-btn" style="display: none;">Delete Selected</button>
@@ -1075,8 +861,8 @@
                         {% endfor %}
                     </ul>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- Modals -->
@@ -1090,17 +876,12 @@
     <div class="modal-overlay" id="event-details-modal"> <div class="modal-content"> <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> <strong>Time & Date</strong><p id="details-modal-time"></p> <strong>Focus / Details</strong><p id="details-modal-focus"></p> </div> <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div> </div> </div>
 
     <script>
-        // --- TABS, MODALS, THEME & OTHER UI LOGIC ---
-        function openTab(evt, tabName) {
-            document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
-            document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
-            document.getElementById(tabName).style.display = 'block';
-            evt.currentTarget.classList.add('active');
-            window.location.hash = tabName;
-        }
-        
         document.addEventListener('DOMContentLoaded', () => {
             const hubId = '{{ hub.id }}';
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+            const tabContents = document.querySelectorAll('.tab-content');
             let calendar; 
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
@@ -1116,8 +897,64 @@
             const detailsModal = document.getElementById('event-details-modal');
             const importModal = document.getElementById('import-ics-modal');
             const addItemsModal = document.getElementById('add-items-modal');
-            const themeToggle = document.getElementById('theme-toggle');
             const uploadInput = document.getElementById('pdf-upload');
+
+            // --- Sidebar and Navigation Logic ---
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                if (calendar) {
+                    setTimeout(() => calendar.updateSize(), 350);
+                }
+            });
+
+            function showTab(tabId) {
+                navLinks.forEach(link => link.classList.toggle('active', link.dataset.tab === tabId));
+                tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
+                window.location.hash = tabId;
+
+                if (tabId === 'calendar' && calendarEl) {
+                    if (!calendar) initializeCalendar();
+                    else setTimeout(() => calendar.render(), 10);
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showTab(e.currentTarget.dataset.tab);
+                });
+            });
+
+            const currentHash = window.location.hash.substring(1);
+            if (currentHash && document.getElementById(currentHash)) {
+                showTab(currentHash);
+            } else {
+                showTab('documents');
+            }
+
+            // --- Quick Action Buttons ---
+            document.getElementById('quick-action-upload').addEventListener('click', () => {
+                uploadInput.click();
+            });
+            document.getElementById('quick-action-tutor').addEventListener('click', () => {
+                showTab('tutor');
+            });
+            document.getElementById('quick-action-flashcards').addEventListener('click', () => {
+                 openRevisionPackModal();
+            });
+            document.querySelectorAll('.quick-tool-btn[value="notes"]').forEach(btn => btn.addEventListener('click', (e) => {
+                const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
+                if (fileSpans.length === 0) return alert("Please upload a document first to create notes.");
+                
+                const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
+                const choice = prompt(`Which file do you want to use to generate notes?\n${fileNames}`);
+                const index = parseInt(choice, 10) - 1;
+
+                if (index >= 0 && index < fileSpans.length) {
+                    handleQuickToolSubmit('notes', [fileSpans[index].dataset.path]);
+                }
+            }));
+
 
             // --- Generic Modal Handling ---
             allModals.forEach(modal => {
@@ -1128,6 +965,9 @@
                     });
                 }
             });
+             document.getElementById('show-schedule-modal-btn')?.addEventListener('click', () => scheduleModal.style.display = 'flex');
+             document.getElementById('show-import-modal-btn')?.addEventListener('click', () => importModal.style.display = 'flex');
+
 
             function showLoading(message, subtext) {
                 isAITaskRunning = true;
@@ -1140,25 +980,19 @@
                 loadingContainer.innerHTML = '';
             }
 
-            // --- LECTURE UPLOAD & POST-UPLOAD OPTIONS FLOW ---
+            // --- File Upload & Post-Upload Options ---
             uploadInput.addEventListener('change', async (event) => {
                 const file = event.target.files[0];
                 if (!file) return;
 
                 showLoading('Uploading your document...', 'Please wait while we process the file.');
-
                 const formData = new FormData();
                 formData.append('pdf', file);
 
                 try {
-                    const response = await fetch(`/hub/${hubId}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                    
+                    const response = await fetch(`/hub/${hubId}/upload`, { method: 'POST', body: formData });
                     const result = await response.json();
                     hideLoading();
-
                     if (result.success) {
                         addFileToUI(result.file_info);
                         populateAndShowUploadOptions(result.file_info);
@@ -1177,25 +1011,28 @@
             function addFileToUI(fileInfo) {
                 const emptyMessage = document.getElementById('empty-file-list-message');
                 if (emptyMessage) emptyMessage.remove();
-
                 const fileList = document.getElementById('main-file-list');
                 const fileItemHTML = `
-                    <div class="file-item">
-                        <div class="file-info" style="cursor: default;">
-                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                            <span data-path="${fileInfo.path}">${fileInfo.name}</span>
+                    <div class="file-item-card">
+                        <div class="file-info">
+                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                            <span class="file-name" data-path="${fileInfo.path}">${fileInfo.name}</span>
                         </div>
-                        <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </a>
+                        <div class="file-actions">
+                            <span class="file-size">${(fileInfo.size / 1024).toFixed(1)} KB</span>
+                            <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure?');">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </a>
+                        </div>
                     </div>`;
                 fileList.insertAdjacentHTML('beforeend', fileItemHTML);
             }
 
             function populateAndShowUploadOptions(fileInfo) {
-                document.getElementById('upload-options-title').textContent = `Success! "${fileInfo.name}" has been uploaded.`;
+                const titleEl = document.getElementById('upload-options-title');
                 const actionsContainer = document.getElementById('upload-options-actions');
-                
+                if (!titleEl || !actionsContainer) return;
+                titleEl.textContent = `Success! "${fileInfo.name}" has been uploaded.`;
                 actionsContainer.innerHTML = `
                     <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
                          <div class="pipeline-header">
@@ -1212,44 +1049,25 @@
                          </div>
                         <p>Use this file to create cheatsheets and a mock exam.</p>
                         <button class="button button-primary">Select</button>
-                    </div>
-                     <div class="preview-action-card" data-action="assignment-writer" data-path="${fileInfo.path}">
-                        <div class="pipeline-header">
-                            <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                            <div class="pipeline-title"><h5>Assignment Assistant</h5></div>
-                        </div>
-                        <p>Use this document as a source for a new assignment.</p>
-                        <button class="button button-primary">Select</button>
-                    </div>
-                `;
-
+                    </div>`;
                 uploadOptionsModal.style.display = 'flex';
             }
             
             uploadOptionsModal.addEventListener('click', (e) => {
                 const actionCard = e.target.closest('.preview-action-card');
                 if (!actionCard) return;
-
+                uploadOptionsModal.style.display = 'none';
                 const action = actionCard.dataset.action;
                 const filePath = actionCard.dataset.path;
-                
-                uploadOptionsModal.style.display = 'none';
-
-                if (action === 'revision-pack') {
-                    openRevisionPackModal([filePath]);
-                } else if (action === 'exam-kit') {
-                    openExamKitModal([filePath]);
-                } else if (action === 'assignment-writer') {
-                    window.location.href = `/hub/${hubId}/start_assignment`;
-                }
+                if (action === 'revision-pack') openRevisionPackModal([filePath]);
+                else if (action === 'exam-kit') openExamKitModal([filePath]);
             });
 
-            // --- PIPELINE MODAL HANDLING ---
             function populateModalFileList(containerId, fileList, { multiSelect = true, preselectPaths = [] } = {}) {
                 const container = document.getElementById(containerId);
+                if (!container) return;
                 container.innerHTML = '';
                 const inputType = multiSelect ? 'checkbox' : 'radio';
-
                 fileList.forEach(file => {
                     const isChecked = preselectPaths.includes(file.path) ? 'checked' : '';
                     const itemHTML = `
@@ -1266,149 +1084,89 @@
                 });
             }
 
-            // --- Pipeline 1: Revision Pack ---
             function openRevisionPackModal(preselectPaths = []) {
                 if(getAllFiles().length === 0) return alert("Please upload at least one document first.");
                 populateModalFileList('revision-pack-files', getAllFiles(), { preselectPaths });
                 revisionModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-revision-pack').addEventListener('click', () => openRevisionPackModal());
+            document.getElementById('pipeline-revision-pack')?.addEventListener('click', () => openRevisionPackModal());
 
-            document.getElementById('revision-pack-form').addEventListener('submit', async (e) => {
+            document.getElementById('revision-pack-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
                 const selectedFiles = Array.from(form.querySelectorAll('input[name="revision-pack-files_files"]:checked')).map(cb => cb.value);
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
-
                 const payload = {
                     selected_files: selectedFiles,
-                    num_flashcards: form.querySelector('[name="num_flashcards"]').value,
-                    num_quiz_questions: form.querySelector('[name="num_quiz_questions"]').value,
-                    include_notes: form.querySelector('[name="include_notes"]').checked
+                    num_flashcards: form.num_flashcards.value,
+                    num_quiz_questions: form.num_quiz_questions.value,
+                    include_notes: form.include_notes.checked
                 };
-
                 revisionModal.style.display = 'none';
-                showLoading("Building Your Revision Pack...", "This might take a moment. A new folder will be created when done.");
-
+                showLoading("Building Your Revision Pack...", "A new folder will be created when done.");
                 try {
-                    const response = await fetch(`/hub/${hubId}/build_revision_pack`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(payload)
-                    });
+                    const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
-                    if (result.success) {
-                        window.location.hash = 'folders';
-                        window.location.reload();
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        hideLoading();
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    hideLoading();
-                }
+                    if (result.success) { window.location.hash = 'folders'; window.location.reload(); } 
+                    else { alert(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             });
 
-            // --- Pipeline 2: Exam Readiness Kit ---
             function openExamKitModal(preselectPaths = []) {
                  if(getAllFiles().length === 0) return alert("Please upload at least one document first.");
-                 const allFiles = getAllFiles();
-                 populateModalFileList('exam-kit-lecture-files', allFiles, { preselectPaths });
-                 populateModalFileList('exam-kit-past-paper-files', allFiles);
+                 populateModalFileList('exam-kit-lecture-files', getAllFiles(), { preselectPaths });
+                 populateModalFileList('exam-kit-past-paper-files', getAllFiles());
                  examKitModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-exam-kit').addEventListener('click', () => openExamKitModal());
-
-            document.getElementById('exam-kit-form').addEventListener('submit', async (e) => {
+            document.getElementById('pipeline-exam-kit')?.addEventListener('click', () => openExamKitModal());
+            document.getElementById('exam-kit-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
                 const lectureFiles = Array.from(form.querySelectorAll('input[name="exam-kit-lecture-files_files"]:checked')).map(cb => cb.value);
                 const pastPaperFiles = Array.from(form.querySelectorAll('input[name="exam-kit-past-paper-files_files"]:checked')).map(cb => cb.value);
-
                 if(lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
-
                 examKitModal.style.display = 'none';
-                showLoading("Assembling Your Exam Kit...", "Analyzing documents and generating resources. Please wait.");
-
+                showLoading("Assembling Your Exam Kit...", "Analyzing documents and generating resources.");
                  try {
-                    const response = await fetch(`/hub/${hubId}/build_exam_kit`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ lecture_files: lectureFiles, past_paper_files: pastPaperFiles })
-                    });
+                    const response = await fetch(`/hub/${hubId}/build_exam_kit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ lecture_files: lectureFiles, past_paper_files: pastPaperFiles }) });
                     const result = await response.json();
-                    if (result.success) {
-                        window.location.hash = 'folders';
-                        window.location.reload();
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        hideLoading();
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    hideLoading();
-                }
+                    if (result.success) { window.location.hash = 'folders'; window.location.reload(); } 
+                    else { alert(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             });
             
-            // --- Pipeline 3: Smart Study Planner ---
             function openStudyPlanModal() {
                  if(getAllFiles().length === 0) return alert("Please upload at least one syllabus document first.");
                  populateModalFileList('study-plan-files', getAllFiles());
                  studyPlanModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-study-planner').addEventListener('click', () => openStudyPlanModal());
-            
-            document.getElementById('study-plan-form').addEventListener('submit', async (e) => {
+            document.getElementById('pipeline-study-planner')?.addEventListener('click', () => openStudyPlanModal());
+            document.getElementById('study-plan-form')?.addEventListener('submit', async (e) => {
                  e.preventDefault();
                  const form = e.target;
                  const syllabusFiles = Array.from(form.querySelectorAll('input[name="study-plan-files_files"]:checked')).map(cb => cb.value);
-                 const deadline = form.querySelector('[name="deadline"]').value;
+                 const deadline = form.deadline.value;
                  if (syllabusFiles.length === 0) return alert("Please select a syllabus document.");
-
                  showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
-
                 try {
-                    const response = await fetch(`/hub/${hubId}/create_study_plan`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline })
-                    });
+                    const response = await fetch(`/hub/${hubId}/create_study_plan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline }) });
                     const result = await response.json();
-                     if (result.success) {
-                        window.location.hash = 'calendar';
-                        window.location.reload();
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        hideLoading();
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    hideLoading();
-                }
+                     if (result.success) { window.location.hash = 'calendar'; window.location.reload(); }
+                     else { alert(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             });
-
-            // --- All Tools Toggle ---
-            document.getElementById('all-tools-toggle-btn').addEventListener('click', (e) => {
+            
+            document.getElementById('all-tools-toggle-btn')?.addEventListener('click', (e) => {
                 const container = document.getElementById('all-tools-container');
                 const isHidden = container.style.display === 'none';
                 container.style.display = isHidden ? 'block' : 'none';
                 e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
             });
             
-            // --- Sliders ---
-            const numFlashcardsSlider = document.getElementById('num-flashcards');
-            const numFlashcardsValue = document.getElementById('num-flashcards-value');
-            if(numFlashcardsSlider) numFlashcardsSlider.addEventListener('input', () => numFlashcardsValue.textContent = numFlashcardsSlider.value);
-            const numQuizSlider = document.getElementById('num-quiz-questions');
-            const numQuizValue = document.getElementById('num-quiz-questions-value');
-            if(numQuizSlider) numQuizSlider.addEventListener('input', () => numQuizValue.textContent = numQuizSlider.value);
-
-            // --- Quick Tools (Individual) ---
             document.querySelectorAll('.quick-tool-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const toolName = e.currentTarget.value;
-                    const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]'));
+                    const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
                     if (fileSpans.length === 0) return alert("Please upload a document first.");
                     
                     const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
@@ -1423,160 +1181,68 @@
 
             async function handleQuickToolSubmit(toolName, selectedFiles) {
                 if (isAITaskRunning) return;
-                showLoading(`Generating ${toolName}...`, "This may take a moment. Please wait.");
+                showLoading(`Generating ${toolName}...`, "This may take a moment.");
                 try {
-                    const response = await fetch(`/hub/${hubId}/run_async_tool`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ tool: toolName, selected_files: selectedFiles })
-                    });
+                    const response = await fetch(`/hub/${hubId}/run_async_tool`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tool: toolName, selected_files: selectedFiles }) });
                     const result = await response.json();
                     if (result.success) {
                         window.location.href = result.redirect_url;
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        hideLoading();
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    hideLoading();
-                }
+                    } else { alert(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             }
 
-            // --- Helper Functions for File Info ---
             function getAllFiles() {
-                return Array.from(document.querySelectorAll('#main-file-list .file-info span[data-path]')).map(span => ({ 
+                return Array.from(document.querySelectorAll('.file-name[data-path]')).map(span => ({ 
                     name: span.textContent.trim(), 
                     path: span.dataset.path 
                 }));
             }
             
-            // --- Folder Accordion Logic ---
-            const folderAccordionContainer = document.getElementById('folder-accordion-container');
-            let currentOpenFolderId = null;
-
-            if (folderAccordionContainer) {
-                folderAccordionContainer.addEventListener('click', async (e) => {
-                    const header = e.target.closest('.folder-header');
-                    const addBtn = e.target.closest('.add-items-to-folder-btn');
-                    const deleteBtn = e.target.closest('.delete-folder-btn');
-                    const removeBtn = e.target.closest('.remove-item-btn');
-
-                    if (header && !addBtn && !deleteBtn) {
-                        header.nextElementSibling.classList.toggle('open');
-                    }
-                    if (addBtn) {
-                        currentOpenFolderId = addBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
-                        addItemsModal.style.display = 'flex';
-                    }
-                    if (deleteBtn) {
-                        const folderItem = deleteBtn.closest('.folder-accordion-item');
-                        const folderId = folderItem.querySelector('.folder-header').dataset.folderId;
-                        if (confirm('Are you sure you want to delete this folder? (Items inside will not be deleted).')) {
-                            fetch(`/folder/${folderId}/delete`, { method: 'POST' })
-                                .then(res => res.json())
-                                .then(result => {
-                                    if(result.success) folderItem.remove();
-                                    else alert('Failed to delete folder: ' + result.message);
-                                });
-                        }
-                    }
-                    if (removeBtn) {
-                        const itemEl = removeBtn.closest('.asset-item');
-                        const folderId = removeBtn.closest('.folder-accordion-item').querySelector('.folder-header').dataset.folderId;
-                        const item = { id: itemEl.dataset.id, type: itemEl.dataset.type };
-                        fetch(`/folder/${folderId}/remove_item`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ item: item })
-                        }).then(res => res.json()).then(result => {
-                            if (result.success) itemEl.remove(); else alert('Failed to remove item.');
-                        });
-                    }
-                });
-            }
-
-            if(addItemsModal){
-                document.getElementById('save-added-items-btn').addEventListener('click', async () => {
-                    const selectedItems = Array.from(addItemsModal.querySelectorAll('input[type="checkbox"]:checked'))
-                        .map(cb => ({ id: cb.dataset.id, type: cb.dataset.type }));
-                    
-                    if (selectedItems.length > 0 && currentOpenFolderId) {
-                        fetch(`/folder/${currentOpenFolderId}/add_items`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ items: selectedItems })
-                        }).then(res => res.json()).then(result => {
-                            if (result.success) window.location.reload(); else alert('Failed to add items.');
-                        });
-                    } else {
-                        addItemsModal.style.display = 'none';
-                    }
-                });
-            }
-
-            // --- Calendar Logic ---
             function initializeCalendar() {
-                if (calendar) calendar.destroy();
-                calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
-                    events: `/hub/${hubId}/events`,
-                    eventClick: function(info) {
-                        const event = info.event;
-                        const props = event.extendedProps;
-                        document.getElementById('details-modal-title').innerHTML = `${event.title} <span class="event-type-badge" style="background-color:${event.backgroundColor};">${props.eventType}</span>`;
-                        const startTime = event.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                        const endTime = event.end ? event.end.toLocaleString([], { timeStyle: 'short' }) : '';
-                        document.getElementById('details-modal-time').textContent = endTime ? `${startTime} - ${endTime}` : startTime;
-                        document.getElementById('details-modal-focus').textContent = props.focus;
-                        document.getElementById('details-modal-export-btn').href = props.exportUrl;
-                        detailsModal.style.display = 'flex';
-                    }
-                });
-                calendar.render();
-            }
-
-            // --- Dark Mode Toggle Logic ---
-            function applyTheme(theme) {
-                if (theme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeToggle.checked = true;
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeToggle.checked = false;
+                if (calendarEl && !calendar) {
+                    calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+                        events: `/hub/${hubId}/events`,
+                        eventClick: function(info) {
+                            const event = info.event, props = event.extendedProps;
+                            document.getElementById('details-modal-title').innerHTML = `${event.title} <span class="event-type-badge" style="background-color:${event.backgroundColor};">${props.eventType}</span>`;
+                            const startTime = event.start.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                            const endTime = event.end ? event.end.toLocaleString([], { timeStyle: 'short' }) : '';
+                            document.getElementById('details-modal-time').textContent = endTime ? `${startTime} - ${endTime}` : startTime;
+                            document.getElementById('details-modal-focus').textContent = props.focus;
+                            document.getElementById('details-modal-export-btn').href = props.exportUrl;
+                            detailsModal.style.display = 'flex';
+                        }
+                    });
+                    calendar.render();
                 }
             }
-            themeToggle.addEventListener('change', () => {
-                const newTheme = themeToggle.checked ? 'dark' : 'light';
-                localStorage.setItem('theme', newTheme);
-                applyTheme(newTheme);
-            });
-            applyTheme(localStorage.getItem('theme') || 'light');
 
-            // --- Tab and Page Load Logic ---
-            const anchor = window.location.hash.substring(1);
-            if (anchor) {
-                const tabButton = document.querySelector(`.tab-button[onclick*="'${anchor}'"]`);
-                if (tabButton) tabButton.click();
-            } else {
-                document.querySelector(".tab-button[onclick*='documents']").classList.add('active');
-                document.getElementById('documents').style.display = 'block';
-            }
-            document.querySelector("button[onclick*='calendar']").addEventListener('click', () => {
-                 if (!calendar) initializeCalendar();
-                 else setTimeout(() => calendar.render(), 10);
+             document.getElementById('schedule-event-form')?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const payload = {
+                    title: form.title.value, event_type: form.event_type.value,
+                    start_time: form.start_time.value, duration: form.duration.value,
+                    focus: form.focus.value,
+                };
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_calendar_event`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    if(result.success) {
+                        scheduleModal.style.display = 'none';
+                        calendar.refetchEvents();
+                    } else { alert(`Error: ${result.message}`); }
+                } catch(err) { alert('A network error occurred.'); }
             });
-            if (anchor === 'calendar') initializeCalendar();
-
-            // --- Other UI listeners ---
+            
             const bell = document.getElementById('notification-bell');
             const panel = document.getElementById('notification-panel');
             bell.addEventListener('click', (event) => { event.stopPropagation(); panel.classList.toggle('visible'); });
             document.addEventListener('click', (event) => { if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible'); });
 
-
-            // --- AI TUTOR CHAT LOGIC ---
+            // --- AI Tutor Chat Logic ---
             const tutorForm = document.getElementById('tutor-input-form');
             const tutorInput = document.getElementById('tutor-user-input');
             const messagesList = document.getElementById('tutor-messages-list');
@@ -1584,42 +1250,23 @@
             let chatHistory = [];
 
             function appendMessage(role, content) {
-                if (welcomeMessage) {
-                    welcomeMessage.style.display = 'none';
-                }
+                if (welcomeMessage) welcomeMessage.style.display = 'none';
                 const messageClass = role === 'user' ? 'user-message' : 'ai-message';
                 const avatarText = role === 'user' ? 'You' : 'AI';
-                const messageHTML = `
-                    <div class="tutor-message ${messageClass}">
-                        <div class="avatar">${avatarText}</div>
-                        <div class="message-content">${content}</div>
-                    </div>
-                `;
-                messagesList.insertAdjacentHTML('beforeend', messageHTML);
+                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ${messageClass}"><div class="avatar">${avatarText}</div><div class="message-content">${content}</div></div>`);
                 messagesList.scrollTop = messagesList.scrollHeight;
             }
 
             function showTypingIndicator() {
-                const typingHTML = `
-                    <div class="tutor-message ai-message" id="typing-indicator">
-                        <div class="avatar">AI</div>
-                        <div class="message-content">
-                            <div class="typing-indicator">
-                                <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                messagesList.insertAdjacentHTML('beforeend', typingHTML);
+                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message" id="typing-indicator"><div class="avatar">AI</div><div class="message-content"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`);
                 messagesList.scrollTop = messagesList.scrollHeight;
             }
 
             function removeTypingIndicator() {
-                const indicator = document.getElementById('typing-indicator');
-                if (indicator) indicator.remove();
+                document.getElementById('typing-indicator')?.remove();
             }
 
-            tutorForm.addEventListener('submit', async (e) => {
+            tutorForm?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const userInput = tutorInput.value.trim();
                 if (!userInput) return;
@@ -1633,25 +1280,17 @@
                     const response = await fetch(`/hub/${hubId}/tutor_chat`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            message: userInput,
-                            history: chatHistory.slice(-10) // Send last 10 messages for context
-                        })
+                        body: JSON.stringify({ message: userInput, history: chatHistory.slice(-10) })
                     });
-                    
                     removeTypingIndicator();
-                    
                     if (!response.ok) {
                         const errorData = await response.json();
                         appendMessage('ai', `<p style="color:var(--danger-color);">Error: ${errorData.answer || 'Could not get a response.'}</p>`);
                         return;
                     }
-
                     const result = await response.json();
-                    const formattedAnswer = marked.parse(result.answer);
-                    appendMessage('ai', formattedAnswer);
+                    appendMessage('ai', marked.parse(result.answer));
                     chatHistory.push({ role: 'assistant', content: result.answer });
-
                 } catch (error) {
                     removeTypingIndicator();
                     appendMessage('ai', `<p style="color:var(--danger-color);">Sorry, a connection error occurred.</p>`);
