@@ -3689,13 +3689,12 @@ def stuck_on_question_start(hub_id):
 
 @app.route("/hub/<hub_id>/stuck_on_question/generate_solution", methods=["POST"])
 @login_required
-def stuck_on_question_generate_solution():
+def stuck_on_question_generate_solution(hub_id): # <-- THIS IS THE FIX
     """Generates a step-by-step solution for a confirmed question."""
     question = request.json.get('question')
     if not question:
         return jsonify({"success": False, "message": "No question was provided."}), 400
 
-    # THIS PROMPT IS THE FIX. It's now more robust.
     prompt = f"""
     You are an expert AI math and science tutor. Your primary task is to solve the provided problem in a clear, step-by-step manner.
 
