@@ -3665,7 +3665,7 @@ def stuck_on_question_start(hub_id):
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "You are an expert academic assistant. Analyze the provided file and extract ONLY the main question or problem being asked. Ignore any surrounding text, page numbers, or irrelevant information. Present the question clearly in Markdown format."},
+                            {"type": "text", "text": "You are an expert academic assistant. Your task is to analyze the provided image, which contains a question. Transcribe ALL text in the image and also describe any important visual elements like diagrams, graphs, or tables. Combine everything into a single, complete problem description in Markdown format. This full description will be used by another AI to solve the problem, so it must be comprehensive and accurate."},
                             {
                                 "type": "image_url",
                                 "image_url": {
