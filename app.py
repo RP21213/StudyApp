@@ -3689,25 +3689,39 @@ def stuck_on_question_start(hub_id):
 
 @app.route("/hub/<hub_id>/stuck_on_question/generate_solution", methods=["POST"])
 @login_required
-def stuck_on_question_generate_solution(hub_id): # <-- THIS IS THE FIX
+def stuck_on_question_generate_solution(hub_id):
     """Generates a step-by-step solution for a confirmed question."""
     question = request.json.get('question')
     if not question:
         return jsonify({"success": False, "message": "No question was provided."}), 400
 
+    # THIS IS THE CRITICAL FIX: A much more detailed and demanding prompt.
     prompt = f"""
-    You are an expert AI math and science tutor. Your primary task is to solve the provided problem in a clear, step-by-step manner.
+    You are an exceptionally patient and clear AI tutor, explaining a complex problem to a beginner who is feeling stuck. Your tone should be encouraging and simple.
 
-    **IMPORTANT INPUT FORMATTING NOTE:** The question you receive was transcribed by another AI and may contain LaTeX-style mathematical notation like `\( \\angle OBA = 30^\\circ \)` or `\( p \)`. You MUST correctly interpret this notation as standard mathematical symbols (e.g., angle OBA = 30°, the variable p). Do not be confused by the backslashes or parentheses.
+    **CRITICAL TASK:** Your task is to solve the provided problem in a series of extremely granular, simple, step-by-step instructions.
 
-    **Your Instructions:**
-    1.  Analyze the entire problem description, including all given information and the final task.
-    2.  Break down the solution into a logical sequence of simple steps.
-    3.  Your response MUST be a single, valid JSON object with one key: "steps".
-    4.  The "steps" value must be an array of strings. Each string is a single step.
-    5.  Use clear Markdown for formatting, especially for mathematical formulas and expressions.
+    **RULES FOR STEP GENERATION (MUST FOLLOW):**
+    1.  **One Action Per Step:** Each step in the output `steps` array must represent a single, small, logical action or thought. Do NOT combine multiple calculations or concepts into one step.
+    2.  **Beginner-Friendly Language:** Use simple, direct language. Avoid jargon where possible, or explain it immediately in the next step.
+    3.  **Conversational Flow:** Think of it as a conversation. After each small piece of information, the student needs to confirm they understand before you move on. Each confirmation point is a new step.
+    4.  **Show, Don't Just Tell:** Start by identifying the relevant shapes, formulas, or concepts before you use them.
 
-    Here is the question to solve:
+    **EXAMPLE of GOOD vs. BAD Steps for a geometry problem:**
+    *   **BAD STEP (too complex):** "Using trigonometry in triangle OAB, we find the radius OA by calculating tan(30°) = OA/OB, so OA = 16 * tan(30°), which is 9.2."
+    *   **GOOD STEPS (granular and simple):**
+        *   "First, let's focus on the shape formed by points O, A, and B. This is a right-angled triangle because a tangent line (AB) always meets a radius (OA) at a perfect 90° angle."
+        *   "In this triangle, we are given the angle at B is 30° and the length of the side next to it (OB) is 16."
+        *   "We want to find the length of the side opposite the angle, which is OA. This is also the radius of our circle."
+        *   "To connect an angle with its opposite and adjacent sides in a right-angled triangle, we use the tangent function: tan(angle) = Opposite / Adjacent."
+        *   "Now, let's plug in the values we know: tan(30°) = OA / 16."
+        *   "To get OA by itself, we can multiply both sides of the equation by 16. This gives us: OA = 16 * tan(30°)."
+        *   "Calculating this gives us the length of the radius, OA. Let's do that next."
+
+    **YOUR OUTPUT:**
+    Your response MUST be a single, valid JSON object with one key: "steps". The "steps" value must be an array of simple, beginner-friendly strings, following all the rules above.
+
+    **Here is the question to solve:**
     ---
     {question}
     ---
@@ -3720,7 +3734,7 @@ def stuck_on_question_generate_solution(hub_id): # <-- THIS IS THE FIX
         )
         solution_data = json.loads(response.choices[0].message.content)
         # Add a check to ensure steps were actually generated
-        if not solution_data.get("steps"):
+        if not solution_data.get("steps") or not isinstance(solution_data["steps"], list) or len(solution_data["steps"]) == 0:
             raise ValueError("AI returned a valid JSON but with no solution steps.")
             
         return jsonify({"success": True, "solution": solution_data})

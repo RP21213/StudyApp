@@ -651,7 +651,7 @@
             <!-- Top Bar -->
             <header class="top-bar">
                 <div class="search-container">
-                     <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+                     <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
                      <input type="search" placeholder="Search within this hub...">
                 </div>
                 <div class="top-bar-actions">
@@ -660,14 +660,14 @@
                         <button class="button button-secondary quick-tool-btn" value="notes">New Note</button>
                         <button class="button button-secondary" id="quick-action-flashcards">New Flashcards</button>
                         <button class="button button-primary" id="quick-action-upload">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                             Upload
                         </button>
                          <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
                     </div>
                     <div class="user-controls">
                         <div class="notification-bell" id="notification-bell">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                             <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
                              <div id="notification-panel">
                                 <div class="notification-header">Notifications</div>
@@ -713,13 +713,13 @@
                         {% for file in hub.files %}
                         <div class="file-item-card">
                             <div class="file-info">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
                                 <span class="file-name" data-path="{{ file.path }}">{{ file.name }}</span>
                             </div>
                             <div class="file-actions">
                                 <span class="file-size">{{ (file.size / 1024)|round(1) }} KB</span>
                                 <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure you want to delete this file?');">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </a>
                             </div>
                         </div>
@@ -814,12 +814,12 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="flashcards">
-                                    <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
+                                    <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                     <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="quiz">
-                                    <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
+                                    <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
@@ -829,9 +829,9 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="analyse">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
+                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
                                     <div class="feature-text"><h4>Exam Predictor <span class="pro-label">PRO</span></h4><p>Generate a full report outlining likely topics using past papers.</p></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                             </div>
                         </div>
@@ -1281,13 +1281,13 @@
                 const fileItemHTML = `
                     <div class="file-item-card">
                         <div class="file-info">
-                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
+                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
                             <span class="file-name" data-path="${fileInfo.path}">${fileInfo.name}</span>
                         </div>
                         <div class="file-actions">
                             <span class="file-size">${(fileInfo.size / 1024).toFixed(1)} KB</span>
                             <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="return confirm('Are you sure?');">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </a>
                         </div>
                     </div>`;
@@ -1302,7 +1302,7 @@
                 actionsContainer.innerHTML = `
                     <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
                          <div class="pipeline-header">
-                            <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                            <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
                             <div class="pipeline-title"><h5>Build Revision Pack</h5></div>
                          </div>
                         <p>Generate notes, flashcards, and quizzes from this document.</p>
@@ -1310,7 +1310,7 @@
                     </div>
                     <div class="preview-action-card" data-action="exam-kit" data-path="${fileInfo.path}">
                          <div class="pipeline-header">
-                            <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                            <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
                             <div class="pipeline-title"><h5>Prepare for Exam</h5></div>
                          </div>
                         <p>Use this file to create cheatsheets and a mock exam.</p>
@@ -1655,9 +1655,9 @@
                 }
             }
             
-            // --- "Stuck on a Question" Feature Logic (FIXED) ---
+            // --- "Stuck on a Question" Feature Logic ---
             const sqModal = document.getElementById('stuck-question-modal');
-            const sqPipelineBtn = document.getElementById('pipeline-stuck-question'); // Corrected trigger element
+            const sqPipelineBtn = document.getElementById('pipeline-stuck-question'); 
 
             // --- Screens
             const sqScreenStart = document.getElementById('sq-screen-start');
@@ -1812,7 +1812,7 @@
 
                     sqState.fullSolutionSteps = result.solution.steps;
                     sqState.currentStepIndex = 0;
-                    renderCurrentStep();
+                    renderCurrentStep(); // Call the new function to start the sequence
                 } catch (error) {
                      appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I couldn't generate a solution. Please try rephrasing the question or uploading a clearer image.</p>`);
                 } finally {
@@ -1820,13 +1820,14 @@
                 }
             });
             
+            // THIS FUNCTION IS THE CORE OF THE INTERACTIVE FIX
             function renderCurrentStep() {
                 if (sqState.currentStepIndex < sqState.fullSolutionSteps.length) {
                     const stepText = sqState.fullSolutionSteps[sqState.currentStepIndex];
                     appendSqMessage(marked.parse(stepText));
-                    showSqInput('actions');
+                    showSqInput('actions'); // Show the continue/confused buttons
                 } else {
-                    // Solution finished
+                    // Solution is finished
                     const recapMessage = sqState.isPracticeMode
                         ? `That's the correct way to solve the practice problem. Nicely done!`
                         : `And that's the final answer! I hope that makes sense.`;
@@ -1838,7 +1839,7 @@
             sqContinueBtn.addEventListener('click', () => {
                 showSqInput(null); // Hide buttons while processing
                 sqState.currentStepIndex++;
-                renderCurrentStep();
+                renderCurrentStep(); // Render the next step
             });
 
             sqConfusedBtn.addEventListener('click', () => {
