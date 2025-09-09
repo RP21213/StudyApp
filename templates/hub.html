@@ -477,7 +477,7 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                                        <li><a href="#progress" class="nav-link" data-tab="progress">
+                    <li><a href="#progress" class="nav-link active" data-tab="progress">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20V16"></path></svg>
                         <span class="nav-text">Progress</span>
                     </a></li>
@@ -489,7 +489,7 @@
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                         <span class="nav-text">Study Tools</span>
                     </a></li>
-                                        <li><a href="#documents" class="nav-link active" data-tab="documents">
+                    <li><a href="#documents" class="nav-link" data-tab="documents">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                         <span class="nav-text">Documents</span>
                     </a></li>
@@ -584,7 +584,7 @@
             <main class="workspace">
                 <div id="loading-status-container"></div>
                 
-                <div id="documents" class="tab-content active">
+                <div id="documents" class="tab-content">
                      <div class="workspace-header">
                         <h1>Documents</h1>
                         <p>Manage and upload your course materials and lecture notes here.</p>
@@ -710,7 +710,7 @@
                     </div>
                 </div>
 
-                <div id="progress" class="tab-content">
+                <div id="progress" class="tab-content active">
                     <div class="workspace-header">
                         <h1>Your Progress</h1>
                         <p>Track your study habits, topic mastery, and overall performance.</p>
@@ -745,7 +745,9 @@
                     <div class="large-grid" style="grid-template-columns: 1fr; margin-top: 1.5rem;">
                         <div class="large-grid-card">
                             <h2>Recent Quiz Performance</h2>
-                            <canvas id="quiz-score-chart"></canvas>
+                            <div style="height: 400px; position: relative;">
+                                <canvas id="quiz-score-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -998,7 +1000,7 @@
             if (currentHash && document.getElementById(currentHash)) {
                 showTab(currentHash);
             } else {
-                showTab('documents');
+                showTab('progress');
             }
 
             // --- Quick Action Buttons ---
