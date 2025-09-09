@@ -1123,6 +1123,18 @@ def hub_page(hub_id):
         activity for activity in all_activities 
         if 'Quiz' in activity.type or 'Exam' in activity.type
     ]
+    
+    # ADD THIS NEW CODE BLOCK
+    recent_quiz_scores = []
+    for activity in graded_activities:
+     if 'Quiz' in activity.type or 'Exam' in activity.type:
+        recent_quiz_scores.append({
+            'x': activity.created_at.isoformat(),
+            'y': activity.score
+        })
+# Sort by date to ensure the graph is chronological
+    recent_quiz_scores = sorted(recent_quiz_scores, key=lambda d: d['x'])
+# END OF NEW CODE BLOCK    
 
     topic_performance = {}
     topic_history = {}
@@ -1237,7 +1249,8 @@ def hub_page(hub_id):
         all_folders=all_folders,
         yesterday_activities=yesterday_activities,
         notifications=notifications,
-        unread_notifications_count=unread_notifications_count
+        unread_notifications_count=unread_notifications_count,
+        recent_quiz_scores_json=json.dumps(recent_quiz_scores)
     )
 
 # ==============================================================================
