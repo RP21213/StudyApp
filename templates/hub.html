@@ -460,6 +460,125 @@
         #tutor-input-form input { flex-grow: 1; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); font-size: 1rem; }
         #tutor-welcome-message { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
         #tutor-welcome-message h3 { font-size: 1.5rem; color: var(--text-main); margin-bottom: 0.5rem; }
+        
+        /* --- NEW: Stuck on a Question Modal Styles --- */
+        #stuck-question-modal .modal-content {
+            max-width: 800px;
+            height: 90vh;
+        }
+        #stuck-question-body {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 0;
+            overflow: hidden;
+        }
+        #sq-screen-start {
+            padding: 2rem;
+            text-align: center;
+        }
+        #sq-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        #sq-upload-area:hover {
+            background-color: var(--background-interactive-hover);
+            border-color: var(--primary-color);
+        }
+        #sq-screen-confirm {
+            padding: 2rem;
+            text-align: center;
+        }
+        #sq-question-preview {
+            background-color: var(--background-body);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        #sq-screen-solving {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #sq-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+        .sq-message {
+            display: flex;
+            gap: 1rem;
+            max-width: 90%;
+            line-height: 1.6;
+        }
+        .sq-message.tutor .avatar { background-color: #e0e7ff; color: #3730a3; }
+        .sq-message.user .avatar { background-color: #dcfce7; color: #166534; }
+        .sq-message .avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-weight: 600;
+        }
+        .sq-message .content {
+            padding: 0.75rem 1rem; border-radius: 12px;
+            background-color: var(--background-body);
+            border: 1px solid var(--border-color);
+        }
+        .sq-message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .sq-message.user .content {
+            background-color: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+        .sq-message.system {
+            align-self: center;
+            max-width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        .sq-message.system .content {
+            background-color: transparent; border: none; padding: 0;
+        }
+
+        #sq-input-container {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--background-card);
+        }
+        #sq-actions, #sq-practice-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+         #sq-clarification-form {
+            display: none; /* Initially hidden */
+            margin-top: 1rem;
+        }
+        #sq-practice-form {
+            display: none; /* Initially hidden */
+        }
+        .sq-message pre {
+            background-color: var(--background-interactive-hover);
+            padding: 1rem;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .sq-message code {
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
 </head>
 <body>
@@ -536,9 +655,12 @@
                 </div>
                 <div class="top-bar-actions">
                     <div class="quick-actions">
+                        <!-- NEW: Button to trigger "Stuck on a Question" -->
+                        <button class="button button-primary" id="stuck-question-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+                            I'm Stuck
+                        </button>
                         <button class="button button-secondary" id="quick-action-tutor">Ask AI</button>
-                        <button class="button button-secondary quick-tool-btn" value="notes">New Note</button>
-                        <button class="button button-secondary" id="quick-action-flashcards">New Flashcards</button>
                         <button class="button button-primary" id="quick-action-upload">
                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                             Upload
@@ -933,6 +1055,74 @@
     <div class="modal-overlay" id="import-ics-modal"> <div class="modal-content"> <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div> <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data"> <div class="modal-body"> <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p> <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div> </form> </div> </div>
     <div class="modal-overlay" id="event-details-modal"> <div class="modal-content"> <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> <strong>Time & Date</strong><p id="details-modal-time"></p> <strong>Focus / Details</strong><p id="details-modal-focus"></p> </div> <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div> </div> </div>
 
+    <!-- NEW: Stuck on a Question Modal -->
+    <div class="modal-overlay" id="stuck-question-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Stuck on a Question? Let's solve it.</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="stuck-question-body">
+                <!-- Screen 1: Start -->
+                <div id="sq-screen-start">
+                    <form id="sq-start-form">
+                        <input type="file" id="sq-file-input" accept="image/png, image/jpeg, application/pdf" style="display:none;">
+                        <div id="sq-upload-area" onclick="document.getElementById('sq-file-input').click();">
+                            <h4>Upload a photo or PDF of your question</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Click here to select a file</p>
+                            <span id="sq-file-name" style="font-weight: 500;"></span>
+                        </div>
+                        <p style="margin: 1.5rem 0; font-weight: 600;">OR</p>
+                        <textarea id="sq-text-input" rows="4" placeholder="Paste or type your question here..." style="width: 100%; box-sizing: border-box;"></textarea>
+                        <div class="modal-footer" style="padding: 1.5rem 0 0 0; border: none;">
+                            <button type="submit" class="button button-primary" id="sq-submit-btn">Let's Go!</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- Screen 2: Confirm -->
+                <div id="sq-screen-confirm" style="display: none;">
+                    <h4>Is this your question?</h4>
+                    <div id="sq-question-preview"></div>
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="button button-danger" id="sq-confirm-no-btn">No, try again</button>
+                        <button class="button button-primary" id="sq-confirm-yes-btn">Yes, start solving!</button>
+                    </div>
+                </div>
+                <!-- Screen 3: Solving Interface -->
+                <div id="sq-screen-solving" style="display: none;">
+                    <div id="sq-messages">
+                        <!-- Messages will be injected here -->
+                    </div>
+                    <div id="sq-input-container">
+                         <div id="sq-actions" style="display: none;">
+                            <button class="button button-secondary" id="sq-action-confused-btn">❓ I don't understand this step</button>
+                            <button class="button button-primary" id="sq-action-continue-btn">✅ I understand, continue</button>
+                        </div>
+                        <form id="sq-clarification-form" style="display: none;">
+                            <label for="sq-clarification-input">Ask a specific question about this step...</label>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <input type="text" id="sq-clarification-input" placeholder="e.g., Why did we divide by 2?" required>
+                                <button type="submit" class="button button-primary">Ask</button>
+                            </div>
+                        </form>
+                         <div id="sq-practice-actions" style="display: none;">
+                            <button class="button button-secondary" id="sq-action-end-btn">No thanks, I'm done</button>
+                            <button class="button button-primary" id="sq-action-practice-btn">Yes, give me a practice question!</button>
+                        </div>
+                        <form id="sq-practice-form" style="display: none;">
+                            <label for="sq-practice-input">Type your answer here:</label>
+                            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                                <input type="text" id="sq-practice-input" required>
+                                <button type="submit" class="button button-primary">Check My Answer</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const hubId = '{{ hub.id }}';
@@ -971,7 +1161,6 @@
                     setTimeout(() => calendar.updateSize(), 350);
                 }
             });
-            // Set initial icon state on load
             sidebarToggle.innerHTML = sidebar.classList.contains('collapsed') ? iconExpand : iconCollapse;
 
 
@@ -1010,9 +1199,9 @@
             document.getElementById('quick-action-tutor').addEventListener('click', () => {
                 showTab('tutor');
             });
-            document.getElementById('quick-action-flashcards').addEventListener('click', () => {
-                 openRevisionPackModal();
-            });
+             document.querySelectorAll('.quick-tool-btn[value="flashcards"], #quick-action-flashcards').forEach(btn => btn.addEventListener('click', (e) => {
+                openRevisionPackModal();
+            }));
             document.querySelectorAll('.quick-tool-btn[value="notes"]').forEach(btn => btn.addEventListener('click', (e) => {
                 const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
                 if (fileSpans.length === 0) return alert("Please upload a document first to create notes.");
@@ -1313,7 +1502,6 @@
             bell.addEventListener('click', (event) => { event.stopPropagation(); panel.classList.toggle('visible'); });
             document.addEventListener('click', (event) => { if (!panel.contains(event.target) && !bell.contains(event.target)) panel.classList.remove('visible'); });
 
-            // --- FOLDER ACCORDION FIX ---
             document.querySelectorAll('.folder-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
@@ -1323,7 +1511,6 @@
                 });
             });
 
-            // --- AI Tutor Chat Logic ---
             const tutorForm = document.getElementById('tutor-input-form');
             const tutorInput = document.getElementById('tutor-user-input');
             const messagesList = document.getElementById('tutor-messages-list');
@@ -1339,7 +1526,7 @@
             }
 
             function showTypingIndicator() {
-                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message" id="typing-indicator"><div class="avatar">AI</div><div class="message-content"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`);
+                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message" id="typing-indicator"><div class="avatar">AI</div><div class="message-content"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`);
                 messagesList.scrollTop = messagesList.scrollHeight;
             }
 
@@ -1378,13 +1565,11 @@
                     console.error("Tutor chat error:", error);
                 }
             });
-             // --- NEW: Quiz Score Chart Logic ---
-            let quizChart = null;
+             let quizChart = null;
             function renderQuizChart() {
                 const ctx = document.getElementById('quiz-score-chart');
                 if (!ctx) return;
 
-                // If a chart instance already exists, destroy it before creating a new one
                 if (quizChart) {
                     quizChart.destroy();
                 }
@@ -1463,6 +1648,315 @@
                     console.error("Failed to parse quiz score data or render chart:", e);
                 }
             }
+            
+            // --- NEW: STUCK ON A QUESTION FEATURE LOGIC ---
+            const sqModal = document.getElementById('stuck-question-modal');
+            const sqStartBtn = document.getElementById('stuck-question-btn');
+
+            // --- Screens
+            const sqScreenStart = document.getElementById('sq-screen-start');
+            const sqScreenConfirm = document.getElementById('sq-screen-confirm');
+            const sqScreenSolving = document.getElementById('sq-screen-solving');
+
+            // --- Forms & Inputs
+            const sqStartForm = document.getElementById('sq-start-form');
+            const sqFileInput = document.getElementById('sq-file-input');
+            const sqTextInput = document.getElementById('sq-text-input');
+            const sqFileName = document.getElementById('sq-file-name');
+            const sqSubmitBtn = document.getElementById('sq-submit-btn');
+            
+            // --- Confirmation
+            const sqQuestionPreview = document.getElementById('sq-question-preview');
+            const sqConfirmYesBtn = document.getElementById('sq-confirm-yes-btn');
+            const sqConfirmNoBtn = document.getElementById('sq-confirm-no-btn');
+
+            // --- Solving Interface
+            const sqMessages = document.getElementById('sq-messages');
+            const sqActions = document.getElementById('sq-actions');
+            const sqContinueBtn = document.getElementById('sq-action-continue-btn');
+            const sqConfusedBtn = document.getElementById('sq-action-confused-btn');
+            
+            const sqClarificationForm = document.getElementById('sq-clarification-form');
+            const sqClarificationInput = document.getElementById('sq-clarification-input');
+
+            const sqPracticeActions = document.getElementById('sq-practice-actions');
+            const sqPracticeBtn = document.getElementById('sq-action-practice-btn');
+            const sqEndBtn = document.getElementById('sq-action-end-btn');
+
+            const sqPracticeForm = document.getElementById('sq-practice-form');
+            const sqPracticeInput = document.getElementById('sq-practice-input');
+
+            // --- State Variables
+            let sqState = {};
+
+            function resetSqState() {
+                sqState = {
+                    originalQuestion: '',
+                    fullSolutionSteps: [],
+                    currentStepIndex: -1,
+                    practiceQuestion: '',
+                    isPracticeMode: false
+                };
+                 sqMessages.innerHTML = '';
+                 sqStartForm.reset();
+                 sqClarificationForm.reset();
+                 sqPracticeForm.reset();
+                 sqFileName.textContent = '';
+                 showSqScreen('start');
+            }
+
+            function showSqScreen(screenName) {
+                [sqScreenStart, sqScreenConfirm, sqScreenSolving].forEach(s => s.style.display = 'none');
+                document.getElementById(`sq-screen-${screenName}`).style.display = 'block';
+            }
+            
+            function appendSqMessage(htmlContent, role = 'tutor') {
+                const avatar = role === 'tutor' ? 'AI' : (role === 'user' ? 'You' : '');
+                const messageEl = document.createElement('div');
+                messageEl.className = `sq-message ${role}`;
+                messageEl.innerHTML = `
+                    ${avatar ? `<div class="avatar">${avatar}</div>` : ''}
+                    <div class="content">${htmlContent}</div>
+                `;
+                sqMessages.appendChild(messageEl);
+                sqMessages.scrollTop = sqMessages.scrollHeight;
+            }
+
+            function setSqLoading(isLoading, message = "Thinking...") {
+                sqSubmitBtn.disabled = isLoading;
+                sqConfirmYesBtn.disabled = isLoading;
+                if (isLoading) {
+                    appendSqMessage(message, 'system');
+                } else {
+                    const systemMessages = sqMessages.querySelectorAll('.sq-message.system');
+                    if(systemMessages.length > 0) systemMessages[systemMessages.length - 1].remove();
+                }
+            }
+            
+            function showSqInput(type) {
+                // Hide all input types first
+                sqActions.style.display = 'none';
+                sqClarificationForm.style.display = 'none';
+                sqPracticeActions.style.display = 'none';
+                sqPracticeForm.style.display = 'none';
+                // Then show the requested one
+                if (type) document.getElementById(`sq-${type}`).style.display = 'flex';
+            }
+
+            // --- Main Event Listeners for the Feature ---
+            sqStartBtn.addEventListener('click', () => {
+                resetSqState();
+                sqModal.style.display = 'flex';
+            });
+
+            sqFileInput.addEventListener('change', () => {
+                sqFileName.textContent = sqFileInput.files.length > 0 ? sqFileInput.files[0].name : '';
+            });
+
+            sqStartForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const textInput = sqTextInput.value.trim();
+                const fileInput = sqFileInput.files[0];
+                if (!textInput && !fileInput) {
+                    return alert("Please type a question or upload a file.");
+                }
+
+                setSqLoading(true, "Reading your question...");
+                const formData = new FormData();
+                if (textInput) formData.append('question_text', textInput);
+                if (fileInput) formData.append('question_file', fileInput);
+                
+                try {
+                    const response = await fetch(`/hub/${hubId}/stuck_on_question/start`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.message);
+                    
+                    sqState.originalQuestion = result.extracted_question;
+                    sqQuestionPreview.innerHTML = marked.parse(result.extracted_question);
+                    showSqScreen('confirm');
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    setSqLoading(false);
+                }
+            });
+            
+            sqConfirmNoBtn.addEventListener('click', () => {
+                resetSqState();
+            });
+
+            sqConfirmYesBtn.addEventListener('click', async () => {
+                setSqLoading(true, "Generating step-by-step solution...");
+                showSqScreen('solving');
+                appendSqMessage(marked.parse(sqState.originalQuestion), 'user');
+
+                try {
+                    const response = await fetch(`/hub/${hubId}/stuck_on_question/generate_solution`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ question: sqState.originalQuestion })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.message);
+
+                    sqState.fullSolutionSteps = result.solution.steps;
+                    sqState.currentStepIndex = 0;
+                    renderCurrentStep();
+                } catch (error) {
+                     appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I couldn't generate a solution. Please try rephrasing the question or uploading a clearer image.</p>`);
+                } finally {
+                    setSqLoading(false);
+                }
+            });
+            
+            function renderCurrentStep() {
+                if (sqState.currentStepIndex < sqState.fullSolutionSteps.length) {
+                    const stepText = sqState.fullSolutionSteps[sqState.currentStepIndex];
+                    appendSqMessage(marked.parse(stepText));
+                    showSqInput('actions');
+                } else {
+                    // Solution finished
+                    const recapMessage = sqState.isPracticeMode
+                        ? `That's the correct way to solve the practice problem. Nicely done!`
+                        : `And that's the final answer! I hope that makes sense.`;
+                    appendSqMessage(`<strong>Final Recap:</strong> ${recapMessage}`);
+                    showSqInput('practice-actions'); // Ask if they want to practice
+                }
+            }
+
+            sqContinueBtn.addEventListener('click', () => {
+                showSqInput(null); // Hide buttons while processing
+                sqState.currentStepIndex++;
+                renderCurrentStep();
+            });
+
+            sqConfusedBtn.addEventListener('click', () => {
+                showSqInput('clarification-form');
+                sqClarificationInput.focus();
+            });
+
+            sqClarificationForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userQuery = sqClarificationInput.value.trim();
+                if (!userQuery) return;
+                
+                showSqInput(null); // Hide form
+                appendSqMessage(marked.parse(userQuery), 'user');
+                setSqLoading(true, "Let me explain that...");
+
+                try {
+                     const response = await fetch(`/hub/${hubId}/stuck_on_question/clarify_step`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            stuck_step: sqState.fullSolutionSteps[sqState.currentStepIndex],
+                            clarification_request: userQuery,
+                            original_question: sqState.originalQuestion,
+                            solution_context: sqState.fullSolutionSteps.slice(0, sqState.currentStepIndex)
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.message);
+                    
+                    appendSqMessage(marked.parse(result.clarification));
+                    showSqInput('actions'); // Show buttons again
+                } catch (error) {
+                     appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I had trouble generating an explanation. Let's try continuing to the next step.</p>`);
+                     showSqInput('actions');
+                } finally {
+                    setSqLoading(false);
+                    sqClarificationForm.reset();
+                }
+            });
+
+            sqEndBtn.addEventListener('click', () => {
+                sqModal.style.display = 'none';
+            });
+
+            sqPracticeBtn.addEventListener('click', async () => {
+                showSqInput(null);
+                setSqLoading(true, "Generating a practice question...");
+
+                 try {
+                     const response = await fetch(`/hub/${hubId}/stuck_on_question/generate_practice`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            question: sqState.originalQuestion,
+                            solution_steps: sqState.fullSolutionSteps
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.message);
+                    
+                    sqState.practiceQuestion = result.practice_question;
+                    appendSqMessage(marked.parse(sqState.practiceQuestion));
+                    showSqInput('practice-form');
+                    sqPracticeInput.focus();
+                } catch (error) {
+                     appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I couldn't generate a practice question right now.</p>`);
+                     showSqInput('practice-actions'); // Go back to choice
+                } finally {
+                    setSqLoading(false);
+                }
+            });
+
+            sqPracticeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userAnswer = sqPracticeInput.value.trim();
+                if(!userAnswer) return;
+
+                showSqInput(null);
+                appendSqMessage(userAnswer, 'user');
+                setSqLoading(true, "Checking your answer...");
+
+                 try {
+                     const response = await fetch(`/hub/${hubId}/stuck_on_question/evaluate_practice`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            practice_question: sqState.practiceQuestion,
+                            student_answer: userAnswer,
+                            original_question: sqState.originalQuestion
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) throw new Error(result.message);
+                    
+                    const { is_correct, feedback } = result.evaluation;
+                    appendSqMessage(feedback);
+
+                    if (is_correct) {
+                        showSqInput('practice-actions'); // They got it right, ask to go again
+                    } else {
+                        // They got it wrong, restart the step-by-step process for the practice question
+                        setSqLoading(true, "Let's walk through it step-by-step...");
+                        const solutionResponse = await fetch(`/hub/${hubId}/stuck_on_question/generate_solution`, {
+                             method: 'POST',
+                             headers: {'Content-Type': 'application/json'},
+                             body: JSON.stringify({ question: sqState.practiceQuestion })
+                         });
+                         const solutionResult = await solutionResponse.json();
+                         if (!solutionResponse.ok || !solutionResult.success) throw new Error(solutionResult.message);
+
+                        sqState.isPracticeMode = true;
+                        sqState.fullSolutionSteps = solutionResult.solution.steps;
+                        sqState.currentStepIndex = 0;
+                        renderCurrentStep();
+                    }
+
+                } catch (error) {
+                     appendSqMessage(`<p style="color: var(--danger-color)">Sorry, an error occurred while checking your answer.</p>`);
+                     showSqInput('practice-actions');
+                } finally {
+                    setSqLoading(false);
+                    sqPracticeForm.reset();
+                }
+            });
+
         });
 
         // --- Dark Mode Toggle Logic ---

@@ -3619,6 +3619,198 @@ def tutor_chat(hub_id):
 
     return jsonify({"answer": response['answer']})
 
+# ==============================================================================
+# 12. STUCK ON A QUESTION TUTOR ROUTES (NEW FEATURE)
+# ==============================================================================
+import base64
+
+def get_image_media_type(file_storage):
+    """Determines the media type from the file extension for Vision API."""
+    filename = file_storage.filename.lower()
+    if filename.endswith('.png'):
+        return 'image/png'
+    elif filename.endswith(('.jpg', '.jpeg')):
+        return 'image/jpeg'
+    elif filename.endswith('.pdf'):
+         # For simplicity, we'll handle the first page of a PDF as an image
+         # In a real-world app, you might use a library like pdf2image to handle all pages
+        return 'application/pdf' # GPT-4o can handle PDFs directly
+    return None
+
+@app.route("/hub/<hub_id>/stuck_on_question/start", methods=["POST"])
+@login_required
+def stuck_on_question_start(hub_id):
+    """
+    Handles the initial submission of a question, either as text or an image/PDF.
+    Uses GPT-4o Vision to extract the question from the media.
+    """
+    question_text = request.form.get('question_text')
+    question_file = request.files.get('question_file')
+
+    if not question_text and not question_file:
+        return jsonify({"success": False, "message": "Please provide a question as text or a file."}), 400
+
+    try:
+        if question_file:
+            media_type = get_image_media_type(question_file)
+            if not media_type:
+                return jsonify({"success": False, "message": "Unsupported file type. Please use PNG, JPG, or PDF."}), 400
+
+            encoded_file = base64.b64encode(question_file.read()).decode('utf-8')
+            
+            # Using GPT-4o's vision capabilities
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "You are an expert academic assistant. Analyze the provided file and extract ONLY the main question or problem being asked. Ignore any surrounding text, page numbers, or irrelevant information. Present the question clearly in Markdown format."},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{media_type};base64,{encoded_file}"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            )
+            extracted_question = response.choices[0].message.content
+
+        else: # It's a text submission
+            extracted_question = question_text
+
+        return jsonify({"success": True, "extracted_question": extracted_question})
+
+    except Exception as e:
+        print(f"Error in stuck_on_question_start: {e}")
+        return jsonify({"success": False, "message": f"An error occurred while processing your question: {e}"}), 500
+
+@app.route("/hub/<hub_id>/stuck_on_question/generate_solution", methods=["POST"])
+@login_required
+def stuck_on_question_generate_solution():
+    """Generates a step-by-step solution for a confirmed question."""
+    question = request.json.get('question')
+    if not question:
+        return jsonify({"success": False, "message": "No question was provided."}), 400
+
+    prompt = f"""
+    You are an expert AI tutor. Your task is to solve the following question step-by-step.
+    Your response MUST be a single, valid JSON object with one key: "steps".
+    The "steps" value must be an array of strings. Each string in the array is a single, clear, and concise step in the solution process.
+    Break the problem down into logical, easy-to-follow steps. Do not solve the entire problem in one step.
+    Use Markdown for formatting, especially for math equations.
+
+    Here is the question:
+    ---
+    {question}
+    ---
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        solution_data = json.loads(response.choices[0].message.content)
+        return jsonify({"success": True, "solution": solution_data})
+    except Exception as e:
+        print(f"Error generating solution: {e}")
+        return jsonify({"success": False, "message": "The AI could not generate a solution for this question."}), 500
+
+
+@app.route("/hub/<hub_id>/stuck_on_question/clarify_step", methods=["POST"])
+@login_required
+def stuck_on_question_clarify_step():
+    """Provides a focused explanation for a specific step a user is stuck on."""
+    data = request.json
+    stuck_step = data.get('stuck_step')
+    clarification_request = data.get('clarification_request')
+    original_question = data.get('original_question')
+    solution_context = data.get('solution_context') # The steps so far
+
+    prompt = f"""
+    You are a patient and helpful AI tutor. A student is stuck on a specific step of a problem.
+    Your task is to explain ONLY the point of confusion. Do not move on to the next step.
+    - **Original Question:** "{original_question}"
+    - **The Solution Steps So Far:** {solution_context}
+    - **The Step They Are Stuck On:** "{stuck_step}"
+    - **Their Specific Question:** "{clarification_request}"
+
+    Provide a clear, simple explanation in Markdown that directly addresses their question.
+    Use analogies or simpler examples if helpful. Your explanation should be focused and concise.
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        clarification_text = response.choices[0].message.content
+        return jsonify({"success": True, "clarification": clarification_text})
+    except Exception as e:
+        print(f"Error clarifying step: {e}")
+        return jsonify({"success": False, "message": "An error occurred while generating the explanation."}), 500
+
+@app.route("/hub/<hub_id>/stuck_on_question/generate_practice", methods=["POST"])
+@login_required
+def stuck_on_question_generate_practice():
+    """Generates a similar practice question based on the original problem."""
+    original_question = request.json.get('question')
+    solution_steps = request.json.get('solution_steps')
+    
+    prompt = f"""
+    You are an expert question creator. Based on the following solved problem, create one new, similar practice question.
+    The question should test the same core concept but use different numbers, scenarios, or wording.
+    Your response MUST be a single, valid JSON object with one key: "practice_question". The value should be the question text in Markdown.
+
+    **Original Solved Problem:**
+    - Question: "{original_question}"
+    - Solution: {solution_steps}
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        practice_data = json.loads(response.choices[0].message.content)
+        return jsonify({"success": True, "practice_question": practice_data.get("practice_question")})
+    except Exception as e:
+        print(f"Error generating practice question: {e}")
+        return jsonify({"success": False, "message": "Could not generate a practice question."}), 500
+
+
+@app.route("/hub/<hub_id>/stuck_on_question/evaluate_practice", methods=["POST"])
+@login_required
+def stuck_on_question_evaluate_practice():
+    """Evaluates the user's answer to the practice question."""
+    data = request.json
+    practice_question = data.get('practice_question')
+    student_answer = data.get('student_answer')
+    original_question_context = data.get('original_question')
+
+    prompt = f"""
+    You are an expert AI evaluator. The student was given a practice question and has submitted an answer.
+    - **Practice Question:** "{practice_question}"
+    - **Student's Answer:** "{student_answer}"
+    - **Context (Original Problem):** "{original_question_context}"
+
+    Your task is to determine if the student's answer is correct. Your response MUST be a single, valid JSON object with two keys:
+    1. 'is_correct' (boolean: true if their answer is correct, false otherwise).
+    2. 'feedback' (string: A brief, encouraging message if correct, or a gentle correction like "Not quite. Let's walk through it." if incorrect).
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        evaluation_data = json.loads(response.choices[0].message.content)
+        return jsonify({"success": True, "evaluation": evaluation_data})
+    except Exception as e:
+        print(f"Error evaluating practice answer: {e}")
+        return jsonify({"success": False, "message": "Could not evaluate the answer."}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION
