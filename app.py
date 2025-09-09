@@ -3695,14 +3695,20 @@ def stuck_on_question_generate_solution():
     if not question:
         return jsonify({"success": False, "message": "No question was provided."}), 400
 
+    # THIS PROMPT IS THE FIX. It's now more robust.
     prompt = f"""
-    You are an expert AI tutor. Your task is to solve the following question step-by-step.
-    Your response MUST be a single, valid JSON object with one key: "steps".
-    The "steps" value must be an array of strings. Each string in the array is a single, clear, and concise step in the solution process.
-    Break the problem down into logical, easy-to-follow steps. Do not solve the entire problem in one step.
-    Use Markdown for formatting, especially for math equations.
+    You are an expert AI math and science tutor. Your primary task is to solve the provided problem in a clear, step-by-step manner.
 
-    Here is the question:
+    **IMPORTANT INPUT FORMATTING NOTE:** The question you receive was transcribed by another AI and may contain LaTeX-style mathematical notation like `\( \\angle OBA = 30^\\circ \)` or `\( p \)`. You MUST correctly interpret this notation as standard mathematical symbols (e.g., angle OBA = 30°, the variable p). Do not be confused by the backslashes or parentheses.
+
+    **Your Instructions:**
+    1.  Analyze the entire problem description, including all given information and the final task.
+    2.  Break down the solution into a logical sequence of simple steps.
+    3.  Your response MUST be a single, valid JSON object with one key: "steps".
+    4.  The "steps" value must be an array of strings. Each string is a single step.
+    5.  Use clear Markdown for formatting, especially for mathematical formulas and expressions.
+
+    Here is the question to solve:
     ---
     {question}
     ---
@@ -3714,6 +3720,10 @@ def stuck_on_question_generate_solution():
             response_format={"type": "json_object"}
         )
         solution_data = json.loads(response.choices[0].message.content)
+        # Add a check to ensure steps were actually generated
+        if not solution_data.get("steps"):
+            raise ValueError("AI returned a valid JSON but with no solution steps.")
+            
         return jsonify({"success": True, "solution": solution_data})
     except Exception as e:
         print(f"Error generating solution: {e}")
