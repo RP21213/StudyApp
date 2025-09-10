@@ -511,12 +511,13 @@
         }
         #sq-messages {
             flex-grow: 1;
-            overflow-y: auto; /* <-- THIS IS THE FIX */
+            overflow-y: auto;
+            min-height: 0; /* Prevents the flex item from overflowing its container, enabling scroll */
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
-    }
+        }
         .sq-message {
             display: flex;
             gap: 1rem;
@@ -809,24 +810,24 @@
                             <h2 class="section-heading">All Tools</h2>
                             <div class="feature-grid">
                                 <button type="button" class="feature-card quick-tool-btn" value="notes">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
+                                    <div class="feature-icon-wrapper" style="background-color: #e0e7ff;"><svg style="color: #4338ca;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
                                     <div class="feature-text"><h4>Quick Notes</h4><p>Generate static notes to save or print.</p></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="flashcards">
                                     <div class="feature-icon-wrapper" style="background-color: #dcfce7;"><svg style="color: #166534;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                     <div class="feature-text"><h4>Quick Flashcards</h4><p>Generate a set of flashcards to study.</p></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="quiz">
                                     <div class="feature-icon-wrapper" style="background-color: #fef9c3;"><svg style="color: #854d0e;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="feature-text"><h4>Generate Quiz <span class="pro-label">PRO</span></h4><p>Test your knowledge with practice questions.</p></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="cheatsheet">
                                     <div class="feature-icon-wrapper" style="background-color: #fecaca; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                     <div class="feature-text"><h4>Cheat Sheet <span class="pro-label">PRO</span></h4><p>Create a dense, one-page summary.</p></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                 </button>
                                 <button type="button" class="feature-card quick-tool-btn" value="analyse">
                                     <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
