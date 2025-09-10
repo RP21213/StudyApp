@@ -1667,6 +1667,53 @@ def explain_selection():
     except Exception as e:
         print(f"Error in explain_selection: {e}")
         return jsonify({"error": "Failed to generate explanation."}), 500
+    
+@app.route("/hub/<hub_id>/stuck_on_question/clarify_step", methods=["POST"])
+@login_required
+def clarify_step(hub_id):
+    data = request.get_json()
+    stuck_step = data.get("stuck_step", "")
+    clarification_request = data.get("clarification_request", "")
+    original_question = data.get("original_question", "")
+    solution_context = data.get("solution_context", [])
+
+    if not clarification_request:
+        return jsonify({"success": False, "message": "Missing clarification request"}), 400
+
+    # Build a friendly tutor-style prompt
+    prompt = f"""
+    You are a friendly AI tutor helping a student through a worked solution step by step.
+
+    The student’s original problem:
+    "{original_question}"
+
+    The solution so far:
+    {" ".join(solution_context)}
+
+    The current step they are stuck on:
+    "{stuck_step}"
+
+    The student’s clarification question:
+    "{clarification_request}"
+
+    Please provide a clear, beginner-friendly explanation that directly addresses their question.
+    Use plain language, and include simple examples or analogies where possible.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a supportive tutor. Always explain concepts step by step in simple, encouraging language."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        clarification = response.choices[0].message.content
+        return jsonify({"success": True, "clarification": clarification})
+    except Exception as e:
+        print(f"Error in clarify_step: {e}")
+        return jsonify({"success": False, "message": "Failed to generate clarification."}), 500
+
 
 @app.route('/generate_mini_quiz', methods=['POST'])
 @login_required
