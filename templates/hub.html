@@ -1994,6 +1994,24 @@
             // Apply theme on initial load
             applyTheme(localStorage.getItem('theme') || 'light');
 
+            // Global tab navigation listener (fixes buttons not working until refresh)
+document.body.addEventListener('click', function(e) {
+    const link = e.target.closest('.sidebar-nav .nav-link');
+    if (!link) return;
+
+    e.preventDefault();
+    const tabId = link.getAttribute('data-tab');
+    if (!tabId) return;
+
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+
+    // Show the selected tab
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) activeTab.classList.add('active');
+});
+
+
     </script>
 </body>
 </html>
