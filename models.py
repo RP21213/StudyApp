@@ -85,6 +85,33 @@ class User(UserMixin):
             stripe_subscription_id=source.get('stripe_subscription_id')
         )
 
+# --- NEW: Model for Note-Taking with Slides ---
+class AnnotatedSlideDeck:
+    def __init__(self, id, hub_id, user_id, title, source_file_path, slides_data=None, created_at=None, **kwargs):
+        self.id = id
+        self.hub_id = hub_id
+        self.user_id = user_id
+        self.title = title
+        self.source_file_path = source_file_path
+        # slides_data is a list of dicts: [{'slide_number': 0, 'notes_html': '<p>...</p>'}]
+        self.slides_data = slides_data if slides_data is not None else []
+        self.created_at = created_at or datetime.now(timezone.utc)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'hub_id': self.hub_id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'source_file_path': self.source_file_path,
+            'slides_data': self.slides_data,
+            'created_at': self.created_at,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return AnnotatedSlideDeck(**source)
+
 # --- Your existing models below are unchanged ---
 
 class Folder:

@@ -24,7 +24,7 @@ from firebase_admin import credentials, firestore, storage
 import stripe
 import base64 # Make sure this import is at the top with your others
 import json   # Make sure this import is at the top with your others
-from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck
 import asyncio # NEW: For async operations
 from flask_socketio import SocketIO, emit # NEW: For WebSockets
 import assemblyai as aai # NEW: For real-time transcription
@@ -322,6 +322,33 @@ def safe_load_json(data):
 # ==============================================================================
 # 3. AI GENERATION SERVICES
 # ==============================================================================
+
+# --- NEW: AI Functions for Slide Note-Taking Feature ---
+def generate_summary_from_slide_text(text):
+    """Generates a concise summary from the text content of a single slide."""
+    prompt = f"You are an expert academic summarizer. Condense the key points from the following slide content into a clear, concise summary (2-3 bullet points in Markdown). Content:\n---\n{text}"
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+def generate_flashcards_from_slide_text(text):
+    """Generates 2-3 flashcards from the text content of a single slide."""
+    prompt = f"""
+    Based on the following slide content, create 2-3 key flashcards.
+    Follow this format strictly for each card:
+    Front: [Question or Term]
+    Back: [Answer or Definition]
+    ---
+    Here is the text:
+    {text}
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
 
 # --- AI function for Revision Pack preview ---
 def generate_revision_preview(text):
@@ -1095,6 +1122,10 @@ def hub_page(hub_id):
     folders_query = db.collection('folders').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     all_folders = [Folder.from_dict(doc.to_dict()) for doc in folders_query]
 
+    # --- NEW: Fetch Annotated Slide Decks ---
+    slide_notes_query = db.collection('annotated_slide_decks').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    all_slide_notes = [AnnotatedSlideDeck.from_dict(doc.to_dict()) for doc in slide_notes_query]
+
     notes_map = {note.id: note for note in all_notes}
     activities_map = {activity.id: activity for activity in all_activities}
 
@@ -1247,6 +1278,7 @@ def hub_page(hub_id):
         spotlight=spotlight,
         today_xp=today_xp,
         all_folders=all_folders,
+        all_slide_notes=all_slide_notes, # NEW: Pass slide notes to template
         yesterday_activities=yesterday_activities,
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
@@ -1254,7 +1286,141 @@ def hub_page(hub_id):
     )
 
 # ==============================================================================
-# 5. NEW STRIPE & SUBSCRIPTION ROUTES
+# 5. NEW SLIDE NOTE-TAKING ROUTES
+# ==============================================================================
+
+@app.route("/hub/<hub_id>/create_slide_notes_session", methods=["POST"])
+@login_required
+def create_slide_notes_session(hub_id):
+    if 'slide_file' not in request.files:
+        flash("No file was selected.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+    
+    file = request.files['slide_file']
+    title = request.form.get('title', 'Untitled Lecture Notes')
+
+    # Basic validation for pptx will be trickier without a library, focusing on pdf for now.
+    if file.filename == '' or not (file.filename.lower().endswith('.pdf')):
+         flash("Please select a valid PDF file.", "error")
+         return redirect(url_for('hub_page', hub_id=hub_id))
+
+    try:
+        filename = secure_filename(file.filename)
+        # Store slide decks in a specific subfolder for clarity
+        file_path = f"hubs/{hub_id}/slide_decks/{filename}"
+        blob = bucket.blob(file_path)
+        
+        file.seek(0)
+        blob.upload_from_file(file, content_type=file.content_type)
+        
+        # Add to the main hub file list for general access
+        file.seek(0, os.SEEK_END)
+        file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
+        db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
+
+        # Create the AnnotatedSlideDeck object
+        session_ref = db.collection('annotated_slide_decks').document()
+        new_session = AnnotatedSlideDeck(
+            id=session_ref.id,
+            hub_id=hub_id,
+            user_id=current_user.id,
+            title=title,
+            source_file_path=file_path
+        )
+        session_ref.set(new_session.to_dict())
+
+        return redirect(url_for('slide_notes_workspace', session_id=session_ref.id))
+
+    except Exception as e:
+        print(f"Error creating slide notes session: {e}")
+        flash("An error occurred while setting up your note-taking session.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
+@app.route("/slide_notes/<session_id>")
+@login_required
+def slide_notes_workspace(session_id):
+    session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+    if not session_doc.exists:
+        flash("Note-taking session not found.", "error")
+        return redirect(url_for('dashboard'))
+    
+    session = AnnotatedSlideDeck.from_dict(session_doc.to_dict())
+    
+    if session.user_id != current_user.id:
+        flash("You do not have permission to view this.", "error")
+        return redirect(url_for('dashboard'))
+
+    try:
+        blob = bucket.blob(session.source_file_path)
+        # Generate a temporary, secure URL for the PDF for the frontend JS viewer
+        pdf_url = blob.generate_signed_url(version="v4", expiration=timedelta(hours=1))
+    except Exception as e:
+        print(f"Error generating signed URL for {session.source_file_path}: {e}")
+        flash("Could not load the slide deck file from storage.", "error")
+        return redirect(url_for('hub_page', hub_id=session.hub_id))
+
+    # This route now renders a new, dedicated template for the workspace
+    return render_template("slide_notes_workspace.html", session=session, pdf_url=pdf_url)
+
+@app.route("/slide_notes/<session_id>/save_data", methods=["POST"])
+@login_required
+def save_slide_notes_data(session_id):
+    session_ref = db.collection('annotated_slide_decks').document(session_id)
+    session_doc = session_ref.get()
+    if not session_doc.exists or session_doc.to_dict().get('user_id') != current_user.id:
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+
+    data = request.get_json()
+    slides_data = data.get('slides_data')
+    if slides_data is None:
+        return jsonify({"success": False, "message": "No data provided"}), 400
+    
+    try:
+        session_ref.update({'slides_data': slides_data})
+        return jsonify({"success": True, "message": "Saved successfully"})
+    except Exception as e:
+        print(f"Error saving slide data for session {session_id}: {e}")
+        return jsonify({"success": False, "message": "Server error"}), 500
+
+@app.route("/slide_notes/ai_assist", methods=["POST"])
+@login_required
+def slide_notes_ai_assist():
+    data = request.get_json()
+    action = data.get('action')
+    slide_text = data.get('slide_text')
+    hub_id = data.get('hub_id')
+    slide_num = data.get('slide_number', 'current')
+    
+    if not action or not slide_text or not hub_id:
+        return jsonify({"success": False, "message": "Missing action, hub_id, or slide text"}), 400
+    
+    try:
+        if action == 'summarize':
+            result_text = generate_summary_from_slide_text(slide_text)
+            return jsonify({"success": True, "html_content": markdown.markdown(result_text)})
+        
+        elif action == 'flashcards':
+            raw_flashcards = generate_flashcards_from_slide_text(slide_text)
+            parsed_cards = parse_flashcards(raw_flashcards)
+            if not parsed_cards:
+                return jsonify({"success": False, "message": "Could not generate valid flashcards from this slide."}), 500
+
+            fc_ref = db.collection('activities').document()
+            new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards from Slide {slide_num}", data={'cards': parsed_cards}, status='completed')
+            fc_ref.set(new_fc.to_dict())
+
+            return jsonify({"success": True, "message": f"Flashcard set created! You can find it in 'My Flashcards'.", "redirect_url": url_for('edit_flashcard_set', activity_id=fc_ref.id)})
+        
+        else:
+            return jsonify({"success": False, "message": "Invalid action"}), 400
+
+    except Exception as e:
+        print(f"Error in AI assist for slides: {e}")
+        return jsonify({"success": False, "message": "AI assistant failed to generate a response."}), 500
+
+
+# ==============================================================================
+# 5. STRIPE & SUBSCRIPTION ROUTES
 # ==============================================================================
 
 @app.route('/create-checkout-session', methods=['POST'])
@@ -1341,7 +1507,7 @@ def delete_hub(hub_id):
     try:
         blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
         for blob in blobs: blob.delete()
-        collections_to_delete = ['notes', 'activities', 'lectures', 'notifications']
+        collections_to_delete = ['notes', 'activities', 'lectures', 'notifications', 'annotated_slide_decks']
         for coll in collections_to_delete:
             docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
             for doc in docs: doc.reference.delete()
@@ -2866,7 +3032,7 @@ def run_async_tool(hub_id):
 
         elif tool == 'flashcards':
             flashcards_raw = generate_flashcards_from_text(hub_text)
-            flashcards_parsed = parse_flashcards(flashcards_raw)
+            flashcards_parsed = parse_flashcards(raw_text)
             fc_ref = db.collection('activities').document()
             new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Quick Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
             fc_ref.set(new_fc.to_dict())
