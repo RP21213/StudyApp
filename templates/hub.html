@@ -464,16 +464,19 @@
         /* --- "Stuck on a Question" Modal Styles --- */
         #stuck-question-modal .modal-content {
             max-width: 800px;
-            max-height: 65vh;
+            max-height: 90vh;       /* give more space */
+            overflow-y: auto;       /* allow vertical scrolling */
         }
+
         #stuck-question-body {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            padding: 0;
-            overflow: hidden;
+         padding: 0;
+         overflow-y: auto;       /* allow content scroll */
             min-height: 0;
         }
+
         #sq-screen-start {
             padding: 2rem;
             text-align: center;
