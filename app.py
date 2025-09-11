@@ -1312,25 +1312,25 @@ def create_slide_notes_session(hub_id):
         # Upload file to Firebase
         blob.upload_from_file(file, content_type=file.content_type)
 
-        # Make it publicly accessible
+        # Make it publicly accessible (we use this for the initial render)
         blob.make_public()
         pdf_url = blob.public_url
 
-        # Create a Firestore session record
-        session_ref = db.collection('sessions').document()
-        new_session = StudySession(
+        # IMPORTANT: create the document in annotated_slide_decks (not sessions)
+        session_ref = db.collection('annotated_slide_decks').document()
+        new_session = AnnotatedSlideDeck(
             id=session_ref.id,
             hub_id=hub_id,
+            user_id=current_user.id,                # <-- ensure save endpoint's authorization check will pass
             title=title,
-            slides_file_path=file_path,
-            source_files=[file_path],  # ✅ added this line
+            source_file_path=file_path,             # slide_notes_workspace reads session.source_file_path
+            slides_data=[],                          # start empty
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         session_ref.set(new_session.to_dict())
 
-
-        # Render the workspace with the working PDF URL
+        # Render the workspace with the working PDF URL and the new annotated_slide_deck
         return render_template(
             "slide_notes_workspace.html",
             session=new_session,
@@ -1342,6 +1342,7 @@ def create_slide_notes_session(hub_id):
         print(f"Error creating slide notes session: {e}")
         flash("Failed to create slide notes session.", "error")
         return redirect(url_for('hub_page', hub_id=hub_id))
+
 
 
 @app.route("/slide_notes/<session_id>")
