@@ -804,7 +804,7 @@
                                 </div>
                                 <p class="pipeline-description">Upload a syllabus and your deadline to automatically create a structured, week-by-week study schedule in your calendar.</p>
                             </div>
-                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="pipeline-card">
+                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="pipeline-card" id="pipeline-assignment-assistant">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
                                     <div class="pipeline-title"><h3>Assignment Assistant<span class="pro-label">PRO</span></h3></div>
@@ -1214,9 +1214,8 @@
             const addItemsModal = document.getElementById('add-items-modal');
             const uploadInput = document.getElementById('pdf-upload');
             const themeToggle = document.getElementById('theme-toggle');
-            // --- NEW: Slide Notes Modal Elements ---
             const slideNotesModal = document.getElementById('slide-notes-modal');
-            const slideNotesPipelineBtn = document.getElementById('pipeline-slide-notes');
+            const studyToolsContainer = document.getElementById('study-tools-container');
 
 
             // --- Sidebar and Navigation Logic ---
@@ -1270,10 +1269,10 @@
             document.getElementById('quick-action-tutor').addEventListener('click', () => {
                 showTab('tutor');
             });
-             document.querySelectorAll('.quick-tool-btn[value="flashcards"], #quick-action-flashcards').forEach(btn => btn.addEventListener('click', (e) => {
+             document.getElementById('quick-action-flashcards').addEventListener('click', (e) => {
                 openRevisionPackModal();
-            }));
-            document.querySelectorAll('.quick-tool-btn[value="notes"]').forEach(btn => btn.addEventListener('click', (e) => {
+            });
+            document.querySelector('.quick-tool-btn[value="notes"]').addEventListener('click', (e) => {
                 const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
                 if (fileSpans.length === 0) return alert("Please upload a document first to create notes.");
                 
@@ -1284,7 +1283,7 @@
                 if (index >= 0 && index < fileSpans.length) {
                     handleQuickToolSubmit('notes', [fileSpans[index].dataset.path]);
                 }
-            }));
+            });
 
 
             // --- Generic Modal Handling ---
@@ -1298,14 +1297,6 @@
             });
              document.getElementById('show-schedule-modal-btn')?.addEventListener('click', () => scheduleModal.style.display = 'flex');
              document.getElementById('show-import-modal-btn')?.addEventListener('click', () => importModal.style.display = 'flex');
-
-            // --- NEW: Slide Notes Modal Trigger ---
-            if(slideNotesPipelineBtn) {
-                slideNotesPipelineBtn.addEventListener('click', () => {
-                    slideNotesModal.style.display = 'flex';
-                });
-            }
-
 
             function showLoading(message, subtext) {
                 isAITaskRunning = true;
@@ -1427,8 +1418,7 @@
                 populateModalFileList('revision-pack-files', getAllFiles(), { preselectPaths });
                 revisionModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-revision-pack')?.addEventListener('click', () => openRevisionPackModal());
-
+            
             document.getElementById('revision-pack-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
@@ -1456,7 +1446,7 @@
                  populateModalFileList('exam-kit-past-paper-files', getAllFiles());
                  examKitModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-exam-kit')?.addEventListener('click', () => openExamKitModal());
+
             document.getElementById('exam-kit-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
@@ -1478,7 +1468,7 @@
                  populateModalFileList('study-plan-files', getAllFiles());
                  studyPlanModal.style.display = 'flex';
             }
-            document.getElementById('pipeline-study-planner')?.addEventListener('click', () => openStudyPlanModal());
+
             document.getElementById('study-plan-form')?.addEventListener('submit', async (e) => {
                  e.preventDefault();
                  const form = e.target;
@@ -1494,29 +1484,6 @@
                 } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             });
             
-            document.getElementById('all-tools-toggle-btn')?.addEventListener('click', (e) => {
-                const container = document.getElementById('all-tools-container');
-                const isHidden = container.style.display === 'none';
-                container.style.display = isHidden ? 'block' : 'none';
-                e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
-            });
-            
-            document.querySelectorAll('.quick-tool-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const toolName = e.currentTarget.value;
-                    const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
-                    if (fileSpans.length === 0) return alert("Please upload a document first.");
-                    
-                    const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
-                    const choice = prompt(`Which file do you want to use?\n${fileNames}`);
-                    const index = parseInt(choice, 10) - 1;
-
-                    if (index >= 0 && index < fileSpans.length) {
-                        handleQuickToolSubmit(toolName, [fileSpans[index].dataset.path]);
-                    }
-                });
-            });
-
             async function handleQuickToolSubmit(toolName, selectedFiles) {
                 if (isAITaskRunning) return;
                 showLoading(`Generating ${toolName}...`, "This may take a moment.");
@@ -1726,39 +1693,92 @@
                     console.error("Failed to parse quiz score data or render chart:", e);
                 }
             }
-            
-            // --- Pro Feature UI Enforcement ---
+
+            // --- Pro Feature UI Enforcement & Study Tools Event Delegation ---
             const isProUser = "{{ current_user.subscription_tier }}" === 'pro' || "{{ current_user.subscription_tier }}" === 'admin';
             const proPipelines = [
                 'pipeline-stuck-question',
                 'pipeline-exam-kit',
                 'pipeline-study-planner',
+                'pipeline-assignment-assistant',
                 'pipeline-live-lecture'
             ];
 
             if (!isProUser) {
-                // Disable pipeline cards
                 proPipelines.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) {
                         el.style.opacity = '0.6';
                         el.style.cursor = 'not-allowed';
-                        el.style.pointerEvents = 'none'; // Prevents click
+                        if (el.tagName === 'A') {
+                            el.addEventListener('click', e => e.preventDefault());
+                        } else {
+                            el.style.pointerEvents = 'none';
+                        }
                         el.title = 'Upgrade to Pro to use this feature.';
                     }
                 });
 
-                // Disable individual tool buttons
                 document.querySelectorAll('.quick-tool-btn[value="quiz"], .quick-tool-btn[value="cheatsheet"], .quick-tool-btn[value="analyse"]').forEach(btn => {
                     btn.disabled = true;
                     btn.title = 'Upgrade to Pro to use this feature.';
                 });
             }
+            
+            // --- FIX: Event Delegation for all Study Tools ---
+            if (studyToolsContainer) {
+                studyToolsContainer.addEventListener('click', (e) => {
+                    const pipelineCard = e.target.closest('.pipeline-card');
+                    const featureCard = e.target.closest('.feature-card.quick-tool-btn');
+                    
+                    if (pipelineCard) {
+                        e.preventDefault();
+                        switch (pipelineCard.id) {
+                            case 'pipeline-slide-notes':
+                                slideNotesModal.style.display = 'flex';
+                                break;
+                            case 'pipeline-stuck-question':
+                                resetSqState();
+                                sqModal.style.display = 'flex';
+                                break;
+                            case 'pipeline-revision-pack':
+                                openRevisionPackModal();
+                                break;
+                            case 'pipeline-exam-kit':
+                                openExamKitModal();
+                                break;
+                            case 'pipeline-study-planner':
+                                openStudyPlanModal();
+                                break;
+                            case 'pipeline-assignment-assistant':
+                            case 'pipeline-live-lecture':
+                                window.location.href = pipelineCard.href;
+                                break;
+                        }
+                    } else if (featureCard) {
+                        const toolName = featureCard.value;
+                        const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
+                        if (fileSpans.length === 0) return alert("Please upload a document first.");
+                        
+                        const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
+                        const choice = prompt(`Which file do you want to use for this tool?\n${fileNames}`);
+                        const index = parseInt(choice, 10) - 1;
 
+                        if (index >= 0 && index < fileSpans.length) {
+                            handleQuickToolSubmit(toolName, [fileSpans[index].dataset.path]);
+                        }
+                    } else if (e.target.id === 'all-tools-toggle-btn') {
+                        const container = document.getElementById('all-tools-container');
+                        const isHidden = container.style.display === 'none';
+                        container.style.display = isHidden ? 'block' : 'none';
+                        e.target.textContent = isHidden ? 'Hide All Individual Tools' : 'Show All Individual Tools';
+                    }
+                });
+            }
+            
             // --- "Stuck on a Question" Feature Logic ---
             const sqModal = document.getElementById('stuck-question-modal');
-            const sqPipelineBtn = document.getElementById('pipeline-stuck-question'); 
-
+            
             // --- Screens
             const sqScreenStart = document.getElementById('sq-screen-start');
             const sqScreenConfirm = document.getElementById('sq-screen-confirm');
@@ -1849,14 +1869,6 @@
                 if (type) document.getElementById(`sq-${type}`).style.display = 'flex';
             }
 
-            // --- Main Event Listeners for the Feature ---
-            if (sqPipelineBtn) {
-                sqPipelineBtn.addEventListener('click', () => {
-                    resetSqState();
-                    sqModal.style.display = 'flex';
-                });
-            }
-
             sqFileInput.addEventListener('change', () => {
                 sqFileName.textContent = sqFileInput.files.length > 0 ? sqFileInput.files[0].name : '';
             });
@@ -1912,7 +1924,7 @@
 
                     sqState.fullSolutionSteps = result.solution.steps;
                     sqState.currentStepIndex = 0;
-                    renderCurrentStep(); // Call the new function to start the sequence
+                    renderCurrentStep();
                 } catch (error) {
                      appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I couldn't generate a solution. Please try rephrasing the question or uploading a clearer image.</p>`);
                 } finally {
@@ -1920,26 +1932,24 @@
                 }
             });
             
-            // THIS FUNCTION IS THE CORE OF THE INTERACTIVE FIX
             function renderCurrentStep() {
                 if (sqState.currentStepIndex < sqState.fullSolutionSteps.length) {
                     const stepText = sqState.fullSolutionSteps[sqState.currentStepIndex];
                     appendSqMessage(marked.parse(stepText));
-                    showSqInput('actions'); // Show the continue/confused buttons
+                    showSqInput('actions');
                 } else {
-                    // Solution is finished
                     const recapMessage = sqState.isPracticeMode
                         ? `That's the correct way to solve the practice problem. Nicely done!`
                         : `And that's the final answer! I hope that makes sense.`;
                     appendSqMessage(`<strong>Final Recap:</strong> ${recapMessage}`);
-                    showSqInput('practice-actions'); // Ask if they want to practice
+                    showSqInput('practice-actions');
                 }
             }
 
             sqContinueBtn.addEventListener('click', () => {
-                showSqInput(null); // Hide buttons while processing
+                showSqInput(null);
                 sqState.currentStepIndex++;
-                renderCurrentStep(); // Render the next step
+                renderCurrentStep();
             });
 
             sqConfusedBtn.addEventListener('click', () => {
@@ -1952,7 +1962,7 @@
                 const userQuery = sqClarificationInput.value.trim();
                 if (!userQuery) return;
                 
-                showSqInput(null); // Hide form
+                showSqInput(null);
                 appendSqMessage(marked.parse(userQuery), 'user');
                 setSqLoading(true, "Let me explain that...");
 
@@ -1971,7 +1981,7 @@
                     if (!response.ok || !result.success) throw new Error(result.message);
                     
                     appendSqMessage(marked.parse(result.clarification));
-                    showSqInput('actions'); // Show buttons again
+                    showSqInput('actions');
                 } catch (error) {
                      appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I had trouble generating an explanation. Let's try continuing to the next step.</p>`);
                      showSqInput('actions');
@@ -2007,7 +2017,7 @@
                     sqPracticeInput.focus();
                 } catch (error) {
                      appendSqMessage(`<p style="color: var(--danger-color)">Sorry, I couldn't generate a practice question right now.</p>`);
-                     showSqInput('practice-actions'); // Go back to choice
+                     showSqInput('practice-actions');
                 } finally {
                     setSqLoading(false);
                 }
@@ -2039,9 +2049,8 @@
                     appendSqMessage(feedback);
 
                     if (is_correct) {
-                        showSqInput('practice-actions'); // They got it right, ask to go again
+                        showSqInput('practice-actions');
                     } else {
-                        // They got it wrong, restart the step-by-step process for the practice question
                         setSqLoading(true, "Let's walk through it step-by-step...");
                         const solutionResponse = await fetch(`/hub/${hubId}/stuck_on_question/generate_solution`, {
                              method: 'POST',
@@ -2086,27 +2095,7 @@
                     applyTheme(newTheme);
                 });
             }
-            // Apply theme on initial load
             applyTheme(localStorage.getItem('theme') || 'light');
-
-            // Global tab navigation listener (fixes buttons not working until refresh)
-document.body.addEventListener('click', function(e) {
-    const link = e.target.closest('.sidebar-nav .nav-link');
-    if (!link) return;
-
-    e.preventDefault();
-    const tabId = link.getAttribute('data-tab');
-    if (!tabId) return;
-
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-
-    // Show the selected tab
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) activeTab.classList.add('active');
-});
-
-
     </script>
 </body>
 </html>
