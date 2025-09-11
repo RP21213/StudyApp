@@ -1323,10 +1323,12 @@ def create_slide_notes_session(hub_id):
             hub_id=hub_id,
             title=title,
             slides_file_path=file_path,
+            source_files=[file_path],  # ✅ added this line
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         session_ref.set(new_session.to_dict())
+
 
         # Render the workspace with the working PDF URL
         return render_template(
