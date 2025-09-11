@@ -278,40 +278,41 @@
         }
         
         // --- Save and AI Functions ---
-        async function saveNotes() {
-            saveStatus.textContent = "Saving...";
-            saveBtn.disabled = true;
+async function saveNotes() {
+    saveStatus.textContent = "Saving...";
+    saveBtn.disabled = true;
 
-            // Make sure the current slide's notes are captured
-            slideNotesData[pageNum] = quill.root.innerHTML;
+    // Capture current slide notes
+    slideNotesData[pageNum] = quill.root.innerHTML;
 
-            // Convert to the array format the backend expects
-            const dataToSave = Object.entries(slideNotesData).map(([slideNum, notesHtml]) => ({
-                slide_number: parseInt(slideNum, 10),
-                notes_html: notesHtml
-            }));
+    // Convert to array for backend
+    const dataToSave = Object.entries(slideNotesData).map(([slideNum, notesHtml]) => ({
+        slide_number: parseInt(slideNum, 10),
+        notes_html: notesHtml
+    }));
 
-            try {
-                const response = await fetch("{{ url_for('save_slide_notes_data', session_id=session.id) }}", {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ slides_data: dataToSave })
-			credentials: 'include'
-                });
-                const result = await response.json();
-                if (result.success) {
-                    saveStatus.textContent = `Saved at ${new Date().toLocaleTimeString()}`;
-                    setTimeout(() => saveStatus.textContent = '', 3000);
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                console.error("Save failed:", error);
-                saveStatus.textContent = "Save failed!";
-            } finally {
-                saveBtn.disabled = false;
-            }
+    try {
+        const response = await fetch("{{ url_for('save_slide_notes_data', session_id=session.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slides_data: dataToSave }),
+            credentials: 'include'   // ✅ must be inside the same object
+        });
+        const result = await response.json();
+        if (result.success) {
+            saveStatus.textContent = `Saved at ${new Date().toLocaleTimeString()}`;
+            setTimeout(() => saveStatus.textContent = '', 3000);
+        } else {
+            throw new Error(result.message);
         }
+    } catch (error) {
+        console.error("Save failed:", error);
+        saveStatus.textContent = "Save failed!";
+    } finally {
+        saveBtn.disabled = false;
+    }
+}
+
 
         async function handleAiAssist(action) {
             if (!pdfDoc) return;
