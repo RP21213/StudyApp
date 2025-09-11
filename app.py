@@ -1299,42 +1299,47 @@ def create_slide_notes_session(hub_id):
     file = request.files['slide_file']
     title = request.form.get('title', 'Untitled Lecture Notes')
 
-    # Basic validation for pptx will be trickier without a library, focusing on pdf for now.
-    if file.filename == '' or not (file.filename.lower().endswith('.pdf')):
-         flash("Please select a valid PDF file.", "error")
-         return redirect(url_for('hub_page', hub_id=hub_id))
+    # Only allow PDFs for now
+    if file.filename == '' or not file.filename.lower().endswith('.pdf'):
+        flash("Please select a valid PDF file.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
 
     try:
         filename = secure_filename(file.filename)
-        # Store slide decks in a specific subfolder for clarity
-        file_path = f"hubs/{hub_id}/slide_decks/{filename}"
+        file_path = f"hubs/{hub_id}/slides/{uuid.uuid4()}_{filename}"
         blob = bucket.blob(file_path)
-        
-        file.seek(0)
-        blob.upload_from_file(file, content_type=file.content_type)
-        
-        # Add to the main hub file list for general access
-        file.seek(0, os.SEEK_END)
-        file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
-        db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
 
-        # Create the AnnotatedSlideDeck object
-        session_ref = db.collection('annotated_slide_decks').document()
-        new_session = AnnotatedSlideDeck(
+        # Upload file to Firebase
+        blob.upload_from_file(file, content_type=file.content_type)
+
+        # Make it publicly accessible
+        blob.make_public()
+        pdf_url = blob.public_url
+
+        # Create a Firestore session record
+        session_ref = db.collection('sessions').document()
+        new_session = StudySession(
             id=session_ref.id,
             hub_id=hub_id,
-            user_id=current_user.id,
             title=title,
-            source_file_path=file_path
+            slides_file_path=file_path,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
         )
         session_ref.set(new_session.to_dict())
 
-        return redirect(url_for('slide_notes_workspace', session_id=session_ref.id))
+        # Render the workspace with the working PDF URL
+        return render_template(
+            "slide_notes_workspace.html",
+            session=new_session,
+            pdf_url=pdf_url
+        )
 
     except Exception as e:
         print(f"Error creating slide notes session: {e}")
-        flash("An error occurred while setting up your note-taking session.", "error")
+        flash("Failed to create slide notes session.", "error")
         return redirect(url_for('hub_page', hub_id=hub_id))
+
 
 @app.route("/slide_notes/<session_id>")
 @login_required
