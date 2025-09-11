@@ -2141,5 +2141,39 @@
 </script>
 <!-- End: Enhanced Tab Switching and Initialization -->
 
+
+<!-- Begin: Force reload when Study Tools tab is clicked to ensure full initialization -->
+<script>
+(function(){
+    try {
+        const toolLink = document.querySelector('a.nav-link[data-tab="tools"]');
+        if (toolLink) {
+            toolLink.addEventListener('click', function(e){
+                // If tools tab is not currently active, force a reload and navigate to #tools
+                const toolsTab = document.getElementById('tools');
+                const isActive = toolsTab && toolsTab.classList.contains('active');
+                if (!isActive) {
+                    e.preventDefault();
+                    // Use location.replace to avoid creating extra history entry if desired
+                    const newUrl = window.location.pathname + '#tools';
+                    // Only reload if not already at that hash to avoid unnecessary loop
+                    if (window.location.hash !== '#tools') {
+                        window.location.href = newUrl;
+                        window.location.reload();
+                    } else {
+                        // If hash already #tools but tab not active, reload anyway
+                        window.location.reload();
+                    }
+                }
+                // If already active, let normal behavior proceed (no reload)
+            }, {capture: true, passive: false});
+        }
+    } catch (err) {
+        console.error('Force-reload tools handler error', err);
+    }
+})();
+</script>
+<!-- End: Force reload when Study Tools tab is clicked -->
+
 </body>
 </html>
