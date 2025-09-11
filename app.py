@@ -1353,7 +1353,8 @@ def slide_notes_workspace(session_id):
         flash("Lecture not found", "error")
         return redirect(url_for("dashboard"))
 
-    session = AnnotatedSlideDeck.from_dict(session_doc.to_dict(), session_doc.id)
+    session = AnnotatedSlideDeck.from_dict(session_doc.to_dict())
+
 
     try:
         # Convert storage path to a usable URL
