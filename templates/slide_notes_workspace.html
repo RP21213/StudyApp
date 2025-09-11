@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes for {{ session.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Quill.js Rich Text Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --background-interactive-hover: #f3f4f6;
+            --success-color: #10b981;
+        }
+        html[data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #312e81;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --background-body: #111827;
+            --background-card: #1f2937;
+            --background-interactive-hover: #374151;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .workspace-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 2rem;
+            background-color: var(--background-card);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .workspace-title h1 {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+        .workspace-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .button {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            text-decoration: none; font-weight: 600; padding: 0.6rem 1rem;
+            border-radius: 8px; border: 1px solid transparent;
+            transition: all 0.2s ease-in-out; cursor: pointer; font-size: 0.9rem;
+        }
+        .button-primary { background-color: var(--primary-color); color: white; }
+        .button-primary:hover { background-color: var(--primary-hover); }
+        .button-secondary { background-color: var(--background-interactive-hover); border-color: var(--border-color); color: var(--text-main); }
+        .button-secondary:hover { background-color: var(--border-color); }
+        .button:disabled { cursor: not-allowed; opacity: 0.6; }
+
+        .split-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .slide-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-interactive-hover);
+            border-right: 1px solid var(--border-color);
+        }
+        .slide-viewer {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            overflow: auto;
+        }
+        #pdf-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .slide-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--background-card);
+            border-top: 1px solid var(--border-color);
+            gap: 1rem;
+        }
+        .slide-controls button {
+            background: none; border: 1px solid var(--border-color); border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer;
+        }
+
+        .notes-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .ai-assist-bar {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--background-card);
+        }
+        #notes-editor-container {
+            flex-grow: 1;
+            height: 100%; /* Important for Quill */
+        }
+        .ql-editor {
+            font-family: 'Lora', serif;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+        .ql-container.ql-snow {
+            border: none !important;
+        }
+        .ql-toolbar.ql-snow {
+            border: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        #save-status {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="workspace-header">
+        <div class="workspace-title">
+            <h1>{{ session.title }}</h1>
+        </div>
+        <div class="workspace-actions">
+            <span id="save-status"></span>
+            <a href="{{ url_for('hub_page', hub_id=session.hub_id) }}" class="button button-secondary">Exit</a>
+            <button id="save-notes-btn" class="button button-primary">Save</button>
+        </div>
+    </header>
+
+    <main class="split-container">
+        <div class="slide-pane">
+            <div class="slide-viewer" id="slide-viewer">
+                <canvas id="pdf-canvas"></canvas>
+            </div>
+            <div class="slide-controls">
+                <button id="prev-page">Previous</button>
+                <span id="page-num"></span> / <span id="page-count"></span>
+                <button id="next-page">Next</button>
+            </div>
+        </div>
+
+        <div class="notes-pane">
+            <div class="ai-assist-bar">
+                <button class="button button-secondary" data-action="summarize">Summarize Slide</button>
+                <button class="button button-secondary" data-action="flashcards">Generate Flashcards</button>
+            </div>
+            <div id="notes-editor-container"></div>
+        </div>
+    </main>
+
+    <!-- PDF.js and Quill.js libraries -->
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.mjs" type="module"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script type="module">
+        // --- Setup PDF.js ---
+        const { pdfjsLib } = globalThis;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://mozilla.github.io/pdf.js/build/pdf.worker.mjs';
+
+        // --- DOM Elements ---
+        const pdfUrl = "{{ pdf_url }}";
+        const canvas = document.getElementById('pdf-canvas');
+        const ctx = canvas.getContext('2d');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+        const pageNumEl = document.getElementById('page-num');
+        const pageCountEl = document.getElementById('page-count');
+        const saveBtn = document.getElementById('save-notes-btn');
+        const saveStatus = document.getElementById('save-status');
+
+        // --- State Management ---
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let scale = 1.5;
+        let slideNotesData = {}; // Object to store notes HTML for each slide, e.g., { 1: "<p>...</p>", 2: "<p>...</p>" }
+
+        // --- Quill Editor Setup ---
+        const quill = new Quill('#notes-editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['clean']
+                ]
+            }
+        });
+
+        // --- PDF Rendering Functions ---
+        async function renderPage(num) {
+            pageRendering = true;
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: scale });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            const renderContext = { canvasContext: ctx, viewport: viewport };
+            await page.render(renderContext).promise;
+            pageRendering = false;
+
+            if (pageNumPending !== null) {
+                renderPage(pageNumPending);
+                pageNumPending = null;
+            }
+        }
+
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        // --- Navigation and State Sync ---
+        function onPrevPage() {
+            if (pageNum <= 1) return;
+            syncAndSwitchPage(pageNum - 1);
+        }
+
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            syncAndSwitchPage(pageNum + 1);
+        }
+
+        function syncAndSwitchPage(newPagenum) {
+            // 1. Save current notes
+            slideNotesData[pageNum] = quill.root.innerHTML;
+
+            // 2. Switch page
+            pageNum = newPagenum;
+            pageNumEl.textContent = pageNum;
+            queueRenderPage(pageNum);
+
+            // 3. Load new notes
+            const newNotes = slideNotesData[pageNum] || '<p><br></p>';
+            quill.root.innerHTML = newNotes;
+        }
+        
+        // --- Save and AI Functions ---
+        async function saveNotes() {
+            saveStatus.textContent = "Saving...";
+            saveBtn.disabled = true;
+
+            // Make sure the current slide's notes are captured
+            slideNotesData[pageNum] = quill.root.innerHTML;
+
+            // Convert to the array format the backend expects
+            const dataToSave = Object.entries(slideNotesData).map(([slideNum, notesHtml]) => ({
+                slide_number: parseInt(slideNum, 10),
+                notes_html: notesHtml
+            }));
+
+            try {
+                const response = await fetch("{{ url_for('save_slide_notes_data', session_id=session.id) }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slides_data: dataToSave })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    saveStatus.textContent = `Saved at ${new Date().toLocaleTimeString()}`;
+                    setTimeout(() => saveStatus.textContent = '', 3000);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error("Save failed:", error);
+                saveStatus.textContent = "Save failed!";
+            } finally {
+                saveBtn.disabled = false;
+            }
+        }
+
+        async function handleAiAssist(action) {
+            if (!pdfDoc) return;
+            saveStatus.textContent = `AI is working on: ${action}...`;
+
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const slideText = textContent.items.map(item => item.str).join(' ');
+
+                if (slideText.trim().length < 10) {
+                    alert("Not enough text on this slide for the AI to work with.");
+                    return;
+                }
+
+                const response = await fetch("{{ url_for('slide_notes_ai_assist') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action, 
+                        slide_text: slideText,
+                        hub_id: '{{ session.hub_id }}',
+                        slide_number: pageNum
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message);
+
+                if (result.html_content) {
+                    quill.clipboard.dangerouslyPasteHTML(quill.getLength(), '<hr>' + result.html_content);
+                }
+                if (result.message) {
+                    alert(result.message);
+                }
+                 if(result.redirect_url) {
+                    if(confirm("AI created your flashcards. Open them in a new tab now?")) {
+                        window.open(result.redirect_url, '_blank');
+                    }
+                }
+
+            } catch (error) {
+                console.error(`AI Assist error (${action}):`, error);
+                alert(`Error with AI Assist: ${error.message}`);
+            } finally {
+                saveStatus.textContent = "";
+            }
+        }
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                pdfDoc = await loadingTask.promise;
+                
+                pageCountEl.textContent = pdfDoc.numPages;
+                pageNumEl.textContent = pageNum;
+                
+                // Load existing notes from the session
+                const existingNotes = {{ session.slides_data | tojson }};
+                if (existingNotes && existingNotes.length > 0) {
+                    existingNotes.forEach(note => {
+                        slideNotesData[note.slide_number] = note.notes_html;
+                    });
+                }
+                
+                quill.root.innerHTML = slideNotesData[1] || '<p><br></p>';
+
+                renderPage(pageNum);
+
+                prevPageBtn.addEventListener('click', onPrevPage);
+                nextPageBtn.addEventListener('click', onNextPage);
+                saveBtn.addEventListener('click', saveNotes);
+                
+                document.querySelectorAll('.ai-assist-bar button').forEach(btn => {
+                    btn.addEventListener('click', () => handleAiAssist(btn.dataset.action));
+                });
+
+                // Auto-save every 30 seconds
+                setInterval(saveNotes, 30000);
+
+            } catch (error) {
+                console.error("Failed to load PDF:", error);
+                document.getElementById('slide-viewer').innerHTML = `<p style="color:red; text-align:center;">Error loading PDF. Please try again.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
