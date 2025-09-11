@@ -296,6 +296,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ slides_data: dataToSave })
+			credentials: 'include'
                 });
                 const result = await response.json();
                 if (result.success) {
