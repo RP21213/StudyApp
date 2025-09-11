@@ -812,7 +812,7 @@
                                 <p class="pipeline-description">Go from an assignment brief and your source documents to a structured outline and first draft in minutes.</p>
                                 <div class="pipeline-action"><button class="button button-primary">Start Writing</button></div>
                             </a>
-                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card">
+                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card" id="pipeline-live-lecture">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
                                     <div class="pipeline-title"><h3>Live Lecture Capture<span class="pro-label">PRO</span></h3></div>
@@ -1727,6 +1727,34 @@
                 }
             }
             
+            // --- Pro Feature UI Enforcement ---
+            const isProUser = "{{ current_user.subscription_tier }}" === 'pro' || "{{ current_user.subscription_tier }}" === 'admin';
+            const proPipelines = [
+                'pipeline-stuck-question',
+                'pipeline-exam-kit',
+                'pipeline-study-planner',
+                'pipeline-live-lecture'
+            ];
+
+            if (!isProUser) {
+                // Disable pipeline cards
+                proPipelines.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.style.opacity = '0.6';
+                        el.style.cursor = 'not-allowed';
+                        el.style.pointerEvents = 'none'; // Prevents click
+                        el.title = 'Upgrade to Pro to use this feature.';
+                    }
+                });
+
+                // Disable individual tool buttons
+                document.querySelectorAll('.quick-tool-btn[value="quiz"], .quick-tool-btn[value="cheatsheet"], .quick-tool-btn[value="analyse"]').forEach(btn => {
+                    btn.disabled = true;
+                    btn.title = 'Upgrade to Pro to use this feature.';
+                });
+            }
+
             // --- "Stuck on a Question" Feature Logic ---
             const sqModal = document.getElementById('stuck-question-modal');
             const sqPipelineBtn = document.getElementById('pipeline-stuck-question'); 
