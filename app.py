@@ -1334,7 +1334,8 @@ def create_slide_notes_session(hub_id):
         return render_template(
             "slide_notes_workspace.html",
             session=new_session,
-            pdf_url=pdf_url
+            pdf_url=pdf_url,
+            slides_data=[]
         )
 
     except Exception as e:

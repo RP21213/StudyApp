@@ -370,7 +370,7 @@
                 pageNumEl.textContent = pageNum;
                 
                 // Load existing notes from the session
-                const existingNotes = {{ session.slides_data | tojson }};
+                const existingNotes = {{ slides_data | tojson }};
                 if (existingNotes && existingNotes.length > 0) {
                     existingNotes.forEach(note => {
                         slideNotesData[note.slide_number] = note.notes_html;
