@@ -1348,28 +1348,30 @@ def create_slide_notes_session(hub_id):
 @app.route("/slide_notes/<session_id>")
 @login_required
 def slide_notes_workspace(session_id):
-    session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+    session_doc = db.collection("annotated_slide_decks").document(session_id).get()
     if not session_doc.exists:
-        flash("Note-taking session not found.", "error")
-        return redirect(url_for('dashboard'))
-    
-    session = AnnotatedSlideDeck.from_dict(session_doc.to_dict())
-    
-    if session.user_id != current_user.id:
-        flash("You do not have permission to view this.", "error")
-        return redirect(url_for('dashboard'))
+        flash("Lecture not found", "error")
+        return redirect(url_for("dashboard"))
+
+    session = AnnotatedSlideDeck.from_dict(session_doc.to_dict(), session_doc.id)
 
     try:
+        # Convert storage path to a usable URL
         blob = bucket.blob(session.source_file_path)
-        # Generate a temporary, secure URL for the PDF for the frontend JS viewer
-        pdf_url = blob.generate_signed_url(version="v4", expiration=timedelta(hours=1))
+        blob.make_public()
+        pdf_url = blob.public_url
     except Exception as e:
-        print(f"Error generating signed URL for {session.source_file_path}: {e}")
-        flash("Could not load the slide deck file from storage.", "error")
-        return redirect(url_for('hub_page', hub_id=session.hub_id))
+        print(f"Error making PDF public: {e}")
+        flash("Could not load lecture file", "error")
+        return redirect(url_for("dashboard"))
 
-    # This route now renders a new, dedicated template for the workspace
-    return render_template("slide_notes_workspace.html", session=session, pdf_url=pdf_url)
+    return render_template(
+        "slide_notes_workspace.html",
+        session=session,
+        pdf_url=pdf_url,
+        slides_data=session.slides_data if session.slides_data else []  # <-- FIX
+    )
+
 
 @app.route("/slide_notes/<session_id>/save_data", methods=["POST"])
 @login_required
