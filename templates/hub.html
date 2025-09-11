@@ -2098,336 +2098,48 @@
             applyTheme(localStorage.getItem('theme') || 'light');
     </script>
 
-<!-- Begin: Delegated event handlers added by assistant to ensure tabbed content remains interactive without refresh -->
+<!-- Begin: Enhanced Tab Switching and Initialization -->
 <script>
 (function(){
-    const hubId = "{{ hub.id }}";
+    // Tab button handling
+    document.querySelectorAll(".tab-button").forEach(btn => {
+        btn.addEventListener("click", function() {
+            const target = this.dataset.target;
+            if (!target) return;
+            // Switch tabs
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            const targetEl = document.getElementById(target);
+            if (targetEl) targetEl.classList.add("active");
 
-    // Helper: safely find closest anchor and follow if allowed
-    function followAnchorIfPresent(el) {
-        const anchor = el.closest('a');
-        if (anchor && anchor.href) {
-            // allow normal navigation (confirm handlers may have prevented default)
-            window.location = anchor.href;
-        }
-    }
-
-    // Global click delegation
-    document.addEventListener('click', function(e){
-        const target = e.target;
-
-        // Sidebar toggle
-        if (target.closest('#sidebar-toggle')) {
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) sidebar.classList.toggle('collapsed');
-            return;
-        }
-
-        // Notification bell toggle
-        if (target.closest('.notification-bell')) {
-            const bell = document.getElementById('notification-bell') || target.closest('.notification-bell');
-            const panel = document.getElementById('notification-panel');
-            if (panel) panel.classList.toggle('visible');
-            e.stopPropagation();
-            return;
-        }
-
-        // Click outside notification panel closes it
-        // (this listener exists in many places but ensure consistent behaviour)
-        if (target && !target.closest('#notification-panel') && !target.closest('.notification-bell')) {
-            const panel = document.getElementById('notification-panel');
-            if (panel && panel.classList.contains('visible')) {
-                panel.classList.remove('visible');
+            // Re-run initialization depending on tab
+            if (target === "tools" && typeof renderQuizChart === "function") {
+                try { renderQuizChart(); } catch(e){ console.error("Quiz chart init error", e); }
             }
-        }
-
-        // Folder accordion toggle
-        const folderHeader = target.closest('.folder-header');
-        if (folderHeader) {
-            const content = folderHeader.nextElementSibling;
-            if (content && content.classList.contains('folder-content')) {
-                content.classList.toggle('open');
+            if (target === "calendar" && window.calendar) {
+                try { window.calendar.render(); } catch(e){ console.error("Calendar render error", e); }
             }
-            return;
-        }
-
-        // Delete buttons - confirm; allow anchor navigation after confirmation
-        const del = target.closest('.delete-btn');
-        if (del) {
-            // For anchors, confirm before allowing navigation
-            const anchor = del.closest('a');
-            const proceed = confirm('Are you sure you want to delete this file?');
-            if (!proceed) {
-                e.preventDefault();
-                return;
+            if (target === "tutor") {
+                const input = document.getElementById("tutor-user-input");
+                if (input) input.focus();
             }
-            // allow anchor to proceed (no need to stop)
-            return;
-        }
-
-        // Modal close buttons (.close-btn inside modal overlay)
-        if (target.closest('.close-btn')) {
-            const modal = target.closest('.modal-overlay');
-            if (modal) modal.style.display = 'none';
-            return;
-        }
-
-        // Generic element toggles that may be dynamically created
-        // e.g., pipeline cards or feature-card actions (if they rely on click)
-        const pipeline = target.closest('.pipeline-card');
-        if (pipeline) {
-            // If pipeline card has a data-href attribute, navigate
-            const href = pipeline.getAttribute('data-href');
-            if (href) window.location = href;
-            return;
-        }
-
-    }, false);
-
-    // Global submit delegation - handle key forms used across tabs
-    document.addEventListener('submit', async function(e){
-        const form = e.target;
-        if (!form || !form.id) return;
-
-        // Tutor chat form
-        if (form.id === 'tutor-input-form') {
-            e.preventDefault();
-            const tutorInput = document.getElementById('tutor-user-input');
-            const messagesList = document.getElementById('tutor-messages-list');
-            const welcomeMessage = document.getElementById('tutor-welcome-message');
-            if (welcomeMessage) welcomeMessage.style.display = 'none';
-            const userInput = (tutorInput && tutorInput.value || '').trim();
-            if (!userInput) return;
-            // append user message
-            if (messagesList) {
-                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message user-message"><div class="avatar">You</div><div class="message-content">${userInput}</div></div>`);
-                messagesList.scrollTop = messagesList.scrollHeight;
-            }
-            tutorInput.value = '';
-            // show typing indicator
-            if (messagesList) {
-                messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message" id="typing-indicator"><div class="avatar">AI</div><div class="message-content"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div></div>`);
-                messagesList.scrollTop = messagesList.scrollHeight;
-            }
-
-            try {
-                const resp = await fetch(`/hub/${hubId}/tutor_chat`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ message: userInput, history: [] })
-                });
-                const data = await resp.json();
-                document.getElementById('typing-indicator')?.remove();
-                if (!resp.ok) {
-                    const err = data || { answer: 'Could not get a response.' };
-                    if (messagesList) messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message"><div class="avatar">AI</div><div class="message-content"><p style="color:var(--danger-color);">Error: ${err.answer || err.message}</p></div></div>`);
-                    return;
-                }
-                if (messagesList) messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message"><div class="avatar">AI</div><div class="message-content">${marked.parse(data.answer || '')}</div></div>`);
-                if (messagesList) messagesList.scrollTop = messagesList.scrollHeight;
-            } catch (err) {
-                document.getElementById('typing-indicator')?.remove();
-                if (messagesList) messagesList.insertAdjacentHTML('beforeend', `<div class="tutor-message ai-message"><div class="avatar">AI</div><div class="message-content"><p style="color:var(--danger-color);">Sorry, a connection error occurred.</p></div></div>`);
-                console.error('Tutor chat error', err);
-            }
-            return;
-        }
-
-        // Revision pack form
-        if (form.id === 'revision-pack-form') {
-            e.preventDefault();
-            const selectedFiles = Array.from(form.querySelectorAll('input[name="revision-pack-files_files"]:checked')).map(cb => cb.value);
-            if (selectedFiles.length === 0) return alert("Please select at least one document.");
-            const payload = {
-                selected_files: selectedFiles,
-                num_flashcards: form.num_flashcards?.value || 20,
-                num_quiz_questions: form.num_quiz_questions?.value || 10,
-                include_notes: form.include_notes?.checked || false
-            };
-            // close modal if present
-            document.getElementById('revision-pack-modal')?.style.display = 'none';
-            // show loading if function exists
-            if (typeof showLoading === 'function') showLoading("Building Your Revision Pack...", "A new folder will be created when done.");
-            try {
-                const resp = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                const result = await resp.json();
-                if (result.success) { window.location.hash = 'folders'; window.location.reload(); }
-                else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') hideLoading(); }
-            } catch (err) {
-                alert('A network or server error occurred.');
-                if (typeof hideLoading === 'function') hideLoading();
-            }
-            return;
-        }
-
-        // Exam kit form
-        if (form.id === 'exam-kit-form') {
-            e.preventDefault();
-            const lectureFiles = Array.from(form.querySelectorAll('input[name="exam-kit-lecture-files_files"]:checked')).map(cb => cb.value);
-            const pastPaperFiles = Array.from(form.querySelectorAll('input[name="exam-kit-past-paper-files_files"]:checked')).map(cb => cb.value);
-            if (lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
-            const payload = {
-                lecture_files: lectureFiles,
-                past_papers: pastPaperFiles,
-                num_questions: form.num_questions?.value || 20,
-                focus: form.focus?.value || 'exam_prep'
-            };
-            document.getElementById('exam-kit-modal')?.style.display = 'none';
-            if (typeof showLoading === 'function') showLoading("Building your Exam Kit...", "This may take a moment.");
-            try {
-                const resp = await fetch(`/hub/${hubId}/build_exam_kit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-                const result = await resp.json();
-                if (result.success) { window.location.hash = 'folders'; window.location.reload(); }
-                else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') hideLoading(); }
-            } catch (err) {
-                alert('A network or server error occurred.');
-                if (typeof hideLoading === 'function') hideLoading();
-            }
-            return;
-        }
-
-        // Stuck question start form (sq-start-form)
-        if (form.id === 'sq-start-form') {
-            e.preventDefault();
-            const sqFileInput = document.getElementById('sq-file-input');
-            const sqTextInput = document.getElementById('sq-text-input');
-            const sqMessages = document.getElementById('sq-messages');
-            const sqQuestionPreview = document.getElementById('sq-question-preview');
-            const sqModal = document.getElementById('stuck-question-modal');
-            const sqFileName = document.getElementById('sq-file-name');
-            const sqSubmitBtn = document.getElementById('sq-submit-btn');
-
-            const textInput = (sqTextInput && sqTextInput.value || '').trim();
-            const fileInput = (sqFileInput && sqFileInput.files && sqFileInput.files[0]) || null;
-            if (!textInput && !fileInput) return alert("Please type a question or upload a file.");
-
-            if (sqSubmitBtn) sqSubmitBtn.disabled = true;
-            if (typeof setSqLoading === 'function') setSqLoading(true, "Reading your question.");
-
-            const formData = new FormData();
-            if (textInput) formData.append('question_text', textInput);
-            if (fileInput) formData.append('question_file', fileInput);
-
-            try {
-                const resp = await fetch(`/hub/${hubId}/stuck_on_question/start`, { method: 'POST', body: formData });
-                const result = await resp.json();
-                if (!resp.ok || !result.success) throw new Error(result.message || 'Server error');
-                // populate state and UI if functions exist
-                if (typeof sqState !== 'undefined' && typeof appendSqMessage === 'function') {
-                    sqState.originalQuestion = result.extracted_question || result.extracted || '';
-                    appendSqMessage(marked.parse(sqState.originalQuestion));
-                } else if (sqQuestionPreview) {
-                    sqQuestionPreview.innerHTML = marked.parse(result.extracted_question || result.extracted || '');
-                }
-                // show confirm screen
-                document.getElementById('sq-screen-start')?.style.display = 'none';
-                document.getElementById('sq-screen-confirm')?.style.display = 'block';
-                if (sqFileName && fileInput) sqFileName.textContent = fileInput.name;
-            } catch (err) {
-                alert('Sorry, something went wrong reading your question.');
-                console.error(err);
-            } finally {
-                if (sqSubmitBtn) sqSubmitBtn.disabled = false;
-                if (typeof setSqLoading === 'function') setSqLoading(false);
-            }
-            return;
-        }
-
-        // Stuck question practice form
-        if (form.id === 'sq-practice-form') {
-            e.preventDefault();
-            const sqPracticeInput = document.getElementById('sq-practice-input');
-            const userAnswer = (sqPracticeInput && sqPracticeInput.value || '').trim();
-            if (!userAnswer) return;
-            try {
-                // show loading if function available
-                if (typeof setSqLoading === 'function') setSqLoading(true, "Checking your answer.");
-                const payload = {
-                    practice_question: typeof sqState !== 'undefined' ? sqState.practiceQuestion : '',
-                    student_answer: userAnswer,
-                    original_question: typeof sqState !== 'undefined' ? sqState.originalQuestion : ''
-                };
-                const resp = await fetch(`/hub/${hubId}/stuck_on_question/evaluate_practice`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                const result = await resp.json();
-                if (!resp.ok || !result.success) throw new Error(result.message || 'Server error');
-                // append feedback
-                if (typeof appendSqMessage === 'function') appendSqMessage(result.evaluation.feedback);
-                if (result.evaluation && result.evaluation.is_correct) {
-                    if (typeof showSqInput === 'function') showSqInput('practice-actions');
-                } else {
-                    // fetch full solution
-                    const solResp = await fetch(`/hub/${hubId}/stuck_on_question/generate_solution`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ question: typeof sqState !== 'undefined' ? sqState.practiceQuestion : '' })
-                    });
-                    const solRes = await solResp.json();
-                    if (!solResp.ok || !solRes.success) throw new Error(solRes.message || 'Solution error');
-                    if (typeof sqState !== 'undefined') {
-                        sqState.isPracticeMode = true;
-                        sqState.fullSolutionSteps = solRes.solution.steps || [];
-                        sqState.currentStepIndex = 0;
-                    }
-                    if (typeof renderCurrentStep === 'function') renderCurrentStep();
-                }
-            } catch (err) {
-                if (typeof appendSqMessage === 'function') appendSqMessage(`<p style="color: var(--danger-color)">Sorry, an error occurred while checking your answer.</p>`);
-                console.error(err);
-            } finally {
-                if (typeof setSqLoading === 'function') setSqLoading(false);
-            }
-            return;
-        }
-
-    }, false);
-
-    // Ensure certain UI components are visible/initialized after tab switches
-    // e.g., FullCalendar may need refetch, charts may need redraw
-    const observer = new MutationObserver(function(mutations) {
-        for (const mut of mutations) {
-            if (mut.type === 'attributes' && mut.attributeName === 'class') {
-                // If a tab-content became active, trigger potential redraws
-                const added = mut.target;
-                if (added && added.classList && added.classList.contains('tab-content') && added.classList.contains('active')) {
-                    // if calendar exists, try to refetch events
-                    if (window.calendar && typeof window.calendar.refetchEvents === 'function') {
-                        try { window.calendar.refetchEvents(); } catch (e) {}
-                    }
-                    // if quiz chart exists, attempt to re-render (function in page)
-                    if (typeof renderQuizChart === 'function') {
-                        try { renderQuizChart(); } catch (e) {}
-                    }
-                }
-            }
-        }
+        });
     });
 
-    // Observe tab-container or body for class toggles that activate tabs
-    const tabContainer = document.querySelector('.workspace') || document.body;
-    if (tabContainer) {
-        observer.observe(tabContainer, { attributes: true, subtree: true });
-    }
-
-    // Small utility to re-enable anchor navigation on dynamically created anchors
-    document.addEventListener('click', function(e){
-        const a = e.target.closest('a');
-        if (a && a.getAttribute('data-disabled') === 'true') {
-            e.preventDefault();
+    // On initial load, make sure the active tab is initialized
+    window.addEventListener("DOMContentLoaded", function(){
+        const activeTab = document.querySelector(".tab-content.active");
+        if (!activeTab) return;
+        const id = activeTab.id;
+        if (id === "tools" && typeof renderQuizChart === "function") {
+            try { renderQuizChart(); } catch(e){}
+        }
+        if (id === "calendar" && window.calendar) {
+            try { window.calendar.render(); } catch(e){} 
         }
     });
-
-    // Initial call to ensure charts load if starting on a non-refresh state
-    if (typeof renderQuizChart === 'function') {
-        try { renderQuizChart(); } catch (e) {}
-    }
-
 })(); 
 </script>
-<!-- End: Delegated event handlers -->
+<!-- End: Enhanced Tab Switching and Initialization -->
 
 </body>
 </html>
