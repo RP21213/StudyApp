@@ -26,7 +26,21 @@
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            /* --- NEW: Accessibility Styles --- */
+            font-size: 16px; /* Default font size */
         }
+        
+        html[data-font-size="large"] { font-size: 18px; }
+        html[data-font-size="small"] { font-size: 14px; }
+        html[data-high-contrast="true"] {
+            --text-main: #000000;
+            --text-secondary: #111111;
+            --background-light: #ffffff;
+            --background-white: #f0f0f0;
+            --border-color: #000000;
+        }
+
 
         html[data-theme="dark"] {
             --primary-color: #6366f1;
@@ -43,6 +57,15 @@
             --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.1);
             --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.1);
         }
+        
+        html[data-theme="dark"][data-high-contrast="true"] {
+            --text-main: #ffffff;
+            --text-secondary: #eeeeee;
+            --background-light: #000000;
+            --background-white: #1a1a1a;
+            --border-color: #ffffff;
+        }
+
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -529,10 +552,19 @@
         .upgrade-prompt p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; }
     </style>
     <script>
+        // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
         (function() {
             const theme = localStorage.getItem('theme');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            const fontSize = localStorage.getItem('fontSize');
+            if (fontSize) {
+                 document.documentElement.setAttribute('data-font-size', fontSize);
+            }
+            const highContrast = localStorage.getItem('highContrast');
+            if (highContrast === 'true') {
+                 document.documentElement.setAttribute('data-high-contrast', 'true');
             }
         })();
     </script>
@@ -851,25 +883,15 @@
                         </div>
                         <div class="form-group">
                             <label for="password">New Password</label>
-                            <input type="password" id="password" name="password" placeholder="Enter new password">
+                            <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
                         </div>
                         <div class="form-group">
                             <label for="confirm_password">Confirm New Password</label>
                             <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
                         </div>
-                        <div class="setting-item">
-                            <div class="setting-item-content">
-                                <h3>Linked Accounts</h3>
-                                <p>Connect your Google or GitHub account for faster sign-in.</p>
-                            </div>
-                            <div class="setting-item-action" style="display: flex; gap: 0.5rem;">
-                                <button class="button button-secondary">Link Google</button>
-                                <button class="button button-secondary">Link GitHub</button>
-                            </div>
-                        </div>
                     </div>
                     <div class="settings-card-footer">
-                        <button class="button">Save Account Changes</button>
+                        <button class="button" id="save-password-btn">Save Password</button>
                     </div>
                 </div>
                 
@@ -887,7 +909,7 @@
                             </div>
                             <div class="setting-item-action">
                                 <label class="toggle-switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="profile-visible-toggle" {% if current_user.profile_visible %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -899,19 +921,9 @@
                             </div>
                             <div class="setting-item-action">
                                 <label class="toggle-switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" id="activity-visible-toggle" {% if current_user.activity_visible %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-item-content">
-                                <h3>Default Note Privacy</h3>
-                                <p>Set the default sharing option for new notes and resources.</p>
-                            </div>
-                            <div class="setting-item-action">
-                                <!-- Placeholder for a dropdown -->
-                                <button class="button button-secondary">Private</button>
                             </div>
                         </div>
                     </div>
@@ -929,8 +941,12 @@
                                 <h3>Font Size</h3>
                                 <p>Adjust the text size across the application.</p>
                             </div>
-                            <div class="setting-item-action">
-                                <button class="button button-secondary">Default</button>
+                             <div class="setting-item-action">
+                                <select id="font-size-select" class="button button-secondary" style="padding-right: 2rem;">
+                                    <option value="small" {% if current_user.font_size_preference == 'small' %}selected{% endif %}>Small</option>
+                                    <option value="default" {% if current_user.font_size_preference == 'default' %}selected{% endif %}>Default</option>
+                                    <option value="large" {% if current_user.font_size_preference == 'large' %}selected{% endif %}>Large</option>
+                                </select>
                             </div>
                         </div>
                          <div class="setting-item">
@@ -940,18 +956,9 @@
                             </div>
                             <div class="setting-item-action">
                                 <label class="toggle-switch">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="high-contrast-toggle" {% if current_user.high_contrast_mode %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
-                            </div>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-item-content">
-                                <h3>Language & Region</h3>
-                                <p>Set your preferred language and date formats.</p>
-                            </div>
-                            <div class="setting-item-action">
-                                <button class="button button-secondary">English (US)</button>
                             </div>
                         </div>
                     </div>
@@ -970,7 +977,7 @@
                                 <p>Browse FAQs, tutorials, and guides.</p>
                             </div>
                             <div class="setting-item-action">
-                                <button class="button button-secondary">Visit Help Center</button>
+                                <a href="{{ url_for('help_center') }}" class="button button-secondary">Visit Help Center</a>
                             </div>
                         </div>
                         <div class="setting-item">
@@ -979,7 +986,7 @@
                                 <p>Encountered an issue? Let us know so we can fix it.</p>
                             </div>
                             <div class="setting-item-action">
-                                <button class="button button-secondary">Report Bug</button>
+                                 <a href="mailto:support@fociapp.com" class="button button-secondary">Report Bug</a>
                             </div>
                         </div>
                     </div>
@@ -998,7 +1005,7 @@
                                 <p>Export all your notes, flashcards, and hub data.</p>
                             </div>
                             <div class="setting-item-action">
-                                <button class="button button-secondary">Request Data</button>
+                                <button class="button button-secondary" id="request-data-btn">Request Data</button>
                             </div>
                         </div>
                         <div class="setting-item">
@@ -1007,7 +1014,7 @@
                                 <p>Permanently delete your account and all associated data.</p>
                             </div>
                             <div class="setting-item-action">
-                                <button class="button button-danger">Delete Account</button>
+                                <button class="button button-danger" id="delete-account-btn">Delete Account</button>
                             </div>
                         </div>
                     </div>
@@ -1111,7 +1118,6 @@
             document.getElementById('close-share-modal-btn')?.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
             if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
             
-            // NEW: Populate title input when folder is selected
             if (folderSelect && folderTitleInput) {
                 folderSelect.addEventListener('change', () => {
                     const selectedOption = folderSelect.options[folderSelect.selectedIndex];
@@ -1255,7 +1261,7 @@
                 });
             }
 
-            // --- NEW: Community Interaction Listeners ---
+            // --- Community Interaction Listeners ---
             const communityTab = document.getElementById('community');
             if (communityTab) {
                 communityTab.addEventListener('click', async (e) => {
@@ -1343,6 +1349,117 @@
                     });
                 }
             }
+            
+            // ==========================================================
+            // --- NEW: SETTINGS FUNCTIONALITY ---
+            // ==========================================================
+            const settingsTab = document.getElementById('settings');
+            if(settingsTab) {
+                
+                // --- Helper function to update a setting via API ---
+                const updateSetting = async (key, value) => {
+                    try {
+                        const response = await fetch('{{ url_for("update_settings") }}', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ [key]: value })
+                        });
+                        const result = await response.json();
+                        if (!result.success) {
+                            alert('Error saving setting: ' + result.message);
+                        }
+                    } catch (error) {
+                        console.error('Failed to update setting:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                };
+
+                // --- 1. Account: Password Change ---
+                const savePasswordBtn = document.getElementById('save-password-btn');
+                savePasswordBtn.addEventListener('click', async () => {
+                    const newPassword = document.getElementById('new_password').value;
+                    const confirmPassword = document.getElementById('confirm_password').value;
+
+                    if (!newPassword || newPassword !== confirmPassword) {
+                        alert('Passwords do not match or are empty.');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('{{ url_for("update_password") }}', {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json' },
+                             body: JSON.stringify({ new_password: newPassword })
+                        });
+                        const result = await response.json();
+                        alert(result.message);
+                        if(result.success) {
+                             document.getElementById('new_password').value = '';
+                             document.getElementById('confirm_password').value = '';
+                        }
+                    } catch(error) {
+                        console.error(error);
+                        alert('An error occurred while changing password.');
+                    }
+                });
+
+                // --- 2. Privacy Toggles ---
+                document.getElementById('profile-visible-toggle').addEventListener('change', (e) => {
+                    updateSetting('profile_visible', e.target.checked);
+                });
+                document.getElementById('activity-visible-toggle').addEventListener('change', (e) => {
+                    updateSetting('activity_visible', e.target.checked);
+                });
+
+                // --- 3. Accessibility ---
+                const fontSizeSelect = document.getElementById('font-size-select');
+                fontSizeSelect.addEventListener('change', (e) => {
+                    const newSize = e.target.value;
+                    document.documentElement.setAttribute('data-font-size', newSize);
+                    localStorage.setItem('fontSize', newSize);
+                    updateSetting('font_size_preference', newSize);
+                });
+
+                const highContrastToggle = document.getElementById('high-contrast-toggle');
+                highContrastToggle.addEventListener('change', (e) => {
+                    const isEnabled = e.target.checked;
+                    document.documentElement.setAttribute('data-high-contrast', isEnabled);
+                    localStorage.setItem('highContrast', isEnabled);
+                    updateSetting('high_contrast_mode', isEnabled);
+                });
+
+                // --- 4. Account Management ---
+                const requestDataBtn = document.getElementById('request-data-btn');
+                requestDataBtn.addEventListener('click', () => {
+                    requestDataBtn.textContent = 'Preparing...';
+                    requestDataBtn.disabled = true;
+                    window.location.href = '{{ url_for("request_data") }}';
+                    setTimeout(() => {
+                        requestDataBtn.textContent = 'Request Data';
+                        requestDataBtn.disabled = false;
+                    }, 3000);
+                });
+
+                const deleteAccountBtn = document.getElementById('delete-account-btn');
+                deleteAccountBtn.addEventListener('click', () => {
+                    const confirmation = prompt("This action is irreversible. To confirm, please type 'DELETE' in the box below:");
+                    if (confirmation === 'DELETE') {
+                        if (confirm("Are you absolutely sure? All your hubs, notes, and data will be permanently deleted.")) {
+                             fetch('{{ url_for("delete_account") }}', { method: 'POST' })
+                                .then(response => response.json())
+                                .then(data => {
+                                    alert(data.message);
+                                    if(data.success) {
+                                        window.location.href = '{{ url_for("index") }}';
+                                    }
+                                });
+                        }
+                    } else {
+                        alert("Deletion cancelled. You must type 'DELETE' to proceed.");
+                    }
+                });
+            }
+
 
             lucide.createIcons();
         });

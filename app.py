@@ -816,6 +816,8 @@ def generate_study_plan_from_syllabus(syllabus_text, deadline_str):
 # --- Homepage and Auth Routes ---
 @app.route("/")
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
     return render_template("index.html")
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1286,7 +1288,157 @@ def hub_page(hub_id):
     )
 
 # ==============================================================================
-# 5. NEW SLIDE NOTE-TAKING ROUTES
+# 4. NEW SETTINGS & ACCOUNT MANAGEMENT ROUTES
+# ==============================================================================
+@app.route("/settings/update", methods=["POST"])
+@login_required
+def update_settings():
+    """A general-purpose route to update various user settings."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "message": "No data provided."}), 400
+    
+    # Define which keys are allowed to be updated through this endpoint
+    allowed_keys = [
+        'profile_visible', 'activity_visible', 'default_note_privacy',
+        'font_size_preference', 'high_contrast_mode', 'language'
+    ]
+    
+    update_data = {}
+    for key, value in data.items():
+        if key in allowed_keys:
+            update_data[key] = value
+
+    if not update_data:
+        return jsonify({"success": False, "message": "No valid settings provided."}), 400
+
+    try:
+        db.collection('users').document(current_user.id).update(update_data)
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error updating user settings for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An internal error occurred."}), 500
+
+@app.route("/settings/update_password", methods=["POST"])
+@login_required
+def update_password():
+    data = request.get_json()
+    new_password = data.get('new_password')
+    
+    if not new_password or len(new_password) < 6:
+        return jsonify({"success": False, "message": "Password must be at least 6 characters long."}), 400
+        
+    try:
+        new_password_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
+        db.collection('users').document(current_user.id).update({'password_hash': new_password_hash})
+        return jsonify({"success": True, "message": "Password updated successfully!"})
+    except Exception as e:
+        print(f"Error updating password for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred."}), 500
+
+@app.route("/account/request_data")
+@login_required
+def request_data():
+    """Gathers all user data and returns it as a downloadable JSON file."""
+    user_data = {}
+    try:
+        # 1. User Info
+        user_doc = db.collection('users').document(current_user.id).get()
+        if user_doc.exists:
+            user_data['profile'] = user_doc.to_dict()
+            # Remove sensitive info
+            user_data['profile'].pop('password_hash', None)
+            user_data['profile'].pop('stripe_customer_id', None)
+            user_data['profile'].pop('stripe_subscription_id', None)
+            
+        # 2. Hubs and their contents
+        user_data['hubs'] = []
+        hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+        for hub_doc in hubs_ref:
+            hub_data = hub_doc.to_dict()
+            hub_id = hub_doc.id
+            hub_data['notes'] = [doc.to_dict() for doc in db.collection('notes').where('hub_id', '==', hub_id).stream()]
+            hub_data['activities'] = [doc.to_dict() for doc in db.collection('activities').where('hub_id', '==', hub_id).stream()]
+            hub_data['folders'] = [doc.to_dict() for doc in db.collection('folders').where('hub_id', '==', hub_id).stream()]
+            hub_data['sessions'] = [doc.to_dict() for doc in db.collection('sessions').where('hub_id', '==', hub_id).stream()]
+            user_data['hubs'].append(hub_data)
+
+        # Convert datetime objects to strings for JSON serialization
+        def default_serializer(o):
+            if isinstance(o, (datetime)):
+                return o.isoformat()
+            raise TypeError(f"Object of type {o.__class__.__name__} is not JSON serializable")
+
+        json_data = json.dumps(user_data, indent=4, default=default_serializer)
+        
+        return Response(
+            json_data,
+            mimetype="application/json",
+            headers={"Content-Disposition": f"attachment;filename=my_study_hub_data_{current_user.id}.json"}
+        )
+    except Exception as e:
+        print(f"Error exporting data for user {current_user.id}: {e}")
+        flash("Could not export your data at this time.", "error")
+        return redirect(url_for('dashboard', _anchor='settings'))
+
+
+@app.route("/account/delete", methods=["POST"])
+@login_required
+def delete_account():
+    """Permanently deletes a user and all their associated data."""
+    try:
+        user_id = current_user.id
+        
+        # 1. Get all hubs owned by the user
+        hubs_query = db.collection('hubs').where('user_id', '==', user_id).stream()
+        hub_ids = [hub.id for hub in hubs_query]
+
+        # 2. Delete all content within each hub
+        for hub_id in hub_ids:
+            # Delete files from Cloud Storage
+            blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
+            for blob in blobs:
+                blob.delete()
+            # Delete Firestore documents
+            collections_to_delete = ['notes', 'activities', 'folders', 'sessions', 'annotated_slide_decks', 'notifications']
+            for coll in collections_to_delete:
+                docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
+                for doc in docs:
+                    doc.reference.delete()
+            # Delete the hub document itself
+            db.collection('hubs').document(hub_id).delete()
+            
+        # 3. Delete user's avatar from storage
+        avatar_blobs = bucket.list_blobs(prefix=f"avatars/{user_id}/")
+        for blob in avatar_blobs:
+            blob.delete()
+            
+        # 4. Delete shared folders owned by the user
+        shared_folders_query = db.collection('shared_folders').where('owner_id', '==', user_id).stream()
+        for doc in shared_folders_query:
+            doc.reference.delete()
+
+        # 5. Delete the user document itself
+        db.collection('users').document(user_id).delete()
+
+        # 6. Log the user out
+        logout_user()
+        
+        return jsonify({"success": True, "message": "Your account has been permanently deleted."})
+
+    except Exception as e:
+        print(f"Error deleting account for user {user_id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred during account deletion."}), 500
+
+@app.route("/help-center")
+def help_center():
+    # In a real app, you would render a full help center template.
+    # For now, this is a placeholder.
+    flash("The Help Center is not yet implemented.", "info")
+    return redirect(url_for('dashboard'))
+
+# ==============================================================================
+# 5. SLIDE NOTE-TAKING ROUTES
 # ==============================================================================
 
 @app.route("/hub/<hub_id>/create_slide_notes_session", methods=["POST"])
@@ -1325,8 +1477,6 @@ def create_slide_notes_session(hub_id):
             title=title,
             source_file_path=file_path,             # slide_notes_workspace reads session.source_file_path
             slides_data=[],                          # start empty
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
         )
         session_ref.set(new_session.to_dict())
 
@@ -1355,11 +1505,16 @@ def slide_notes_workspace(session_id):
 
     session = AnnotatedSlideDeck.from_dict(session_doc.to_dict())
 
+    # SECURITY CHECK
+    if session.user_id != current_user.id:
+        flash("You do not have permission to view this.", "error")
+        return redirect(url_for('dashboard'))
 
     try:
         # Convert storage path to a usable URL
         blob = bucket.blob(session.source_file_path)
-        blob.make_public()
+        if not blob.public_url:
+            blob.make_public()
         pdf_url = blob.public_url
     except Exception as e:
         print(f"Error making PDF public: {e}")
@@ -1370,7 +1525,7 @@ def slide_notes_workspace(session_id):
         "slide_notes_workspace.html",
         session=session,
         pdf_url=pdf_url,
-        slides_data=session.slides_data if session.slides_data else []  # <-- FIX
+        slides_data=session.slides_data if session.slides_data else []
     )
 
 
@@ -1506,20 +1661,21 @@ def stripe_webhook():
     return 'Success', 200
 
 # ==============================================================================
-# 4. FLASK ROUTES
+# 6. CORE APP & HUB ROUTES
 # ==============================================================================
-
-@app.route("/")
-def home():
-    return redirect(url_for('dashboard'))
 
 @app.route("/hub/<hub_id>/delete")
 @login_required
 def delete_hub(hub_id):
     try:
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists or hub_doc.to_dict().get('user_id') != current_user.id:
+            flash("Hub not found or you don't have permission.", "error")
+            return redirect(url_for('dashboard'))
+
         blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
         for blob in blobs: blob.delete()
-        collections_to_delete = ['notes', 'activities', 'lectures', 'notifications', 'annotated_slide_decks']
+        collections_to_delete = ['notes', 'activities', 'lectures', 'notifications', 'annotated_slide_decks', 'sessions', 'folders']
         for coll in collections_to_delete:
             docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
             for doc in docs: doc.reference.delete()
@@ -2801,8 +2957,8 @@ def edit_flashcards(activity_id):
 @login_required
 def delete_all_hubs():
     try:
-        all_hubs = db.collection('hubs').stream()
-        hubs_to_delete = list(all_hubs)
+        hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+        hubs_to_delete = list(hubs_ref)
         if not hubs_to_delete:
             flash("There are no hubs to delete.", "info")
             return redirect(url_for('dashboard'))

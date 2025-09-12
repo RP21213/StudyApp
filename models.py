@@ -39,20 +39,32 @@ class SharedFolder:
     def from_dict(source):
         return SharedFolder(**source)
     
-# --- NEW: User Model for Authentication ---
+# --- UPDATED: User Model with Settings Fields ---
 class User(UserMixin):
-    def __init__(self, id, email, password_hash, display_name=None, bio="", avatar_url=None, subscription_tier='free', subscription_active=False, stripe_customer_id=None, stripe_subscription_id=None):
+    def __init__(self, id, email, password_hash, display_name=None, bio="", avatar_url=None, 
+                 subscription_tier='free', subscription_active=False, stripe_customer_id=None, stripe_subscription_id=None,
+                 # --- NEW: Fields for Settings ---
+                 profile_visible=True, activity_visible=True, default_note_privacy='private',
+                 font_size_preference='default', high_contrast_mode=False, language='en-US',
+                 **kwargs):
         self.id = id
         self.email = email
         self.password_hash = password_hash
         self.display_name = display_name if display_name else email.split('@')[0]
         self.bio = bio
-        # UPDATED: Set a specific default avatar URL if none is provided
         self.avatar_url = avatar_url if avatar_url else 'https://storage.googleapis.com/ai-study-hub-f3040.appspot.com/avatars/default_avatar.png'
         self.subscription_tier = subscription_tier
         self.subscription_active = subscription_active
         self.stripe_customer_id = stripe_customer_id
         self.stripe_subscription_id = stripe_subscription_id
+        
+        # --- NEW: Initialize Settings Properties ---
+        self.profile_visible = profile_visible
+        self.activity_visible = activity_visible
+        self.default_note_privacy = default_note_privacy
+        self.font_size_preference = font_size_preference
+        self.high_contrast_mode = high_contrast_mode
+        self.language = language
 
     def to_dict(self):
         return {
@@ -65,12 +77,18 @@ class User(UserMixin):
             'subscription_tier': self.subscription_tier,
             'subscription_active': self.subscription_active,
             'stripe_customer_id': self.stripe_customer_id,
-            'stripe_subscription_id': self.stripe_subscription_id
+            'stripe_subscription_id': self.stripe_subscription_id,
+            # --- NEW: Add settings to dict for Firestore ---
+            'profile_visible': self.profile_visible,
+            'activity_visible': self.activity_visible,
+            'default_note_privacy': self.default_note_privacy,
+            'font_size_preference': self.font_size_preference,
+            'high_contrast_mode': self.high_contrast_mode,
+            'language': self.language
         }
 
     @staticmethod
     def from_dict(source):
-        # UPDATED: Ensure the default avatar is used if the field is missing from Firestore
         default_avatar = 'https://storage.googleapis.com/ai-study-hub-f3040.appspot.com/avatars/default_avatar.png'
         return User(
             id=source.get('id'),
@@ -82,7 +100,14 @@ class User(UserMixin):
             subscription_tier=source.get('subscription_tier', 'free'),
             subscription_active=source.get('subscription_active', False),
             stripe_customer_id=source.get('stripe_customer_id'),
-            stripe_subscription_id=source.get('stripe_subscription_id')
+            stripe_subscription_id=source.get('stripe_subscription_id'),
+            # --- NEW: Retrieve settings from dict, with defaults ---
+            profile_visible=source.get('profile_visible', True),
+            activity_visible=source.get('activity_visible', True),
+            default_note_privacy=source.get('default_note_privacy', 'private'),
+            font_size_preference=source.get('font_size_preference', 'default'),
+            high_contrast_mode=source.get('high_contrast_mode', False),
+            language=source.get('language', 'en-US')
         )
 
 # --- NEW: Model for Note-Taking with Slides ---
