@@ -1091,6 +1091,23 @@
     </div>
 
     <!-- Modals -->
+    <div class="modal-overlay" id="tool-file-select-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tool-file-select-title">Select Files for Tool</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description" id="tool-file-select-desc">Select up to 3 documents to use for this tool.</p>
+                <div id="tool-file-select-list" class="modal-file-list"></div>
+                <p id="tool-file-select-counter" style="text-align: right; margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="button button-secondary close-btn">Cancel</button>
+                <button type="button" class="button button-primary" id="tool-file-select-submit">Generate</button>
+            </div>
+        </div>
+    </div>
     <div class="modal-overlay" id="slide-notes-modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Take Notes with Slides</h3><button class="close-btn">&times;</button></div>
@@ -1216,6 +1233,7 @@
             const themeToggle = document.getElementById('theme-toggle');
             const slideNotesModal = document.getElementById('slide-notes-modal');
             const studyToolsContainer = document.getElementById('study-tools-container');
+            const toolFileSelectModal = document.getElementById('tool-file-select-modal');
 
 
             // --- Sidebar and Navigation Logic ---
@@ -1273,16 +1291,7 @@
                 openRevisionPackModal();
             });
             document.querySelector('.quick-tool-btn[value="notes"]').addEventListener('click', (e) => {
-                const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
-                if (fileSpans.length === 0) return alert("Please upload a document first to create notes.");
-                
-                const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
-                const choice = prompt(`Which file do you want to use to generate notes?\n${fileNames}`);
-                const index = parseInt(choice, 10) - 1;
-
-                if (index >= 0 && index < fileSpans.length) {
-                    handleQuickToolSubmit('notes', [fileSpans[index].dataset.path]);
-                }
+                openToolFileSelectModal('notes');
             });
 
 
@@ -1693,6 +1702,52 @@
                     console.error("Failed to parse quiz score data or render chart:", e);
                 }
             }
+             
+            let currentToolSelection = { tool: null, callback: null };
+
+            function openToolFileSelectModal(toolName) {
+                const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
+                if (fileSpans.length === 0) {
+                    alert("Please upload a document first to use this tool.");
+                    return;
+                }
+                
+                const toolFriendlyName = toolName.charAt(0).toUpperCase() + toolName.slice(1);
+                document.getElementById('tool-file-select-title').textContent = `Select Files for ${toolFriendlyName}`;
+                
+                const fileListContainer = document.getElementById('tool-file-select-list');
+                populateModalFileList('tool-file-select-list', getAllFiles(), { multiSelect: true });
+                
+                const checkboxes = fileListContainer.querySelectorAll('input[type="checkbox"]');
+                const counter = document.getElementById('tool-file-select-counter');
+                
+                const updateCounter = () => {
+                    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                    counter.textContent = `${selectedCount} / 3 selected`;
+                    if (selectedCount >= 3) {
+                        checkboxes.forEach(cb => { if (!cb.checked) cb.disabled = true; });
+                    } else {
+                        checkboxes.forEach(cb => cb.disabled = false);
+                    }
+                };
+                
+                checkboxes.forEach(cb => cb.addEventListener('change', updateCounter));
+                updateCounter();
+
+                currentToolSelection.tool = toolName;
+                toolFileSelectModal.style.display = 'flex';
+            }
+
+            document.getElementById('tool-file-select-submit').addEventListener('click', () => {
+                const selectedFiles = Array.from(document.querySelectorAll('#tool-file-select-list input:checked')).map(cb => cb.value);
+                if (selectedFiles.length === 0) {
+                    alert("Please select at least one file.");
+                    return;
+                }
+                toolFileSelectModal.style.display = 'none';
+                handleQuickToolSubmit(currentToolSelection.tool, selectedFiles);
+            });
+
 
             // --- Pro Feature UI Enforcement & Study Tools Event Delegation ---
             const isProUser = "{{ current_user.subscription_tier }}" === 'pro' || "{{ current_user.subscription_tier }}" === 'admin';
@@ -1756,17 +1811,7 @@
                                 break;
                         }
                     } else if (featureCard) {
-                        const toolName = featureCard.value;
-                        const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
-                        if (fileSpans.length === 0) return alert("Please upload a document first.");
-                        
-                        const fileNames = fileSpans.map((s, i) => `${i+1}: ${s.textContent.trim()}`).join('\n');
-                        const choice = prompt(`Which file do you want to use for this tool?\n${fileNames}`);
-                        const index = parseInt(choice, 10) - 1;
-
-                        if (index >= 0 && index < fileSpans.length) {
-                            handleQuickToolSubmit(toolName, [fileSpans[index].dataset.path]);
-                        }
+                        openToolFileSelectModal(featureCard.value);
                     } else if (e.target.id === 'all-tools-toggle-btn') {
                         const container = document.getElementById('all-tools-container');
                         const isHidden = container.style.display === 'none';
