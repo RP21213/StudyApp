@@ -368,6 +368,7 @@
         .pipeline-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .pipeline-title h3 { margin: 0; font-size: 1.25rem; font-weight: 700; }
         .pipeline-title .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
+        .pipeline-title .new-label { font-size: 0.75rem; font-weight: bold; color: #155e75; background-color: #cffafe; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
         .pipeline-description { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1; font-family: 'Lora', serif; }
         .pipeline-action { margin-top: auto; align-self: flex-start; }
         .all-tools-toggle { text-align: center; margin-top: 2.5rem; }
@@ -771,7 +772,7 @@
                             <div class="pipeline-card" id="pipeline-slide-notes">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
-                                    <div class="pipeline-title"><h3>Take Notes with Slides</h3></div>
+                                    <div class="pipeline-title"><h3>Take Notes with Slides<span class="new-label">NEW</span></h3></div>
                                 </div>
                                 <p class="pipeline-description">Upload your lecture slides (PDF) to open a split-screen workspace where you can take notes and use AI assistance during class.</p>
                             </div>
@@ -779,10 +780,17 @@
                             <div class="pipeline-card" id="pipeline-stuck-question">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #f3e8ff; color: #7e22ce;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></div>
-                                    <div class="pipeline-title"><h3>Stuck on a Question?<span class="pro-label">PRO</span></h3></div>
+                                    <div class="pipeline-title"><h3>Stuck on a Question?<span class="new-label">NEW</span><span class="pro-label">PRO</span></h3></div>
                                 </div>
                                 <p class="pipeline-description">Get a step-by-step, interactive solution for any problem. Upload a photo or paste the text to begin.</p>
                             </div>
+                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card" id="pipeline-live-lecture">
+                                <div class="pipeline-header">
+                                    <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
+                                    <div class="pipeline-title"><h3>Live Lecture Capture<span class="new-label">NEW</span><span class="pro-label">PRO</span></h3></div>
+                                </div>
+                                <p class="pipeline-description">Record your lecture in real-time and let AI generate structured notes and summaries automatically.</p>
+                            </a>
                             <div class="pipeline-card" id="pipeline-revision-pack">
                                 <div class="pipeline-header">
                                     <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
@@ -811,13 +819,6 @@
                                 </div>
                                 <p class="pipeline-description">Go from an assignment brief and your source documents to a structured outline and first draft in minutes.</p>
                                 <div class="pipeline-action"><button class="button button-primary">Start Writing</button></div>
-                            </a>
-                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="pipeline-card" id="pipeline-live-lecture">
-                                <div class="pipeline-header">
-                                    <div class="pipeline-icon" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
-                                    <div class="pipeline-title"><h3>Live Lecture Capture<span class="pro-label">PRO</span></h3></div>
-                                </div>
-                                <p class="pipeline-description">Record your lecture in real-time and let AI generate structured notes and summaries automatically.</p>
                             </a>
                         </div>
                          <div class="all-tools-toggle">
