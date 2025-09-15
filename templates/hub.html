@@ -581,28 +581,38 @@
             font-family: 'Courier New', Courier, monospace;
         }
         
-        /* NEW STYLES FOR TOOL CATEGORY BUTTONS */
+        /* === MODIFIED STYLES FOR TOOL CATEGORY BUTTONS === */
         .tool-category-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 2rem;
         }
         .tool-category-button {
-            background-color: var(--background-card);
-            border: 1px solid var(--border-color);
+            position: relative;
+            border: 1px solid transparent;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2rem 2rem 5.5rem 2rem; /* Increased vertical padding */
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
             transition: all 0.2s ease-in-out;
             box-shadow: var(--card-shadow);
             cursor: pointer;
+            overflow: hidden; /* Important for gradients */
         }
         .tool-category-button:hover {
             transform: translateY(-5px);
             box-shadow: var(--card-shadow-hover);
-            border-color: var(--primary-color);
+        }
+        /* Gradient for "In a Lecture" */
+        .tool-category-button[data-target="in-lecture-tools"] {
+            background-image: linear-gradient(135deg, #ffc3a0 0%, #ffafbd 100%);
+            color: #5d3a3a; /* Darker text for peach background */
+        }
+        /* Gradient for "Revision & Exams" */
+        .tool-category-button[data-target="revision-exams-tools"] {
+            background-image: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #ffffff; /* White text for teal background */
         }
         .tool-category-header {
             display: flex;
@@ -620,14 +630,31 @@
         }
         .tool-category-title h3 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.75rem; /* Larger text */
             font-weight: 700;
+            color: inherit;
         }
         .tool-category-description {
-            font-size: 1rem;
-            color: var(--text-secondary);
+            font-size: 1.1rem; /* Larger text */
+            color: inherit;
+            opacity: 0.9;
             line-height: 1.6;
             font-family: 'Lora', serif;
+        }
+        .tool-category-cta {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.6rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            color: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
         }
         .tool-category-back-button {
             margin-bottom: 2rem;
@@ -821,6 +848,7 @@
                                     <div class="tool-category-title"><h3>In a Lecture</h3></div>
                                 </div>
                                 <p class="tool-category-description">Tools designed for use during class to help you capture information and take better notes in real-time.</p>
+                                <span class="tool-category-cta">See Tools</span>
                             </div>
                             <div class="tool-category-button" data-target="revision-exams-tools">
                                 <div class="tool-category-header">
@@ -828,6 +856,7 @@
                                     <div class="tool-category-title"><h3>Revision & Exams</h3></div>
                                 </div>
                                 <p class="tool-category-description">Prepare for assessments by generating study materials, getting help with problems, and planning your schedule.</p>
+                                <span class="tool-category-cta">See Tools</span>
                             </div>
                         </div>
                     </div>
