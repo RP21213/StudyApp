@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from flask_login import UserMixin # NEW: Import UserMixin
+from datetime import datetime, timezone, timedelta # MODIFIED: Add timedelta
+from flask_login import UserMixin 
 
 # NEW: Model for Community-Shared Folders
 class SharedFolder:
@@ -39,13 +39,15 @@ class SharedFolder:
     def from_dict(source):
         return SharedFolder(**source)
     
-# --- UPDATED: User Model with Settings Fields ---
+# --- UPDATED: User Model with Settings and Spotify Fields ---
 class User(UserMixin):
     def __init__(self, id, email, password_hash, display_name=None, bio="", avatar_url=None, 
                  subscription_tier='free', subscription_active=False, stripe_customer_id=None, stripe_subscription_id=None,
                  # --- NEW: Fields for Settings ---
                  profile_visible=True, activity_visible=True, default_note_privacy='private',
                  font_size_preference='default', high_contrast_mode=False, language='en-US',
+                 # --- NEW: Fields for Spotify ---
+                 spotify_access_token=None, spotify_refresh_token=None, spotify_token_expires_at=None,
                  **kwargs):
         self.id = id
         self.email = email
@@ -66,6 +68,11 @@ class User(UserMixin):
         self.high_contrast_mode = high_contrast_mode
         self.language = language
 
+        # --- NEW: Initialize Spotify Properties ---
+        self.spotify_access_token = spotify_access_token
+        self.spotify_refresh_token = spotify_refresh_token
+        self.spotify_token_expires_at = spotify_token_expires_at
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -78,13 +85,16 @@ class User(UserMixin):
             'subscription_active': self.subscription_active,
             'stripe_customer_id': self.stripe_customer_id,
             'stripe_subscription_id': self.stripe_subscription_id,
-            # --- NEW: Add settings to dict for Firestore ---
             'profile_visible': self.profile_visible,
             'activity_visible': self.activity_visible,
             'default_note_privacy': self.default_note_privacy,
             'font_size_preference': self.font_size_preference,
             'high_contrast_mode': self.high_contrast_mode,
-            'language': self.language
+            'language': self.language,
+            # --- NEW: Add Spotify to dict for Firestore ---
+            'spotify_access_token': self.spotify_access_token,
+            'spotify_refresh_token': self.spotify_refresh_token,
+            'spotify_token_expires_at': self.spotify_token_expires_at,
         }
 
     @staticmethod
@@ -101,15 +111,18 @@ class User(UserMixin):
             subscription_active=source.get('subscription_active', False),
             stripe_customer_id=source.get('stripe_customer_id'),
             stripe_subscription_id=source.get('stripe_subscription_id'),
-            # --- NEW: Retrieve settings from dict, with defaults ---
             profile_visible=source.get('profile_visible', True),
             activity_visible=source.get('activity_visible', True),
             default_note_privacy=source.get('default_note_privacy', 'private'),
             font_size_preference=source.get('font_size_preference', 'default'),
             high_contrast_mode=source.get('high_contrast_mode', False),
-            language=source.get('language', 'en-US')
+            language=source.get('language', 'en-US'),
+            # --- NEW: Retrieve Spotify from dict ---
+            spotify_access_token=source.get('spotify_access_token'),
+            spotify_refresh_token=source.get('spotify_refresh_token'),
+            spotify_token_expires_at=source.get('spotify_token_expires_at')
         )
-
+    
 # --- NEW: Model for Note-Taking with Slides ---
 class AnnotatedSlideDeck:
     def __init__(self, id, hub_id, user_id, title, source_file_path, slides_data=None, created_at=None, **kwargs):

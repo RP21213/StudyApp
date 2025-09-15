@@ -29,7 +29,10 @@ import asyncio # NEW: For async operations
 from flask_socketio import SocketIO, emit # NEW: For WebSockets
 import assemblyai as aai # NEW: For real-time transcription
 from flask import request
-
+# --- NEW: Imports for Spotify ---
+import requests
+import urllib.parse
+from functools import wraps
 
 # --- NEW: Imports for Authentication ---
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -154,9 +157,19 @@ bucket = storage.bucket()
 # --- Flask App and OpenAI Client Initialization (MODIFIED) ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
-socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
+socketio = SocketIO(app, async_mode='threading') 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+
+# --- NEW: Spotify Configuration ---
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
+SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
+SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
+SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1/"
+# This must match the URI you set in the Spotify Developer Dashboard
+SPOTIFY_REDIRECT_URI = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000") + "/spotify/callback"
+SPOTIFY_SCOPES = "user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private"
 
 # --- NEW: In-memory cache for AI Tutor vector stores ---
 vector_store_cache = {}
@@ -1038,6 +1051,9 @@ def dashboard():
     # --- NEW: Fetch data for the Profile Tab ---
     stats = _get_user_stats(current_user.id)
 
+        # --- NEW: Check for Spotify connection ---
+    spotify_connected = True if current_user.spotify_refresh_token else False
+
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
@@ -1049,7 +1065,9 @@ def dashboard():
         shared_folders=shared_folders_hydrated,
         total_shared_count=total_shared_count,
         all_user_folders=all_user_folders,
-        stats=stats
+        stats=stats,
+        stats=stats,
+        spotify_connected=spotify_connected # NEW: Pass this to the template
     )
 
 
@@ -1268,6 +1286,10 @@ def hub_page(hub_id):
     notifications = [Notification.from_dict(doc.to_dict()) for doc in notifications_query]
     unread_notifications_count = sum(1 for n in notifications if not n.read)
 
+
+    # --- NEW: Check for Spotify connection ---
+    spotify_connected = True if current_user.spotify_refresh_token else False
+
     return render_template(
         "hub.html", 
         hub=hub,
@@ -1288,7 +1310,9 @@ def hub_page(hub_id):
         yesterday_activities=yesterday_activities,
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
-        recent_quiz_scores_json=json.dumps(recent_quiz_scores)
+        recent_quiz_scores_json=json.dumps(recent_quiz_scores),
+        recent_quiz_scores_json=json.dumps(recent_quiz_scores),
+        spotify_connected=spotify_connected # NEW: Pass this to the template
     )
 
 # ==============================================================================
@@ -1440,6 +1464,191 @@ def help_center():
     # For now, this is a placeholder.
     flash("The Help Center is not yet implemented.", "info")
     return redirect(url_for('dashboard'))
+
+# ==============================================================================
+# NEW: 4. SPOTIFY AUTH & API ROUTES
+# ==============================================================================
+
+def spotify_api_request(method, endpoint, data=None, json_data=None):
+    """A helper function to make authenticated requests to the Spotify API."""
+    access_token = get_valid_spotify_token()
+    if not access_token:
+        return jsonify({"success": False, "error": "Not connected to Spotify or token expired."}), 401
+
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    try:
+        if method.upper() == 'GET':
+            response = requests.get(SPOTIFY_API_BASE_URL + endpoint, headers=headers, params=data)
+        elif method.upper() == 'POST':
+            response = requests.post(SPOTIFY_API_BASE_URL + endpoint, headers=headers, json=json_data, data=data)
+        elif method.upper() == 'PUT':
+            response = requests.put(SPOTIFY_API_BASE_URL + endpoint, headers=headers, json=json_data, data=data)
+        else:
+            return jsonify({"success": False, "error": "Unsupported HTTP method"}), 400
+        
+        response.raise_for_status() # Raises an exception for bad status codes (4xx or 5xx)
+        
+        # Some Spotify API responses have no content (e.g., PUT for play/pause)
+        if response.status_code == 204:
+            return jsonify({"success": True, "status_code": 204})
+        return response.json()
+        
+    except requests.exceptions.HTTPError as e:
+        print(f"Spotify API HTTP Error: {e.response.status_code} - {e.response.text}")
+        if e.response.status_code == 401:
+            # Token might have been revoked, clear it
+            db.collection('users').document(current_user.id).update({
+                'spotify_access_token': None,
+                'spotify_refresh_token': None,
+                'spotify_token_expires_at': None
+            })
+        return jsonify({"success": False, "error": f"Spotify API Error: {e.response.reason}", "status_code": e.response.status_code}), e.response.status_code
+    except Exception as e:
+        print(f"Spotify API General Error: {e}")
+        return jsonify({"success": False, "error": "An unexpected error occurred"}), 500
+
+def get_valid_spotify_token():
+    """Checks if the current user's token is valid, refreshes if not, and returns a valid token."""
+    if not current_user.is_authenticated or not current_user.spotify_refresh_token:
+        return None
+
+    # Check if the token is expired or expires within the next 60 seconds
+    if not current_user.spotify_token_expires_at or current_user.spotify_token_expires_at <= datetime.now(timezone.utc) + timedelta(seconds=60):
+        try:
+            auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
+            b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+            
+            response = requests.post(SPOTIFY_TOKEN_URL, data={
+                'grant_type': 'refresh_token',
+                'refresh_token': current_user.spotify_refresh_token
+            }, headers={
+                'Authorization': f'Basic {b64_auth_str}'
+            })
+            response.raise_for_status()
+            token_info = response.json()
+            
+            new_access_token = token_info['access_token']
+            expires_in = token_info['expires_in']
+            new_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            
+            # Update user in database and current session
+            user_ref = db.collection('users').document(current_user.id)
+            user_ref.update({
+                'spotify_access_token': new_access_token,
+                'spotify_token_expires_at': new_expires_at
+            })
+            current_user.spotify_access_token = new_access_token
+            current_user.spotify_token_expires_at = new_expires_at
+            
+            return new_access_token
+        except Exception as e:
+            print(f"Error refreshing Spotify token: {e}")
+            return None
+            
+    return current_user.spotify_access_token
+    
+def spotify_connected(f):
+    """Decorator to ensure user is connected to Spotify."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not get_valid_spotify_token():
+            return jsonify({"success": False, "error": "Spotify not connected."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/spotify/login')
+@login_required
+def spotify_login():
+    params = {
+        'client_id': SPOTIFY_CLIENT_ID,
+        'response_type': 'code',
+        'redirect_uri': SPOTIFY_REDIRECT_URI,
+        'scope': SPOTIFY_SCOPES,
+        'show_dialog': 'true'
+    }
+    auth_url = f"{SPOTIFY_AUTH_URL}?{urllib.parse.urlencode(params)}"
+    return redirect(auth_url)
+
+@app.route('/spotify/callback')
+@login_required
+def spotify_callback():
+    code = request.args.get('code')
+    error = request.args.get('error')
+
+    if error:
+        flash(f"Spotify connection failed: {error}", "error")
+        return redirect(url_for('dashboard'))
+
+    auth_str = f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}"
+    b64_auth_str = base64.b64encode(auth_str.encode()).decode()
+
+    response = requests.post(SPOTIFY_TOKEN_URL, data={
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': SPOTIFY_REDIRECT_URI
+    }, headers={
+        'Authorization': f'Basic {b64_auth_str}'
+    })
+    
+    token_info = response.json()
+    
+    user_ref = db.collection('users').document(current_user.id)
+    user_ref.update({
+        'spotify_access_token': token_info['access_token'],
+        'spotify_refresh_token': token_info['refresh_token'],
+        'spotify_token_expires_at': datetime.now(timezone.utc) + timedelta(seconds=token_info['expires_in'])
+    })
+
+    flash("Successfully connected your Spotify account!", "success")
+    return redirect(url_for('dashboard'))
+
+@app.route('/spotify/player_state')
+@login_required
+@spotify_connected
+def player_state():
+    return spotify_api_request('GET', 'me/player')
+
+@app.route('/spotify/playlists')
+@login_required
+@spotify_connected
+def get_playlists():
+    return spotify_api_request('GET', 'me/playlists', data={'limit': 50})
+
+@app.route('/spotify/play', methods=['PUT'])
+@login_required
+@spotify_connected
+def play():
+    context_uri = request.json.get('context_uri')
+    data = {}
+    if context_uri:
+        data['context_uri'] = context_uri
+    return spotify_api_request('PUT', 'me/player/play', json_data=data)
+
+@app.route('/spotify/pause', methods=['PUT'])
+@login_required
+@spotify_connected
+def pause():
+    return spotify_api_request('PUT', 'me/player/pause')
+
+@app.route('/spotify/next', methods=['POST'])
+@login_required
+@spotify_connected
+def next_track():
+    return spotify_api_request('POST', 'me/player/next')
+
+@app.route('/spotify/previous', methods=['POST'])
+@login_required
+@spotify_connected
+def previous_track():
+    return spotify_api_request('POST', 'me/player/previous')
+
+@app.route('/spotify/volume', methods=['PUT'])
+@login_required
+@spotify_connected
+def set_volume():
+    volume_percent = request.json.get('volume_percent')
+    return spotify_api_request('PUT', f'me/player/volume?volume_percent={volume_percent}')
 
 # ==============================================================================
 # 5. SLIDE NOTE-TAKING ROUTES
