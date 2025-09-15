@@ -245,16 +245,28 @@
         .form-group textarea { min-height: 80px; }
         .modal-content .button { width: 100%; justify-content: center; }
         
-        .theme-switch-wrapper {
+        /* --- UPDATED: Side Panel Footer Styles --- */
+        .side-panel-footer {
             padding-top: 1.5rem;
             border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
+        .side-panel-footer .button {
+            padding: 0.6rem 0.5rem;
+            font-size: 0.9rem;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
         .theme-switch {
             position: relative;
             display: inline-block;
             width: 64px;
             height: 34px;
             cursor: pointer;
+            flex-shrink: 0;
         }
         .theme-switch input { opacity: 0; width: 0; height: 0; }
         .slider {
@@ -706,7 +718,18 @@
                 <span>⚙️ Settings</span>
             </a>
         </nav>
-        <div class="theme-switch-wrapper">
+        <div class="side-panel-footer">
+            {% if not spotify_connected %}
+                <a href="{{ url_for('spotify_login') }}" class="button button-secondary" style="background-color: #1DB954; color: white; border-color: #1DB954; flex-grow: 1; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748 1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112 1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
+                    <span>Connect</span>
+                </a>
+            {% else %}
+                 <button id="spotify-player-toggle-btn" class="button button-secondary" style="flex-grow: 1; justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    <span>Music</span>
+                </button>
+            {% endif %}
             <label class="theme-switch" for="theme-toggle-input">
                 <input type="checkbox" id="theme-toggle-input" />
                 <div class="slider">
@@ -730,18 +753,6 @@
                         <p>All your courses, notes, and AI-powered tools in one place.</p>
                     </div>
                     <div class="header-actions">
-                        {% if not spotify_connected %}
-                            <a href="{{ url_for('spotify_login') }}" class="button button-secondary" style="background-color: #1DB954; color: white; border-color: #1DB954;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748 1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112 1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
-                                Connect Spotify
-                            </a>
-                        {% else %}
-                             <button id="spotify-player-toggle-btn" class="button button-secondary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                                Music
-                            </button>
-                        {% endif %}
-
                         {% if current_user.subscription_tier == 'free' %}
                         <form action="{{ url_for('create_checkout_session') }}" method="POST">
                             <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
@@ -1415,18 +1426,24 @@
             // Universal Theme toggle functionality
             const themeToggle = document.getElementById('theme-toggle-input');
             if (localStorage.getItem('theme') === 'dark') {
-                themeToggle.checked = true;
+                document.documentElement.setAttribute('data-theme', 'dark');
+                if (themeToggle) themeToggle.checked = true;
+            } else {
+                 document.documentElement.removeAttribute('data-theme');
+                 if (themeToggle) themeToggle.checked = false;
             }
-            
-            themeToggle.addEventListener('change', () => {
-                if (themeToggle.checked) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    localStorage.setItem('theme', 'light');
-                }
-            });
+
+            if (themeToggle) {
+                themeToggle.addEventListener('change', () => {
+                    if (themeToggle.checked) {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+            }
 
             // Tab functionality
             const tabs = document.querySelectorAll('.nav-tab');
