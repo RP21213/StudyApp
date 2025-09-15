@@ -627,23 +627,23 @@
             border-radius: 99px;
             color: var(--text-secondary);
         }
-        .stat-pill i {
-            color: var(--text-light);
-        }
+        /* --- NEW: Like Button Styling --- */
         .like-btn {
             background: none;
             border: none;
             cursor: pointer;
             padding: 0;
-            margin: 0;
+            margin-right: 0.25rem;
             display: inline-flex;
             align-items: center;
-            color: var(--text-light);
-            transition: color 0.2s ease, transform 0.2s ease;
+            font-size: 1rem;
+            line-height: 1;
+            transition: transform 0.2s ease;
         }
-        .like-btn:hover:not(:disabled) { color: var(--primary-color); transform: scale(1.15); }
-        .like-btn:disabled { cursor: not-allowed; opacity: 0.5; }
-        .like-btn.liked { color: var(--primary-color); }
+        .like-btn:hover:not(:disabled) { transform: scale(1.2); }
+        .like-btn:disabled { cursor: not-allowed; filter: grayscale(1); opacity: 0.6; }
+        .like-btn.liked { filter: none; transform: scale(1.1); }
+        .like-btn.liked:hover { transform: scale(1.25); }
 
 
         /* --- NEW: Engaging Import Button --- */
@@ -1028,11 +1028,7 @@
                          data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}"
                          data-preview-title="{{ item.folder.title }}"
                          data-preview-description="{{ item.folder.description }}"
-                         <!-- 
-                            FIX: Use a default value for item.items_preview to prevent errors if the key is missing.
-                            This is the only line that needed to be changed.
-                         -->
-                         data-preview-items="{{ (item.items_preview or [])|tojson|escape }}">
+                         data-preview-items='{{ (item.items_preview or [])|tojson }}'>
 
                         <!-- Resource Type Badge -->
                         <div class="card-type-badge badge-{{ item.folder_type|lower }}">
@@ -1070,30 +1066,30 @@
                         </div>
                         <div class="community-card-footer">
                             <div class="card-stats-pills">
-                                <!-- UPDATED: Like button stat -->
+                                <!-- Like Pill -->
                                 <span class="stat-pill">
-                                    <button class="like-btn {% if item.current_user_has_liked %}liked{% endif %}" 
-                                            data-folder-id="{{ item.folder.id }}" 
+                                    <button class="like-btn {% if item.current_user_has_liked %}liked{% endif %}"
+                                            data-folder-id="{{ item.folder.id }}"
                                             {% if not item.current_user_has_imported %}
-                                                disabled 
-                                                title="You must import this folder to like it"
+                                                disabled title="You must import this folder to like it"
                                             {% else %}
                                                 title="Like this folder"
                                             {% endif %}>
-                                        <i data-lucide="thumbs-up" size="14"></i>
+                                        👍
                                     </button>
                                     <span id="like-count-{{ item.folder.id }}">{{ item.folder.likes }}</span>
                                 </span>
-                                <!-- UPDATED: Import stat with downward arrow -->
+                                <!-- Import Pill -->
                                 <span class="stat-pill">
-                                    <i data-lucide="download" size="14"></i>
-                                    {{ item.folder.imports }}
+                                    {{ item.folder.imports }} ⬇️
                                 </span>
+                                <!-- Items Pill -->
                                 <span class="stat-pill">
                                     <i data-lucide="package" size="14"></i>
                                     {{ item.item_count }} items
                                 </span>
                             </div>
+
                             <!-- Engaging Import Button -->
                             <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
                                 <i data-lucide="download-cloud" size="16"></i> Import
