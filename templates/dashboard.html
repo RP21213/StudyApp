@@ -1028,7 +1028,11 @@
                          data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}"
                          data-preview-title="{{ item.folder.title }}"
                          data-preview-description="{{ item.folder.description }}"
-                         data-preview-items="{{ item.items_preview|tojson|escape }}">
+                         <!-- 
+                            FIX: Use a default value for item.items_preview to prevent errors if the key is missing.
+                            This is the only line that needed to be changed.
+                         -->
+                         data-preview-items="{{ (item.items_preview or [])|tojson|escape }}">
 
                         <!-- Resource Type Badge -->
                         <div class="card-type-badge badge-{{ item.folder_type|lower }}">
