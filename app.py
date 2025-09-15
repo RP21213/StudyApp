@@ -1034,6 +1034,9 @@ def dashboard():
 
     # --- FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part ---
     hubs_for_json = [hub.to_dict() for hub in hubs_list]
+    
+    # --- NEW: Fetch data for the Profile Tab ---
+    stats = _get_user_stats(current_user.id)
 
     return render_template(
         "dashboard.html", 
@@ -1045,7 +1048,8 @@ def dashboard():
         weak_topics=weak_topics,
         shared_folders=shared_folders_hydrated,
         total_shared_count=total_shared_count,
-        all_user_folders=all_user_folders
+        all_user_folders=all_user_folders,
+        stats=stats
     )
 
 
@@ -1075,10 +1079,10 @@ def profile():
 
         user_ref.update(update_data)
         flash('Your profile has been updated successfully!', 'success')
-        return redirect(url_for('profile'))
+        return redirect(url_for('dashboard', _anchor='profile'))
 
-    stats = _get_user_stats(current_user.id)
-    return render_template('profile.html', stats=stats)
+    # For GET requests, redirect to the dashboard's profile tab
+    return redirect(url_for('dashboard', _anchor='profile'))
 
 @app.route("/add_hub", methods=["POST"])
 @login_required

@@ -550,6 +550,62 @@
         .upgrade-prompt i { color: var(--primary-color); margin-bottom: 1rem; }
         .upgrade-prompt h2 { font-size: 1.75rem; margin: 0 0 0.5rem 0; }
         .upgrade-prompt p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; }
+
+        /* --- Profile Tab Styles --- */
+        .profile-content-card {
+            background-color: var(--background-white);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 2.5rem;
+            align-items: center;
+        }
+        .avatar-upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 4px solid var(--background-light);
+            box-shadow: var(--card-shadow);
+        }
+        .button-style-label {
+            background: var(--primary-color); color: white; padding: 0.7rem 1.2rem;
+            border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; display: inline-flex;
+            align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.9rem;
+            width: 100%; box-sizing: border-box;
+        }
+        .button-style-label:hover { background: var(--primary-hover); }
+        .avatar-upload-section input[type="file"] { display: none; }
+        
+        .form-actions { text-align: right; margin-top: 1rem; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center; }
+        .stat-item .value { font-size: 2.5rem; font-weight: 700; color: var(--primary-color); }
+        .stat-item .label { font-size: 0.9rem; color: var(--text-secondary); }
+
+        .courses-list .course-item {
+             display: flex; justify-content: space-between; align-items: center;
+             padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;
+             background-color: var(--background-light);
+        }
+        .course-item span { font-weight: 600; }
+        
+        .flash-message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
+        .flash-success { background-color: #dcfce7; color: #166534; }
     </style>
     <script>
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
@@ -586,7 +642,7 @@
                 <i data-lucide="users"></i>
                 <span>Community</span>
             </a>
-            <a href="{{ url_for('profile') }}" class="nav-tab">
+            <a href="#" class="nav-tab" data-tab="profile">
                 <i data-lucide="user"></i>
                 <span>Profile</span>
             </a>
@@ -858,6 +914,82 @@
                     </form>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+        
+        <div id="profile" class="tab-content">
+            <div class="container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="profile-content-card">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('profile') }}">
+                        <div class="profile-grid">
+                            <div class="avatar-upload-section">
+                                <img src="{{ current_user.avatar_url }}" alt="Profile Picture" id="avatar-preview" class="avatar-preview">
+                                <label for="avatar-upload" class="button-style-label">
+                                   <i data-lucide="upload-cloud"></i> Upload
+                                </label>
+                                <input type="file" id="avatar-upload" name="avatar" accept="image/png, image/jpeg">
+                            </div>
+                            <div class="profile-form-fields">
+                                <div class="form-group">
+                                    <label for="display_name">Display Name</label>
+                                    <input type="text" id="display_name" name="display_name" value="{{ current_user.display_name }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bio">Bio / Intro</label>
+                                    <textarea id="bio" name="bio" placeholder="e.g., Computer Science student specializing in AI.">{{ current_user.bio }}</textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="button">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-content-card">
+                    <h2>Learning & Progress</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="value">{{ stats.total_study_hours }}</div>
+                            <div class="label">Hours Studied</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">{{ stats.hubs|length }}</div>
+                            <div class="label">Courses / Hubs</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">{{ stats.longest_streak }}</div>
+                            <div class="label">Longest Streak</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-content-card">
+                    <h2>Current Courses / Hubs</h2>
+                    <div class="courses-list">
+                        {% for hub in stats.hubs %}
+                        <div class="course-item">
+                            <span>{{ hub.name }}</span>
+                            <a href="{{ url_for('hub_page', hub_id=hub.id) }}" style="text-decoration: none; font-weight: 500; color: var(--primary-color);">View Hub →</a>
+                        </div>
+                        {% else %}
+                        <p>You haven't created any study hubs yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                 <div class="profile-content-card">
+                    <h2>Achievements</h2>
+                    <p style="color: var(--text-secondary);">Achievement badges and milestones will appear here as you complete study goals. Coming soon!</p>
+                </div>
             </div>
         </div>
 
@@ -1350,6 +1482,24 @@
                 }
             }
             
+            // --- Profile Tab Functionality ---
+            const profileTab = document.getElementById('profile');
+            if (profileTab) {
+                const avatarUpload = document.getElementById('avatar-upload');
+                const avatarPreview = document.getElementById('avatar-preview');
+
+                avatarUpload.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            avatarPreview.src = e.target.result;
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+
             // ==========================================================
             // --- NEW: SETTINGS FUNCTIONALITY ---
             // ==========================================================
