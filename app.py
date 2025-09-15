@@ -4049,22 +4049,31 @@ def import_folder(shared_folder_id):
         batch = db.batch()
         new_items_for_folder = []
 
-        for item_ref in original_folder.items:
-            item_id = item_ref.get('id')
-            item_type = item_ref.get('type')
+        # This logic correctly duplicates the items for the new user
+        item_ids = [item['id'] for item in original_folder.items]
+        if item_ids:
+            notes_docs = db.collection('notes').where('id', 'in', item_ids).stream()
+            activities_docs = db.collection('activities').where('id', 'in', item_ids).stream()
             
-            collection_name = 'notes' if item_type == 'note' else 'activities'
-            original_item_doc = db.collection(collection_name).document(item_id).get()
-
-            if original_item_doc.exists:
-                original_item_data = original_item_doc.to_dict()
-                new_item_ref = db.collection(collection_name).document()
-                
+            # Process notes
+            for doc in notes_docs:
+                original_item_data = doc.to_dict()
+                new_item_ref = db.collection('notes').document()
                 new_item_data = original_item_data
                 new_item_data['id'] = new_item_ref.id
                 new_item_data['hub_id'] = target_hub_id
-                
                 batch.set(new_item_ref, new_item_data)
+                new_items_for_folder.append({'id': new_item_ref.id, 'type': 'note'})
+
+            # Process activities (quizzes, flashcards)
+            for doc in activities_docs:
+                original_item_data = doc.to_dict()
+                new_item_ref = db.collection('activities').document()
+                new_item_data = original_item_data
+                new_item_data['id'] = new_item_ref.id
+                new_item_data['hub_id'] = target_hub_id
+                batch.set(new_item_ref, new_item_data)
+                item_type = 'flashcards' if new_item_data.get('type') == 'Flashcards' else 'quiz'
                 new_items_for_folder.append({'id': new_item_ref.id, 'type': item_type})
 
         new_folder_ref = db.collection('folders').document()
@@ -4076,11 +4085,13 @@ def import_folder(shared_folder_id):
         )
         batch.set(new_folder_ref, new_folder.to_dict())
 
-        # UPDATED: Increment import count AND add user to imported_by list
+        # --- THIS IS THE KEY UPDATE ---
+        # Increment import count AND add user to imported_by list
         batch.update(shared_folder_ref, {
             'imports': firestore.Increment(1),
             'imported_by': firestore.ArrayUnion([current_user.id])
         })
+        # --- END OF UPDATE ---
 
         batch.commit()
         return jsonify({"success": True, "message": f"'{new_folder.name}' imported successfully!"})
@@ -4093,41 +4104,46 @@ def import_folder(shared_folder_id):
 @app.route("/folder/like/<shared_folder_id>", methods=["POST"])
 @login_required
 def like_folder(shared_folder_id):
+    """Toggles a like on a shared folder for the current user."""
     shared_folder_ref = db.collection('shared_folders').document(shared_folder_id)
     shared_folder_doc = shared_folder_ref.get()
 
     if not shared_folder_doc.exists:
         return jsonify({"success": False, "message": "Folder not found."}), 404
 
-    folder_data = shared_folder_doc.to_dict()
-    
-    if folder_data.get('owner_id') == current_user.id:
+    folder = SharedFolder.from_dict(shared_folder_doc.to_dict())
+
+    # Users cannot like their own folders
+    if folder.owner_id == current_user.id:
         return jsonify({"success": False, "message": "You cannot like your own folder."}), 403
 
     # Business Rule: User must have imported the folder to be able to like it.
-    if current_user.id not in folder_data.get('imported_by', []):
+    if current_user.id not in folder.imported_by:
         return jsonify({"success": False, "message": "You must import a folder before you can like it."}), 403
 
-    liked_by = folder_data.get('liked_by', [])
-    user_has_liked = current_user.id in liked_by
+    user_has_liked = current_user.id in folder.liked_by
 
-    if user_has_liked:
-        # User is unliking the folder
-        shared_folder_ref.update({
-            'likes': firestore.Increment(-1),
-            'liked_by': firestore.ArrayRemove([current_user.id])
-        })
-        new_like_count = folder_data.get('likes', 1) - 1
-        return jsonify({"success": True, "liked": False, "count": new_like_count})
-    else:
-        # User is liking the folder
-        shared_folder_ref.update({
-            'likes': firestore.Increment(1),
-            'liked_by': firestore.ArrayUnion([current_user.id])
-        })
-        new_like_count = folder_data.get('likes', 0) + 1
-        return jsonify({"success": True, "liked": True, "count": new_like_count})
-
+    try:
+        if user_has_liked:
+            # User is unliking the folder
+            shared_folder_ref.update({
+                'likes': firestore.Increment(-1),
+                'liked_by': firestore.ArrayRemove([current_user.id])
+            })
+            new_like_count = folder.likes - 1
+            return jsonify({"success": True, "action": "unliked", "count": new_like_count})
+        else:
+            # User is liking the folder
+            shared_folder_ref.update({
+                'likes': firestore.Increment(1),
+                'liked_by': firestore.ArrayUnion([current_user.id])
+            })
+            new_like_count = folder.likes + 1
+            return jsonify({"success": True, "action": "liked", "count": new_like_count})
+    except Exception as e:
+        print(f"Error liking folder {shared_folder_id}: {e}")
+        return jsonify({"success": False, "message": "An internal error occurred."}), 500
+    
 # --- NEW: Route for deleting a shared folder ---
 @app.route("/folder/share/delete/<shared_folder_id>", methods=["POST"])
 @login_required

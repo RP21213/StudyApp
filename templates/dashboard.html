@@ -535,7 +535,7 @@
             flex-direction: column;
             box-shadow: var(--shadow-sm);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative; /* For positioning badges and tooltips */
+            position: relative; /* For positioning badges */
         }
         /* --- NEW: Add color accent based on type --- */
         .community-card.card-style-notes { border-top-color: var(--color-notes); }
@@ -548,42 +548,12 @@
             box-shadow: var(--shadow-lg);
         }
         
-        /* --- FIXED: Preview Tooltip on Hover --- */
-        .community-card .card-preview-tooltip {
-            position: absolute;
-            bottom: 100%; /* Start from the top edge of the card */
-            left: 50%;
-            transform: translateX(-50%);
-            margin-bottom: 15px; /* Create a gap between card and tooltip */
-            width: 90%;
-            padding: 1rem;
-            background-color: var(--background-white);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
-            z-index: 100; /* Ensure it's on top of other elements */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s, transform 0.2s ease 0.1s;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            pointer-events: none; /* Allows clicks to go through to the card */
+        /* --- NEW: Clickable Preview Cursor --- */
+        .community-card-body {
+            padding: 1.5rem; 
+            flex-grow: 1;
+            cursor: pointer; /* Indicates it's clickable for preview */
         }
-        .community-card:hover .card-preview-tooltip {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-10px); /* Move it up slightly with card hover */
-        }
-        .card-preview-tooltip h4 { margin: 0 0 0.5rem 0; font-weight: 600; color: var(--text-main); }
-        .card-preview-tooltip pre {
-            white-space: pre-wrap;
-            margin: 0;
-            font-family: inherit;
-            max-height: 150px;
-            overflow-y: auto;
-            text-align: left;
-        }
-
 
         .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
         .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
@@ -626,8 +596,6 @@
         .card-type-badge.badge-flashcards { background-color: var(--color-flashcards); }
         .card-type-badge.badge-pack { background-color: var(--color-pack); }
 
-
-        .community-card-body { padding: 1.5rem; flex-grow: 1; }
         .community-card-body h2 { margin: 0; font-size: 1.25rem; }
         .community-card-body p { margin: 0.5rem 0 1rem 0; color: var(--text-secondary); font-size: 0.9rem; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -641,7 +609,7 @@
             border-top: 1px solid var(--border-color); padding: 1rem 1.5rem;
         }
         
-        /* --- NEW: Prominent Stat Pills --- */
+        /* --- UPDATED: Stat Pills & NEW Like Button --- */
         .card-stats-pills {
             display: flex;
             gap: 0.5rem;
@@ -662,6 +630,21 @@
         .stat-pill i {
             color: var(--text-light);
         }
+        .like-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-light);
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .like-btn:hover:not(:disabled) { color: var(--primary-color); transform: scale(1.15); }
+        .like-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+        .like-btn.liked { color: var(--primary-color); }
+
 
         /* --- NEW: Engaging Import Button --- */
         .import-btn {
@@ -786,6 +769,27 @@
         .sp-volume-control { display: flex; align-items: center; gap: 0.5rem; }
         .sp-volume-control input[type=range] { width: 80px; }
         .sp-playlist-select { margin-top: 1rem; width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); }
+
+        /* --- NEW: Styles for Preview Modal --- */
+        #preview-modal-content .modal-content { max-width: 550px; }
+        .preview-item-list {
+            margin-top: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            background-color: var(--background-light);
+        }
+        .preview-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .preview-item:last-child { border-bottom: none; }
+        .preview-item i { color: var(--text-secondary); }
     </style>
     <script>
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
@@ -1019,15 +1023,14 @@
 
                 <div class="community-grid" id="community-grid-main">
                     {% for item in shared_folders %}
-                    <div class="community-card card-style-{{ item.folder_type|lower }}" data-folder-type="{{ item.folder_type }}" data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}">
-                        <!-- NEW: Preview Tooltip -->
-                        <div class="card-preview-tooltip">
-                           <h4>Quick Preview</h4>
-                           <!-- NOTE: Assumes 'item.preview_content' is passed from the backend -->
-                           <pre>{{ item.preview_content or "No preview available." }}</pre>
-                        </div>
+                    <div class="community-card card-style-{{ item.folder_type|lower }}" 
+                         data-folder-type="{{ item.folder_type }}" 
+                         data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}"
+                         data-preview-title="{{ item.folder.title }}"
+                         data-preview-description="{{ item.folder.description }}"
+                         data-preview-items="{{ item.items_preview|tojson|escape }}">
 
-                        <!-- NEW: Resource Type Badge -->
+                        <!-- Resource Type Badge -->
                         <div class="card-type-badge badge-{{ item.folder_type|lower }}">
                             {% if item.folder_type == 'Notes' %}<i data-lucide="notebook-tabs" size="16"></i>
                             {% elif item.folder_type == 'Quiz' %}<i data-lucide="clipboard-list" size="16"></i>
@@ -1043,14 +1046,14 @@
                                 <h3>{{ item.owner_name }}</h3>
                                 <p>Shared {{ item.folder.created_at|timesince }} ago</p>
                             </div>
-                            <!-- NEW: Popular Badge (conditional) -->
+                            <!-- Popular Badge (conditional) -->
                             {% if item.folder.imports > 10 %}
                             <div class="popular-badge">
                                 <i data-lucide="flame" size="14"></i> Popular
                             </div>
                             {% endif %}
                         </div>
-                        <div class="community-card-body">
+                        <div class="community-card-body" role="button" title="Click to preview this folder">
                              <h2>{{ item.folder.title }}</h2>
                              <p>{{ item.folder.description }}</p>
                              {% if item.folder.tags %}
@@ -1062,12 +1065,22 @@
                              {% endif %}
                         </div>
                         <div class="community-card-footer">
-                            <!-- NEW: Prominent Stat Pills -->
                             <div class="card-stats-pills">
+                                <!-- UPDATED: Like button stat -->
                                 <span class="stat-pill">
-                                    <i data-lucide="thumbs-up" size="14"></i>
-                                    {{ item.folder.likes }}
+                                    <button class="like-btn {% if item.current_user_has_liked %}liked{% endif %}" 
+                                            data-folder-id="{{ item.folder.id }}" 
+                                            {% if not item.current_user_has_imported %}
+                                                disabled 
+                                                title="You must import this folder to like it"
+                                            {% else %}
+                                                title="Like this folder"
+                                            {% endif %}>
+                                        <i data-lucide="thumbs-up" size="14"></i>
+                                    </button>
+                                    <span id="like-count-{{ item.folder.id }}">{{ item.folder.likes }}</span>
                                 </span>
+                                <!-- UPDATED: Import stat with downward arrow -->
                                 <span class="stat-pill">
                                     <i data-lucide="download" size="14"></i>
                                     {{ item.folder.imports }}
@@ -1077,7 +1090,7 @@
                                     {{ item.item_count }} items
                                 </span>
                             </div>
-                            <!-- NEW: Engaging Import Button -->
+                            <!-- Engaging Import Button -->
                             <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
                                 <i data-lucide="download-cloud" size="16"></i> Import
                             </button>
@@ -1416,6 +1429,21 @@
         </div>
     </div>
 
+    <!-- NEW: Preview Modal -->
+    <div class="modal-overlay" id="preview-modal">
+        <div class="modal-content" id="preview-modal-content">
+            <div class="modal-header">
+                <h3 id="preview-title">Folder Preview</h3>
+                <button class="close-button" id="close-preview-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <p id="preview-description" style="color: var(--text-secondary);"></p>
+            <div class="preview-item-list" id="preview-item-list">
+                <!-- Preview items will be dynamically inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
+
     {% if spotify_connected %}
     <div id="spotify-player-container">
         <div class="sp-track-info">
@@ -1445,8 +1473,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // (Your existing, non-Spotify JS for modals, tabs, theme, etc. goes here)
-            // ...
             // Modal functionality
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
@@ -1618,12 +1644,11 @@
                 });
             }
 
-            // --- Community Interaction Listeners ---
+            // ==========================================================
+            // --- UPDATED: COMMUNITY INTERACTION LISTENERS ---
+            // ==========================================================
             const communityTab = document.getElementById('community');
             if (communityTab) {
-                // NOTE: The like and delete buttons were removed from the new design.
-                // If you need them, you would re-add the event listeners here.
-
                 // Filtering logic
                 const filterTabs = communityTab.querySelector('#community-filter-tabs');
                 const searchInput = communityTab.querySelector('#community-search-input');
@@ -1660,6 +1685,7 @@
                     searchInput.addEventListener('input', applyFilters);
                 }
 
+                // Sorting Logic
                 const sortSelect = document.getElementById('community-sort-select');
                 if (sortSelect) {
                     const urlParams = new URLSearchParams(window.location.search);
@@ -1675,6 +1701,75 @@
                         window.location.href = currentUrl.href;
                     });
                 }
+                
+                // --- NEW: Preview Modal Logic ---
+                const previewModal = document.getElementById('preview-modal');
+                const previewTitle = document.getElementById('preview-title');
+                const previewDesc = document.getElementById('preview-description');
+                const previewList = document.getElementById('preview-item-list');
+                const closePreviewBtn = document.getElementById('close-preview-modal-btn');
+                
+                document.querySelectorAll('.community-card-body').forEach(cardBody => {
+                    cardBody.addEventListener('click', function() {
+                        const card = this.closest('.community-card');
+                        const title = card.dataset.previewTitle;
+                        const desc = card.dataset.previewDescription;
+                        const items = JSON.parse(card.dataset.previewItems);
+
+                        previewTitle.textContent = title;
+                        previewDesc.textContent = desc;
+                        previewList.innerHTML = ''; // Clear previous items
+
+                        if (items && items.length > 0) {
+                            items.forEach(item => {
+                                const itemEl = document.createElement('div');
+                                itemEl.className = 'preview-item';
+                                let icon = 'file-question';
+                                if(item.type === 'Note') icon = 'notebook-tabs';
+                                if(item.type === 'Quiz') icon = 'clipboard-list';
+                                if(item.type === 'Flashcards') icon = 'layers-3';
+
+                                itemEl.innerHTML = `<i data-lucide="${icon}"></i> <span>${item.title}</span>`;
+                                previewList.appendChild(itemEl);
+                            });
+                        } else {
+                            previewList.innerHTML = `<p style="padding: 1rem; text-align: center; color: var(--text-secondary);">This pack is empty.</p>`;
+                        }
+                        
+                        lucide.createIcons();
+                        previewModal.classList.add('visible');
+                    });
+                });
+                if(closePreviewBtn) closePreviewBtn.addEventListener('click', () => previewModal.classList.remove('visible'));
+                if(previewModal) previewModal.addEventListener('click', e => { if (e.target === previewModal) previewModal.classList.remove('visible'); });
+
+                // --- NEW: Like Button Logic ---
+                document.querySelectorAll('.like-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const folderId = this.dataset.folderId;
+                        
+                        fetch(`/folder/like/${folderId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const countSpan = document.getElementById(`like-count-${folderId}`);
+                                countSpan.textContent = data.count;
+                                if (data.action === 'liked') {
+                                    button.classList.add('liked');
+                                } else {
+                                    button.classList.remove('liked');
+                                }
+                            } else {
+                                alert(data.message);
+                            }
+                        })
+                        .catch(err => console.error('Like action failed:', err));
+                    });
+                });
             }
             
             // --- Profile Tab Functionality ---
@@ -1696,7 +1791,7 @@
             }
 
             // ==========================================================
-            // --- NEW: SETTINGS FUNCTIONALITY ---
+            // --- SETTINGS FUNCTIONALITY ---
             // ==========================================================
             const settingsTab = document.getElementById('settings');
             if(settingsTab) {
