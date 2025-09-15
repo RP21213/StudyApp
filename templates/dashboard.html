@@ -548,22 +548,23 @@
             box-shadow: var(--shadow-lg);
         }
         
-        /* --- NEW: Preview Tooltip on Hover --- */
+        /* --- FIXED: Preview Tooltip on Hover --- */
         .community-card .card-preview-tooltip {
             position: absolute;
-            bottom: calc(100% + 10px); /* Position above the card */
+            bottom: 100%; /* Start from the top edge of the card */
             left: 50%;
             transform: translateX(-50%);
+            margin-bottom: 15px; /* Create a gap between card and tooltip */
             width: 90%;
             padding: 1rem;
             background-color: var(--background-white);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: var(--shadow-lg);
-            z-index: 20;
+            z-index: 100; /* Ensure it's on top of other elements */
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.2s ease, visibility 0.2s;
+            transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s, transform 0.2s ease 0.1s;
             font-size: 0.85rem;
             color: var(--text-secondary);
             pointer-events: none; /* Allows clicks to go through to the card */
@@ -571,9 +572,17 @@
         .community-card:hover .card-preview-tooltip {
             opacity: 1;
             visibility: visible;
+            transform: translateX(-50%) translateY(-10px); /* Move it up slightly with card hover */
         }
         .card-preview-tooltip h4 { margin: 0 0 0.5rem 0; font-weight: 600; color: var(--text-main); }
-        .card-preview-tooltip pre { white-space: pre-wrap; margin: 0; font-family: inherit; }
+        .card-preview-tooltip pre {
+            white-space: pre-wrap;
+            margin: 0;
+            font-family: inherit;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
 
 
         .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
