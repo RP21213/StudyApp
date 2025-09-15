@@ -126,8 +126,25 @@
         }
 
         .side-panel .nav-tab.active {
-            background-color: var(--primary-color);
             color: white;
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* --- NEW: Gradient Chip Styles for Active Tabs --- */
+        .side-panel .nav-tab.active[data-tab="hubs"] {
+            background-image: linear-gradient(to right, #8b5cf6, #4f46e5); /* purple -> indigo */
+        }
+        .side-panel .nav-tab.active[data-tab="progress"] {
+            background-image: linear-gradient(to right, #2dd4bf, #22c55e); /* teal -> green */
+        }
+        .side-panel .nav-tab.active[data-tab="community"] {
+            background-image: linear-gradient(to right, #3b82f6, #8b5cf6); /* blue -> violet */
+        }
+        .side-panel .nav-tab.active[data-tab="profile"] {
+            background-image: linear-gradient(to right, #ec4899, #f43f5e); /* pink -> rose */
+        }
+        .side-panel .nav-tab.active[data-tab="settings"] {
+            background-image: linear-gradient(to right, #9ca3af, #64748b); /* gray -> slate */
         }
         
         .main-content {
@@ -632,23 +649,23 @@
         <nav class="nav-tabs">
             <a href="#" class="nav-tab active" data-tab="hubs">
                 <i data-lucide="layout-grid"></i>
-                <span>Hubs</span>
+                <span>📝 Hubs</span>
             </a>
             <a href="#" class="nav-tab" data-tab="progress">
                 <i data-lucide="trending-up"></i>
-                <span>Progress</span>
+                <span>📈 Progress</span>
             </a>
             <a href="#" class="nav-tab" data-tab="community">
                 <i data-lucide="users"></i>
-                <span>Community</span>
+                <span>🌍 Community</span>
             </a>
             <a href="#" class="nav-tab" data-tab="profile">
                 <i data-lucide="user"></i>
-                <span>Profile</span>
+                <span>😎 Profile</span>
             </a>
             <a href="#" class="nav-tab" data-tab="settings">
                  <i data-lucide="settings"></i>
-                <span>Settings</span>
+                <span>⚙️ Settings</span>
             </a>
         </nav>
         <div class="theme-switch-wrapper">
