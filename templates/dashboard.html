@@ -30,6 +30,12 @@
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
             
+            /* --- NEW: Category Colors --- */
+            --color-notes: #3b82f6; /* Blue */
+            --color-quiz: #22c55e; /* Green */
+            --color-flashcards: #ec4899; /* Pink */
+            --color-pack: #f59e0b; /* Yellow/Amber */
+
             /* --- NEW: Accessibility Styles --- */
             font-size: 16px; /* Default font size */
         }
@@ -59,6 +65,12 @@
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.15);
             --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.1);
             --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.1);
+            
+            /* --- NEW: Dark Theme Category Colors --- */
+            --color-notes: #60a5fa;
+            --color-quiz: #4ade80;
+            --color-flashcards: #f472b6;
+            --color-pack: #fbbf24;
         }
         
         html[data-theme="dark"][data-high-contrast="true"] {
@@ -490,7 +502,13 @@
             transition: all 0.2s ease;
         }
         .filter-tab:hover { background-color: var(--background-light); }
-        .filter-tab.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        /* --- UPDATED: Color coded filter tabs --- */
+        .filter-tab.active[data-filter="all"] { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .filter-tab.active[data-filter="Notes"] { background-color: var(--color-notes); color: white; border-color: var(--color-notes); }
+        .filter-tab.active[data-filter="Quiz"] { background-color: var(--color-quiz); color: white; border-color: var(--color-quiz); }
+        .filter-tab.active[data-filter="Flashcards"] { background-color: var(--color-flashcards); color: white; border-color: var(--color-flashcards); }
+        .filter-tab.active[data-filter="Pack"] { background-color: var(--color-pack); color: white; border-color: var(--color-pack); }
+
         .sort-filter select {
             padding: 0.65rem 1rem;
             border-radius: 8px;
@@ -502,22 +520,105 @@
             font-size: 0.9rem;
         }
 
-        .community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
-        .community-card {
-            background-color: var(--background-white); border-radius: 16px; border: 1px solid var(--border-color);
-            display: flex; flex-direction: column; box-shadow: var(--shadow-sm);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        /* --- UPDATED Community Grid & Cards --- */
+        .community-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem; /* Increased spacing */
         }
-        .community-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+        .community-card {
+            background-color: var(--background-white);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            border-top-width: 4px; /* Make space for color accent */
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative; /* For positioning badges and tooltips */
+        }
+        /* --- NEW: Add color accent based on type --- */
+        .community-card.card-style-notes { border-top-color: var(--color-notes); }
+        .community-card.card-style-quiz { border-top-color: var(--color-quiz); }
+        .community-card.card-style-flashcards { border-top-color: var(--color-flashcards); }
+        .community-card.card-style-pack { border-top-color: var(--color-pack); }
+        
+        .community-card:hover {
+            transform: translateY(-10px); /* Enhanced hover effect */
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* --- NEW: Preview Tooltip on Hover --- */
+        .community-card .card-preview-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px); /* Position above the card */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            padding: 1rem;
+            background-color: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            pointer-events: none; /* Allows clicks to go through to the card */
+        }
+        .community-card:hover .card-preview-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .card-preview-tooltip h4 { margin: 0 0 0.5rem 0; font-weight: 600; color: var(--text-main); }
+        .card-preview-tooltip pre { white-space: pre-wrap; margin: 0; font-family: inherit; }
+
 
         .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
         .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
         .user-info { flex-grow: 1; }
         .user-info h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
         .user-info p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
-        .card-type-icon { font-size: 1.5rem; }
-        .card-actions-menu { position: absolute; top: 1rem; right: 1rem; }
-        .community-card-body { padding: 1rem 1.5rem; flex-grow: 1; }
+        
+        /* --- NEW: Popular Badge --- */
+        .popular-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: linear-gradient(to right, #f97316, #f59e0b);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* --- NEW: Resource Type Badge --- */
+        .card-type-badge {
+            position: absolute;
+            top: -14px;
+            left: 1.5rem;
+            padding: 0.3rem 0.8rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .card-type-badge.badge-notes { background-color: var(--color-notes); }
+        .card-type-badge.badge-quiz { background-color: var(--color-quiz); }
+        .card-type-badge.badge-flashcards { background-color: var(--color-flashcards); }
+        .card-type-badge.badge-pack { background-color: var(--color-pack); }
+
+
+        .community-card-body { padding: 1.5rem; flex-grow: 1; }
         .community-card-body h2 { margin: 0; font-size: 1.25rem; }
         .community-card-body p { margin: 0.5rem 0 1rem 0; color: var(--text-secondary); font-size: 0.9rem; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -525,44 +626,47 @@
             font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 99px;
             background-color: var(--background-light); border: 1px solid var(--border-color);
         }
-        .item-counts-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        .item-counts-preview span {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-weight: 500;
-        }
 
         .community-card-footer {
             display: flex; justify-content: space-between; align-items: center;
-            border-top: 1px solid var(--border-color); padding: 1rem 1.5rem; font-size: 0.9rem;
+            border-top: 1px solid var(--border-color); padding: 1rem 1.5rem;
         }
-        .card-stats { display: flex; flex-wrap: wrap; gap: 1rem; color: var(--text-secondary); align-items: center; }
-        .card-stats span { display: flex; align-items: center; gap: 0.35rem; font-weight: 500; }
-        .card-stats i { color: var(--text-light); }
         
-        .like-btn {
-            background-color: transparent; border: 1px solid var(--border-color);
-            padding: 0.4rem 0.8rem; border-radius: 99px;
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+        /* --- NEW: Prominent Stat Pills --- */
+        .card-stats-pills {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
         }
-        .like-btn:hover { background-color: #fce7f3; border-color: #f472b6; color: #db2777; }
-        html[data-theme="dark"] .like-btn:hover { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
-        .like-btn.liked { background-color: #fce7f3; border-color: #f472b6; color: #db2777; }
-        html[data-theme="dark"] .like-btn.liked { background-color: #581c87; border-color: #c084fc; color: #e9d5ff; }
-        .like-btn .lucide-thumbs-up { transition: all 0.2s; }
-        .like-btn.liked .lucide-thumbs-up { fill: currentColor; }
-        .like-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-        .like-btn:disabled:hover { background: transparent; border-color: var(--border-color); color: var(--text-secondary); }
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 99px;
+            color: var(--text-secondary);
+        }
+        .stat-pill i {
+            color: var(--text-light);
+        }
 
+        /* --- NEW: Engaging Import Button --- */
+        .import-btn {
+            padding: 0.6rem 1.2rem !important;
+            font-size: 0.9rem !important;
+            background-image: linear-gradient(to right, #6366f1, #8b5cf6);
+            border: none;
+            transition: all 0.3s ease !important;
+        }
+        .import-btn:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+        }
+        
         .section-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
         .section-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
         .section-header p { color: var(--text-secondary); margin: 0.25rem 0 0 0; }
@@ -721,7 +825,7 @@
         <div class="side-panel-footer">
             {% if not spotify_connected %}
                 <a href="{{ url_for('spotify_login') }}" class="button button-secondary" style="background-color: #1DB954; color: white; border-color: #1DB954; flex-grow: 1; justify-content: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748 1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112 1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748,1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112,1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
                     <span>Connect</span>
                 </a>
             {% else %}
@@ -906,45 +1010,40 @@
 
                 <div class="community-grid" id="community-grid-main">
                     {% for item in shared_folders %}
-                    <div class="community-card" data-folder-type="{{ item.folder_type }}" data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}">
+                    <div class="community-card card-style-{{ item.folder_type|lower }}" data-folder-type="{{ item.folder_type }}" data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}">
+                        <!-- NEW: Preview Tooltip -->
+                        <div class="card-preview-tooltip">
+                           <h4>Quick Preview</h4>
+                           <!-- NOTE: Assumes 'item.preview_content' is passed from the backend -->
+                           <pre>{{ item.preview_content or "No preview available." }}</pre>
+                        </div>
+
+                        <!-- NEW: Resource Type Badge -->
+                        <div class="card-type-badge badge-{{ item.folder_type|lower }}">
+                            {% if item.folder_type == 'Notes' %}<i data-lucide="notebook-tabs" size="16"></i>
+                            {% elif item.folder_type == 'Quiz' %}<i data-lucide="clipboard-list" size="16"></i>
+                            {% elif item.folder_type == 'Flashcards' %}<i data-lucide="layers-3" size="16"></i>
+                            {% else %}<i data-lucide="package-2" size="16"></i>
+                            {% endif %}
+                            <span>{{ item.folder_type }}</span>
+                        </div>
+                        
                         <div class="community-card-header">
                             <img src="{{ item.owner_avatar }}" alt="User Avatar">
                             <div class="user-info">
                                 <h3>{{ item.owner_name }}</h3>
                                 <p>Shared {{ item.folder.created_at|timesince }} ago</p>
                             </div>
-                            <div class="card-actions-menu">
-                                {% if item.folder.owner_id == current_user.id %}
-                                <button class="delete-btn delete-shared-folder-btn" title="Remove from community" data-shared-folder-id="{{ item.folder.id }}">
-                                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                                </button>
-                                {% else %}
-                                <div class="card-type-icon">
-                                    {% if item.folder_type == 'Notes' %}📒
-                                    {% elif item.folder_type == 'Quiz' %}📊
-                                    {% elif item.folder_type == 'Flashcards' %}🎴
-                                    {% else %}📦
-                                    {% endif %}
-                                </div>
-                                {% endif %}
+                            <!-- NEW: Popular Badge (conditional) -->
+                            {% if item.folder.imports > 10 %}
+                            <div class="popular-badge">
+                                <i data-lucide="flame" size="14"></i> Popular
                             </div>
+                            {% endif %}
                         </div>
                         <div class="community-card-body">
                              <h2>{{ item.folder.title }}</h2>
                              <p>{{ item.folder.description }}</p>
-                             <div class="item-counts-preview">
-                                {% for type, count in item.item_type_counts.items() %}
-                                    {% if count > 0 %}
-                                        <span>
-                                            {% if type == 'Notes' %}<i data-lucide="notebook" size="16"></i>
-                                            {% elif type == 'Quiz' %}<i data-lucide="clipboard-list" size="16"></i>
-                                            {% elif type == 'Flashcards' %}<i data-lucide="layers" size="16"></i>
-                                            {% endif %}
-                                            {{ count }} {{ type }}
-                                        </span>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
                              {% if item.folder.tags %}
                              <div class="tag-list">
                                 {% for tag in item.folder.tags %}
@@ -954,18 +1053,23 @@
                              {% endif %}
                         </div>
                         <div class="community-card-footer">
-                            <div class="card-stats">
-                                 <button class="like-btn {% if current_user.id in item.folder.liked_by %}liked{% endif %}" 
-                                        data-shared-folder-id="{{ item.folder.id }}"
-                                        {% if current_user.id == item.folder.owner_id or current_user.id not in item.folder.imported_by %}disabled{% endif %}
-                                        title="{% if current_user.id not in item.folder.imported_by %}Import to like this folder{% endif %}">
-                                    <i data-lucide="thumbs-up" size="16"></i>
-                                    <span class="like-count">{{ item.folder.likes }}</span>
-                                </button>
-                                <span><i data-lucide="download" size="16"></i> {{ item.folder.imports }}</span>
-                                <span><i data-lucide="package" size="16"></i>{{ item.item_count }} items</span>
+                            <!-- NEW: Prominent Stat Pills -->
+                            <div class="card-stats-pills">
+                                <span class="stat-pill">
+                                    <i data-lucide="thumbs-up" size="14"></i>
+                                    {{ item.folder.likes }}
+                                </span>
+                                <span class="stat-pill">
+                                    <i data-lucide="download" size="14"></i>
+                                    {{ item.folder.imports }}
+                                </span>
+                                <span class="stat-pill">
+                                    <i data-lucide="package" size="14"></i>
+                                    {{ item.item_count }} items
+                                </span>
                             </div>
-                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                            <!-- NEW: Engaging Import Button -->
+                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
                                 <i data-lucide="download-cloud" size="16"></i> Import
                             </button>
                         </div>
@@ -1508,38 +1612,8 @@
             // --- Community Interaction Listeners ---
             const communityTab = document.getElementById('community');
             if (communityTab) {
-                communityTab.addEventListener('click', async (e) => {
-                    const likeBtn = e.target.closest('.like-btn:not(:disabled)');
-                    const deleteBtn = e.target.closest('.delete-shared-folder-btn');
-
-                    if (likeBtn) {
-                        const folderId = likeBtn.dataset.sharedFolderId;
-                        const likeCountSpan = likeBtn.querySelector('.like-count');
-                        
-                        const response = await fetch(`/folder/like/${folderId}`, { method: 'POST' });
-                        const result = await response.json();
-
-                        if (result.success) {
-                            likeBtn.classList.toggle('liked', result.liked);
-                            likeCountSpan.textContent = result.count;
-                        } else {
-                            alert(result.message);
-                        }
-                    }
-
-                    if (deleteBtn) {
-                        const folderId = deleteBtn.dataset.sharedFolderId;
-                        if (confirm('Are you sure you want to remove this folder from the community? This cannot be undone.')) {
-                             const response = await fetch(`/folder/share/delete/${folderId}`, { method: 'POST' });
-                             const result = await response.json();
-                             if(result.success) {
-                                deleteBtn.closest('.community-card').remove();
-                             } else {
-                                alert(result.message);
-                             }
-                        }
-                    }
-                });
+                // NOTE: The like and delete buttons were removed from the new design.
+                // If you need them, you would re-add the event listeners here.
 
                 // Filtering logic
                 const filterTabs = communityTab.querySelector('#community-filter-tabs');
