@@ -361,18 +361,11 @@
         .empty-state-text { text-align: center; padding: 2rem; color: var(--text-secondary); }
         
         .section-heading { font-size: 1.5rem; font-weight: 700; margin: 0 0 1.5rem 0; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .pipeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .pipeline-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main); cursor: pointer; }
-        .pipeline-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
-        .pipeline-header { display: flex; align-items: center; gap: 1rem; }
-        .pipeline-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .pipeline-title h3 { margin: 0; font-size: 1.25rem; font-weight: 700; }
-        .pipeline-title .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
-        .pipeline-title .new-label { font-size: 0.75rem; font-weight: bold; color: #155e75; background-color: #cffafe; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
-        .pipeline-description { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; flex-grow: 1; font-family: 'Lora', serif; }
-        .pipeline-action { margin-top: auto; align-self: flex-start; }
-        .all-tools-toggle { text-align: center; margin-top: 2.5rem; }
-        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+        
+        .pro-label { font-size: 0.75rem; font-weight: bold; color: #854d0e; background-color: #fef9c3; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
+        .new-label { font-size: 0.75rem; font-weight: bold; color: #155e75; background-color: #cffafe; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
+        
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
         .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main);}
         .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
         .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
@@ -587,6 +580,59 @@
         .sq-message code {
             font-family: 'Courier New', Courier, monospace;
         }
+        
+        /* NEW STYLES FOR TOOL CATEGORY BUTTONS */
+        .tool-category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        .tool-category-button {
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+        }
+        .tool-category-button:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--card-shadow-hover);
+            border-color: var(--primary-color);
+        }
+        .tool-category-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .tool-category-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .tool-category-title h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .tool-category-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-family: 'Lora', serif;
+        }
+        .tool-category-back-button {
+            margin-bottom: 2rem;
+        }
+
     </style>
 </head>
 <body>
@@ -760,98 +806,113 @@
                     </div>
                 </div>
                 
-                <div id="tools" class="tab-content active">
+                <div id="tools" class="tab-content">
                     <div class="workspace-header">
                         <h1>Study Tools</h1>
                         <p>Generate study materials, get ready for exams, and plan your schedule.</p>
                     </div>
                     
-                    <div class="large-grid" style="grid-template-columns: 1fr; gap: 2.5rem;">
-                        <!-- IN A LECTURE CARD -->
-                        <div class="large-grid-card">
-                            <h2 class="section-heading" style="border:none; margin-bottom: 1.5rem; padding-bottom: 0;">In a Lecture</h2>
-                            <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-                                
-                                <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="feature-card" id="pipeline-live-lecture">
-                                    <div class="feature-icon-wrapper" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Live Lecture Capture<span class="pro-label">PRO</span></h4>
-                                        <p>Record your lecture in real-time and let AI generate structured notes and summaries automatically.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </a>
-
-                                <button type="button" class="feature-card" id="pipeline-slide-notes">
-                                    <div class="feature-icon-wrapper" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Take Notes with Slides<span class="new-label">NEW</span></h4>
-                                        <p>Upload your lecture slides (PDF) to open a split-screen workspace for note-taking.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
-
+                    <!-- NEW: Tool Category Selection -->
+                    <div id="tool-category-selection">
+                        <div class="tool-category-grid">
+                            <div class="tool-category-button" data-target="in-lecture-tools">
+                                <div class="tool-category-header">
+                                    <div class="tool-category-icon" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
+                                    <div class="tool-category-title"><h3>In a Lecture</h3></div>
+                                </div>
+                                <p class="tool-category-description">Tools designed for use during class to help you capture information and take better notes in real-time.</p>
+                            </div>
+                            <div class="tool-category-button" data-target="revision-exams-tools">
+                                <div class="tool-category-header">
+                                    <div class="tool-category-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                                    <div class="tool-category-title"><h3>Revision & Exams</h3></div>
+                                </div>
+                                <p class="tool-category-description">Prepare for assessments by generating study materials, getting help with problems, and planning your schedule.</p>
                             </div>
                         </div>
-            
-                        <!-- REVISION & EXAMS CARD -->
-                        <div class="large-grid-card">
-                             <h2 class="section-heading" style="border:none; margin-bottom: 1.5rem; padding-bottom: 0;">Revision & Exams</h2>
-                             <div class="feature-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-                                
-                                <button type="button" class="feature-card" id="pipeline-stuck-question">
-                                    <div class="feature-icon-wrapper" style="background-color: #f3e8ff; color: #7e22ce;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Stuck on a Question?<span class="pro-label">PRO</span></h4>
-                                        <p>Get a step-by-step, interactive solution for any problem. Upload a photo or paste text.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
-                                
-                                <button type="button" class="feature-card" id="pipeline-revision-pack">
-                                    <div class="feature-icon-wrapper" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Revision Pack Builder</h4>
-                                        <p>Turn documents into a kit with notes, flashcards, and quizzes in a new folder.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
-                                
-                                <button type="button" class="feature-card" id="pipeline-exam-kit">
-                                    <div class="feature-icon-wrapper" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Exam Builder<span class="pro-label">PRO</span></h4>
-                                        <p>Generate one-page cheatsheets and a timed mock exam from your course materials.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
+                    </div>
 
-                                <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="feature-card" id="pipeline-assignment-assistant">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Assignment Assistant<span class="pro-label">PRO</span></h4>
-                                        <p>Go from a brief and your source documents to a structured outline and first draft.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </a>
+                    <!-- NEW: In Lecture Tools (hidden by default) -->
+                    <div id="in-lecture-tools" style="display: none;">
+                        <button class="button button-secondary tool-category-back-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                            Back to Categories
+                        </button>
+                        <div class="feature-grid">
+                            <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="feature-card" id="pipeline-live-lecture">
+                                <div class="feature-icon-wrapper" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m12 7.5v-1.5a6 6 0 00-6-6m-6 6a6 6 0 006-6m-6 6v7.5a6 6 0 006 6h4.5a6 6 0 006-6v-7.5" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Live Lecture Capture<span class="pro-label">PRO</span></h4>
+                                    <p>Record your lecture in real-time and let AI generate structured notes and summaries automatically.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </a>
+                            <button type="button" class="feature-card" id="pipeline-slide-notes">
+                                <div class="feature-icon-wrapper" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Take Notes with Slides<span class="new-label">NEW</span></h4>
+                                    <p>Upload your lecture slides (PDF) to open a split-screen workspace for note-taking.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                        </div>
+                    </div>
 
-                                <button type="button" class="feature-card" id="pipeline-study-planner">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Smart Study Planner<span class="pro-label">PRO</span></h4>
-                                        <p>Upload a syllabus and deadline to automatically create a schedule in your calendar.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
-                                
-                                <button type="button" class="feature-card quick-tool-btn" value="analyse">
-                                    <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
-                                    <div class="feature-text">
-                                        <h4>Exam Predictor <span class="pro-label">PRO</span></h4>
-                                        <p>Generate a report outlining likely topics by analyzing past papers.</p>
-                                    </div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                </button>
-                             </div>
+                    <!-- NEW: Revision & Exams Tools (hidden by default) -->
+                    <div id="revision-exams-tools" style="display: none;">
+                        <button class="button button-secondary tool-category-back-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+                            Back to Categories
+                        </button>
+                        <div class="feature-grid">
+                            <button type="button" class="feature-card" id="pipeline-stuck-question">
+                                <div class="feature-icon-wrapper" style="background-color: #f3e8ff; color: #7e22ce;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Stuck on a Question?<span class="pro-label">PRO</span></h4>
+                                    <p>Get a step-by-step, interactive solution for any problem. Upload a photo or paste text.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                            <button type="button" class="feature-card" id="pipeline-revision-pack">
+                                <div class="feature-icon-wrapper" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Revision Pack Builder</h4>
+                                    <p>Turn documents into a kit with notes, flashcards, and quizzes in a new folder.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                            <button type="button" class="feature-card" id="pipeline-exam-kit">
+                                <div class="feature-icon-wrapper" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Exam Builder<span class="pro-label">PRO</span></h4>
+                                    <p>Generate one-page cheatsheets and a timed mock exam from your course materials.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                            <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="feature-card" id="pipeline-assignment-assistant">
+                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Assignment Assistant<span class="pro-label">PRO</span></h4>
+                                    <p>Go from a brief and your source documents to a structured outline and first draft.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </a>
+                            <button type="button" class="feature-card" id="pipeline-study-planner">
+                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
+                                <div class="feature-text">
+                                    <h4>Smart Study Planner<span class="pro-label">PRO</span></h4>
+                                    <p>Upload a syllabus and deadline to automatically create a schedule in your calendar.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
+                            <button type="button" class="feature-card quick-tool-btn" value="analyse">
+                                <div class="feature-icon-wrapper" style="background-color: #e0f2fe;"><svg style="color: #0369a1;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8.7l-7.2 7.2-2.5-2.5L3 17"></path></svg></div>
+                                <div class="feature-text">
+                                    <h4>Exam Predictor <span class="pro-label">PRO</span></h4>
+                                    <p>Generate a report outlining likely topics by analyzing past papers.</p>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -992,7 +1053,7 @@
                         {% for slide_note in all_slide_notes %}
                         <li class="asset-item" data-id="{{ slide_note.id }}" data-type="slide_notes">
                             <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link">
-                                <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
+                                <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
                                 <div class="asset-details"><h5 id="title-slide-note-{{ slide_note.id }}">{{ slide_note.title }}</h5><span>Created {{ slide_note.created_at|timesince }} ago</span></div>
                             </a>
                         </li>
@@ -1233,6 +1294,12 @@
             const slideNotesModal = document.getElementById('slide-notes-modal');
             const studyToolsTab = document.getElementById('tools');
             const toolFileSelectModal = document.getElementById('tool-file-select-modal');
+
+            // --- NEW: Tool Category Navigation Elements ---
+            const toolCategorySelection = document.getElementById('tool-category-selection');
+            const inLectureTools = document.getElementById('in-lecture-tools');
+            const revisionExamsTools = document.getElementById('revision-exams-tools');
+            const backToCategoriesBtns = document.querySelectorAll('.tool-category-back-button');
 
 
             // --- Sidebar and Navigation Logic ---
@@ -1752,11 +1819,34 @@
             const isProUser = "{{ current_user.subscription_tier }}" === 'pro' || "{{ current_user.subscription_tier }}" === 'admin';
             
             if (studyToolsTab) {
+                // NEW: Handle category selection
+                toolCategorySelection.addEventListener('click', (e) => {
+                    const categoryButton = e.target.closest('.tool-category-button');
+                    if (!categoryButton) return;
+                    
+                    const targetId = categoryButton.dataset.target;
+                    const targetEl = document.getElementById(targetId);
+                    
+                    if (targetEl) {
+                        toolCategorySelection.style.display = 'none';
+                        targetEl.style.display = 'block';
+                    }
+                });
+                
+                // NEW: Handle back buttons
+                backToCategoriesBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        inLectureTools.style.display = 'none';
+                        revisionExamsTools.style.display = 'none';
+                        toolCategorySelection.style.display = 'block';
+                    });
+                });
+
+                // Handle clicks on the actual tool cards
                 studyToolsTab.addEventListener('click', (e) => {
                     const toolCard = e.target.closest('.feature-card');
                     if (!toolCard) return;
 
-                    // Prevent pro features for free users
                     const isProFeature = toolCard.querySelector('.pro-label');
                     if (isProFeature && !isProUser) {
                         e.preventDefault();
@@ -1765,10 +1855,9 @@
                         return;
                     }
 
-                    // Handle tool activation
                     e.preventDefault();
                     const toolId = toolCard.id;
-                    const toolValue = toolCard.value;
+                    const toolValue = toolCard.getAttribute('value');
                     
                     if (toolId) {
                          switch (toolId) {
@@ -1794,7 +1883,6 @@
                                 break;
                         }
                     } else if (toolValue) {
-                        // This handles the "Exam Predictor" which uses the quick-tool mechanism
                         openToolFileSelectModal(toolValue);
                     }
                 });
