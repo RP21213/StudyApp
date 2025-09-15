@@ -618,6 +618,7 @@
         .stat-pill {
             display: flex;
             align-items: center;
+            justify-content: center; /* Center content */
             gap: 0.35rem;
             font-weight: 600;
             font-size: 0.85rem;
@@ -626,6 +627,8 @@
             padding: 0.4rem 0.8rem;
             border-radius: 99px;
             color: var(--text-secondary);
+            min-width: 60px; /* Ensure pills have a consistent minimum width */
+            box-sizing: border-box;
         }
         /* --- NEW: Like Button Styling --- */
         .like-btn {
@@ -633,16 +636,20 @@
             border: none;
             cursor: pointer;
             padding: 0;
-            margin-right: 0.25rem;
             display: inline-flex;
             align-items: center;
             font-size: 1rem;
             line-height: 1;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, color 0.2s;
+            color: var(--text-secondary);
         }
-        .like-btn:hover:not(:disabled) { transform: scale(1.2); }
+        .like-btn:hover:not(:disabled) { transform: scale(1.2); color: var(--text-main); }
         .like-btn:disabled { cursor: not-allowed; filter: grayscale(1); opacity: 0.6; }
-        .like-btn.liked { filter: none; transform: scale(1.1); }
+        .like-btn.liked { 
+            filter: none; 
+            transform: scale(1.1); 
+            color: #ef4444; /* red for liked */
+        }
         .like-btn.liked:hover { transform: scale(1.25); }
 
 
@@ -1028,7 +1035,7 @@
                          data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}"
                          data-preview-title="{{ item.folder.title }}"
                          data-preview-description="{{ item.folder.description }}"
-                         data-preview-items='{{ (item.items_preview or [])|tojson }}'>
+                         data-preview-items='{{ item.items_preview|tojson }}'>
 
                         <!-- Resource Type Badge -->
                         <div class="card-type-badge badge-{{ item.folder_type|lower }}">
@@ -1075,18 +1082,19 @@
                                             {% else %}
                                                 title="Like this folder"
                                             {% endif %}>
-                                        👍
+                                        <i data-lucide="thumbs-up" size="16"></i>
                                     </button>
                                     <span id="like-count-{{ item.folder.id }}">{{ item.folder.likes }}</span>
                                 </span>
                                 <!-- Import Pill -->
                                 <span class="stat-pill">
-                                    {{ item.folder.imports }} ⬇️
+                                    <i data-lucide="download" size="14"></i>
+                                    <span>{{ item.folder.imports }}</span>
                                 </span>
                                 <!-- Items Pill -->
                                 <span class="stat-pill">
                                     <i data-lucide="package" size="14"></i>
-                                    {{ item.item_count }} items
+                                    <span>{{ item.item_count }}</span>
                                 </span>
                             </div>
 
@@ -1547,7 +1555,7 @@
                 .then(data => {
                     alert(data.message);
                     if (data.success) {
-                        window.location.reload();
+                        window.location.reload(); // Reload to reflect changes
                     }
                 })
                 .catch(error => {

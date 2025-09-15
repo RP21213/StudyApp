@@ -1162,11 +1162,9 @@ def dashboard():
     total_shared_count = 0
     if current_user.subscription_tier in ['pro', 'admin']:
         
-        # --- Get total count for gamification ---
         all_shared_docs = db.collection('shared_folders').stream()
         total_shared_count = len(list(all_shared_docs))
 
-        # --- Base query for main list with sorting ---
         query = db.collection('shared_folders')
         sort_by = request.args.get('sort', 'created_at')
         if sort_by == 'likes':
@@ -1179,11 +1177,11 @@ def dashboard():
         shared_folders_docs = query.limit(50).stream()
         shared_folders = [SharedFolder.from_dict(doc.to_dict()) for doc in shared_folders_docs]
         
-        # --- Hydrate folder data (get owner info and item details) ---
-        all_folders_to_hydrate = shared_folders
-        owner_ids = list(set(sf.owner_id for sf in all_folders_to_hydrate))
-        original_folder_ids = list(set(sf.original_folder_id for sf in all_folders_to_hydrate))
+        # 1. Collect all IDs needed for hydration
+        owner_ids = list(set(sf.owner_id for sf in shared_folders))
+        original_folder_ids = list(set(sf.original_folder_id for sf in shared_folders))
         
+        # 2. Batch fetch user and folder data
         users_data = {}
         if owner_ids:
             user_docs = db.collection('users').where('id', 'in', owner_ids).stream()
@@ -1194,31 +1192,47 @@ def dashboard():
             folder_docs = db.collection('folders').where('id', 'in', original_folder_ids).stream()
             original_folders_data = {f.to_dict()['id']: f.to_dict() for f in folder_docs}
 
+        # 3. NEW: Batch fetch all items (notes/activities) for previews
+        all_item_ids = {'note': [], 'activity': []}
+        for folder_id, folder_info in original_folders_data.items():
+            for item in folder_info.get('items', []):
+                item_id = item.get('id')
+                if item.get('type') == 'note':
+                    all_item_ids['note'].append(item_id)
+                elif item.get('type') in ['quiz', 'flashcards']:
+                    all_item_ids['activity'].append(item_id)
+        
+        all_items_data = {}
+        if all_item_ids['note']:
+            note_docs = db.collection('notes').where('id', 'in', list(set(all_item_ids['note']))).stream()
+            for doc in note_docs: all_items_data[doc.id] = doc.to_dict()
+        if all_item_ids['activity']:
+            activity_docs = db.collection('activities').where('id', 'in', list(set(all_item_ids['activity']))).stream()
+            for doc in activity_docs: all_items_data[doc.id] = doc.to_dict()
+
         hydrated_cache = {}
 
         def _hydrate_folder_info(sf):
-            if sf.id in hydrated_cache:
-                return hydrated_cache[sf.id]
+            if sf.id in hydrated_cache: return hydrated_cache[sf.id]
 
             owner_info = users_data.get(sf.owner_id)
             original_folder_info = original_folders_data.get(sf.original_folder_id)
             
             item_count = 0
             folder_type = "Pack"
-            item_type_counts = {'Notes': 0, 'Quiz': 0, 'Flashcards': 0}
+            items_preview = []
 
             if original_folder_info:
                 items = original_folder_info.get('items', [])
                 item_count = len(items)
 
                 for item in items:
-                    item_type = item.get('type')
-                    if item_type == 'note':
-                        item_type_counts['Notes'] += 1
-                    elif item_type == 'quiz':
-                        item_type_counts['Quiz'] += 1
-                    elif item_type == 'flashcards':
-                        item_type_counts['Flashcards'] += 1
+                    item_data = all_items_data.get(item.get('id'))
+                    if item_data:
+                        item_type_map = {'note': 'Note', 'Quiz': 'Quiz', 'Flashcards': 'Flashcards'}
+                        raw_type = item_data.get('type', item.get('type')) # Handles both 'note' and 'Quiz'
+                        preview_type = item_type_map.get(raw_type, 'Item')
+                        items_preview.append({'title': item_data.get('title', 'Untitled'), 'type': preview_type})
                 
                 types = {item.get('type') for item in items}
                 if len(types) == 1:
@@ -1231,32 +1245,24 @@ def dashboard():
                 'owner_avatar': owner_info.get('avatar_url', 'default_avatar.png') if owner_info else 'default_avatar.png',
                 'item_count': item_count,
                 'folder_type': folder_type,
-                'item_type_counts': item_type_counts
+                'items_preview': items_preview,
+                'current_user_has_liked': current_user.id in sf.liked_by,
+                'current_user_has_imported': current_user.id in sf.imported_by
             }
             hydrated_cache[sf.id] = hydrated_info
             return hydrated_info
 
         shared_folders_hydrated = [_hydrate_folder_info(sf) for sf in shared_folders]
 
-    # --- NEW: Fetch all of the user's own folders for the share modal ---
     all_user_folders = []
     for hub in hubs_list:
         folders_query = db.collection('folders').where('hub_id', '==', hub.id).stream()
         for folder_doc in folders_query:
             folder = Folder.from_dict(folder_doc.to_dict())
-            all_user_folders.append({
-                "id": folder.id,
-                "name": folder.name,
-                "hub_name": hub.name
-            })
+            all_user_folders.append({"id": folder.id, "name": folder.name, "hub_name": hub.name})
 
-    # --- FIX: Create a separate, JSON-serializable list of hubs for the JavaScript part ---
     hubs_for_json = [hub.to_dict() for hub in hubs_list]
-    
-    # --- NEW: Fetch data for the Profile Tab ---
     stats = _get_user_stats(current_user.id)
-
-    # --- NEW: Check for Spotify connection ---
     spotify_connected_status = True if current_user.spotify_refresh_token else False
 
     return render_template(
