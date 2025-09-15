@@ -162,15 +162,16 @@ socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
 
-# --- NEW: Spotify Configuration ---
+# --- MODIFIED: Spotify Configuration ---
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1/"
-# This must match the URI you set in the Spotify Developer Dashboard
 SPOTIFY_REDIRECT_URI = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000") + "/spotify/callback"
-SPOTIFY_SCOPES = "user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private"
+# Added "streaming", "user-read-email", "user-read-private" for the SDK
+SPOTIFY_SCOPES = "streaming user-read-email user-read-private user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private"
+
 
 
 # --- NEW: In-memory cache for AI Tutor vector stores ---
@@ -966,6 +967,16 @@ def spotify_callback():
     flash("Successfully connected your Spotify account!", "success")
     return redirect(url_for('dashboard'))
 
+# --- NEW: Endpoint for the Web Playback SDK ---
+@app.route('/spotify/access_token')
+@login_required
+def get_spotify_access_token():
+    token = get_valid_spotify_token()
+    if token:
+        return jsonify({'access_token': token})
+    else:
+        return jsonify({'error': 'User not connected to Spotify or token refresh failed'}), 401
+
 @app.route('/spotify/player_state')
 @login_required
 @spotify_connected
@@ -982,11 +993,18 @@ def get_playlists():
 @login_required
 @spotify_connected
 def play():
+    device_id = request.json.get('device_id')
     context_uri = request.json.get('context_uri')
+    
+    endpoint = 'me/player/play'
+    if device_id:
+        endpoint += f'?device_id={device_id}'
+        
     data = {}
     if context_uri:
         data['context_uri'] = context_uri
-    return spotify_api_request('PUT', 'me/player/play', json_data=data)
+        
+    return spotify_api_request('PUT', endpoint, json_data=data)
 
 @app.route('/spotify/pause', methods=['PUT'])
 @login_required
