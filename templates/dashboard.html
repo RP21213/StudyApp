@@ -552,7 +552,6 @@
         .community-card-body {
             padding: 1.5rem; 
             flex-grow: 1;
-            cursor: pointer; /* Indicates it's clickable for preview */
         }
 
         .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
@@ -1060,7 +1059,7 @@
                             </div>
                             {% endif %}
                         </div>
-                        <div class="community-card-body" role="button" title="Click to preview this folder">
+                        <div class="community-card-body">
                              <h2>{{ item.folder.title }}</h2>
                              <p>{{ item.folder.description }}</p>
                              {% if item.folder.tags %}
@@ -1097,11 +1096,14 @@
                                     <span>{{ item.item_count }}</span>
                                 </span>
                             </div>
-
-                            <!-- Engaging Import Button -->
-                            <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}">
-                                <i data-lucide="download-cloud" size="16"></i> Import
-                            </button>
+                            <div class="footer-actions" style="display: flex; gap: 0.5rem;">
+                               <button class="button button-secondary preview-btn" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
+                                   <i data-lucide="eye" size="16"></i>
+                               </button>
+                               <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
+                                   <i data-lucide="download-cloud" size="16"></i>
+                               </button>
+                            </div>
                         </div>
                     </div>
                     {% else %}
@@ -1717,8 +1719,8 @@
                 const previewList = document.getElementById('preview-item-list');
                 const closePreviewBtn = document.getElementById('close-preview-modal-btn');
                 
-                document.querySelectorAll('.community-card-body').forEach(cardBody => {
-                    cardBody.addEventListener('click', function() {
+                document.querySelectorAll('.preview-btn').forEach(button => {
+                    button.addEventListener('click', function() {
                         const card = this.closest('.community-card');
                         const title = card.dataset.previewTitle;
                         const desc = card.dataset.previewDescription;
@@ -1750,6 +1752,7 @@
                 });
                 if(closePreviewBtn) closePreviewBtn.addEventListener('click', () => previewModal.classList.remove('visible'));
                 if(previewModal) previewModal.addEventListener('click', e => { if (e.target === previewModal) previewModal.classList.remove('visible'); });
+
 
                 // --- NEW: Like Button Logic ---
                 document.querySelectorAll('.like-btn').forEach(button => {
