@@ -1529,7 +1529,7 @@
         <div class="sp-progress-bar"><div id="sp-progress" class="sp-progress"></div></div>
         <div class="sp-controls">
             <div class="sp-main-controls">
-                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
                 <button id="sp-play-btn" class="sp-play-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg></button>
                 <button id="sp-next-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
             </div>
@@ -1821,7 +1821,7 @@
                 if(closePreviewBtn) closePreviewBtn.addEventListener('click', () => previewModal.classList.remove('visible'));
                 if(previewModal) previewModal.addEventListener('click', e => { if (e.target === previewModal) previewModal.classList.remove('visible'); });
 
-                // --- NEW: Item Preview Modal ---
+                // --- NEW & UPDATED: Item Preview Modal & Content Fetching ---
                 const itemPreviewModal = document.getElementById('item-preview-modal');
                 const closeItemPreviewBtn = document.getElementById('close-item-preview-modal-btn');
                 const itemPreviewTitle = document.getElementById('item-preview-title');
@@ -1830,52 +1830,51 @@
                 if(closeItemPreviewBtn) closeItemPreviewBtn.addEventListener('click', () => itemPreviewModal.classList.remove('visible'));
                 if(itemPreviewModal) itemPreviewModal.addEventListener('click', e => { if (e.target === itemPreviewModal) itemPreviewModal.classList.remove('visible'); });
 
-                function showItemPreview(event) {
+                async function showItemPreview(event) {
                     const itemEl = event.currentTarget;
                     const item = JSON.parse(itemEl.dataset.itemData);
                     
                     itemPreviewTitle.textContent = item.title;
-                    itemPreviewContent.innerHTML = ''; // Clear old content
-
-                    // Simulate content if not present in the data from backend
-                    if (!item.content) {
-                        if (item.type === 'Note') {
-                            item.content = 'This is some sample note content that would appear in a read-only view. A full preview would show the complete text of the note here, without the ability to edit or download directly.';
-                        } else if (item.type === 'Flashcards') {
-                            item.content = [
-                                { front: 'What is the capital of France?', back: 'Paris' },
-                                { front: 'What is 2 + 2?', back: '4' },
-                                { front: 'What is the main purpose of HTML?', back: 'To structure web content.' }
-                            ];
-                        } else {
-                             item.content = 'Preview for this item type is not available yet.';
-                        }
-                    }
-                    
-                    if (item.type === 'Note') {
-                        const noteEl = document.createElement('div');
-                        noteEl.className = 'note-content';
-                        noteEl.textContent = item.content;
-                        itemPreviewContent.appendChild(noteEl);
-                    } else if (item.type === 'Flashcards' && Array.isArray(item.content)) {
-                        const listEl = document.createElement('div');
-                        listEl.className = 'flashcard-list';
-                        item.content.forEach(card => {
-                            const cardEl = document.createElement('div');
-                            cardEl.className = 'flashcard-item';
-                            cardEl.innerHTML = `
-                                <div><div class="side">FRONT</div>${card.front}</div>
-                                <hr>
-                                <div><div class="side">BACK</div>${card.back}</div>
-                            `;
-                            listEl.appendChild(cardEl);
-                        });
-                        itemPreviewContent.appendChild(listEl);
-                    } else {
-                         itemPreviewContent.innerHTML = `<p style="padding: 1rem; color: var(--text-secondary)">${item.content}</p>`;
-                    }
-                    
+                    itemPreviewContent.innerHTML = '<p>Loading content...</p>'; // Show loading state
                     itemPreviewModal.classList.add('visible');
+
+                    // --- THIS IS THE KEY CHANGE: FETCH THE REAL CONTENT ---
+                    try {
+                        const response = await fetch(`/api/item_content/${item.id}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            itemPreviewContent.innerHTML = ''; // Clear loading message
+                            
+                            if (item.type === 'Note') {
+                                const noteEl = document.createElement('div');
+                                noteEl.className = 'note-content';
+                                noteEl.innerHTML = data.content; // Use innerHTML to render HTML content
+                                itemPreviewContent.appendChild(noteEl);
+                            } else if (item.type === 'Flashcards' && Array.isArray(data.content)) {
+                                const listEl = document.createElement('div');
+                                listEl.className = 'flashcard-list';
+                                data.content.forEach(card => {
+                                    const cardEl = document.createElement('div');
+                                    cardEl.className = 'flashcard-item';
+                                    cardEl.innerHTML = `
+                                        <div><div class="side">FRONT</div>${card.front}</div>
+                                        <hr>
+                                        <div><div class="side">BACK</div>${card.back}</div>
+                                    `;
+                                    listEl.appendChild(cardEl);
+                                });
+                                itemPreviewContent.appendChild(listEl);
+                            } else {
+                                itemPreviewContent.innerHTML = `<p style="padding: 1rem; color: var(--text-secondary)">${data.content}</p>`;
+                            }
+                        } else {
+                            itemPreviewContent.innerHTML = `<p style="padding: 1rem; color: var(--danger-color)">Error: ${data.message}</p>`;
+                        }
+                    } catch (error) {
+                        console.error("Failed to fetch item content:", error);
+                        itemPreviewContent.innerHTML = `<p style="padding: 1rem; color: var(--danger-color)">Could not load content. Please try again.</p>`;
+                    }
                 }
 
 
