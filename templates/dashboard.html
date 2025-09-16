@@ -548,30 +548,52 @@
             box-shadow: var(--shadow-lg);
         }
         
-        /* --- NEW: Clickable Preview Cursor --- */
         .community-card-body {
             padding: 1.5rem; 
             flex-grow: 1;
         }
 
-        .community-card-header { position: relative; padding: 1.5rem 1.5rem 1rem 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        /* --- UPDATED: Community Card Header --- */
+        .community-card-header { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .header-user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 0; /* Prevents text overflow issues */
+        }
+        .community-card-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
         .user-info { flex-grow: 1; }
-        .user-info h3 { margin: 0; font-size: 1.1rem; font-weight: 600; }
+        .user-info h3 { margin: 0; font-size: 1.1rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-info p { margin: 0; font-size: 0.85rem; color: var(--text-secondary); }
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .header-actions .button, .header-actions .button-secondary {
+            padding: 0.6rem;
+            line-height: 1;
+        }
+        .header-actions .button i, .header-actions .button-secondary i {
+            margin: 0;
+        }
         
         /* --- NEW: Popular Badge --- */
         .popular-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
             background: linear-gradient(to right, #f97316, #f59e0b);
             color: white;
             padding: 0.25rem 0.75rem;
             border-radius: 99px;
             font-weight: 700;
             font-size: 0.75rem;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 0.25rem;
         }
@@ -650,20 +672,6 @@
             color: #ef4444; /* red for liked */
         }
         .like-btn.liked:hover { transform: scale(1.25); }
-
-
-        /* --- NEW: Engaging Import Button --- */
-        .import-btn {
-            padding: 0.6rem 1.2rem !important;
-            font-size: 0.9rem !important;
-            background-image: linear-gradient(to right, #6366f1, #8b5cf6);
-            border: none;
-            transition: all 0.3s ease !important;
-        }
-        .import-btn:hover {
-            transform: scale(1.05) translateY(-2px);
-            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
-        }
         
         .section-header { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
         .section-header h2 { font-size: 1.75rem; font-weight: 700; margin: 0; }
@@ -776,8 +784,8 @@
         .sp-volume-control input[type=range] { width: 80px; }
         .sp-playlist-select { margin-top: 1rem; width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); }
 
-        /* --- NEW: Styles for Preview Modal --- */
-        #preview-modal-content .modal-content { max-width: 550px; }
+        /* --- NEW: Styles for Preview Modals --- */
+        #preview-modal .modal-content { max-width: 550px; }
         .preview-item-list {
             margin-top: 1.5rem;
             max-height: 300px;
@@ -793,9 +801,47 @@
             gap: 0.75rem;
             padding: 0.75rem;
             border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .preview-item:hover {
+            background-color: var(--border-color);
         }
         .preview-item:last-child { border-bottom: none; }
         .preview-item i { color: var(--text-secondary); }
+
+        #item-preview-content {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        #item-preview-content .note-content {
+            white-space: pre-wrap;
+            padding: 1rem;
+            background-color: var(--background-light);
+            border-radius: 8px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        #item-preview-content .flashcard-list .flashcard-item {
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        #item-preview-content .flashcard-list .flashcard-item .side {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        #item-preview-content .flashcard-list .flashcard-item hr {
+            border: none;
+            border-top: 1px dashed var(--border-color);
+            margin: 0.75rem 0;
+        }
     </style>
     <script>
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
@@ -1047,20 +1093,32 @@
                         </div>
                         
                         <div class="community-card-header">
-                            <img src="{{ item.owner_avatar }}" alt="User Avatar">
-                            <div class="user-info">
-                                <h3>{{ item.owner_name }}</h3>
-                                <p>Shared {{ item.folder.created_at|timesince }} ago</p>
+                            <div class="header-user-info">
+                                <img src="{{ item.owner_avatar }}" alt="User Avatar">
+                                <div class="user-info">
+                                    <h3>{{ item.owner_name }}</h3>
+                                    <p>Shared {{ item.folder.created_at|timesince }} ago</p>
+                                </div>
                             </div>
-                            <!-- Popular Badge (conditional) -->
-                            {% if item.folder.imports > 10 %}
-                            <div class="popular-badge">
-                                <i data-lucide="flame" size="14"></i> Popular
+                            <div class="header-actions">
+                                <button class="button button-secondary preview-btn" title="Preview Folder">
+                                    <i data-lucide="eye" size="16"></i>
+                                </button>
+                                <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" title="Import Folder">
+                                    <i data-lucide="download-cloud" size="16"></i>
+                                </button>
                             </div>
-                            {% endif %}
                         </div>
+
                         <div class="community-card-body">
-                             <h2>{{ item.folder.title }}</h2>
+                             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                <h2>{{ item.folder.title }}</h2>
+                                {% if item.folder.imports > 10 %}
+                                <div class="popular-badge">
+                                    <i data-lucide="flame" size="14"></i>&nbsp;Popular
+                                </div>
+                                {% endif %}
+                             </div>
                              <p>{{ item.folder.description }}</p>
                              {% if item.folder.tags %}
                              <div class="tag-list">
@@ -1095,14 +1153,6 @@
                                     <i data-lucide="package" size="14"></i>
                                     <span>{{ item.item_count }}</span>
                                 </span>
-                            </div>
-                            <div class="footer-actions" style="display: flex; gap: 0.5rem;">
-                               <button class="button button-secondary preview-btn" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
-                                   <i data-lucide="eye" size="16"></i>
-                               </button>
-                               <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
-                                   <i data-lucide="download-cloud" size="16"></i>
-                               </button>
                             </div>
                         </div>
                     </div>
@@ -1439,7 +1489,7 @@
         </div>
     </div>
 
-    <!-- NEW: Preview Modal -->
+    <!-- NEW: Folder Contents Preview Modal -->
     <div class="modal-overlay" id="preview-modal">
         <div class="modal-content" id="preview-modal-content">
             <div class="modal-header">
@@ -1449,6 +1499,19 @@
             <p id="preview-description" style="color: var(--text-secondary);"></p>
             <div class="preview-item-list" id="preview-item-list">
                 <!-- Preview items will be dynamically inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Item Content Preview Modal -->
+    <div class="modal-overlay" id="item-preview-modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 id="item-preview-title">Item Preview</h3>
+                <button class="close-button" id="close-item-preview-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div id="item-preview-content">
+                <!-- Content will be injected by JS -->
             </div>
         </div>
     </div>
@@ -1466,7 +1529,7 @@
         <div class="sp-progress-bar"><div id="sp-progress" class="sp-progress"></div></div>
         <div class="sp-controls">
             <div class="sp-main-controls">
-                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
                 <button id="sp-play-btn" class="sp-play-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg></button>
                 <button id="sp-next-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
             </div>
@@ -1724,9 +1787,9 @@
                         const card = this.closest('.community-card');
                         const title = card.dataset.previewTitle;
                         const desc = card.dataset.previewDescription;
-                        const items = JSON.parse(card.dataset.previewItems);
+                        const items = JSON.parse(card.dataset.previewItems || '[]');
 
-                        previewTitle.textContent = title;
+                        previewTitle.textContent = "Preview: " + title;
                         previewDesc.textContent = desc;
                         previewList.innerHTML = ''; // Clear previous items
 
@@ -1740,6 +1803,11 @@
                                 if(item.type === 'Flashcards') icon = 'layers-3';
 
                                 itemEl.innerHTML = `<i data-lucide="${icon}"></i> <span>${item.title}</span>`;
+                                
+                                // Attach data and event listener for second-level preview
+                                itemEl.dataset.itemData = JSON.stringify(item);
+                                itemEl.addEventListener('click', showItemPreview);
+
                                 previewList.appendChild(itemEl);
                             });
                         } else {
@@ -1752,6 +1820,63 @@
                 });
                 if(closePreviewBtn) closePreviewBtn.addEventListener('click', () => previewModal.classList.remove('visible'));
                 if(previewModal) previewModal.addEventListener('click', e => { if (e.target === previewModal) previewModal.classList.remove('visible'); });
+
+                // --- NEW: Item Preview Modal ---
+                const itemPreviewModal = document.getElementById('item-preview-modal');
+                const closeItemPreviewBtn = document.getElementById('close-item-preview-modal-btn');
+                const itemPreviewTitle = document.getElementById('item-preview-title');
+                const itemPreviewContent = document.getElementById('item-preview-content');
+                
+                if(closeItemPreviewBtn) closeItemPreviewBtn.addEventListener('click', () => itemPreviewModal.classList.remove('visible'));
+                if(itemPreviewModal) itemPreviewModal.addEventListener('click', e => { if (e.target === itemPreviewModal) itemPreviewModal.classList.remove('visible'); });
+
+                function showItemPreview(event) {
+                    const itemEl = event.currentTarget;
+                    const item = JSON.parse(itemEl.dataset.itemData);
+                    
+                    itemPreviewTitle.textContent = item.title;
+                    itemPreviewContent.innerHTML = ''; // Clear old content
+
+                    // Simulate content if not present in the data from backend
+                    if (!item.content) {
+                        if (item.type === 'Note') {
+                            item.content = 'This is some sample note content that would appear in a read-only view. A full preview would show the complete text of the note here, without the ability to edit or download directly.';
+                        } else if (item.type === 'Flashcards') {
+                            item.content = [
+                                { front: 'What is the capital of France?', back: 'Paris' },
+                                { front: 'What is 2 + 2?', back: '4' },
+                                { front: 'What is the main purpose of HTML?', back: 'To structure web content.' }
+                            ];
+                        } else {
+                             item.content = 'Preview for this item type is not available yet.';
+                        }
+                    }
+                    
+                    if (item.type === 'Note') {
+                        const noteEl = document.createElement('div');
+                        noteEl.className = 'note-content';
+                        noteEl.textContent = item.content;
+                        itemPreviewContent.appendChild(noteEl);
+                    } else if (item.type === 'Flashcards' && Array.isArray(item.content)) {
+                        const listEl = document.createElement('div');
+                        listEl.className = 'flashcard-list';
+                        item.content.forEach(card => {
+                            const cardEl = document.createElement('div');
+                            cardEl.className = 'flashcard-item';
+                            cardEl.innerHTML = `
+                                <div><div class="side">FRONT</div>${card.front}</div>
+                                <hr>
+                                <div><div class="side">BACK</div>${card.back}</div>
+                            `;
+                            listEl.appendChild(cardEl);
+                        });
+                        itemPreviewContent.appendChild(listEl);
+                    } else {
+                         itemPreviewContent.innerHTML = `<p style="padding: 1rem; color: var(--text-secondary)">${item.content}</p>`;
+                    }
+                    
+                    itemPreviewModal.classList.add('visible');
+                }
 
 
                 // --- NEW: Like Button Logic ---
