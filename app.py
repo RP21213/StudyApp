@@ -1232,7 +1232,15 @@ def dashboard():
                         item_type_map = {'note': 'Note', 'Quiz': 'Quiz', 'Flashcards': 'Flashcards'}
                         raw_type = item_data.get('type', item.get('type')) # Handles both 'note' and 'Quiz'
                         preview_type = item_type_map.get(raw_type, 'Item')
-                        items_preview.append({'title': item_data.get('title', 'Untitled'), 'type': preview_type})
+                        
+                        # --- THIS IS THE KEY CHANGE ---
+                        # We now include the item ID so the frontend can fetch its content.
+                        items_preview.append({
+                            'id': item_data.get('id'), # ADDED
+                            'title': item_data.get('title', 'Untitled'), 
+                            'type': preview_type
+                        })
+                        # --- END OF CHANGE ---
                 
                 types = {item.get('type') for item in items}
                 if len(types) == 1:
@@ -1279,6 +1287,47 @@ def dashboard():
         stats=stats,
         spotify_connected=spotify_connected_status
     )
+
+# --- NEW: API Route to fetch item content for preview ---
+@app.route("/api/item_content/<item_id>")
+@login_required
+def get_item_preview_content(item_id):
+    """
+    Fetches the content of a note or activity for the preview modal.
+    This is a simplified security model; it assumes any item ID passed
+    is from a visible shared folder on the community page.
+    """
+    try:
+        # Check if it's a note
+        note_doc = db.collection('notes').document(item_id).get()
+        if note_doc.exists:
+            note_data = note_doc.to_dict()
+            return jsonify({
+                "success": True, 
+                "content": note_data.get('content_html', 'No content available.')
+            })
+
+        # Check if it's an activity (flashcards)
+        activity_doc = db.collection('activities').document(item_id).get()
+        if activity_doc.exists:
+            activity_data = activity_doc.to_dict()
+            if activity_data.get('type') == 'Flashcards':
+                 return jsonify({
+                    "success": True,
+                    "content": activity_data.get('data', {}).get('cards', [])
+                })
+            else: # It's a quiz, which we don't preview the content of
+                return jsonify({
+                    "success": True,
+                    "content": "Preview is not available for quizzes."
+                })
+        
+        # If not found in either collection
+        return jsonify({"success": False, "message": "Item not found."}), 404
+
+    except Exception as e:
+        print(f"Error fetching item content for preview {item_id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred."}), 500
 
 
 @app.route('/profile', methods=['GET', 'POST'])
@@ -3461,7 +3510,7 @@ def run_async_tool(hub_id):
             analysis_markdown = analyse_papers_with_ai(hub_text)
             analysis_html = markdown.markdown(analysis_markdown)
             note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Analysis of {first_file_name}", content_html=analysis_html)
+            new_note = Note(id=analysis_note_ref.id, hub_id=hub_id, title=f"Analysis of {first_file_name}", content_html=analysis_html)
             note_ref.set(new_note.to_dict())
             redirect_url = url_for('view_note', note_id=note_ref.id)
 
