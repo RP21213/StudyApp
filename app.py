@@ -222,8 +222,12 @@ def inject_now():
 
 def _get_user_stats(user_id):
     """Helper function to calculate stats for a given user."""
-    hubs_ref = db.collection('hubs').where('user_id', '==', user_id).stream()
-    hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]
+    hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+    hubs_list = []
+    for doc in hubs_ref:
+        hub_data = doc.to_dict()
+        hub_data['id'] = doc.id  # <-- THE CRITICAL FIX IS HERE
+        hubs_list.append(Hub.from_dict(hub_data))
     
     total_study_minutes = 0
     longest_streak = 0
