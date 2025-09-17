@@ -842,6 +842,121 @@
             border-top: 1px dashed var(--border-color);
             margin: 0.75rem 0;
         }
+        
+        /* --- NEW: Onboarding Styles --- */
+        #onboarding-modal {
+            position: fixed;
+            z-index: 1001;
+            background-color: var(--background-white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            padding: 3rem;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: 600px;
+            width: 90%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            pointer-events: none;
+        }
+        #onboarding-modal.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+        #onboarding-modal h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+        }
+        #onboarding-modal p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 450px;
+            margin: 0 auto 2rem auto;
+        }
+        #onboarding-progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            margin-top: 2rem;
+            overflow: hidden;
+        }
+        #onboarding-progress-bar {
+            width: 33.33%;
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.5s ease;
+        }
+        #onboarding-spotlight-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1002;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%);
+        }
+        #onboarding-spotlight-overlay.visible {
+            opacity: 1;
+        }
+        #onboarding-tooltip {
+            position: fixed;
+            z-index: 1003;
+            background-color: var(--background-white);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 300px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        #onboarding-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #onboarding-tooltip::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        #onboarding-tooltip.bottom::after {
+            top: -10px; left: 50%; transform: translateX(-50%);
+            border-width: 0 10px 10px 10px;
+            border-color: transparent transparent var(--background-white) transparent;
+        }
+        #onboarding-tooltip.top::after {
+            bottom: -10px; left: 50%; transform: translateX(-50%);
+            border-width: 10px 10px 0 10px;
+            border-color: var(--background-white) transparent transparent transparent;
+        }
+        .onboarding-highlight {
+            position: relative;
+            z-index: 1003; /* Above the overlay, below the tooltip */
+            pointer-events: auto !important;
+        }
+        .onboarding-final-icon {
+            position: fixed;
+            z-index: 1004;
+            transition: all 1s cubic-bezier(0.5, 0, 0.75, 0); /* Ease-in */
+        }
     </style>
     <script>
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
@@ -862,7 +977,21 @@
     </script>
 </head>
 <body>
-
+    
+    <!-- NEW: Onboarding Elements -->
+    <div id="onboarding-spotlight-overlay"></div>
+    <div id="onboarding-tooltip"></div>
+    <div id="onboarding-modal">
+        <div id="onboarding-content">
+            <h2>Welcome, {{ current_user.display_name }}!</h2>
+            <p>Let's create your first AI study kit in 60 seconds. It's the best way to see how Foci can supercharge your learning.</p>
+            <button class="button" id="start-onboarding-btn">Let's Get Started!</button>
+            <div id="onboarding-progress-bar-container">
+                <div id="onboarding-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    
     <aside class="side-panel">
         <div class="logo">Foci</div>
         <nav class="nav-tabs">
@@ -943,7 +1072,7 @@
 
                 <div class="hub-grid">
                     {% for hub in hubs %}
-                    <article class="hub-card">
+                    <article class="hub-card" data-hub-id="{{ hub.id }}" data-hub-name="{{ hub.name }}">
                         <div class="card-header" style="background-color: {{ hub.header_color }}; background-image: url('{{ hub.header_pattern_url }}');">
                             <h2>{{ hub.name }}</h2>
                             <a href="{{ url_for('delete_hub', hub_id=hub.id) }}" 
@@ -2179,6 +2308,130 @@
     };
     </script>
     {% endif %}
+
+    {% if needs_onboarding %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const onboardingModal = document.getElementById('onboarding-modal');
+            const onboardingContent = document.getElementById('onboarding-content');
+            const startOnboardingBtn = document.getElementById('start-onboarding-btn');
+            const progressBar = document.getElementById('onboarding-progress-bar');
+            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+            const tooltip = document.getElementById('onboarding-tooltip');
+
+            let currentStep = 0;
+            const onboardingState = [
+                { // Step 0: Welcome Modal
+                    action: () => {
+                        onboardingModal.classList.add('visible');
+                    }
+                },
+                { // Step 1: Spotlight Welcome Hub
+                    target: '.hub-card[data-hub-name*="Welcome"]',
+                    tooltipText: "We've created your first Hub for you. Click it to get started.",
+                    tooltipPosition: 'bottom'
+                },
+                { // Step 2: Navigate to Hub Page (handled by click)
+                    action: (targetElement) => {
+                        window.location.href = targetElement.querySelector('a').href;
+                    }
+                }
+            ];
+
+            function showTooltip(targetElement, text, position = 'bottom') {
+                const rect = targetElement.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.className = `onboarding-tooltip ${position}`;
+                
+                let top, left;
+                if (position === 'bottom') {
+                    top = rect.bottom + 15;
+                    left = rect.left + rect.width / 2;
+                    tooltip.style.transform = 'translateX(-50%)';
+                } else if (position === 'top') {
+                    top = rect.top - 15 - tooltip.offsetHeight;
+                    left = rect.left + rect.width / 2;
+                    tooltip.style.transform = 'translateX(-50%)';
+                }
+                
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+                tooltip.classList.add('visible');
+            }
+            
+            function showSpotlight(targetElement) {
+                targetElement.classList.add('onboarding-highlight');
+                const rect = targetElement.getBoundingClientRect();
+                const padding = 10;
+                
+                const clipPath = `polygon(
+                    0% 0%, 0% 100%, 
+                    ${rect.left - padding}px 100%, 
+                    ${rect.left - padding}px ${rect.top - padding}px, 
+                    ${rect.right + padding}px ${rect.top - padding}px, 
+                    ${rect.right + padding}px ${rect.bottom + padding}px, 
+                    ${rect.left - padding}px ${rect.bottom + padding}px, 
+                    ${rect.left - padding}px 100%, 
+                    100% 100%, 100% 0%
+                )`;
+
+                spotlight.style.clipPath = clipPath;
+                spotlight.classList.add('visible');
+            }
+
+            function hideOnboardingUI() {
+                spotlight.classList.remove('visible');
+                tooltip.classList.remove('visible');
+                document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+            }
+
+            async function runStep(stepIndex) {
+                hideOnboardingUI();
+                currentStep = stepIndex;
+                const step = onboardingState[stepIndex];
+                
+                if (step.action) {
+                    step.action();
+                    return;
+                }
+
+                const targetElement = document.querySelector(step.target);
+                if (!targetElement) {
+                    console.error('Onboarding target not found:', step.target);
+                    // maybe end onboarding here
+                    return;
+                }
+
+                showSpotlight(targetElement);
+                showTooltip(targetElement, step.tooltipText, step.tooltipPosition);
+
+                // Add a one-time click listener
+                targetElement.addEventListener('click', function handleClick(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    targetElement.removeEventListener('click', handleClick);
+                    runStep(currentStep + 1);
+                    if(onboardingState[currentStep + 1].action) {
+                       onboardingState[currentStep + 1].action(targetElement);
+                    }
+                }, { once: true });
+            }
+
+            startOnboardingBtn.addEventListener('click', () => {
+                onboardingModal.classList.remove('visible');
+                setTimeout(() => runStep(1), 500); // Start after modal fades
+            });
+            
+            // Initial call
+            runStep(0);
+        });
+
+        // The second part of the onboarding will be on hub.html
+        // We will store a flag in sessionStorage to continue the tour
+        
+    </script>
+    {% endif %}
+
 
 </body>
 </html>

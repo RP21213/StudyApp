@@ -1084,14 +1084,50 @@ def signup():
         new_user = User(
             id=user_ref.id, 
             email=email, 
-            password_hash=password_hash
+            password_hash=password_hash,
+            has_completed_onboarding=False # Explicitly set for new users
         )
         user_ref.set(new_user.to_dict())
+
+        # --- ONBOARDING LOGIC ---
+        # 1. Create the Welcome Hub
+        hub_ref = db.collection('hubs').document()
+        welcome_hub = Hub(
+            id=hub_ref.id,
+            name="My First Hub: Welcome to Foci!",
+            user_id=new_user.id
+        )
+        
+        # 2. Upload the welcome PDF from static assets
+        try:
+            welcome_pdf_path = os.path.join(app.root_path, 'static', 'assets', 'welcome_to_foci.pdf')
+            
+            if os.path.exists(welcome_pdf_path):
+                file_path_in_bucket = f"hubs/{hub_ref.id}/Welcome_to_Foci.pdf"
+                blob = bucket.blob(file_path_in_bucket)
+                
+                with open(welcome_pdf_path, 'rb') as f:
+                    blob.upload_from_file(f, content_type='application/pdf')
+                
+                file_size = os.path.getsize(welcome_pdf_path)
+                file_info = {'name': 'Welcome_to_Foci.pdf', 'path': file_path_in_bucket, 'size': file_size}
+                
+                # 3. Update the hub document with the file info
+                welcome_hub.files = [file_info]
+            else:
+                print(f"WARNING: 'welcome_to_foci.pdf' not found at {welcome_pdf_path}. The welcome hub will be empty.")
+        
+        except Exception as e:
+            print(f"An error occurred during welcome hub creation for user {new_user.id}: {e}")
+        
+        hub_ref.set(welcome_hub.to_dict())
+        # --- END ONBOARDING LOGIC ---
 
         login_user(new_user, remember=True)
         return redirect(url_for('dashboard'))
 
     return render_template('signup.html')
+
 
 @app.route('/logout')
 @login_required
@@ -1273,6 +1309,9 @@ def dashboard():
     stats = _get_user_stats(current_user.id)
     spotify_connected_status = True if current_user.spotify_refresh_token else False
 
+    # --- NEW: Onboarding Flag ---
+    needs_onboarding = not current_user.has_completed_onboarding
+
     return render_template(
         "dashboard.html", 
         hubs=hubs_list,
@@ -1285,7 +1324,8 @@ def dashboard():
         total_shared_count=total_shared_count,
         all_user_folders=all_user_folders,
         stats=stats,
-        spotify_connected=spotify_connected_status
+        spotify_connected=spotify_connected_status,
+        needs_onboarding=needs_onboarding # Pass the flag to the template
     )
 
 # --- NEW: API Route to fetch item content for preview ---
@@ -4516,6 +4556,22 @@ def stuck_on_question_evaluate_practice():
     except Exception as e:
         print(f"Error evaluating practice answer: {e}")
         return jsonify({"success": False, "message": "Could not evaluate the answer."}), 500
+
+# ==============================================================================
+# 13. ONBOARDING ROUTE (NEW)
+# ==============================================================================
+
+@app.route('/onboarding/complete', methods=['POST'])
+@login_required
+def complete_onboarding():
+    """Marks the user's onboarding as complete."""
+    try:
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({'has_completed_onboarding': True})
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error completing onboarding for user {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred."}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION

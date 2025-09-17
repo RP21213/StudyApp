@@ -778,7 +778,34 @@
         .sp-volume-control { display: flex; align-items: center; gap: 0.5rem; }
         .sp-volume-control input[type=range] { width: 80px; }
         .sp-playlist-select { margin-top: 1rem; width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); }
-
+        
+        /* --- NEW: Onboarding Styles for hub.html --- */
+        #onboarding-guide-modal {
+            position: fixed;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1005; /* Highest level */
+            background-color: var(--background-card);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #onboarding-guide-modal.visible {
+            opacity: 1;
+        }
+        #onboarding-guide-modal h3 {
+            margin-top: 0;
+            font-size: 1.25rem;
+        }
+        #onboarding-guide-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -1419,6 +1446,12 @@
         </div>
     </div>
 
+    <!-- NEW: Onboarding Guide Modal for Hub page -->
+    <div id="onboarding-guide-modal">
+        <h3 id="onboarding-guide-title"></h3>
+        <p id="onboarding-guide-text"></p>
+    </div>
+
     <!-- NEW: Spotify Player HTML -->
     {% if spotify_connected %}
     <div id="spotify-player-container">
@@ -1432,12 +1465,12 @@
         <div class="sp-progress-bar"><div id="sp-progress" class="sp-progress"></div></div>
         <div class="sp-controls">
             <div class="sp-main-controls">
-                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
-                <button id="sp-play-btn" class="sp-play-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg></button>
-                <button id="sp-next-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                <button id="sp-play-btn" class="sp-play-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg></button>
+                <button id="sp-next-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
             </div>
             <div class="sp-volume-control">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
                 <input type="range" id="sp-volume" min="0" max="100" value="80">
             </div>
         </div>
@@ -1577,7 +1610,20 @@
                     hideLoading();
                     if (result.success) {
                         addFileToUI(result.file_info);
-                        populateAndShowUploadOptions(result.file_info);
+                        // --- SECOND "AHA" MOMENT LOGIC ---
+                        const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
+                        const fileCount = document.querySelectorAll('#main-file-list .file-item-card').length;
+                        if (!isWelcomeHub && fileCount === 1) {
+                            setTimeout(() => {
+                                alert("Your document is ready! Why not ask the AI Tutor to summarize its key concepts for you?");
+                                showTab('tutor');
+                                const tutorInput = document.getElementById('tutor-user-input');
+                                tutorInput.value = `Summarize the key concepts of the document I just uploaded.`;
+                                tutorInput.focus();
+                            }, 500);
+                        } else {
+                            populateAndShowUploadOptions(result.file_info);
+                        }
                     } else {
                         alert(`Upload failed: ${result.message}`);
                     }
@@ -2256,7 +2302,7 @@
                 appendSqMessage(marked.parse(userQuery), 'user');
                 setSqLoading(true, "Let me explain that...");
 
-                try {
+                 try {
                      const response = await fetch(`/hub/${hubId}/stuck_on_question/clarify_step`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -2527,6 +2573,176 @@
     };
     </script>
     {% endif %}
+
+    <script>
+        // --- Onboarding Logic for Hub Page ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('onboardingStep') === 'hub_entry') {
+                runHubOnboarding();
+            }
+        });
+
+        async function runHubOnboarding() {
+            const guideModal = document.getElementById('onboarding-guide-modal');
+            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+            const tooltip = document.getElementById('onboarding-tooltip');
+            const welcomeHubId = '{{ hub.id }}'; // Assuming this is the welcome hub
+            const welcomeFile = {{ hub.files[0]|tojson if hub.files else 'null' }};
+            
+            // Utility to show a step with spotlight and tooltip
+            function showStep(targetSelector, tooltipText, tooltipPosition = 'bottom') {
+                return new Promise(resolve => {
+                    document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+                    const targetElement = document.querySelector(targetSelector);
+                    if (!targetElement) {
+                        console.error("Onboarding target not found:", targetSelector);
+                        resolve(); // Skip step if element not found
+                        return;
+                    }
+
+                    // Show spotlight and tooltip
+                    showSpotlight(targetElement);
+                    showTooltip(targetElement, tooltipText, tooltipPosition);
+
+                    // Add a one-time click listener
+                    targetElement.addEventListener('click', function handleClick(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        targetElement.removeEventListener('click', handleClick);
+                        hideOnboardingUI();
+                        resolve(targetElement);
+                    }, { once: true });
+                });
+            }
+            
+            // --- The Onboarding Flow ---
+            
+            // Step 1: Highlight Study Tools
+            await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
+            document.querySelector('.nav-link[data-tab="tools"]').click(); // Actually switch to the tab
+
+            // Step 2: Highlight Revision Pack Builder
+            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Let's turn that welcome document into a full study kit. Click here.");
+
+            // Step 3: Open the Revision Pack Modal and guide the final click
+            revisionPackCard.click(); // This opens the modal
+            guideModal.querySelector('h3').textContent = "Step 3 of 3: Generate Your Kit";
+            guideModal.querySelector('p').textContent = "The AI has already selected the welcome document for you. Just click 'Generate Pack' and watch the magic happen.";
+            guideModal.classList.add('visible');
+            
+            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
+            generateBtn.addEventListener('click', async function handleGenerate() {
+                guideModal.classList.remove('visible');
+                // The form's default submit listener will handle the fetch call.
+                // We just need to wait for the result.
+                document.getElementById('revision-pack-modal').style.display = 'none';
+                
+                // The payoff animation is triggered by a successful reload. This is simpler than handling it here.
+                sessionStorage.setItem('onboardingStep', 'payoff');
+            }, { once: true });
+
+        }
+
+        // --- Payoff Animation & Final Tooltips (after reload) ---
+        if (sessionStorage.getItem('onboardingStep') === 'payoff') {
+            sessionStorage.removeItem('onboardingStep'); // Clear the flag
+            
+            // Wait for folders to be rendered
+            setTimeout(async () => {
+                const newFolder = document.querySelector('.folder-header[data-folder-id]');
+                if(!newFolder) return;
+                
+                // Switch to the folders tab
+                document.querySelector('.nav-link[data-tab="folders"]').click();
+                newFolder.click(); // Open the accordion
+                
+                // Run payoff animation (simplified)
+                alert("Success! Your complete study kit has been created and organized for you in this new folder.");
+                
+                // Final Tooltips
+                await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
+                await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
+                await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask this Tutor anything about them.", 'right');
+
+                // Final message
+                alert("You're all set! Ready to create a Hub for your own course? You will be returned to the dashboard now.");
+                
+                // Mark onboarding as complete and redirect
+                await fetch('/onboarding/complete', { method: 'POST' });
+                window.location.href = "{{ url_for('dashboard') }}";
+
+            }, 1500); // Delay to ensure page has loaded
+        }
+
+        function showFinalTooltip(targetSelector, text, position) {
+            return new Promise(resolve => {
+                const target = document.querySelector(targetSelector);
+                showSpotlight(target);
+                showTooltip(target, text, position);
+                
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'Next →';
+                nextButton.className = 'button';
+                nextButton.style.marginTop = '1rem';
+                
+                tooltip.appendChild(nextButton);
+
+                nextButton.addEventListener('click', () => {
+                    hideOnboardingUI();
+                    resolve();
+                }, { once: true });
+            });
+        }
+
+        // Helper functions for onboarding UI (re-declared for hub.html context)
+        function showSpotlight(targetElement) {
+            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+            if(!spotlight) return; // In case the element doesn't exist
+            
+            targetElement.classList.add('onboarding-highlight');
+            const rect = targetElement.getBoundingClientRect();
+            const padding = 10;
+            
+            const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+            spotlight.style.clipPath = clipPath;
+            spotlight.classList.add('visible');
+        }
+
+        function showTooltip(targetElement, text, position = 'bottom') {
+            const tooltip = document.getElementById('onboarding-tooltip');
+            if(!tooltip) return;
+
+            const rect = targetElement.getBoundingClientRect();
+            tooltip.innerHTML = text; // Use innerHTML to allow for simple formatting
+            tooltip.className = `onboarding-tooltip ${position}`;
+            
+            let top, left;
+            if (position === 'bottom') {
+                top = rect.bottom + 15;
+                left = rect.left + rect.width / 2;
+                tooltip.style.transform = 'translateX(-50%)';
+            } else if (position === 'top') {
+                top = rect.top - 15 - tooltip.offsetHeight;
+                left = rect.left + rect.width / 2;
+                tooltip.style.transform = 'translateX(-50%)';
+            } else if (position === 'right') {
+                top = rect.top + rect.height / 2;
+                left = rect.right + 15;
+                tooltip.style.transform = 'translateY(-50%)';
+            }
+            
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+            tooltip.classList.add('visible');
+        }
+
+        function hideOnboardingUI() {
+            document.getElementById('onboarding-spotlight-overlay')?.classList.remove('visible');
+            document.getElementById('onboarding-tooltip')?.classList.remove('visible');
+            document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+        }
+
+    </script>
 
 </body>
 </html>

@@ -48,6 +48,8 @@ class User(UserMixin):
                  font_size_preference='default', high_contrast_mode=False, language='en-US',
                  # --- NEW: Fields for Spotify ---
                  spotify_access_token=None, spotify_refresh_token=None, spotify_token_expires_at=None,
+                 # --- NEW: Onboarding Field ---
+                 has_completed_onboarding=False,
                  **kwargs):
         self.id = id
         self.email = email
@@ -73,6 +75,9 @@ class User(UserMixin):
         self.spotify_refresh_token = spotify_refresh_token
         self.spotify_token_expires_at = spotify_token_expires_at
 
+        # --- NEW: Onboarding Property ---
+        self.has_completed_onboarding = has_completed_onboarding
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -95,6 +100,8 @@ class User(UserMixin):
             'spotify_access_token': self.spotify_access_token,
             'spotify_refresh_token': self.spotify_refresh_token,
             'spotify_token_expires_at': self.spotify_token_expires_at,
+            # --- NEW: Onboarding to dict ---
+            'has_completed_onboarding': self.has_completed_onboarding,
         }
 
     @staticmethod
@@ -120,7 +127,9 @@ class User(UserMixin):
             # --- NEW: Retrieve Spotify from dict ---
             spotify_access_token=source.get('spotify_access_token'),
             spotify_refresh_token=source.get('spotify_refresh_token'),
-            spotify_token_expires_at=source.get('spotify_token_expires_at')
+            spotify_token_expires_at=source.get('spotify_token_expires_at'),
+            # --- NEW: Onboarding from dict ---
+            has_completed_onboarding=source.get('has_completed_onboarding', False)
         )
     
 # --- NEW: Model for Note-Taking with Slides ---
