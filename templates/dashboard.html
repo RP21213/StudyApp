@@ -2309,40 +2309,19 @@
     </script>
     {% endif %}
 
-    {% if needs_onboarding %}
+{% if needs_onboarding %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const onboardingModal = document.getElementById('onboarding-modal');
-            const onboardingContent = document.getElementById('onboarding-content');
             const startOnboardingBtn = document.getElementById('start-onboarding-btn');
-            const progressBar = document.getElementById('onboarding-progress-bar');
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
 
-            let currentStep = 0;
-            const onboardingState = [
-                { // Step 0: Welcome Modal
-                    action: () => {
-                        onboardingModal.classList.add('visible');
-                    }
-                },
-                { // Step 1: Spotlight Welcome Hub
-                    target: '.hub-card[data-hub-name*="Welcome"]',
-                    tooltipText: "We've created your first Hub for you. Click it to get started.",
-                    tooltipPosition: 'bottom'
-                },
-                { // Step 2: Navigate to Hub Page (handled by click)
-                    action: (targetElement) => {
-                        window.location.href = targetElement.querySelector('a').href;
-                    }
-                }
-            ];
-
+            // --- Helper functions for the UI ---
             function showTooltip(targetElement, text, position = 'bottom') {
                 const rect = targetElement.getBoundingClientRect();
                 tooltip.textContent = text;
                 tooltip.className = `onboarding-tooltip ${position}`;
-                
                 let top, left;
                 if (position === 'bottom') {
                     top = rect.bottom + 15;
@@ -2353,7 +2332,6 @@
                     left = rect.left + rect.width / 2;
                     tooltip.style.transform = 'translateX(-50%)';
                 }
-                
                 tooltip.style.top = `${top}px`;
                 tooltip.style.left = `${left}px`;
                 tooltip.classList.add('visible');
@@ -2363,18 +2341,7 @@
                 targetElement.classList.add('onboarding-highlight');
                 const rect = targetElement.getBoundingClientRect();
                 const padding = 10;
-                
-                const clipPath = `polygon(
-                    0% 0%, 0% 100%, 
-                    ${rect.left - padding}px 100%, 
-                    ${rect.left - padding}px ${rect.top - padding}px, 
-                    ${rect.right + padding}px ${rect.top - padding}px, 
-                    ${rect.right + padding}px ${rect.bottom + padding}px, 
-                    ${rect.left - padding}px ${rect.bottom + padding}px, 
-                    ${rect.left - padding}px 100%, 
-                    100% 100%, 100% 0%
-                )`;
-
+                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
                 spotlight.style.clipPath = clipPath;
                 spotlight.classList.add('visible');
             }
@@ -2385,53 +2352,41 @@
                 document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
             }
 
-            async function runStep(stepIndex) {
-                hideOnboardingUI();
-                currentStep = stepIndex;
-                const step = onboardingState[stepIndex];
-                
-                if (step.action) {
-                    step.action();
+            // --- Onboarding Flow Logic ---
+            function startTour() {
+                const welcomeHubCard = document.querySelector('.hub-card[data-hub-name*="Welcome"]');
+
+                if (!welcomeHubCard) {
+                    console.error("Onboarding target '.hub-card[data-hub-name*=\"Welcome\"]' not found.");
+                    alert("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
+                    fetch('/onboarding/complete', { method: 'POST' }); // End onboarding
                     return;
                 }
 
-                const targetElement = document.querySelector(step.target);
-                if (!targetElement) {
-                    console.error('Onboarding target not found:', step.target);
-                    // maybe end onboarding here
-                    return;
-                }
+                showSpotlight(welcomeHubCard);
+                showTooltip(welcomeHubCard, "We've created your first Hub. Click it to continue the tour.", 'bottom');
 
-                showSpotlight(targetElement);
-                showTooltip(targetElement, step.tooltipText, step.tooltipPosition);
-
-                // Add a one-time click listener
-                targetElement.addEventListener('click', function handleClick(e) {
+                welcomeHubCard.addEventListener('click', function handleHubClick(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    targetElement.removeEventListener('click', handleClick);
-                    runStep(currentStep + 1);
-                    if(onboardingState[currentStep + 1].action) {
-                       onboardingState[currentStep + 1].action(targetElement);
-                    }
+                    
+                    // *** THIS IS THE CRITICAL FIX: Set the session flag before navigating ***
+                    sessionStorage.setItem('onboardingStep', 'hub_entry');
+                    
+                    window.location.href = welcomeHubCard.querySelector('a').href;
                 }, { once: true });
             }
 
             startOnboardingBtn.addEventListener('click', () => {
                 onboardingModal.classList.remove('visible');
-                setTimeout(() => runStep(1), 500); // Start after modal fades
+                setTimeout(startTour, 500); // Start after modal fades
             });
-            
-            // Initial call
-            runStep(0);
-        });
 
-        // The second part of the onboarding will be on hub.html
-        // We will store a flag in sessionStorage to continue the tour
-        
+            // Show the initial modal
+            onboardingModal.classList.add('visible');
+        });
     </script>
     {% endif %}
-
 
 </body>
 </html>
