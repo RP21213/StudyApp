@@ -2359,7 +2359,7 @@
                 if (!welcomeHubCard) {
                     console.error("Onboarding target '.hub-card[data-hub-name*=\"Welcome\"]' not found.");
                     alert("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
-                    fetch('/onboarding/complete', { method: 'POST' }); // End onboarding
+                    fetch('/onboarding/complete', { method: 'POST' }); 
                     return;
                 }
 
@@ -2369,24 +2369,24 @@
                 welcomeHubCard.addEventListener('click', function handleHubClick(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
-                    // *** THIS IS THE CRITICAL FIX: Set the session flag before navigating ***
                     sessionStorage.setItem('onboardingStep', 'hub_entry');
                     
-                    window.location.href = welcomeHubCard.querySelector('a').href;
+                    // *** THIS IS THE FIX ***
+                    // We now specifically select the link with the 'hub-card-link' class
+                    const correctLink = welcomeHubCard.querySelector('a.hub-card-link').href;
+                    window.location.href = correctLink;
+
                 }, { once: true });
             }
 
             startOnboardingBtn.addEventListener('click', () => {
                 onboardingModal.classList.remove('visible');
-                setTimeout(startTour, 500); // Start after modal fades
+                setTimeout(startTour, 500); 
             });
 
-            // Show the initial modal
             onboardingModal.classList.add('visible');
         });
     </script>
     {% endif %}
-
 </body>
 </html>
