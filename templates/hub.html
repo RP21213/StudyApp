@@ -2574,7 +2574,17 @@
     </script>
     {% endif %}
 
-<script>
+    <!-- *** CORRECTED ONBOARDING SCRIPT *** -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
+            if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
+                runHubOnboarding();
+            } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
+                runPayoffAnimation();
+            }
+        });
+
         async function runHubOnboarding() {
             const guideModal = document.getElementById('onboarding-guide-modal');
 
@@ -2598,14 +2608,13 @@
                 });
             }
 
-            // --- The Onboarding Flow on this page ---
             await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
             document.querySelector('.nav-link[data-tab="tools"]').click();
 
             await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
             document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
 
-            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Let's turn that welcome document into a full study kit. Click here.");
+            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
             revisionPackCard.click(); 
 
             guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
@@ -2630,7 +2639,7 @@
                     showSpotlight(target);
                     const tooltip = document.getElementById('onboarding-tooltip');
                     tooltip.innerHTML = `<p>${text}</p><button class="button button-primary" style="margin-top: 1rem; width: 100%;" id="onboarding-next-btn">Next →</button>`;
-                    showTooltip(target, '', position);
+                    showTooltip(target, '', position); // Show empty tooltip, content is set above
                     document.getElementById('onboarding-next-btn').onclick = () => { hideOnboardingUI(); resolve(); };
                 });
             }
@@ -2638,14 +2647,13 @@
             setTimeout(async () => {
                 document.querySelector('.nav-link[data-tab="folders"]').click();
                 const newFolder = document.querySelector('.folder-header');
-                if (!newFolder) return;
-                newFolder.click();
+                if (newFolder) newFolder.click();
                 
                 alert("Success! Your complete study kit has been created and organized for you in this new folder.");
 
                 await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
                 await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
-                await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask this Tutor anything about them.", 'right');
+                await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask the Tutor anything about them.", 'right');
 
                 alert("You're all set! Ready to create a Hub for your own course? You will be returned to the main dashboard.");
                 
@@ -2659,7 +2667,6 @@
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             if(!spotlight) return; 
             targetElement.classList.add('onboarding-highlight');
-            Object.assign(targetElement.style, { position: 'relative', zIndex: '1003' });
             const rect = targetElement.getBoundingClientRect();
             const padding = 10;
             const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
@@ -2703,11 +2710,8 @@
             if (tooltip) tooltip.classList.remove('visible');
             document.querySelectorAll('.onboarding-highlight').forEach(el => {
                 el.classList.remove('onboarding-highlight');
-                el.style.zIndex = '';
-                el.style.position = '';
             });
         }
     </script>
-
 </body>
 </html>
