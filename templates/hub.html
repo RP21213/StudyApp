@@ -779,33 +779,14 @@
         .sp-volume-control input[type=range] { width: 80px; }
         .sp-playlist-select { margin-top: 1rem; width: 100%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--background-body); color: var(--text-main); }
         
-        /* --- NEW: Onboarding Styles for hub.html --- */
-        #onboarding-guide-modal {
-            position: fixed;
-            top: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1005; /* Highest level */
-            background-color: var(--background-card);
-            padding: 1.5rem 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            max-width: 500px;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        #onboarding-guide-modal.visible {
-            opacity: 1;
-        }
-        #onboarding-guide-modal h3 {
-            margin-top: 0;
-            font-size: 1.25rem;
-        }
-        #onboarding-guide-modal p {
-            color: var(--text-secondary);
-            margin-bottom: 0;
-        }
+/* Onboarding specific styles */
+        #onboarding-spotlight-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); z-index: 1002; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%); }
+        #onboarding-spotlight-overlay.visible { opacity: 1; }
+        #onboarding-tooltip { position: fixed; z-index: 1003; background-color: var(--background-card); color: var(--text-main); padding: 1rem 1.5rem; border-radius: 12px; box-shadow: var(--card-shadow-hover); max-width: 300px; font-weight: 500; font-size: 0.95rem; line-height: 1.6; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; pointer-events: none; }
+        #onboarding-tooltip.visible { opacity: 1; transform: translateY(0); }
+        .onboarding-highlight { position: relative; z-index: 1003; pointer-events: auto !important; }
+        #onboarding-guide-modal { position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); z-index: 1005; background-color: var(--background-card); padding: 1.5rem 2rem; border-radius: 12px; box-shadow: var(--shadow-lg); max-width: 500px; text-align: center; opacity: 0; transition: opacity 0.3s ease; visibility: hidden; }
+        #onboarding-guide-modal.visible { opacity: 1; visibility: visible; }
     </style>
 </head>
 <body>
