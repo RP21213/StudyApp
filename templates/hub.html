@@ -388,6 +388,98 @@
         .profile-menu-item svg {
             color: var(--text-secondary);
         }
+        .profile-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+        }
+        .profile-menu-item.spotify-toggle {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+        .profile-menu-item.spotify-toggle:hover {
+            background-color: var(--background-interactive-hover);
+        }
+        .theme-toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+        }
+        .theme-toggle-item span {
+            flex: 1;
+            margin-left: 0.75rem;
+        }
+        .theme-switch-inline {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+        .theme-switch-inline input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-inline {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2px;
+        }
+        .slider-inline:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .theme-switch-inline input:checked + .slider-inline {
+            background-color: var(--primary-color);
+        }
+        .theme-switch-inline input:checked + .slider-inline:before {
+            transform: translateX(20px);
+        }
+        .slider-inline .icon-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+        }
+        .slider-inline .sun {
+            opacity: 1;
+            color: #f59e0b;
+        }
+        .slider-inline .moon {
+            opacity: 0;
+            color: white;
+        }
+        .theme-switch-inline input:checked + .slider-inline .sun {
+            opacity: 0;
+        }
+        .theme-switch-inline input:checked + .slider-inline .moon {
+            opacity: 1;
+        }
 
         /* --- Workspace Styles --- */
         .workspace {
@@ -1141,28 +1233,7 @@
             </div>
 
             <div class="sidebar-footer">
-                {% if not spotify_connected %}
-                    <a href="{{ url_for('spotify_login') }}" class="button button-secondary" style="background-color: #1DB954; color: white; border-color: #1DB954; flex-grow: 1; justify-content: center; margin-bottom: 1rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748,1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112,1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
-                        <span>Connect</span>
-                    </a>
-                {% else %}
-                     <button id="spotify-player-toggle-btn-hub" class="button button-secondary" style="flex-grow: 1; justify-content: center; margin-bottom: 1rem;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                        <span>Music</span>
-                    </button>
-                {% endif %}
-                <label class="theme-switch" for="theme-toggle-input">
-                    <input type="checkbox" id="theme-toggle-input" />
-                    <div class="slider">
-                        <div class="icon-wrapper sun">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                        </div>
-                         <div class="icon-wrapper moon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                        </div>
-                    </div>
-                </label>
+                <!-- Footer content can be added here if needed -->
             </div>
         </aside>
 
@@ -1172,14 +1243,12 @@
         <div class="main-wrapper">
             <!-- Top Bar -->
             <header class="top-bar">
-                <div class="top-bar-actions">
+                <div class="user-profile-section">
                     <button class="button button-primary" id="quick-action-upload">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         Upload
                     </button>
                     <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
-                </div>
-                <div class="user-profile-section">
                     <div class="notification-bell" id="notification-bell">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                         <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
@@ -1212,6 +1281,33 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                 Settings
                             </a>
+                            <div class="profile-menu-divider"></div>
+                            {% if not spotify_connected %}
+                                <a href="{{ url_for('spotify_login') }}" class="profile-menu-item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748,1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112,1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
+                                    Connect Spotify
+                                </a>
+                            {% else %}
+                                <button id="spotify-player-toggle-btn-hub" class="profile-menu-item spotify-toggle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                    Music Player
+                                </button>
+                            {% endif %}
+                            <div class="profile-menu-item theme-toggle-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                <span>Dark Mode</span>
+                                <label class="theme-switch-inline" for="theme-toggle-dropdown">
+                                    <input type="checkbox" id="theme-toggle-dropdown" />
+                                    <div class="slider-inline">
+                                        <div class="icon-wrapper sun">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        </div>
+                                        <div class="icon-wrapper moon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3202,19 +3298,19 @@
 
         });
 
-        // --- Dark Mode Toggle Logic ---
+            // --- Dark Mode Toggle Logic ---
             const themeToggle = document.getElementById('theme-toggle');
-            const sidebarThemeToggle = document.getElementById('theme-toggle-input');
+            const dropdownThemeToggle = document.getElementById('theme-toggle-dropdown');
             
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     if(themeToggle) themeToggle.checked = true;
-                    if(sidebarThemeToggle) sidebarThemeToggle.checked = true;
+                    if(dropdownThemeToggle) dropdownThemeToggle.checked = true;
                 } else {
                     document.documentElement.removeAttribute('data-theme');
                     if(themeToggle) themeToggle.checked = false;
-                    if(sidebarThemeToggle) sidebarThemeToggle.checked = false;
+                    if(dropdownThemeToggle) dropdownThemeToggle.checked = false;
                 }
             }
             
@@ -3226,9 +3322,9 @@
                 });
             }
             
-            if(sidebarThemeToggle) {
-                sidebarThemeToggle.addEventListener('change', () => {
-                    const newTheme = sidebarThemeToggle.checked ? 'dark' : 'light';
+            if(dropdownThemeToggle) {
+                dropdownThemeToggle.addEventListener('change', () => {
+                    const newTheme = dropdownThemeToggle.checked ? 'dark' : 'light';
                     localStorage.setItem('theme', newTheme);
                     applyTheme(newTheme);
                 });
