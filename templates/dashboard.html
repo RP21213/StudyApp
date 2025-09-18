@@ -2312,145 +2312,80 @@
 {% if needs_onboarding %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
-                runHubOnboarding();
-            } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
-                runPayoffAnimation();
-            }
-        });
-
-        // --- Helper functions for onboarding UI ---
-        function showSpotlight(targetElement) {
-            const spotlight = document.getElementById('onboarding-spotlight-overlay');
-            if(!spotlight) return; 
-            targetElement.classList.add('onboarding-highlight');
-            Object.assign(targetElement.style, { position: 'relative', zIndex: '1003' });
-            const rect = targetElement.getBoundingClientRect();
-            const padding = 10;
-            const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
-            
-            spotlight.style.clipPath = clipPath;
-            spotlight.classList.add('visible');
-        }
-
-        function showTooltip(targetElement, text, position = 'bottom') {
-            const tooltip = document.getElementById('onboarding-tooltip');
-            if(!tooltip) return;
-            
-            const rect = targetElement.getBoundingClientRect();
-            tooltip.innerHTML = text; // Use innerHTML to allow for simple formatting
-            tooltip.className = `onboarding-tooltip ${position}`;
-            
-            let top, left;
-            if (position === 'bottom') {
-                top = rect.bottom + 15;
-                left = rect.left + rect.width / 2;
-                tooltip.style.transform = 'translateX(-50%)';
-            } else if (position === 'right') {
-                top = rect.top + rect.height / 2;
-                left = rect.right + 15;
-                tooltip.style.transform = 'translateY(-50%)';
-            } else { // top
-                top = rect.top - 15 - tooltip.offsetHeight;
-                left = rect.left + rect.width / 2;
-                tooltip.style.transform = 'translateX(-50%)';
-            }
-            
-            tooltip.style.top = `${top}px`;
-            tooltip.style.left = `${left}px`;
-            tooltip.classList.add('visible');
-        }
-
-        function hideOnboardingUI() {
+            const onboardingModal = document.getElementById('onboarding-modal');
+            const startOnboardingBtn = document.getElementById('start-onboarding-btn');
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
-            if (spotlight) spotlight.classList.remove('visible');
-            if (tooltip) tooltip.classList.remove('visible');
-            document.querySelectorAll('.onboarding-highlight').forEach(el => {
-                el.classList.remove('onboarding-highlight');
-                el.style.zIndex = '';
-                el.style.position = '';
+
+            // --- Helper functions for the UI ---
+            function showTooltip(targetElement, text, position = 'bottom') {
+                const rect = targetElement.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.className = `onboarding-tooltip ${position}`;
+                let top, left;
+                if (position === 'bottom') {
+                    top = rect.bottom + 15;
+                    left = rect.left + rect.width / 2;
+                    tooltip.style.transform = 'translateX(-50%)';
+                } else if (position === 'top') {
+                    top = rect.top - 15 - tooltip.offsetHeight;
+                    left = rect.left + rect.width / 2;
+                    tooltip.style.transform = 'translateX(-50%)';
+                }
+                tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+                tooltip.classList.add('visible');
+            }
+            
+            function showSpotlight(targetElement) {
+                targetElement.classList.add('onboarding-highlight');
+                const rect = targetElement.getBoundingClientRect();
+                const padding = 10;
+                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                spotlight.style.clipPath = clipPath;
+                spotlight.classList.add('visible');
+            }
+
+            function hideOnboardingUI() {
+                spotlight.classList.remove('visible');
+                tooltip.classList.remove('visible');
+                document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+            }
+
+            // --- Onboarding Flow Logic ---
+            function startTour() {
+                const welcomeHubCard = document.querySelector('.hub-card[data-hub-name*="Welcome"]');
+
+                if (!welcomeHubCard) {
+                    console.error("Onboarding target '.hub-card[data-hub-name*=\"Welcome\"]' not found.");
+                    alert("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
+                    fetch('/onboarding/complete', { method: 'POST' }); 
+                    return;
+                }
+
+                showSpotlight(welcomeHubCard);
+                showTooltip(welcomeHubCard, "We've created your first Hub. Click it to continue the tour.", 'bottom');
+
+                welcomeHubCard.addEventListener('click', function handleHubClick(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    sessionStorage.setItem('onboardingStep', 'hub_entry');
+                    
+                    // *** THIS IS THE FIX ***
+                    // We now specifically select the link with the 'hub-card-link' class
+                    const correctLink = welcomeHubCard.querySelector('a.hub-card-link').href;
+                    window.location.href = correctLink;
+
+                }, { once: true });
+            }
+
+            startOnboardingBtn.addEventListener('click', () => {
+                onboardingModal.classList.remove('visible');
+                setTimeout(startTour, 500); 
             });
-        }
-        
-        // --- Main Onboarding Tour Logic for this Page ---
-        async function runHubOnboarding() {
-            const guideModal = document.getElementById('onboarding-guide-modal');
 
-            function showStep(targetSelector, tooltipText, tooltipPosition = 'bottom') {
-                return new Promise(resolve => {
-                    hideOnboardingUI();
-                    const targetElement = document.querySelector(targetSelector);
-                    if (!targetElement) {
-                        console.error("Onboarding target not found:", targetSelector);
-                        resolve(); return;
-                    }
-                    showSpotlight(targetElement);
-                    showTooltip(targetElement, tooltipText, tooltipPosition);
-
-                    targetElement.addEventListener('click', function handleClick(e) {
-                        e.preventDefault(); e.stopPropagation();
-                        targetElement.removeEventListener('click', handleClick);
-                        hideOnboardingUI();
-                        resolve(targetElement);
-                    }, { once: true });
-                });
-            }
-
-            await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
-            document.querySelector('.nav-link[data-tab="tools"]').click();
-
-            await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
-            document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
-
-            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Let's turn that welcome document into a full study kit. Click here.");
-            revisionPackCard.click(); 
-
-            guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
-            guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
-            guideModal.classList.add('visible');
-            
-            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
-            generateBtn.addEventListener('click', function handleGenerate() {
-                guideModal.classList.remove('visible');
-                sessionStorage.setItem('onboardingStep', 'payoff');
-            }, { once: true });
-        }
-
-        // --- Payoff and Final Tooltips ---
-        async function runPayoffAnimation() {
-            sessionStorage.removeItem('onboardingStep'); 
-            
-            function showFinalTooltip(targetSelector, text, position) {
-                return new Promise(resolve => {
-                    const target = document.querySelector(targetSelector);
-                    if (!target) { resolve(); return; }
-                    hideOnboardingUI();
-                    showSpotlight(target);
-                    const tooltip = document.getElementById('onboarding-tooltip');
-                    tooltip.innerHTML = `<p>${text}</p><button class="button button-primary" style="margin-top: 1rem; width: 100%;" id="onboarding-next-btn">Next →</button>`;
-                    showTooltip(target, '', position);
-                    document.getElementById('onboarding-next-btn').onclick = () => { hideOnboardingUI(); resolve(); };
-                });
-            }
-
-            setTimeout(async () => {
-                document.querySelector('.nav-link[data-tab="folders"]').click();
-                const newFolder = document.querySelector('.folder-header');
-                if (newFolder) newFolder.click();
-                
-                alert("Success! Your complete study kit has been created and organized for you in this new folder.");
-
-                await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
-                await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
-                await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask the Tutor anything about them.", 'right');
-
-                alert("You're all set! Ready to create a Hub for your own course? You will be returned to the main dashboard.");
-                
-                await fetch('/onboarding/complete', { method: 'POST' });
-                window.location.href = "{{ url_for('dashboard') }}";
-            }, 1500); 
-        }
+            onboardingModal.classList.add('visible');
+        });
     </script>
     {% endif %}
 </body>

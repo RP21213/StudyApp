@@ -1428,6 +1428,12 @@
     </div>
 
     <!-- NEW: Onboarding Guide Modal for Hub page -->
+
+    <!-- Onboarding elements (required by runHubOnboarding) -->
+<div id="onboarding-spotlight-overlay"></div>
+<div id="onboarding-tooltip"></div>
+
+
     <div id="onboarding-guide-modal">
         <h3 id="onboarding-guide-title"></h3>
         <p id="onboarding-guide-text"></p>
@@ -2557,14 +2563,30 @@
 
     <!-- *** CORRECTED ONBOARDING SCRIPT *** -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
-            if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
-                runHubOnboarding();
-            } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
-                runPayoffAnimation();
-            }
-        });
+// Ensure onboarding DOM nodes exist (defensive)
+function ensureOnboardingNodesExist() {
+  if (!document.getElementById('onboarding-spotlight-overlay')) {
+    const s = document.createElement('div');
+    s.id = 'onboarding-spotlight-overlay';
+    document.body.appendChild(s);
+  }
+  if (!document.getElementById('onboarding-tooltip')) {
+    const t = document.createElement('div');
+    t.id = 'onboarding-tooltip';
+    document.body.appendChild(t);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  ensureOnboardingNodesExist();
+
+  const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
+  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
+      runHubOnboarding();
+  } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
+      runPayoffAnimation();
+  }
+});
+
 
         async function runHubOnboarding() {
             const guideModal = document.getElementById('onboarding-guide-modal');
