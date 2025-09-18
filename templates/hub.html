@@ -1724,10 +1724,10 @@
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
-                        await runPostCreationHubTour();
+                        await showOnboardingCompletionCelebration();
                     } 
-                    else { alert(`Error: ${result.message}`); hideLoading(); }
-                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
+                    else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') { hideLoading(); } }
+                } catch (error) { alert('A network or server error occurred.'); if (typeof hideLoading === 'function') { hideLoading(); } }
             });
 
             function openExamKitModal(preselectPaths = []) {
@@ -2636,45 +2636,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Removed payoff animation to keep onboarding simple and fast
 
-        async function runPostCreationHubTour() {
-            // Mark onboarding complete and move to folders
+        async function showOnboardingCompletionCelebration() {
             try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
             sessionStorage.removeItem('onboardingStep');
             if (typeof hideLoading === 'function') { hideLoading(); }
-            document.querySelector('.nav-link[data-tab="folders"]').click();
-
-            // Expand the most recent folder if present
+            // Navigate to folders
+            const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
+            if (foldersTab) foldersTab.click();
+            // Expand the most recent/new folder if present
             const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
             if (firstFolder) firstFolder.click();
+            // Fire confetti and show completion banner
+            launchConfetti();
+            showCompletionBanner();
+        }
 
-            // Quick guided tooltips over key areas
-            const steps = [
-                { sel: '.folder-accordion-item', text: 'This folder contains your generated notes, flashcards, and quiz.' },
-                { sel: '.nav-link[data-tab="documents"]', text: 'Documents: manage and upload your course PDFs.' },
-                { sel: '.nav-link[data-tab="notes"]', text: 'Notes: AI notes and your edited notes live here.' },
-                { sel: '.nav-link[data-tab="flashcards"]', text: 'Flashcards: practice active recall with spaced repetition.' },
-                { sel: '.nav-link[data-tab="quizzes"]', text: 'Quizzes: test yourself with generated practice questions.' },
-                { sel: '.nav-link[data-tab="progress"]', text: 'Progress: track mastery, XP, streaks, and stats.' }
-            ];
-
-            for (const step of steps) {
-                await new Promise(resolve => {
-                    const target = document.querySelector(step.sel);
-                    if (!target) { resolve(); return; }
-                    hideOnboardingUI();
-                    showSpotlight(target);
-                    const tooltip = document.getElementById('onboarding-tooltip');
-                    tooltip.innerHTML = `<p>${step.text}</p><button class="button button-primary" id="tour-next-btn">Next →</button>`;
-                    showTooltip(target, tooltip.innerHTML, 'bottom');
-                    document.getElementById('tour-next-btn').onclick = () => { hideOnboardingUI(); resolve(); };
+        function launchConfetti() {
+            // Lightweight confetti without external deps (simple burst)
+            const canvas = document.createElement('canvas');
+            canvas.id = 'confetti-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.inset = '0';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '9999';
+            document.body.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            function resize(){ canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr; }
+            resize(); window.addEventListener('resize', resize);
+            const particles = Array.from({length: 180}).map(() => ({
+                x: Math.random()*canvas.width,
+                y: -Math.random()*canvas.height*0.2,
+                r: 6 + Math.random()*6,
+                c: `hsl(${Math.random()*360},90%,60%)`,
+                vX: -2 + Math.random()*4,
+                vY: 2 + Math.random()*4,
+                rot: Math.random()*Math.PI,
+                rotV: -0.1 + Math.random()*0.2
+            }));
+            let frame=0, raf;
+            function tick(){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                particles.forEach(p=>{
+                    p.x += p.vX; p.y += p.vY; p.rot += p.rotV; p.vY += 0.05;
+                    ctx.save();
+                    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+                    ctx.fillStyle = p.c;
+                    ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r);
+                    ctx.restore();
                 });
-                // Click the tab if the step is a tab
-                if (step.sel.startsWith('.nav-link')) {
-                    const tabEl = document.querySelector(step.sel);
-                    if (tabEl) tabEl.click();
-                }
+                frame++; if (frame < 240) { raf = requestAnimationFrame(tick); } else { cleanup(); }
             }
-            hideOnboardingUI();
+            function cleanup(){ cancelAnimationFrame(raf); window.removeEventListener('resize', resize); canvas.remove(); }
+            tick();
+        }
+
+        function showCompletionBanner() {
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.left = '50%';
+            container.style.bottom = '24px';
+            container.style.transform = 'translateX(-50%)';
+            container.style.zIndex = '10000';
+            container.style.maxWidth = '680px';
+            container.style.width = 'calc(100% - 32px)';
+            container.innerHTML = `
+                <div class="content-card" style="padding: 1rem 1.25rem; display:flex; gap:0.75rem; align-items:center; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+                    <div style="font-size: 1.5rem">🎉</div>
+                    <div style="flex:1;">
+                        <div style="font-weight: 700; margin-bottom: 0.25rem;">You've done it!</div>
+                        <div>Feel free to explore what you've generated. After, check out the other tools and create your own Study Hubs for your modules or subjects.</div>
+                    </div>
+                    <button class="button button-primary" id="completion-dismiss-btn">Got it</button>
+                </div>`;
+            document.body.appendChild(container);
+            const dismiss = container.querySelector('#completion-dismiss-btn');
+            if (dismiss) {
+                dismiss.addEventListener('click', () => container.remove());
+            }
+            // Auto dismiss after 12s
+            setTimeout(() => { try { container.remove(); } catch(_){} }, 12000);
         }
 
         // --- Helper functions for onboarding UI ---
