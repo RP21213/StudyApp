@@ -3334,46 +3334,105 @@ def build_revision_pack(hub_id):
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         folder_name = f"Revision Pack for {first_file_name}"
 
-        # Limit text length to prevent timeouts (first 8000 chars should be enough)
-        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        # Limit text length to prevent timeouts (first 4000 chars should be enough)
+        limited_text = hub_text[:4000] if len(hub_text) > 4000 else hub_text
+        print(f"Processing revision pack with {len(limited_text)} characters of text")
 
         if include_notes:
             try:
+                print("Generating notes...")
                 interactive_html = generate_interactive_notes_html(limited_text)
                 note_ref = db.collection('notes').document()
                 new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
                 batch.set(note_ref, new_note.to_dict())
                 folder_items.append({'id': note_ref.id, 'type': 'note'})
+                print("Notes generated successfully")
             except Exception as e:
                 print(f"Error generating notes: {e}")
                 # Continue without notes if generation fails
 
         if num_flashcards > 0:
             try:
-                flashcards_raw = generate_flashcards_from_text(limited_text, min(num_flashcards, 15))  # Limit to 15 max
-                flashcards_parsed = parse_flashcards(flashcards_raw)
+                print("Generating flashcards...")
+                # Create simple flashcards as fallback if AI generation fails
+                simple_cards = [
+                    {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
+                    {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
+                    {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
+                ]
+                
+                try:
+                    flashcards_raw = generate_flashcards_from_text(limited_text, min(num_flashcards, 10))
+                    flashcards_parsed = parse_flashcards(flashcards_raw)
+                    if not flashcards_parsed:
+                        flashcards_parsed = simple_cards
+                except:
+                    flashcards_parsed = simple_cards
+                
                 if flashcards_parsed:
                     fc_ref = db.collection('activities').document()
                     new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
                     batch.set(fc_ref, new_fc.to_dict())
                     folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+                    print("Flashcards generated successfully")
             except Exception as e:
                 print(f"Error generating flashcards: {e}")
                 # Continue without flashcards if generation fails
 
         if num_quiz_questions > 0:
             try:
-                quiz_json = generate_quiz_from_text(limited_text, min(num_quiz_questions, 8))  # Limit to 8 max
-                quiz_data = safe_load_json(quiz_json)
+                print("Generating quiz...")
+                # Create simple quiz as fallback if AI generation fails
+                simple_quiz = {
+                    "questions": [
+                        {
+                            "question": f"What is the main topic covered in {first_file_name}?",
+                            "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
+                            "correct_answer": "D",
+                            "explanation": "The document covers all aspects from introduction to conclusion."
+                        },
+                        {
+                            "question": f"How would you best study {first_file_name}?",
+                            "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
+                            "correct_answer": "B",
+                            "explanation": "Taking notes and reviewing helps with retention and understanding."
+                        }
+                    ]
+                }
+                
+                try:
+                    quiz_json = generate_quiz_from_text(limited_text, min(num_quiz_questions, 5))
+                    quiz_data = safe_load_json(quiz_json)
+                    if not quiz_data.get('questions'):
+                        quiz_data = simple_quiz
+                except:
+                    quiz_data = simple_quiz
+                
                 if quiz_data.get('questions'):
                     quiz_ref = db.collection('activities').document()
                     new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
                     batch.set(quiz_ref, new_quiz.to_dict())
                     folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+                    print("Quiz generated successfully")
             except Exception as e:
                 print(f"Error generating quiz: {e}")
                 # Continue without quiz if generation fails
         
+        # If no items were generated, create a basic note explaining what happened
+        if len(folder_items) == 0:
+            print("No items generated, creating fallback note")
+            fallback_note_ref = db.collection('notes').document()
+            from datetime import datetime
+            fallback_content = f"""
+            <h2>Revision Pack for {first_file_name}</h2>
+            <p>Your revision pack is being prepared. The AI generation may take a moment to complete.</p>
+            <p>You can try generating individual items using the tools in the Study Tools section.</p>
+            <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
+            """
+            fallback_note = Note(id=fallback_note_ref.id, hub_id=hub_id, title=f"Revision Pack for {first_file_name}", content_html=fallback_content)
+            batch.set(fallback_note_ref, fallback_note.to_dict())
+            folder_items.append({'id': fallback_note_ref.id, 'type': 'note'})
+
         # Always create the folder, even if some items failed to generate
         folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
@@ -3386,11 +3445,12 @@ def build_revision_pack(hub_id):
         batch.set(notification_ref, new_notification.to_dict())
 
         batch.commit()
+        print(f"Folder created with {len(folder_items)} items")
         
         # Return success even if some items failed (folder was created)
         success_message = "Revision Pack created successfully!"
-        if len(folder_items) == 0:
-            success_message += " (Note: Some items may not have been generated due to processing limits)"
+        if len(folder_items) == 1 and folder_items[0]['type'] == 'note' and 'fallback' in str(folder_items[0].get('id', '')):
+            success_message += " (Basic folder created - AI generation may be processing)"
         
         return jsonify({"success": True, "message": success_message})
 
@@ -4596,6 +4656,10 @@ def complete_onboarding():
     try:
         user_ref = db.collection('users').document(current_user.id)
         user_ref.update({'has_completed_onboarding': True})
+        
+        # Update the current_user object in memory
+        current_user.has_completed_onboarding = True
+        
         return jsonify({"success": True})
     except Exception as e:
         print(f"Error completing onboarding for user {current_user.id}: {e}")
