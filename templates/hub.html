@@ -1726,13 +1726,19 @@
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
-                        // Mark onboarding as complete immediately
-                        fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                        // Check if this is during onboarding
+                        const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || sessionStorage.getItem('showOnboardingCelebration') === '1';
                         
-                        // Persist a flag to show celebration after reload so folders reflect the new pack
-                        sessionStorage.setItem('showOnboardingCelebration', '1');
-                        // Ensure onboarding tour does not restart on reload
-                        sessionStorage.removeItem('onboardingStep');
+                        if (isOnboarding) {
+                            // Mark onboarding as complete immediately
+                            fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                            
+                            // Persist a flag to show celebration after reload so folders reflect the new pack
+                            sessionStorage.setItem('showOnboardingCelebration', '1');
+                            // Ensure onboarding tour does not restart on reload
+                            sessionStorage.removeItem('onboardingStep');
+                        }
+                        
                         if (typeof hideLoading === 'function') { hideLoading(); }
                         window.location.hash = 'folders';
                         window.location.reload();
@@ -2600,7 +2606,7 @@ document.addEventListener('DOMContentLoaded', () => {
       runHubOnboarding();
   }
 
-  // After reload: show celebration if flagged
+  // After reload: show celebration if flagged (only during onboarding)
   if (sessionStorage.getItem('showOnboardingCelebration') === '1') {
       sessionStorage.removeItem('showOnboardingCelebration');
       const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
