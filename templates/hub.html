@@ -1726,6 +1726,8 @@
                     if (result.success) {
                         // Persist a flag to show celebration after reload so folders reflect the new pack
                         sessionStorage.setItem('showOnboardingCelebration', '1');
+                        // Ensure onboarding tour does not restart on reload
+                        sessionStorage.removeItem('onboardingStep');
                         if (typeof hideLoading === 'function') { hideLoading(); }
                         window.location.hash = 'folders';
                         window.location.reload();
@@ -2588,7 +2590,8 @@ document.addEventListener('DOMContentLoaded', () => {
   ensureOnboardingNodesExist();
 
   const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
-  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
+  // Prevent accidental restart of onboarding if we just finished
+  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub && sessionStorage.getItem('showOnboardingCelebration') !== '1') {
       runHubOnboarding();
   }
 
@@ -2600,7 +2603,9 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
           const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
           if (firstFolder) firstFolder.click();
-      }, 200);
+          // Spotlight newly created items if present
+          spotlightGeneratedItems();
+      }, 250);
       launchConfetti();
       showCompletionBanner(true);
   }
@@ -2773,6 +2778,37 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.top = `${top}px`;
             tooltip.style.left = `${left}px`;
             tooltip.classList.add('visible');
+        }
+
+        function spotlightGeneratedItems() {
+            // Try to highlight the first note, flashcards, and quiz items inside the expanded folder
+            const container = document.querySelector('.folder-accordion-item .folder-content');
+            if (!container) return;
+            const noteItem = container.querySelector('.asset-item[data-type="note"] .asset-link');
+            const flashItem = container.querySelector('.asset-item[data-type="flashcards"] .asset-link');
+            const quizItem = container.querySelector('.asset-item[data-type="quiz"] .asset-link');
+
+            const items = [
+                {el: noteItem, text: 'Your AI-generated notes are here.'},
+                {el: flashItem, text: 'These are your flashcards to practice recall.'},
+                {el: quizItem, text: 'Start a quick quiz from your material.'}
+            ];
+
+            (async () => {
+                for (const it of items) {
+                    if (!it.el) continue;
+                    hideOnboardingUI();
+                    showSpotlight(it.el);
+                    const tooltipHtml = `<p>${it.text}</p><button class="button button-primary" id="spotlight-next">Next →</button>`;
+                    showTooltip(it.el, tooltipHtml, 'right');
+                    await new Promise(resolve => {
+                        const btn = document.getElementById('spotlight-next');
+                        if (btn) btn.onclick = () => { hideOnboardingUI(); resolve(); };
+                        else setTimeout(resolve, 1200);
+                    });
+                }
+                hideOnboardingUI();
+            })();
         }
 
         function hideOnboardingUI() {
