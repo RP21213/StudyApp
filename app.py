@@ -1315,6 +1315,7 @@ def dashboard():
 
     # --- NEW: Onboarding Flag ---
     needs_onboarding = not current_user.has_completed_onboarding
+    print(f"Dashboard: User {current_user.id} has_completed_onboarding = {current_user.has_completed_onboarding}, needs_onboarding = {needs_onboarding}")
 
     return render_template(
         "dashboard.html", 
@@ -4657,8 +4658,16 @@ def complete_onboarding():
         user_ref = db.collection('users').document(current_user.id)
         user_ref.update({'has_completed_onboarding': True})
         
-        # Update the current_user object in memory
-        current_user.has_completed_onboarding = True
+        # Force refresh the current_user object from database
+        user_doc = db.collection('users').document(current_user.id).get()
+        if user_doc.exists:
+            updated_user = User.from_dict(user_doc.to_dict())
+            # Update the current_user object properties
+            current_user.has_completed_onboarding = updated_user.has_completed_onboarding
+            print(f"Onboarding complete: Updated user {current_user.id} has_completed_onboarding = {current_user.has_completed_onboarding}")
+            
+            # Force a session refresh by re-logging in the user
+            login_user(updated_user, remember=True)
         
         return jsonify({"success": True})
     except Exception as e:
