@@ -29,38 +29,20 @@
         .header-actions { display: flex; gap: 0.75rem; flex-shrink: 0; }
         .button { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none; font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; font-family: 'Poppins', sans-serif; border: 1px solid var(--border-color); background-color: white; color: var(--text-secondary); cursor: pointer; }
         
-        .back-to-dashboard {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+        .back-arrow {
+            background-color: var(--background-interactive-hover);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            min-width: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .back-to-dashboard:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-        .back-to-dashboard::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        .back-to-dashboard:hover::before {
-            left: 100%;
-        }
-        .sparkle {
-            display: inline-block;
-            animation: sparkle 1.5s ease-in-out infinite;
-        }
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+        .back-arrow:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
         }
         .note-content { padding: 1.5rem 2.5rem 2.5rem; font-family: 'Lora', serif; transition: opacity 0.3s ease; }
         .note-content.ai-loading { opacity: 0.6; pointer-events: none; }
@@ -113,9 +95,11 @@
                     <p class="note-meta">Part of <a href="{{ url_for('hub_page', hub_id=note.hub_id) }}">{{ hub_name }}</a> Hub &middot; Created {{ note.created_at|timesince }} ago</p>
                 </div>
                 <div class="header-actions">
-                    <a href="{{ url_for('hub_page', hub_id=note.hub_id) }}" class="button back-to-dashboard">
-                        <span class="sparkle">✨</span>
-                        Back to Dashboard
+                    <a href="{{ url_for('hub_page', hub_id=note.hub_id) }}" class="button back-arrow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
                     </a>
                     <a href="{{ url_for('download_note_pdf', note_id=note.id) }}" class="button">Download PDF</a>
                 </div>

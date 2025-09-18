@@ -743,6 +743,43 @@
         .tool-category-back-button {
             margin-bottom: 2rem;
         }
+        
+        /* Back to Dashboard Sparkle Animation */
+        .back-to-dashboard {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+        .back-to-dashboard:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+        .back-to-dashboard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        .back-to-dashboard:hover::before {
+            left: 100%;
+        }
+        .sparkle {
+            display: inline-block;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+        }
 
         /* --- NEW: Spotify Player CSS --- */
         #spotify-player-container {
@@ -849,8 +886,8 @@
             </nav>
 
             <div class="sidebar-footer">
-                <a href="{{ url_for('dashboard') }}" class="nav-link">
-                    <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                <a href="{{ url_for('dashboard') }}" class="nav-link back-to-dashboard">
+                    <span class="sparkle">✨</span>
                     <span class="nav-text">Back to Dashboard</span>
                 </a>
             </div>
