@@ -48,8 +48,9 @@ class User(UserMixin):
                  font_size_preference='default', high_contrast_mode=False, language='en-US',
                  # --- NEW: Fields for Spotify ---
                  spotify_access_token=None, spotify_refresh_token=None, spotify_token_expires_at=None,
-                 # --- NEW: Onboarding Field ---
+                 # --- NEW: Onboarding Fields ---
                  has_completed_onboarding=False,
+                 referral_source=None, goals=None, email_opt_in=False, theme_preference='light',
                  **kwargs):
         self.id = id
         self.email = email
@@ -75,8 +76,12 @@ class User(UserMixin):
         self.spotify_refresh_token = spotify_refresh_token
         self.spotify_token_expires_at = spotify_token_expires_at
 
-        # --- NEW: Onboarding Property ---
+        # --- NEW: Onboarding Properties ---
         self.has_completed_onboarding = has_completed_onboarding
+        self.referral_source = referral_source
+        self.goals = goals
+        self.email_opt_in = email_opt_in
+        self.theme_preference = theme_preference
 
     def to_dict(self):
         return {
@@ -102,6 +107,10 @@ class User(UserMixin):
             'spotify_token_expires_at': self.spotify_token_expires_at,
             # --- NEW: Onboarding to dict ---
             'has_completed_onboarding': self.has_completed_onboarding,
+            'referral_source': self.referral_source,
+            'goals': self.goals,
+            'email_opt_in': self.email_opt_in,
+            'theme_preference': self.theme_preference,
         }
 
     @staticmethod
@@ -129,7 +138,11 @@ class User(UserMixin):
             spotify_refresh_token=source.get('spotify_refresh_token'),
             spotify_token_expires_at=source.get('spotify_token_expires_at'),
             # --- NEW: Onboarding from dict ---
-            has_completed_onboarding=source.get('has_completed_onboarding', False)
+            has_completed_onboarding=source.get('has_completed_onboarding', False),
+            referral_source=source.get('referral_source'),
+            goals=source.get('goals'),
+            email_opt_in=source.get('email_opt_in', False),
+            theme_preference=source.get('theme_preference', 'light')
         )
     
 # --- NEW: Model for Note-Taking with Slides ---

@@ -1439,6 +1439,44 @@
         <p id="onboarding-guide-text"></p>
     </div>
 
+    <!-- NEW: Onboarding Housekeeping Modal -->
+    <div id="onboarding-housekeeping-modal" style="display:none;">
+        <div class="content-card" style="max-width: 720px; margin: 0 auto;">
+            <h3>Whilst your pack is being built, let's do some housekeeping</h3>
+            <form id="onboarding-housekeeping-form" style="display: grid; gap: 1rem; margin-top: 1rem;">
+                <div>
+                    <label style="display:block; margin-bottom: 0.25rem;">Theme</label>
+                    <div style="display:flex; gap: 1rem;">
+                        <label><input type="radio" name="theme_preference" value="light"> Light</label>
+                        <label><input type="radio" name="theme_preference" value="dark"> Dark</label>
+                    </div>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 0.25rem;">How did you find us?</label>
+                    <select name="referral_source" required>
+                        <option value="">Select one</option>
+                        <option value="friend">Friend / Word of mouth</option>
+                        <option value="search">Search engine</option>
+                        <option value="social">Social media</option>
+                        <option value="ad">Ad</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom: 0.25rem;">Your goals</label>
+                    <textarea name="goals" rows="3" placeholder="e.g., Ace finals, master calculus, consistent daily revision" required></textarea>
+                </div>
+                <div>
+                    <label><input type="checkbox" name="email_opt_in"> I'd like to receive email updates and tips</label>
+                </div>
+                <div style="display:flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button type="button" class="button button-secondary" id="housekeeping-skip-btn">Skip</button>
+                    <button type="submit" class="button button-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- NEW: Spotify Player HTML -->
     {% if spotify_connected %}
     <div id="spotify-player-container">
@@ -1722,10 +1760,10 @@
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
-                        try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
-                        sessionStorage.removeItem('onboardingStep');
-                        window.location.hash = 'folders';
-                        window.location.reload();
+                        // Hide housekeeping if open and proceed to post-creation hub tour
+                        const hk = document.getElementById('onboarding-housekeeping-modal');
+                        if (hk) hk.style.display = 'none';
+                        await runPostCreationHubTour();
                     } 
                     else { alert(`Error: ${result.message}`); hideLoading(); }
                 } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
@@ -2588,6 +2626,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
       runHubOnboarding();
   }
+
+  // Hook up housekeeping form behaviors
+  initHousekeepingForm();
 });
 
 
@@ -2630,10 +2671,94 @@ document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
             generateBtn.addEventListener('click', function handleGenerate() {
                 guideModal.classList.remove('visible');
+                // Show housekeeping while pack builds
+                const hk = document.getElementById('onboarding-housekeeping-modal');
+                if (hk) hk.style.display = 'flex';
             }, { once: true });
         }
 
         // Removed payoff animation to keep onboarding simple and fast
+
+        function initHousekeepingForm() {
+            const hkModal = document.getElementById('onboarding-housekeeping-modal');
+            const form = document.getElementById('onboarding-housekeeping-form');
+            const skipBtn = document.getElementById('housekeeping-skip-btn');
+            if (!form) return;
+
+            // Initialize theme radios from localStorage
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const themeRadio = form.querySelector(`input[name="theme_preference"][value="${currentTheme}"]`);
+            if (themeRadio) themeRadio.checked = true;
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = {
+                    theme_preference: formData.get('theme_preference') || 'light',
+                    referral_source: formData.get('referral_source') || null,
+                    goals: formData.get('goals') || null,
+                    email_opt_in: formData.get('email_opt_in') === 'on'
+                };
+                // Apply theme immediately
+                localStorage.setItem('theme', data.theme_preference);
+                applyTheme(data.theme_preference);
+                try {
+                    await fetch('/settings/update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                } catch (_) {}
+                if (hkModal) hkModal.style.display = 'none';
+            });
+
+            if (skipBtn) {
+                skipBtn.addEventListener('click', () => {
+                    if (hkModal) hkModal.style.display = 'none';
+                });
+            }
+        }
+
+        async function runPostCreationHubTour() {
+            // Mark onboarding complete and move to folders
+            try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
+            sessionStorage.removeItem('onboardingStep');
+            hideLoading();
+            document.querySelector('.nav-link[data-tab="folders"]').click();
+
+            // Expand the most recent folder if present
+            const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
+            if (firstFolder) firstFolder.click();
+
+            // Quick guided tooltips over key areas
+            const steps = [
+                { sel: '.folder-accordion-item', text: 'This folder contains your generated notes, flashcards, and quiz.' },
+                { sel: '.nav-link[data-tab="documents"]', text: 'Documents: manage and upload your course PDFs.' },
+                { sel: '.nav-link[data-tab="notes"]', text: 'Notes: AI notes and your edited notes live here.' },
+                { sel: '.nav-link[data-tab="flashcards"]', text: 'Flashcards: practice active recall with spaced repetition.' },
+                { sel: '.nav-link[data-tab="quizzes"]', text: 'Quizzes: test yourself with generated practice questions.' },
+                { sel: '.nav-link[data-tab="progress"]', text: 'Progress: track mastery, XP, streaks, and stats.' }
+            ];
+
+            for (const step of steps) {
+                await new Promise(resolve => {
+                    const target = document.querySelector(step.sel);
+                    if (!target) { resolve(); return; }
+                    hideOnboardingUI();
+                    showSpotlight(target);
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    tooltip.innerHTML = `<p>${step.text}</p><button class="button button-primary" id="tour-next-btn">Next →</button>`;
+                    showTooltip(target, tooltip.innerHTML, 'bottom');
+                    document.getElementById('tour-next-btn').onclick = () => { hideOnboardingUI(); resolve(); };
+                });
+                // Click the tab if the step is a tab
+                if (step.sel.startsWith('.nav-link')) {
+                    const tabEl = document.querySelector(step.sel);
+                    if (tabEl) tabEl.click();
+                }
+            }
+            hideOnboardingUI();
+        }
 
         // --- Helper functions for onboarding UI ---
         function showSpotlight(targetElement) {

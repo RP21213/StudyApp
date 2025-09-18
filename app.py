@@ -1630,7 +1630,9 @@ def update_settings():
     # Define which keys are allowed to be updated through this endpoint
     allowed_keys = [
         'profile_visible', 'activity_visible', 'default_note_privacy',
-        'font_size_preference', 'high_contrast_mode', 'language'
+        'font_size_preference', 'high_contrast_mode', 'language',
+        # Onboarding housekeeping fields
+        'referral_source', 'goals', 'email_opt_in', 'theme_preference'
     ]
     
     update_data = {}
