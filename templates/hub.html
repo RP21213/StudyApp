@@ -102,6 +102,7 @@
         }
         .sidebar.collapsed .sidebar-footer {
             padding: 0.5rem;
+            margin-top: auto;
         }
         .sidebar-header {
             display: flex;
@@ -160,6 +161,7 @@
             flex-grow: 1;
             overflow-y: auto;
             -ms-overflow-style: none; scrollbar-width: none;
+            margin-bottom: 1rem;
         }
         .sidebar-nav::-webkit-scrollbar { display: none; }
         .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
@@ -209,6 +211,8 @@
         .sidebar-footer {
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            flex-shrink: 0;
         }
 
         /* --- Main Content Wrapper --- */
@@ -784,47 +788,29 @@
             margin-bottom: 2rem;
         }
         
-        /* Back to Dashboard Sparkle Animation */
+        /* Back to Dashboard Button */
         .back-to-dashboard {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            background: var(--primary-color) !important;
             color: white !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid var(--primary-color) !important;
             transition: all 0.3s ease;
             border-radius: 8px;
-            margin-top: 1rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1rem;
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+            text-decoration: none;
+            box-sizing: border-box;
         }
         .back-to-dashboard:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
-        }
-        .back-to-dashboard::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        .back-to-dashboard:hover::before {
-            left: 100%;
-        }
-        .sparkle {
-            display: inline-block;
-            animation: sparkle 1.5s ease-in-out infinite;
-        }
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-            50% { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+            background: var(--primary-hover) !important;
+            border-color: var(--primary-hover) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
         
         /* Collapsed state for back to dashboard button */
@@ -832,6 +818,8 @@
             justify-content: center;
             padding: 0.75rem;
             min-width: auto;
+            width: 100%;
+            max-width: 100%;
         }
         .sidebar.collapsed .back-to-dashboard .nav-text {
             opacity: 0;
@@ -841,6 +829,147 @@
         }
         .sidebar.collapsed .back-to-dashboard .sparkle {
             margin: 0;
+        }
+
+        /* Task Queue Styles */
+        .task-queue-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--background-interactive);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .task-queue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .task-queue-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 0;
+        }
+        .task-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--background-card);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+        }
+        .task-queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--background-card);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .task-item:hover {
+            background: var(--background-interactive-hover);
+            border-color: var(--primary-color);
+        }
+        .task-item.completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            color: white;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        .task-item.completed:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .task-item.processing {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-color: #3b82f6;
+            color: white;
+        }
+        .task-item.queued {
+            background: var(--background-card);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+        .task-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .task-title {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 0 0 0.25rem 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .task-status {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+        .task-progress {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .task-progress-bar {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .task-item.completed .task-progress-bar {
+            width: 100%;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px rgba(16, 185, 129, 0.5); }
+            to { box-shadow: 0 0 20px rgba(16, 185, 129, 0.8); }
+        }
+        
+        /* Collapsed state for task queue */
+        .sidebar.collapsed .task-queue-section {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        .sidebar.collapsed .task-queue-header {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .sidebar.collapsed .task-queue-title {
+            font-size: 0.75rem;
+        }
+        .sidebar.collapsed .task-count {
+            font-size: 0.7rem;
+        }
+        .sidebar.collapsed .task-item {
+            padding: 0.5rem;
+            justify-content: center;
+        }
+        .sidebar.collapsed .task-content {
+            display: none;
+        }
+        .sidebar.collapsed .task-icon {
+            width: 16px;
+            height: 16px;
         }
 
         /* --- NEW: Spotify Player CSS --- */
@@ -947,6 +1076,17 @@
                 </ul>
             </nav>
 
+            <!-- Task Queue Section -->
+            <div class="task-queue-section">
+                <div class="task-queue-header">
+                    <h4 class="task-queue-title">Task Queue</h4>
+                    <span class="task-count" id="task-count">0/3</span>
+                </div>
+                <div class="task-queue-list" id="task-queue-list">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+            </div>
+
             <div class="sidebar-footer">
                 <a href="{{ url_for('dashboard') }}" class="nav-link back-to-dashboard">
                     <span class="sparkle">✨</span>
@@ -961,10 +1101,6 @@
         <div class="main-wrapper">
             <!-- Top Bar -->
             <header class="top-bar">
-                <div class="search-container">
-                     <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
-                     <input type="search" placeholder="Search within this hub...">
-                </div>
                 <div class="top-bar-actions">
                     <div class="quick-actions">
                         <button class="button button-secondary" id="quick-action-tutor">Ask AI</button>
@@ -1714,6 +1850,223 @@
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
             
+            // --- Task Queue System ---
+            const taskQueue = {
+                tasks: [],
+                maxTasks: 3,
+                processing: false,
+                
+                addTask: function(type, title, files, options = {}) {
+                    if (this.tasks.length >= this.maxTasks) {
+                        alert(`Maximum ${this.maxTasks} tasks allowed. Please wait for current tasks to complete.`);
+                        return false;
+                    }
+                    
+                    const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    const task = {
+                        id: taskId,
+                        type: type,
+                        title: title,
+                        files: files,
+                        options: options,
+                        status: 'queued',
+                        progress: 0,
+                        result: null,
+                        createdAt: new Date()
+                    };
+                    
+                    this.tasks.push(task);
+                    this.renderTasks();
+                    this.processNext();
+                    return taskId;
+                },
+                
+                updateTaskStatus: function(taskId, status, progress = 0, result = null) {
+                    const task = this.tasks.find(t => t.id === taskId);
+                    if (task) {
+                        task.status = status;
+                        task.progress = progress;
+                        if (result) task.result = result;
+                        this.renderTasks();
+                        
+                        if (status === 'completed') {
+                            this.processing = false;
+                            this.processNext();
+                        }
+                    }
+                },
+                
+                removeTask: function(taskId) {
+                    this.tasks = this.tasks.filter(t => t.id !== taskId);
+                    this.renderTasks();
+                    this.processing = false;
+                    this.processNext();
+                },
+                
+                processNext: function() {
+                    if (this.processing) return;
+                    
+                    const nextTask = this.tasks.find(t => t.status === 'queued');
+                    if (nextTask) {
+                        this.processing = true;
+                        this.updateTaskStatus(nextTask.id, 'processing', 0);
+                        this.executeTask(nextTask);
+                    }
+                },
+                
+                executeTask: function(task) {
+                    // Simulate progress updates
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 90) progress = 90;
+                        this.updateTaskStatus(task.id, 'processing', progress);
+                    }, 500);
+                    
+                    // Execute the actual task
+                    this.performTask(task).then(result => {
+                        clearInterval(progressInterval);
+                        this.updateTaskStatus(task.id, 'completed', 100, result);
+                    }).catch(error => {
+                        clearInterval(progressInterval);
+                        this.updateTaskStatus(task.id, 'error', 0);
+                        console.error('Task failed:', error);
+                    });
+                },
+                
+                performTask: async function(task) {
+                    const { type, files, options } = task;
+                    const hubId = "{{ hub.id }}";
+                    
+                    let endpoint, payload;
+                    
+                    switch (type) {
+                        case 'notes':
+                            endpoint = `/hub/${hubId}/generate_individual_notes`;
+                            payload = { selected_files: files };
+                            break;
+                        case 'flashcards':
+                            endpoint = `/hub/${hubId}/generate_individual_flashcards`;
+                            payload = { selected_files: files, num_flashcards: options.num_flashcards || 5 };
+                            break;
+                        case 'quiz':
+                            endpoint = `/hub/${hubId}/generate_individual_quiz`;
+                            payload = { selected_files: files, num_quiz_questions: options.num_quiz_questions || 5 };
+                            break;
+                        case 'cheatsheet':
+                            endpoint = `/hub/${hubId}/generate_individual_cheatsheet`;
+                            payload = { selected_files: files };
+                            break;
+                        case 'revision_pack':
+                            endpoint = `/hub/${hubId}/build_revision_pack`;
+                            payload = { 
+                                selected_files: files, 
+                                include_notes: options.include_notes || true,
+                                num_flashcards: options.num_flashcards || 5,
+                                num_quiz_questions: options.num_quiz_questions || 5
+                            };
+                            break;
+                        default:
+                            throw new Error('Unknown task type');
+                    }
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.message || 'Task failed');
+                    }
+                    
+                    return result;
+                },
+                
+                renderTasks: function() {
+                    const container = document.getElementById('task-queue-list');
+                    const countElement = document.getElementById('task-count');
+                    
+                    if (!container || !countElement) return;
+                    
+                    countElement.textContent = `${this.tasks.length}/${this.maxTasks}`;
+                    
+                    if (this.tasks.length === 0) {
+                        container.innerHTML = '<div class="task-item queued"><div class="task-content"><div class="task-title">No tasks in queue</div></div></div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = this.tasks.map(task => {
+                        const icon = this.getTaskIcon(task.type);
+                        const statusText = this.getStatusText(task.status);
+                        
+                        return `
+                            <div class="task-item ${task.status}" data-task-id="${task.id}">
+                                <div class="task-icon">${icon}</div>
+                                <div class="task-content">
+                                    <div class="task-title">${task.title}</div>
+                                    <div class="task-status">${statusText}</div>
+                                    ${task.status === 'processing' || task.status === 'completed' ? 
+                                        `<div class="task-progress"><div class="task-progress-bar" style="width: ${task.progress}%"></div></div>` : 
+                                        ''
+                                    }
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    // Add click handlers for completed tasks
+                    container.querySelectorAll('.task-item.completed').forEach(item => {
+                        item.addEventListener('click', () => this.handleTaskClick(item.dataset.taskId));
+                    });
+                },
+                
+                getTaskIcon: function(type) {
+                    const icons = {
+                        'notes': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>',
+                        'flashcards': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>',
+                        'quiz': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+                        'cheatsheet': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>',
+                        'revision_pack': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>'
+                    };
+                    return icons[type] || icons['notes'];
+                },
+                
+                getStatusText: function(status) {
+                    const statusTexts = {
+                        'queued': 'Queued',
+                        'processing': 'Processing...',
+                        'completed': 'Click to view',
+                        'error': 'Failed'
+                    };
+                    return statusTexts[status] || status;
+                },
+                
+                handleTaskClick: function(taskId) {
+                    const task = this.tasks.find(t => t.id === taskId);
+                    if (!task || task.status !== 'completed') return;
+                    
+                    if (task.type === 'revision_pack') {
+                        // For revision packs, go to folders tab
+                        const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
+                        if (foldersTab) foldersTab.click();
+                        this.removeTask(taskId);
+                    } else if (task.result && task.result.redirect_url) {
+                        // For individual tools, redirect to the generated content
+                        window.location.href = task.result.redirect_url;
+                        this.removeTask(taskId);
+                    }
+                }
+            };
+            
+            // Initialize task queue
+            taskQueue.renderTasks();
+            
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
             const revisionModal = document.getElementById('revision-pack-modal');
@@ -1954,20 +2307,34 @@
                 const form = e.target;
                 const selectedFiles = Array.from(form.querySelectorAll('input[name="revision-pack-files_files"]:checked')).map(cb => cb.value);
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
+                
                 const payload = {
                     selected_files: selectedFiles,
                     num_flashcards: form.num_flashcards.value,
                     num_quiz_questions: form.num_quiz_questions.value,
                     include_notes: form.include_notes.checked
                 };
+                
                 revisionModal.style.display = 'none';
-                showLoading("Building Your Revision Pack...", "A new folder will be created when done.");
+                
+                // Add to task queue for tracking, but keep the direct execution for revision packs
+                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
+                const taskId = taskQueue.addTask('revision_pack', `Revision Pack: ${firstFileName}`, selectedFiles, {
+                    include_notes: payload.include_notes,
+                    num_flashcards: payload.num_flashcards,
+                    num_quiz_questions: payload.num_quiz_questions
+                });
+                
                 // Block all interactions while building
                 addGlobalInteractionBlocker();
+                
                 try {
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
+                        // Update task as completed
+                        taskQueue.updateTaskStatus(taskId, 'completed', 100, result);
+                        
                         // Check if this is during onboarding
                         const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || sessionStorage.getItem('showOnboardingCelebration') === '1';
                         
@@ -1984,9 +2351,18 @@
                         if (typeof hideLoading === 'function') { hideLoading(); }
                         window.location.hash = 'folders';
                         window.location.reload();
-                    } 
-                else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') { hideLoading(); } removeGlobalInteractionBlocker(); }
-                } catch (error) { alert('A network or server error occurred.'); if (typeof hideLoading === 'function') { hideLoading(); } removeGlobalInteractionBlocker(); }
+                    } else {
+                        taskQueue.updateTaskStatus(taskId, 'error', 0);
+                        alert(`Error: ${result.message}`);
+                        if (typeof hideLoading === 'function') { hideLoading(); }
+                        removeGlobalInteractionBlocker();
+                    }
+                } catch (error) {
+                    taskQueue.updateTaskStatus(taskId, 'error', 0);
+                    alert('A network or server error occurred.');
+                    if (typeof hideLoading === 'function') { hideLoading(); }
+                    removeGlobalInteractionBlocker();
+                }
             });
 
             function openExamKitModal(preselectPaths = []) {
@@ -2028,26 +2404,10 @@
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
                 
                 document.getElementById('individual-notes-modal').style.display = 'none';
-                showLoading("Generating Interactive Notes...", "Creating comprehensive study notes with key concepts highlighted.");
                 
-                try {
-                    const response = await fetch(`/hub/${hubId}/generate_individual_notes`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({selected_files: selectedFiles})
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                        window.location.href = result.redirect_url;
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    if (typeof hideLoading === 'function') { hideLoading(); }
-                }
+                // Add to task queue instead of direct generation
+                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
+                taskQueue.addTask('notes', `Interactive Notes: ${firstFileName}`, selectedFiles);
             });
 
             document.getElementById('individual-flashcards-form')?.addEventListener('submit', async (e) => {
@@ -2058,26 +2418,10 @@
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
                 
                 document.getElementById('individual-flashcards-modal').style.display = 'none';
-                showLoading("Generating Flashcards...", `Creating ${numFlashcards} flashcards from your documents.`);
                 
-                try {
-                    const response = await fetch(`/hub/${hubId}/generate_individual_flashcards`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({selected_files: selectedFiles, num_flashcards: numFlashcards})
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                        window.location.href = result.redirect_url;
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    if (typeof hideLoading === 'function') { hideLoading(); }
-                }
+                // Add to task queue instead of direct generation
+                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
+                taskQueue.addTask('flashcards', `Flashcards: ${firstFileName} (${numFlashcards} cards)`, selectedFiles, { num_flashcards: numFlashcards });
             });
 
             document.getElementById('individual-quiz-form')?.addEventListener('submit', async (e) => {
@@ -2088,26 +2432,10 @@
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
                 
                 document.getElementById('individual-quiz-modal').style.display = 'none';
-                showLoading("Generating Practice Quiz...", `Creating ${numQuestions} quiz questions from your documents.`);
                 
-                try {
-                    const response = await fetch(`/hub/${hubId}/generate_individual_quiz`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({selected_files: selectedFiles, num_questions: numQuestions})
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                        window.location.href = result.redirect_url;
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    if (typeof hideLoading === 'function') { hideLoading(); }
-                }
+                // Add to task queue instead of direct generation
+                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
+                taskQueue.addTask('quiz', `Quiz: ${firstFileName} (${numQuestions} questions)`, selectedFiles, { num_quiz_questions: numQuestions });
             });
 
             document.getElementById('individual-cheatsheet-form')?.addEventListener('submit', async (e) => {
@@ -2117,26 +2445,10 @@
                 if (selectedFiles.length === 0) return alert("Please select at least one document.");
                 
                 document.getElementById('individual-cheatsheet-modal').style.display = 'none';
-                showLoading("Generating Cheat Sheet...", "Creating a one-page reference sheet with key concepts and formulas.");
                 
-                try {
-                    const response = await fetch(`/hub/${hubId}/generate_individual_cheatsheet`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({selected_files: selectedFiles})
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                        window.location.href = result.redirect_url;
-                    } else {
-                        alert(`Error: ${result.message}`);
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                    }
-                } catch (error) {
-                    alert('A network or server error occurred.');
-                    if (typeof hideLoading === 'function') { hideLoading(); }
-                }
+                // Add to task queue instead of direct generation
+                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
+                taskQueue.addTask('cheatsheet', `Cheat Sheet: ${firstFileName}`, selectedFiles);
             });
 
             document.getElementById('exam-kit-form')?.addEventListener('submit', async (e) => {
