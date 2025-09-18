@@ -608,7 +608,18 @@ def generate_full_study_session(text, duration, focus):
 def generate_interactive_notes_html(text):
     """Generates interactive study notes in HTML format using the AI."""
     prompt = f"""
-    You are an expert AI creating an interactive HTML study guide from the provided text.
+    You are an expert study assistant. Your task is to read the uploaded material and convert it into high-quality revision notes. The notes must be:
+
+    Concise but detailed enough to cover all key concepts.
+    Organized with clear headings, subheadings, and bullet points.
+    Written in simple, easy-to-understand language without losing accuracy.
+    Highlighting definitions, formulas, examples, and key arguments where relevant.
+    Summarized in a way that makes them suitable for quick revision before exams.
+
+    If the content is long or repetitive, remove redundancies and keep only what is essential for understanding and recall.
+
+    At the end, include a short 'Key Takeaways' section with the most important points that a student must remember.
+
     Your response MUST be a single block of well-formed HTML.
 
     Follow these rules precisely:
@@ -617,6 +628,7 @@ def generate_interactive_notes_html(text):
         - **Example:** `<span class="keyword" title="A resource with economic value that is expected to provide a future benefit.">Asset</span>`
     3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
         - **Example:** `<span class="formula" data-formula="Assets = Liabilities + Equity">Assets = Liabilities + Equity</span>`
+    4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
 
     Do not include any text, explanations, or code outside of the final HTML output.
 
@@ -3335,8 +3347,8 @@ def build_revision_pack(hub_id):
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         folder_name = f"Revision Pack for {first_file_name}"
 
-        # Limit text length to prevent timeouts (first 4000 chars should be enough)
-        limited_text = hub_text[:4000] if len(hub_text) > 4000 else hub_text
+        # Limit text length to prevent timeouts (first 8000 chars for better content)
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
         print(f"Processing revision pack with {len(limited_text)} characters of text")
 
         if include_notes:
@@ -3363,7 +3375,7 @@ def build_revision_pack(hub_id):
                 ]
                 
                 try:
-                    flashcards_raw = generate_flashcards_from_text(limited_text, min(num_flashcards, 10))
+                    flashcards_raw = generate_flashcards_from_text(limited_text, num_flashcards)
                     flashcards_parsed = parse_flashcards(flashcards_raw)
                     if not flashcards_parsed:
                         flashcards_parsed = simple_cards
@@ -3402,7 +3414,7 @@ def build_revision_pack(hub_id):
                 }
                 
                 try:
-                    quiz_json = generate_quiz_from_text(limited_text, min(num_quiz_questions, 5))
+                    quiz_json = generate_quiz_from_text(limited_text, num_quiz_questions)
                     quiz_data = safe_load_json(quiz_json)
                     if not quiz_data.get('questions'):
                         quiz_data = simple_quiz
@@ -3457,6 +3469,206 @@ def build_revision_pack(hub_id):
 
     except Exception as e:
         print(f"Error in build_revision_pack: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/generate_individual_notes", methods=["POST"])
+@login_required
+def generate_individual_notes(hub_id):
+    """Generate individual interactive notes from selected files."""
+    data = request.get_json()
+    selected_files = data.get('selected_files', [])
+
+    if not selected_files:
+        return jsonify({"success": False, "message": "No files were selected."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        print(f"Generating individual notes with {len(limited_text)} characters of text")
+
+        # Generate interactive notes
+        interactive_html = generate_interactive_notes_html(limited_text)
+        
+        # Create note in database
+        note_ref = db.collection('notes').document()
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Interactive Notes: {first_file_name}", content_html=interactive_html)
+        note_ref.set(new_note.to_dict())
+        
+        print("Individual notes generated successfully")
+        return jsonify({"success": True, "redirect_url": url_for('note_page', note_id=note_ref.id)})
+
+    except Exception as e:
+        print(f"Error generating individual notes: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/generate_individual_flashcards", methods=["POST"])
+@login_required
+def generate_individual_flashcards(hub_id):
+    """Generate individual flashcards from selected files."""
+    data = request.get_json()
+    selected_files = data.get('selected_files', [])
+    num_flashcards = int(data.get('num_flashcards', 20))
+
+    if not selected_files:
+        return jsonify({"success": False, "message": "No files were selected."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        print(f"Generating individual flashcards with {len(limited_text)} characters of text")
+
+        # Generate flashcards
+        flashcards_raw = generate_flashcards_from_text(limited_text, num_flashcards)
+        flashcards_parsed = parse_flashcards(flashcards_raw)
+        
+        if not flashcards_parsed:
+            # Fallback flashcards
+            first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+            flashcards_parsed = [
+                {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
+                {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
+                {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
+            ]
+        
+        # Create flashcards in database
+        fc_ref = db.collection('activities').document()
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards: {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+        fc_ref.set(new_fc.to_dict())
+        
+        print("Individual flashcards generated successfully")
+        return jsonify({"success": True, "redirect_url": url_for('flashcards_page', activity_id=fc_ref.id)})
+
+    except Exception as e:
+        print(f"Error generating individual flashcards: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/generate_individual_quiz", methods=["POST"])
+@login_required
+def generate_individual_quiz(hub_id):
+    """Generate individual quiz from selected files."""
+    data = request.get_json()
+    selected_files = data.get('selected_files', [])
+    num_questions = int(data.get('num_questions', 10))
+
+    if not selected_files:
+        return jsonify({"success": False, "message": "No files were selected."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        print(f"Generating individual quiz with {len(limited_text)} characters of text")
+
+        # Generate quiz
+        quiz_json = generate_quiz_from_text(limited_text, num_questions)
+        quiz_data = safe_load_json(quiz_json)
+        
+        if not quiz_data.get('questions'):
+            # Fallback quiz
+            first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+            quiz_data = {
+                "questions": [
+                    {
+                        "question": f"What is the main topic covered in {first_file_name}?",
+                        "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
+                        "correct_answer": "D",
+                        "explanation": "The document covers all aspects from introduction to conclusion."
+                    },
+                    {
+                        "question": f"How would you best study {first_file_name}?",
+                        "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
+                        "correct_answer": "B",
+                        "explanation": "Taking notes and reviewing helps with retention and understanding."
+                    }
+                ]
+            }
+        
+        # Create quiz in database
+        quiz_ref = db.collection('activities').document()
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz: {first_file_name}", data=quiz_data)
+        quiz_ref.set(new_quiz.to_dict())
+        
+        print("Individual quiz generated successfully")
+        return jsonify({"success": True, "redirect_url": url_for('quiz_page', activity_id=quiz_ref.id)})
+
+    except Exception as e:
+        print(f"Error generating individual quiz: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/generate_individual_cheatsheet", methods=["POST"])
+@login_required
+def generate_individual_cheatsheet(hub_id):
+    """Generate individual cheat sheet from selected files."""
+    data = request.get_json()
+    selected_files = data.get('selected_files', [])
+
+    if not selected_files:
+        return jsonify({"success": False, "message": "No files were selected."}), 400
+
+    hub_text = get_text_from_hub_files(selected_files)
+    if not hub_text:
+        return jsonify({"success": False, "message": "Could not extract text from files."}), 500
+
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        print(f"Generating individual cheat sheet with {len(limited_text)} characters of text")
+
+        # Generate cheat sheet
+        cheat_sheet_json = generate_cheat_sheet_json(limited_text)
+        cheat_sheet_data = safe_load_json(cheat_sheet_json)
+        
+        if not cheat_sheet_data:
+            # Fallback cheat sheet
+            first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+            cheat_sheet_data = {
+                "title": f"Quick Reference: {first_file_name}",
+                "sections": [
+                    {
+                        "title": "Key Concepts",
+                        "items": ["Review the document for main concepts", "Identify important definitions", "Note key formulas or equations"]
+                    },
+                    {
+                        "title": "Important Points",
+                        "items": ["Focus on highlighted sections", "Review examples and case studies", "Understand the main arguments"]
+                    }
+                ]
+            }
+        
+        # Create cheat sheet as a note
+        note_ref = db.collection('notes').document()
+        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
+        
+        # Convert cheat sheet data to HTML
+        html_content = f"<h1>{cheat_sheet_data.get('title', f'Cheat Sheet: {first_file_name}')}</h1>"
+        for section in cheat_sheet_data.get('sections', []):
+            html_content += f"<h2>{section.get('title', 'Section')}</h2><ul>"
+            for item in section.get('items', []):
+                html_content += f"<li>{item}</li>"
+            html_content += "</ul>"
+        
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet: {first_file_name}", content_html=html_content)
+        note_ref.set(new_note.to_dict())
+        
+        print("Individual cheat sheet generated successfully")
+        return jsonify({"success": True, "redirect_url": url_for('note_page', note_id=note_ref.id)})
+
+    except Exception as e:
+        print(f"Error generating individual cheat sheet: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/hub/<hub_id>/build_exam_kit", methods=["POST"])
