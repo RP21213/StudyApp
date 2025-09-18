@@ -1720,6 +1720,8 @@
                 };
                 revisionModal.style.display = 'none';
                 showLoading("Building Your Revision Pack...", "A new folder will be created when done.");
+                // Block all interactions while building
+                addGlobalInteractionBlocker();
                 try {
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
@@ -1732,8 +1734,8 @@
                         window.location.hash = 'folders';
                         window.location.reload();
                     } 
-                    else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') { hideLoading(); } }
-                } catch (error) { alert('A network or server error occurred.'); if (typeof hideLoading === 'function') { hideLoading(); } }
+                else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') { hideLoading(); } removeGlobalInteractionBlocker(); }
+                } catch (error) { alert('A network or server error occurred.'); if (typeof hideLoading === 'function') { hideLoading(); } removeGlobalInteractionBlocker(); }
             });
 
             function openExamKitModal(preselectPaths = []) {
@@ -2605,6 +2607,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (firstFolder) firstFolder.click();
           // Spotlight newly created items if present
           spotlightGeneratedItems();
+          // Re-enable interactions now that it's done
+          removeGlobalInteractionBlocker();
       }, 250);
       launchConfetti();
       showCompletionBanner(true);
@@ -2781,34 +2785,70 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function spotlightGeneratedItems() {
-            // Try to highlight the first note, flashcards, and quiz items inside the expanded folder
+            // Highlight the first note, flashcards, and quiz items simultaneously with one tooltip
             const container = document.querySelector('.folder-accordion-item .folder-content');
             if (!container) return;
-            const noteItem = container.querySelector('.asset-item[data-type="note"] .asset-link');
-            const flashItem = container.querySelector('.asset-item[data-type="flashcards"] .asset-link');
-            const quizItem = container.querySelector('.asset-item[data-type="quiz"] .asset-link');
+            const targets = [
+                container.querySelector('.asset-item[data-type="note"] .asset-link'),
+                container.querySelector('.asset-item[data-type="flashcards"] .asset-link'),
+                container.querySelector('.asset-item[data-type="quiz"] .asset-link')
+            ].filter(Boolean);
+            if (targets.length === 0) return;
 
-            const items = [
-                {el: noteItem, text: 'Your AI-generated notes are here.'},
-                {el: flashItem, text: 'These are your flashcards to practice recall.'},
-                {el: quizItem, text: 'Start a quick quiz from your material.'}
-            ];
+            // Add highlight class to all targets
+            targets.forEach(el => el.classList.add('onboarding-highlight'));
 
-            (async () => {
-                for (const it of items) {
-                    if (!it.el) continue;
+            // Compute a bounding box that includes all three items
+            const rects = targets.map(el => el.getBoundingClientRect());
+            const bounds = rects.reduce((acc, r) => ({
+                top: Math.min(acc.top, r.top),
+                left: Math.min(acc.left, r.left),
+                right: Math.max(acc.right, r.right),
+                bottom: Math.max(acc.bottom, r.bottom)
+            }), { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity });
+
+            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+            const padding = 10;
+            const clipPath = `polygon(0% 0%, 0% 100%, ${bounds.left - padding}px 100%, ${bounds.left - padding}px ${bounds.top - padding}px, ${bounds.right + padding}px ${bounds.top - padding}px, ${bounds.right + padding}px ${bounds.bottom + padding}px, ${bounds.left - padding}px ${bounds.bottom + padding}px, ${bounds.left - padding}px 100%, 100% 100%, 100% 0%)`;
+            spotlight.style.clipPath = clipPath;
+            spotlight.classList.add('visible');
+
+            // Show a single tooltip near the bounds
+            const tooltip = document.getElementById('onboarding-tooltip');
+            tooltip.innerHTML = `<p>Here are your generated items: notes, flashcards, and a quiz.</p><button class=\"button button-primary\" id=\"spotlight-done\">Got it</button>`;
+            tooltip.className = 'onboarding-tooltip bottom';
+            const top = bounds.bottom + 15;
+            const left = bounds.left + (bounds.right - bounds.left) / 2;
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.transform = 'translateX(-50%)';
+            tooltip.classList.add('visible');
+
+            const done = document.getElementById('spotlight-done');
+            if (done) {
+                done.onclick = () => {
+                    targets.forEach(el => el.classList.remove('onboarding-highlight'));
                     hideOnboardingUI();
-                    showSpotlight(it.el);
-                    const tooltipHtml = `<p>${it.text}</p><button class="button button-primary" id="spotlight-next">Next →</button>`;
-                    showTooltip(it.el, tooltipHtml, 'right');
-                    await new Promise(resolve => {
-                        const btn = document.getElementById('spotlight-next');
-                        if (btn) btn.onclick = () => { hideOnboardingUI(); resolve(); };
-                        else setTimeout(resolve, 1200);
-                    });
-                }
-                hideOnboardingUI();
-            })();
+                };
+            }
+        }
+
+        function addGlobalInteractionBlocker() {
+            if (document.getElementById('global-interaction-blocker')) return;
+            const blocker = document.createElement('div');
+            blocker.id = 'global-interaction-blocker';
+            blocker.style.position = 'fixed';
+            blocker.style.inset = '0';
+            blocker.style.background = 'rgba(0,0,0,0.2)';
+            blocker.style.backdropFilter = 'blur(0.5px)';
+            blocker.style.zIndex = '9998';
+            blocker.style.cursor = 'wait';
+            document.body.appendChild(blocker);
+        }
+
+        function removeGlobalInteractionBlocker() {
+            const el = document.getElementById('global-interaction-blocker');
+            if (el) el.remove();
         }
 
         function hideOnboardingUI() {
