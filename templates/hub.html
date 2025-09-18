@@ -1726,6 +1726,9 @@
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
+                        // Mark onboarding as complete immediately
+                        fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                        
                         // Persist a flag to show celebration after reload so folders reflect the new pack
                         sessionStorage.setItem('showOnboardingCelebration', '1');
                         // Ensure onboarding tour does not restart on reload
@@ -2743,6 +2746,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('.onboarding-highlight').forEach(el => {
                         el.classList.remove('onboarding-highlight');
                     });
+                    // Onboarding is already completed when the pack was generated
                 });
             }
             if (!persistent) {

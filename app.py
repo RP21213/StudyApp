@@ -4662,14 +4662,14 @@ def complete_onboarding():
         user_doc = db.collection('users').document(current_user.id).get()
         if user_doc.exists:
             updated_user = User.from_dict(user_doc.to_dict())
-            # Update the current_user object properties
-            current_user.has_completed_onboarding = updated_user.has_completed_onboarding
-            print(f"Onboarding complete: Updated user {current_user.id} has_completed_onboarding = {current_user.has_completed_onboarding}")
+            print(f"Onboarding complete: Database shows has_completed_onboarding = {updated_user.has_completed_onboarding}")
             
-            # Force a session refresh by re-logging in the user
+            # Clear the current session and re-login
+            logout_user()
             login_user(updated_user, remember=True)
+            print(f"Onboarding complete: After logout/login, current_user.has_completed_onboarding = {current_user.has_completed_onboarding}")
         
-        return jsonify({"success": True})
+        return jsonify({"success": True, "redirect": url_for('dashboard')})
     except Exception as e:
         print(f"Error completing onboarding for user {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
