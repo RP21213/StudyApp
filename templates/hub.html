@@ -114,13 +114,38 @@
             pointer-events: none;
         }
         #sidebar-toggle {
-            background: none; border: none; cursor: pointer; color: var(--text-secondary);
-            padding: 0.5rem; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
+            background: var(--primary-color); 
+            border: none; 
+            cursor: pointer; 
+            color: white;
+            padding: 0.75rem; 
+            border-radius: 8px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+            min-width: 48px;
+            min-height: 48px;
         }
         #sidebar-toggle:hover {
-            background-color: var(--background-interactive-hover);
-            color: var(--text-main);
+            background-color: var(--primary-hover);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        /* Floating toggle button when sidebar is collapsed */
+        .sidebar.collapsed #sidebar-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1000;
+            background: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .sidebar.collapsed #sidebar-toggle:hover {
+            background: var(--primary-hover);
+            transform: scale(1.1);
         }
         .sidebar-nav {
             flex-grow: 1;
@@ -746,18 +771,20 @@
         
         /* Back to Dashboard Sparkle Animation */
         .back-to-dashboard {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
             color: white !important;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
             border-radius: 8px;
+            margin-top: 1rem;
+            font-weight: 600;
         }
         .back-to-dashboard:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
         }
         .back-to-dashboard::before {
             content: '';
@@ -775,6 +802,7 @@
         .sparkle {
             display: inline-block;
             animation: sparkle 1.5s ease-in-out infinite;
+            margin-right: 0.5rem;
         }
         @keyframes sparkle {
             0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
@@ -1683,11 +1711,19 @@
                 const isCurrentlyCollapsed = sidebar.classList.contains('collapsed');
                 sidebar.classList.toggle('collapsed');
                 sidebarToggle.innerHTML = isCurrentlyCollapsed ? iconCollapse : iconExpand;
+                
+                // Add visual feedback
+                sidebarToggle.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    sidebarToggle.style.transform = '';
+                }, 150);
 
                 if (calendar) {
                     setTimeout(() => calendar.updateSize(), 350);
                 }
             });
+            
+            // Initialize the correct icon based on current state
             sidebarToggle.innerHTML = sidebar.classList.contains('collapsed') ? iconExpand : iconCollapse;
 
             function showTab(tabId) {
