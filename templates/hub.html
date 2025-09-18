@@ -263,8 +263,12 @@
             align-items: center;
             gap: 1rem;
         }
-        .quick-actions { display: flex; gap: 0.75rem; }
-        .user-controls { display: flex; align-items: center; gap: 1rem; position: relative; }
+        .user-profile-section { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            position: relative; 
+        }
         .notification-bell {
             position: relative;
             cursor: pointer;
@@ -305,15 +309,85 @@
         .notification-item p { margin: 0; font-size: 0.9rem; line-height: 1.4; font-family: 'Poppins', sans-serif;}
         .notification-item span { font-size: 0.75rem; color: var(--text-secondary); font-family: 'Poppins', sans-serif;}
         .notification-item.unread { background-color: var(--primary-light); }
-        .profile-container {
-            display: flex; align-items: center; gap: 0.75rem;
+        .profile-dropdown {
+            position: relative;
+        }
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .profile-trigger:hover {
+            background-color: var(--background-interactive-hover);
         }
         .profile-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
-            background-color: var(--primary-light); color: var(--primary-color);
-            display: flex; align-items: center; justify-content: center; font-weight: 600;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
         }
-        .profile-name { font-weight: 600; }
+        .profile-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        .dropdown-arrow {
+            transition: transform 0.2s ease;
+            color: var(--text-secondary);
+        }
+        .profile-dropdown.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        .profile-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            min-width: 200px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+        .profile-dropdown.active .profile-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-menu-item:last-child {
+            border-bottom: none;
+        }
+        .profile-menu-item:hover {
+            background-color: var(--background-interactive-hover);
+            color: var(--text-main);
+        }
+        .profile-menu-item svg {
+            color: var(--text-secondary);
+        }
 
         /* --- Workspace Styles --- */
         .workspace {
@@ -788,47 +862,22 @@
             margin-bottom: 2rem;
         }
         
-        /* Back to Dashboard Button */
-        .back-to-dashboard {
+        /* Back to Dashboard Button in Navigation */
+        .nav-link.back-to-dashboard {
             background: var(--primary-color) !important;
             color: white !important;
             border: 1px solid var(--primary-color) !important;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1rem;
-            width: 100%;
-            text-align: center;
-            justify-content: center;
-            text-decoration: none;
-            box-sizing: border-box;
+            margin-top: 0.5rem;
         }
-        .back-to-dashboard:hover {
+        .nav-link.back-to-dashboard:hover {
             background: var(--primary-hover) !important;
             border-color: var(--primary-hover) !important;
+            color: white !important;
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
-        
-        /* Collapsed state for back to dashboard button */
-        .sidebar.collapsed .back-to-dashboard {
-            justify-content: center;
-            padding: 0.75rem;
-            min-width: auto;
-            width: 100%;
-            max-width: 100%;
-        }
-        .sidebar.collapsed .back-to-dashboard .nav-text {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-            margin: 0;
-        }
-        .sidebar.collapsed .back-to-dashboard .sparkle {
-            margin: 0;
+        .nav-link.back-to-dashboard .nav-icon {
+            color: white;
         }
 
         /* Task Queue Styles */
@@ -1073,6 +1122,10 @@
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
                         <span class="nav-text">My Quizzes</span>
                     </a></li>
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link back-to-dashboard">
+                        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9,22 9,12 15,12 15,22"></polyline></svg>
+                        <span class="nav-text">Back to Dashboard</span>
+                    </a></li>
                 </ul>
             </nav>
 
@@ -1088,10 +1141,28 @@
             </div>
 
             <div class="sidebar-footer">
-                <a href="{{ url_for('dashboard') }}" class="nav-link back-to-dashboard">
-                    <span class="sparkle">✨</span>
-                    <span class="nav-text">Back to Dashboard</span>
-                </a>
+                {% if not spotify_connected %}
+                    <a href="{{ url_for('spotify_login') }}" class="button button-secondary" style="background-color: #1DB954; color: white; border-color: #1DB954; flex-grow: 1; justify-content: center; margin-bottom: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0m3.669 11.538a.498.498 0 0 1-.686.165c-1.879-1.147-4.243-1.407-7.028-.77a.5.5 0 0 1-.422-.648c.181-.723.6-1.39,1.152-1.884a.5.5 0 0 1 .632-.078c2.448 1.545 5.006 1.158 6.516.33a.5.5 0 0 1 .165.686m.979-2.178a.624.624 0 0 1-.858.205c-2.15-1.321-5.428-1.704-7.972-.932a.625.625 0 0 1-.493-.812c.244-.921.75-1.748,1.41-2.368a.625.625 0 0 1 .78-.098c2.978 1.834 5.922 1.48 7.42.54a.625.625 0 0 1 .205.858m.13-2.522a.75.75 0 0 1-1.028.246c-2.522-1.54-6.57-1.84-9.088-.99a.75.75 0 0 1-.613-.97c.32-1.107.96-2.112,1.868-2.87a.75.75 0 0 1 .948-.12c3.468 2.115 7.152 1.705 8.71.493a.75.75 0 0 1 .246 1.028"/></svg>
+                        <span>Connect</span>
+                    </a>
+                {% else %}
+                     <button id="spotify-player-toggle-btn-hub" class="button button-secondary" style="flex-grow: 1; justify-content: center; margin-bottom: 1rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                        <span>Music</span>
+                    </button>
+                {% endif %}
+                <label class="theme-switch" for="theme-toggle-input">
+                    <input type="checkbox" id="theme-toggle-input" />
+                    <div class="slider">
+                        <div class="icon-wrapper sun">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        </div>
+                         <div class="icon-wrapper moon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        </div>
+                    </div>
+                </label>
             </div>
         </aside>
 
@@ -1102,51 +1173,45 @@
             <!-- Top Bar -->
             <header class="top-bar">
                 <div class="top-bar-actions">
-                    <div class="quick-actions">
-                        <button class="button button-secondary" id="quick-action-tutor">Ask AI</button>
-                        <button class="button button-secondary quick-tool-btn" value="notes">New Note</button>
-                        <button class="button button-secondary" id="quick-action-flashcards">New Flashcards</button>
-                        <button class="button button-primary" id="quick-action-upload">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                            Upload
-                        </button>
-                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
+                    <button class="button button-primary" id="quick-action-upload">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Upload
+                    </button>
+                    <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
+                </div>
+                <div class="user-profile-section">
+                    <div class="notification-bell" id="notification-bell">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                        <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
+                         <div id="notification-panel">
+                            <div class="notification-header">Notifications</div>
+                            <ul class="notification-list">
+                                {% for notification in notifications %}
+                                <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                                    <p>{{ notification.message }}</p>
+                                    <span>{{ notification.created_at|timesince }} ago</span>
+                                </a>
+                                {% else %}
+                                <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
-                    <div class="user-controls">
-                        {% if spotify_connected %}
-                            <button id="spotify-player-toggle-btn-hub" class="button button-secondary button-icon-only">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                            </button>
-                        {% endif %}
-                        <div class="notification-bell" id="notification-bell">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                            <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
-                             <div id="notification-panel">
-                                <div class="notification-header">Notifications</div>
-                                <ul class="notification-list">
-                                    {% for notification in notifications %}
-                                    <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
-                                        <p>{{ notification.message }}</p>
-                                        <span>{{ notification.created_at|timesince }} ago</span>
-                                    </a>
-                                    {% else %}
-                                    <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="theme-switch-wrapper">
-                            <label class="theme-switch" for="theme-toggle">
-                                <input type="checkbox" id="theme-toggle" />
-                                <div class="slider">
-                                    <div class="icon-wrapper sun"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></div>
-                                    <div class="icon-wrapper moon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></div>
-                                </div>
-                            </label>
-                        </div>
-                        <div class="profile-container">
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <div class="profile-trigger">
                             <div class="profile-avatar">{{ current_user.email[0]|upper }}</div>
                             <span class="profile-name">{{ current_user.display_name or current_user.email.split('@')[0] }}</span>
+                            <svg class="dropdown-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="profile-menu">
+                            <a href="{{ url_for('profile') }}" class="profile-menu-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                Edit Profile
+                            </a>
+                            <a href="{{ url_for('settings') }}" class="profile-menu-item">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                                Settings
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -2145,14 +2210,21 @@
             document.getElementById('quick-action-upload').addEventListener('click', () => {
                 uploadInput.click();
             });
-            document.getElementById('quick-action-tutor').addEventListener('click', () => {
-                showTab('tutor');
+
+            // --- Profile Dropdown ---
+            const profileDropdown = document.getElementById('profile-dropdown');
+            const profileTrigger = profileDropdown.querySelector('.profile-trigger');
+            
+            profileTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
             });
-             document.getElementById('quick-action-flashcards').addEventListener('click', (e) => {
-                openRevisionPackModal();
-            });
-            document.querySelector('.quick-tool-btn[value="notes"]').addEventListener('click', (e) => {
-                openToolFileSelectModal('notes');
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove('active');
+                }
             });
 
 
@@ -3132,18 +3204,31 @@
 
         // --- Dark Mode Toggle Logic ---
             const themeToggle = document.getElementById('theme-toggle');
+            const sidebarThemeToggle = document.getElementById('theme-toggle-input');
+            
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     if(themeToggle) themeToggle.checked = true;
+                    if(sidebarThemeToggle) sidebarThemeToggle.checked = true;
                 } else {
                     document.documentElement.removeAttribute('data-theme');
                     if(themeToggle) themeToggle.checked = false;
+                    if(sidebarThemeToggle) sidebarThemeToggle.checked = false;
                 }
             }
+            
             if(themeToggle) {
                 themeToggle.addEventListener('change', () => {
                     const newTheme = themeToggle.checked ? 'dark' : 'light';
+                    localStorage.setItem('theme', newTheme);
+                    applyTheme(newTheme);
+                });
+            }
+            
+            if(sidebarThemeToggle) {
+                sidebarThemeToggle.addEventListener('change', () => {
+                    const newTheme = sidebarThemeToggle.checked ? 'dark' : 'light';
                     localStorage.setItem('theme', newTheme);
                     applyTheme(newTheme);
                 });
