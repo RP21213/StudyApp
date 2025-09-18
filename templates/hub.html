@@ -1228,7 +1228,7 @@
                         {% for slide_note in all_slide_notes %}
                         <li class="asset-item" data-id="{{ slide_note.id }}" data-type="slide_notes">
                             <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link">
-                                <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
+                                <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
                                 <div class="asset-details"><h5 id="title-slide-note-{{ slide_note.id }}">{{ slide_note.title }}</h5><span>Created {{ slide_note.created_at|timesince }} ago</span></div>
                             </a>
                         </li>
@@ -2604,7 +2604,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         async function runHubOnboarding() {
             const guideModal = document.getElementById('onboarding-guide-modal');
-        
+
             function showStep(targetSelector, tooltipText, tooltipPosition = 'bottom') {
                 return new Promise(resolve => {
                     hideOnboardingUI();
@@ -2615,50 +2615,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     showSpotlight(targetElement);
                     showTooltip(targetElement, tooltipText, tooltipPosition);
-        
-                    // Use capture phase to intercept the click before it bubbles up
+
                     targetElement.addEventListener('click', function handleClick(e) {
-                        if (targetElement.tagName === 'A') e.preventDefault();
-                        e.stopPropagation();
-                        // No need to remove the listener manually with {once: true}
+                        e.preventDefault(); e.stopPropagation();
+                        targetElement.removeEventListener('click', handleClick);
                         hideOnboardingUI();
                         resolve(targetElement);
-                    }, { once: true, capture: true }); 
+                    }, { once: true });
                 });
             }
-        
+
             await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
             document.querySelector('.nav-link[data-tab="tools"]').click();
-        
+
             await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
             document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
-        
+
             const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
-            revisionPackCard.click();
-        
-            // Wait for the modal to open and become visible
-            setTimeout(() => {
-                const revisionModal = document.getElementById('revision-pack-modal');
-                if (revisionModal) {
-                    // Apply spotlight effect to the modal itself, allowing interaction
-                    showSpotlight(revisionModal);
-                    
-                    // Show the guide modal on top
-                    guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
-                    guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
-                    guideModal.classList.add('visible');
-        
-                    // The 'Generate Pack' button is now clickable because its parent modal is highlighted
-                    const generateBtn = revisionModal.querySelector('.button-primary');
-                    generateBtn.addEventListener('click', function handleGenerate() {
-                        hideOnboardingUI();
-                        guideModal.classList.remove('visible');
-                        sessionStorage.setItem('onboardingStep', 'payoff');
-                    }, { once: true });
-                } else {
-                    console.error("Revision pack modal not found for onboarding step.");
-                }
-            }, 500);
+            revisionPackCard.click(); 
+
+            guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
+            guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
+            guideModal.classList.add('visible');
+            
+            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
+            generateBtn.addEventListener('click', function handleGenerate() {
+                guideModal.classList.remove('visible');
+                sessionStorage.setItem('onboardingStep', 'payoff');
+            }, { once: true });
         }
 
         async function runPayoffAnimation() {
