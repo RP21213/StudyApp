@@ -2312,7 +2312,6 @@
 {% if needs_onboarding %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
             if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
                 runHubOnboarding();
             } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
