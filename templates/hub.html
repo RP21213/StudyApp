@@ -1724,7 +1724,11 @@
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
-                        await showOnboardingCompletionCelebration();
+                        // Persist a flag to show celebration after reload so folders reflect the new pack
+                        sessionStorage.setItem('showOnboardingCelebration', '1');
+                        if (typeof hideLoading === 'function') { hideLoading(); }
+                        window.location.hash = 'folders';
+                        window.location.reload();
                     } 
                     else { alert(`Error: ${result.message}`); if (typeof hideLoading === 'function') { hideLoading(); } }
                 } catch (error) { alert('A network or server error occurred.'); if (typeof hideLoading === 'function') { hideLoading(); } }
@@ -2588,7 +2592,18 @@ document.addEventListener('DOMContentLoaded', () => {
       runHubOnboarding();
   }
 
-  // Housekeeping removed
+  // After reload: show celebration if flagged
+  if (sessionStorage.getItem('showOnboardingCelebration') === '1') {
+      sessionStorage.removeItem('showOnboardingCelebration');
+      const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
+      if (foldersTab) foldersTab.click();
+      setTimeout(() => {
+          const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
+          if (firstFolder) firstFolder.click();
+      }, 200);
+      launchConfetti();
+      showCompletionBanner(true);
+  }
 });
 
 
@@ -2691,7 +2706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tick();
         }
 
-        function showCompletionBanner() {
+        function showCompletionBanner(persistent = false) {
             const container = document.createElement('div');
             container.style.position = 'fixed';
             container.style.left = '50%';
@@ -2714,8 +2729,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dismiss) {
                 dismiss.addEventListener('click', () => container.remove());
             }
-            // Auto dismiss after 12s
-            setTimeout(() => { try { container.remove(); } catch(_){} }, 12000);
+            if (!persistent) {
+                setTimeout(() => { try { container.remove(); } catch(_){} }, 12000);
+            }
         }
 
         // --- Helper functions for onboarding UI ---
