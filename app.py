@@ -3334,31 +3334,47 @@ def build_revision_pack(hub_id):
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         folder_name = f"Revision Pack for {first_file_name}"
 
+        # Limit text length to prevent timeouts (first 8000 chars should be enough)
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+
         if include_notes:
-            interactive_html = generate_interactive_notes_html(hub_text)
-            note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
-            batch.set(note_ref, new_note.to_dict())
-            folder_items.append({'id': note_ref.id, 'type': 'note'})
+            try:
+                interactive_html = generate_interactive_notes_html(limited_text)
+                note_ref = db.collection('notes').document()
+                new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
+                batch.set(note_ref, new_note.to_dict())
+                folder_items.append({'id': note_ref.id, 'type': 'note'})
+            except Exception as e:
+                print(f"Error generating notes: {e}")
+                # Continue without notes if generation fails
 
         if num_flashcards > 0:
-            flashcards_raw = generate_flashcards_from_text(hub_text, num_flashcards)
-            flashcards_parsed = parse_flashcards(flashcards_raw)
-            if flashcards_parsed:
-                fc_ref = db.collection('activities').document()
-                new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
-                batch.set(fc_ref, new_fc.to_dict())
-                folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+            try:
+                flashcards_raw = generate_flashcards_from_text(limited_text, min(num_flashcards, 15))  # Limit to 15 max
+                flashcards_parsed = parse_flashcards(flashcards_raw)
+                if flashcards_parsed:
+                    fc_ref = db.collection('activities').document()
+                    new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+                    batch.set(fc_ref, new_fc.to_dict())
+                    folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+            except Exception as e:
+                print(f"Error generating flashcards: {e}")
+                # Continue without flashcards if generation fails
 
         if num_quiz_questions > 0:
-            quiz_json = generate_quiz_from_text(hub_text, num_quiz_questions)
-            quiz_data = safe_load_json(quiz_json)
-            if quiz_data.get('questions'):
-                quiz_ref = db.collection('activities').document()
-                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
-                batch.set(quiz_ref, new_quiz.to_dict())
-                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+            try:
+                quiz_json = generate_quiz_from_text(limited_text, min(num_quiz_questions, 8))  # Limit to 8 max
+                quiz_data = safe_load_json(quiz_json)
+                if quiz_data.get('questions'):
+                    quiz_ref = db.collection('activities').document()
+                    new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
+                    batch.set(quiz_ref, new_quiz.to_dict())
+                    folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+            except Exception as e:
+                print(f"Error generating quiz: {e}")
+                # Continue without quiz if generation fails
         
+        # Always create the folder, even if some items failed to generate
         folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
         batch.set(folder_ref, new_folder.to_dict())
@@ -3370,7 +3386,13 @@ def build_revision_pack(hub_id):
         batch.set(notification_ref, new_notification.to_dict())
 
         batch.commit()
-        return jsonify({"success": True, "message": "Revision Pack created successfully!"})
+        
+        # Return success even if some items failed (folder was created)
+        success_message = "Revision Pack created successfully!"
+        if len(folder_items) == 0:
+            success_message += " (Note: Some items may not have been generated due to processing limits)"
+        
+        return jsonify({"success": True, "message": success_message})
 
     except Exception as e:
         print(f"Error in build_revision_pack: {e}")

@@ -2592,8 +2592,8 @@ document.addEventListener('DOMContentLoaded', () => {
   ensureOnboardingNodesExist();
 
   const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
-  // Prevent accidental restart of onboarding if we just finished
-  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub && sessionStorage.getItem('showOnboardingCelebration') !== '1') {
+  // Only run onboarding if user hasn't completed it yet (server-side check)
+  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub && sessionStorage.getItem('showOnboardingCelebration') !== '1' && {{ 'true' if not current_user.has_completed_onboarding else 'false' }}) {
       runHubOnboarding();
   }
 
