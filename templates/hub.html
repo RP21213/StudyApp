@@ -1721,7 +1721,12 @@
                 try {
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
-                    if (result.success) { window.location.hash = 'folders'; window.location.reload(); } 
+                    if (result.success) {
+                        try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
+                        sessionStorage.removeItem('onboardingStep');
+                        window.location.hash = 'folders';
+                        window.location.reload();
+                    } 
                     else { alert(`Error: ${result.message}`); hideLoading(); }
                 } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
             });
@@ -2582,8 +2587,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
   if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub) {
       runHubOnboarding();
-  } else if (sessionStorage.getItem('onboardingStep') === 'payoff' && isWelcomeHub) {
-      runPayoffAnimation();
   }
 });
 
@@ -2627,77 +2630,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
             generateBtn.addEventListener('click', function handleGenerate() {
                 guideModal.classList.remove('visible');
-                sessionStorage.setItem('onboardingStep', 'payoff');
             }, { once: true });
         }
 
-        async function runPayoffAnimation() {
-            sessionStorage.removeItem('onboardingStep');
-            const guideModal = document.getElementById('onboarding-guide-modal');
-        
-            function showFinalTooltip(targetSelector, text, position) {
-                return new Promise(resolve => {
-                    const target = document.querySelector(targetSelector);
-                    if (!target) {
-                        console.error("Onboarding target not found for final tour:", targetSelector);
-                        resolve();
-                        return;
-                    }
-                    hideOnboardingUI();
-                    showSpotlight(target);
-                    const tooltip = document.getElementById('onboarding-tooltip');
-                    tooltip.innerHTML = `<p>${text}</p><button class="button button-primary" style="margin-top: 1rem; width: 100%;" id="onboarding-next-btn">Next →</button>`;
-                    showTooltip(target, tooltip.innerHTML, position);
-        
-                    document.getElementById('onboarding-next-btn').onclick = () => {
-                        hideOnboardingUI();
-                        resolve();
-                    };
-                });
-            }
-        
-            setTimeout(async () => {
-                // Part 1: Initial Success Message
-                document.querySelector('.nav-link[data-tab="folders"]').click();
-                const newFolder = document.querySelector('.folder-header');
-                if (newFolder) newFolder.click();
-        
-                guideModal.querySelector('h3').textContent = "Success! Your Kit is Ready.";
-                guideModal.querySelector('p').textContent = "Your complete study kit has been generated. Let's take a quick look at where to find everything.";
-                const continueBtn = document.createElement('button');
-                continueBtn.className = 'button button-primary';
-                continueBtn.textContent = 'Start Final Tour';
-                continueBtn.style.marginTop = '1rem';
-        
-                const oldBtn = guideModal.querySelector('button');
-                if(oldBtn) oldBtn.remove();
-                guideModal.querySelector('p').after(continueBtn);
-                guideModal.classList.add('visible');
-        
-                continueBtn.onclick = async () => {
-                    guideModal.classList.remove('visible');
-        
-                    await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
-                    await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
-                    await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask the Tutor anything about them.", 'right');
-        
-                    guideModal.querySelector('h3').textContent = "You're all set!";
-                    guideModal.querySelector('p').textContent = "Ready to create a Hub for your own course? We'll take you back to the main dashboard now.";
-                    const finishBtn = guideModal.querySelector('button') || document.createElement('button');
-                    finishBtn.className = 'button button-primary';
-                    finishBtn.style.marginTop = '1rem';
-                    finishBtn.textContent = "Finish Onboarding";
-                    if(!finishBtn.parentElement) { guideModal.querySelector('p').after(finishBtn); }
-                    guideModal.classList.add('visible');
-                    
-                    finishBtn.onclick = async () => {
-                        await fetch('/onboarding/complete', { method: 'POST' });
-                        window.location.href = "{{ url_for('dashboard') }}";
-                    }
-                };
-        
-            }, 1500);
-        }
+        // Removed payoff animation to keep onboarding simple and fast
 
         // --- Helper functions for onboarding UI ---
         function showSpotlight(targetElement) {
