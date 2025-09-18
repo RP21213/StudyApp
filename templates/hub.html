@@ -2736,7 +2736,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(container);
             const dismiss = container.querySelector('#completion-dismiss-btn');
             if (dismiss) {
-                dismiss.addEventListener('click', () => container.remove());
+                dismiss.addEventListener('click', () => {
+                    container.remove();
+                    // End onboarding and clear spotlight when main banner is dismissed
+                    hideOnboardingUI();
+                    document.querySelectorAll('.onboarding-highlight').forEach(el => {
+                        el.classList.remove('onboarding-highlight');
+                    });
+                });
             }
             if (!persistent) {
                 setTimeout(() => { try { container.remove(); } catch(_){} }, 12000);
@@ -2813,9 +2820,9 @@ document.addEventListener('DOMContentLoaded', () => {
             spotlight.style.clipPath = clipPath;
             spotlight.classList.add('visible');
 
-            // Show a single tooltip near the bounds
+            // Show a single tooltip near the bounds (no button)
             const tooltip = document.getElementById('onboarding-tooltip');
-            tooltip.innerHTML = `<p>Here are your generated items: notes, flashcards, and a quiz.</p><button class=\"button button-primary\" id=\"spotlight-done\">Got it</button>`;
+            tooltip.innerHTML = `<p>Here are your generated items: notes, flashcards, and a quiz.</p>`;
             tooltip.className = 'onboarding-tooltip bottom';
             const top = bounds.bottom + 15;
             const left = bounds.left + (bounds.right - bounds.left) / 2;
@@ -2823,14 +2830,6 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.left = `${left}px`;
             tooltip.style.transform = 'translateX(-50%)';
             tooltip.classList.add('visible');
-
-            const done = document.getElementById('spotlight-done');
-            if (done) {
-                done.onclick = () => {
-                    targets.forEach(el => el.classList.remove('onboarding-highlight'));
-                    hideOnboardingUI();
-                };
-            }
         }
 
         function addGlobalInteractionBlocker() {
