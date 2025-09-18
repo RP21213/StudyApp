@@ -2438,8 +2438,8 @@
         const trackArtist = document.getElementById('sp-track-artist');
         const progressBar = document.getElementById('sp-progress');
         
-        const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg>`;
-        const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
+        const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg>`;
+        const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
 
         let sdkDeviceId = null;
         let isPlayerReady = false;
@@ -2632,8 +2632,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async function runPayoffAnimation() {
-            sessionStorage.removeItem('onboardingStep'); 
-            
+            sessionStorage.removeItem('onboardingStep');
+            const guideModal = document.getElementById('onboarding-guide-modal');
+
             function showFinalTooltip(targetSelector, text, position) {
                 return new Promise(resolve => {
                     const target = document.querySelector(targetSelector);
@@ -2642,27 +2643,67 @@ document.addEventListener('DOMContentLoaded', () => {
                     showSpotlight(target);
                     const tooltip = document.getElementById('onboarding-tooltip');
                     tooltip.innerHTML = `<p>${text}</p><button class="button button-primary" style="margin-top: 1rem; width: 100%;" id="onboarding-next-btn">Next →</button>`;
-                    showTooltip(target, '', position); // Show empty tooltip, content is set above
+                    
+                    // This is a correction: The text for the tooltip should be passed to the actual showTooltip function
+                    const tooltipTextContainer = document.createElement('div');
+                    tooltipTextContainer.innerHTML = text;
+
+                    showTooltip(target, tooltipTextContainer.innerHTML, position); // Show empty tooltip, content is set above
+                    
+                    // The button is inside the tooltip's innerHTML now, so we query it
                     document.getElementById('onboarding-next-btn').onclick = () => { hideOnboardingUI(); resolve(); };
                 });
             }
-
+        
             setTimeout(async () => {
+                // Step 1: Show the folder and content
                 document.querySelector('.nav-link[data-tab="folders"]').click();
                 const newFolder = document.querySelector('.folder-header');
                 if (newFolder) newFolder.click();
-                
-                alert("Success! Your complete study kit has been created and organized for you in this new folder.");
 
-                await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
-                await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
-                await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask the Tutor anything about them.", 'right');
-
-                alert("You're all set! Ready to create a Hub for your own course? You will be returned to the main dashboard.");
+                // Step 2: Show the success message in the guide modal
+                guideModal.querySelector('h3').textContent = "Step 3 of 3: All Done!";
+                guideModal.querySelector('p').textContent = "Your complete study kit has been created. Let's take a quick look at where to find everything.";
+                const continueBtn = document.createElement('button');
+                continueBtn.className = 'button button-primary';
+                continueBtn.textContent = 'Start Final Tour';
+                continueBtn.style.marginTop = '1rem';
                 
-                await fetch('/onboarding/complete', { method: 'POST' });
-                window.location.href = "{{ url_for('dashboard') }}";
-            }, 1500); 
+                // Clear any old buttons and add the new one
+                const oldBtn = guideModal.querySelector('button');
+                if (oldBtn) oldBtn.remove();
+                guideModal.querySelector('p').after(continueBtn);
+                guideModal.classList.add('visible');
+        
+                // Step 3: Wait for user to click "Start Final Tour"
+                continueBtn.onclick = async () => {
+                    guideModal.classList.remove('visible');
+        
+                    // Step 4: Start the final tooltip tour
+                    await showFinalTooltip('.folder-accordion-item', 'Your generated materials are automatically organized here.', 'bottom');
+                    await showFinalTooltip('.nav-link[data-tab="documents"]', 'You can upload and manage all your course PDFs here.', 'right');
+                    await showFinalTooltip('.nav-link[data-tab="tutor"]', "Once you add your own documents, you can ask the Tutor anything about them.", 'right');
+        
+                    // Step 5: Show the final message in the modal
+                    guideModal.querySelector('h3').textContent = "You're all set!";
+                    guideModal.querySelector('p').textContent = "Ready to create a Hub for your own course? We'll take you back to the main dashboard now.";
+                    
+                    // Re-query for the button and update it
+                    const finishBtn = guideModal.querySelector('button') || document.createElement('button');
+                    finishBtn.className = 'button button-primary';
+                    finishBtn.style.marginTop = '1rem';
+                    finishBtn.textContent = "Finish Onboarding";
+                    if(!finishBtn.parentElement) { guideModal.querySelector('p').after(finishBtn); }
+
+                    guideModal.classList.add('visible');
+                    
+                    finishBtn.onclick = async () => {
+                        await fetch('/onboarding/complete', { method: 'POST' });
+                        window.location.href = "{{ url_for('dashboard') }}";
+                    }
+                };
+        
+            }, 1500);
         }
 
         // --- Helper functions for onboarding UI ---
@@ -2683,7 +2724,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!tooltip) return;
             
             const rect = targetElement.getBoundingClientRect();
-            tooltip.innerHTML = text;
+            tooltip.innerHTML = text; // This now correctly injects the HTML with the button
             tooltip.className = `onboarding-tooltip ${position}`;
             
             let top, left;
@@ -2696,9 +2737,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 left = rect.right + 15;
                 tooltip.style.transform = 'translateY(-50%)';
             } else { // top
-                top = rect.top - 15 - tooltip.offsetHeight;
+                top = rect.top - 15;
                 left = rect.left + rect.width / 2;
-                tooltip.style.transform = 'translateX(-50%)';
+                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
             }
             
             tooltip.style.top = `${top}px`;
