@@ -608,27 +608,51 @@ def generate_full_study_session(text, duration, focus):
 def generate_interactive_notes_html(text):
     """Generates interactive study notes in HTML format using the AI."""
     prompt = f"""
-    You are an expert study assistant. Your task is to read the uploaded material and convert it into high-quality revision notes. The notes must be:
+    You are an expert study assistant creating comprehensive lecture-style notes. Your task is to read the uploaded material and convert it into detailed, thorough study notes that a student would take during a lecture. The notes must be:
 
-    Concise but detailed enough to cover all key concepts.
-    Organized with clear headings, subheadings, and bullet points.
-    Written in simple, easy-to-understand language without losing accuracy.
-    Highlighting definitions, formulas, examples, and key arguments where relevant.
-    Summarized in a way that makes them suitable for quick revision before exams.
+    **DETAILED AND COMPREHENSIVE:**
+    - Include substantial detail for each concept, not just brief summaries
+    - Explain concepts thoroughly with context and background information
+    - Include multiple examples, case studies, and practical applications
+    - Cover all important subtopics and supporting details
+    - Provide enough depth for someone to understand the material without the original source
 
-    If the content is long or repetitive, remove redundancies and keep only what is essential for understanding and recall.
+    **WELL-ORGANIZED STRUCTURE:**
+    - Use clear hierarchical headings and subheadings
+    - Organize content logically with smooth transitions between topics
+    - Use bullet points and numbered lists for clarity
+    - Include cross-references between related concepts
 
-    At the end, include a short 'Key Takeaways' section with the most important points that a student must remember.
+    **LECTURE-STYLE CONTENT:**
+    - Write as if explaining to a student in a classroom setting
+    - Include "why" explanations, not just "what" facts
+    - Add context about how concepts relate to each other
+    - Include practical implications and real-world applications
+    - Explain the significance and importance of each topic
+
+    **INTERACTIVE ELEMENTS:**
+    - Highlight key terms with definitions
+    - Emphasize important formulas and equations
+    - Include step-by-step explanations for complex processes
+    - Add notes about common misconceptions or tricky points
+
+    **COMPREHENSIVE COVERAGE:**
+    - Don't skip important details or assume prior knowledge
+    - Include background information where needed
+    - Cover both theoretical concepts and practical applications
+    - Address different perspectives or approaches when relevant
+
+    At the end, include a detailed 'Key Takeaways' section that summarizes the most critical points, but keep the main content substantial and detailed.
 
     Your response MUST be a single block of well-formed HTML.
 
     Follow these rules precisely:
-    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<p>`, `<ul>`, `<li>`, and `<strong>`.
-    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its concise definition.
-        - **Example:** `<span class="keyword" title="A resource with economic value that is expected to provide a future benefit.">Asset</span>`
+    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
+        - **Example:** `<span class="keyword" title="A resource with economic value that is expected to provide a future benefit and can be owned or controlled to produce positive economic value.">Asset</span>`
     3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
         - **Example:** `<span class="formula" data-formula="Assets = Liabilities + Equity">Assets = Liabilities + Equity</span>`
-    4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
+    4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points in detail.
 
     Do not include any text, explanations, or code outside of the final HTML output.
 
@@ -3500,7 +3524,7 @@ def generate_individual_notes(hub_id):
         note_ref.set(new_note.to_dict())
         
         print("Individual notes generated successfully")
-        return jsonify({"success": True, "redirect_url": url_for('note_page', note_id=note_ref.id)})
+        return jsonify({"success": True, "redirect_url": url_for('view_note', note_id=note_ref.id)})
 
     except Exception as e:
         print(f"Error generating individual notes: {e}")
@@ -3546,7 +3570,7 @@ def generate_individual_flashcards(hub_id):
         fc_ref.set(new_fc.to_dict())
         
         print("Individual flashcards generated successfully")
-        return jsonify({"success": True, "redirect_url": url_for('flashcards_page', activity_id=fc_ref.id)})
+        return jsonify({"success": True, "redirect_url": url_for('view_flashcards', activity_id=fc_ref.id)})
 
     except Exception as e:
         print(f"Error generating individual flashcards: {e}")
@@ -3603,7 +3627,7 @@ def generate_individual_quiz(hub_id):
         quiz_ref.set(new_quiz.to_dict())
         
         print("Individual quiz generated successfully")
-        return jsonify({"success": True, "redirect_url": url_for('quiz_page', activity_id=quiz_ref.id)})
+        return jsonify({"success": True, "redirect_url": url_for('take_lecture_quiz', activity_id=quiz_ref.id)})
 
     except Exception as e:
         print(f"Error generating individual quiz: {e}")
@@ -3665,7 +3689,7 @@ def generate_individual_cheatsheet(hub_id):
         note_ref.set(new_note.to_dict())
         
         print("Individual cheat sheet generated successfully")
-        return jsonify({"success": True, "redirect_url": url_for('note_page', note_id=note_ref.id)})
+        return jsonify({"success": True, "redirect_url": url_for('view_note', note_id=note_ref.id)})
 
     except Exception as e:
         print(f"Error generating individual cheat sheet: {e}")
