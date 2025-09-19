@@ -1763,8 +1763,7 @@
             function openShareModal() {
                 shareModalOverlay.classList.add('visible');
             }
-            document.getElementById('share-folder-btn')?.addEventListener('click', openShareModal);
-            document.getElementById('share-folder-btn-empty')?.addEventListener('click', openShareModal);
+            // Share folder button will be handled in the community tab section
             document.getElementById('close-share-modal-btn')?.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
             if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
             
@@ -2460,12 +2459,18 @@
 
         // Community Tab Functionality
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Community tab functionality initializing...');
+            
             const communityTabs = document.querySelectorAll('.community-tab');
             const communityTabContents = document.querySelectorAll('.community-tab-content');
+
+            console.log('Found community tabs:', communityTabs.length);
+            console.log('Found community tab contents:', communityTabContents.length);
 
             communityTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     const targetTab = tab.dataset.tab;
+                    console.log('Switching to tab:', targetTab);
                     
                     // Update active tab
                     communityTabs.forEach(t => t.classList.remove('active'));
@@ -2475,7 +2480,12 @@
                     communityTabContents.forEach(content => {
                         content.classList.remove('active');
                     });
-                    document.getElementById(`${targetTab}-tab`).classList.add('active');
+                    const targetContent = document.getElementById(`${targetTab}-tab`);
+                    if (targetContent) {
+                        targetContent.classList.add('active');
+                    } else {
+                        console.error('Target content not found:', `${targetTab}-tab`);
+                    }
                 });
             });
 
@@ -2486,17 +2496,28 @@
             const joinStudyGroupModal = document.getElementById('join-study-group-modal');
             const studyGroupCreatedModal = document.getElementById('study-group-created-modal');
 
+            console.log('Create study group btn:', createStudyGroupBtn);
+            console.log('Join study group btn:', joinStudyGroupBtn);
+            console.log('Create study group modal:', createStudyGroupModal);
+            console.log('Join study group modal:', joinStudyGroupModal);
+
             // Open modals
-            if (createStudyGroupBtn) {
+            if (createStudyGroupBtn && createStudyGroupModal) {
                 createStudyGroupBtn.addEventListener('click', () => {
+                    console.log('Opening create study group modal');
                     createStudyGroupModal.classList.add('visible');
                 });
+            } else {
+                console.error('Create study group button or modal not found');
             }
 
-            if (joinStudyGroupBtn) {
+            if (joinStudyGroupBtn && joinStudyGroupModal) {
                 joinStudyGroupBtn.addEventListener('click', () => {
+                    console.log('Opening join study group modal');
                     joinStudyGroupModal.classList.add('visible');
                 });
+            } else {
+                console.error('Join study group button or modal not found');
             }
 
             // Close modals
@@ -2540,6 +2561,31 @@
             if (closeCreated) {
                 closeCreated.addEventListener('click', () => {
                     studyGroupCreatedModal.classList.remove('visible');
+                });
+            }
+
+            // Close modals when clicking outside
+            if (createStudyGroupModal) {
+                createStudyGroupModal.addEventListener('click', (e) => {
+                    if (e.target === createStudyGroupModal) {
+                        createStudyGroupModal.classList.remove('visible');
+                    }
+                });
+            }
+
+            if (joinStudyGroupModal) {
+                joinStudyGroupModal.addEventListener('click', (e) => {
+                    if (e.target === joinStudyGroupModal) {
+                        joinStudyGroupModal.classList.remove('visible');
+                    }
+                });
+            }
+
+            if (studyGroupCreatedModal) {
+                studyGroupCreatedModal.addEventListener('click', (e) => {
+                    if (e.target === studyGroupCreatedModal) {
+                        studyGroupCreatedModal.classList.remove('visible');
+                    }
                 });
             }
 
@@ -2720,6 +2766,28 @@
 
             // Initialize study groups on page load
             loadStudyGroups();
+
+            // Share folder button functionality
+            const shareFolderBtn = document.getElementById('share-folder-btn');
+            const shareFolderBtnEmpty = document.getElementById('share-folder-btn-empty');
+            const shareModalOverlay = document.getElementById('share-modal-overlay');
+
+            function openShareModal() {
+                if (shareModalOverlay) {
+                    shareModalOverlay.classList.add('visible');
+                }
+            }
+
+            if (shareFolderBtn) {
+                shareFolderBtn.addEventListener('click', openShareModal);
+                console.log('Share folder button event listener added');
+            } else {
+                console.error('Share folder button not found');
+            }
+
+            if (shareFolderBtnEmpty) {
+                shareFolderBtnEmpty.addEventListener('click', openShareModal);
+            }
         });
     </script>
     {% endif %}
