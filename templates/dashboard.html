@@ -276,6 +276,27 @@
             font-weight: 600;
         }
         
+        .milestone-status {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .milestone-status.achieved {
+            color: #10b981;
+        }
+        
+        .loading-text {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .loading-card {
+            opacity: 0.7;
+        }
+        
         .instructions-list {
             display: flex;
             flex-direction: column;
@@ -2194,7 +2215,7 @@
                         <p>Share your study materials with the community and discover resources from other students.</p>
                     </div>
                     <div class="header-actions">
-                        <button class="button" id="share-folder-btn">
+                         <button class="button" id="share-folder-btn">
                             <i data-lucide="share-2"></i> Share a Folder
                         </button>
                         <button class="button button-secondary" id="create-study-group-btn">
@@ -2224,10 +2245,10 @@
                         <div class="global-resources-header">
                             <h3>Global Community Resources</h3>
                             <p>Discover and import study materials shared by students worldwide.</p>
-                        </div>
+                    </div>
                         <div class="global-resources-list" id="global-resources-list">
                             <!-- Global resources will be dynamically loaded here -->
-                        </div>
+                    </div>
                     </div>
                 </div>
 
@@ -2252,7 +2273,7 @@
                     <div class="header-text">
                         <h1>💰 Earn Money</h1>
                         <p>Refer friends and earn rewards! Share your referral code and climb the leaderboard.</p>
-                    </div>
+                        </div>
                 </header>
 
                 <!-- Referral Code Section -->
@@ -2260,84 +2281,73 @@
                     <div class="referral-code-left">
                         <h3>Your Referral Code</h3>
                         <div class="referral-code-display" id="referral-code">
-                            ABC123
-                        </div>
+                            <span class="loading-text">Loading...</span>
+                                </div>
                         <button class="copy-code-button" onclick="copyReferralCode()">
                             <i data-lucide="copy"></i> Copy Code
-                        </button>
+                                </button>
                         
                         <!-- Milestones -->
                         <div class="milestones-section">
                             <h4>Referral Milestones</h4>
-                            <div class="milestones-grid">
-                                <div class="milestone-card">
+                            <div class="milestones-grid" id="milestones-grid">
+                                <div class="milestone-card" data-milestone="3">
                                     <div class="milestone-number">3</div>
                                     <div class="milestone-reward">One month Pro for free</div>
+                                    <div class="milestone-status" id="milestone-3-status">❌</div>
                                 </div>
-                                <div class="milestone-card">
+                                <div class="milestone-card" data-milestone="10">
                                     <div class="milestone-number">10</div>
                                     <div class="milestone-reward">£20 Amazon giftcard</div>
+                                    <div class="milestone-status" id="milestone-10-status">❌</div>
                                 </div>
-                                <div class="milestone-card">
+                                <div class="milestone-card" data-milestone="20">
                                     <div class="milestone-number">20</div>
                                     <div class="milestone-reward">£50 Amazon giftcard</div>
+                                    <div class="milestone-status" id="milestone-20-status">❌</div>
                                 </div>
-                                <div class="milestone-card">
+                                <div class="milestone-card" data-milestone="50">
                                     <div class="milestone-number">50</div>
                                     <div class="milestone-reward">£100 Amazon giftcard</div>
+                                    <div class="milestone-status" id="milestone-50-status">❌</div>
                                 </div>
                             </div>
+                            </div>
                         </div>
-                    </div>
-                    
+
                     <div class="referral-code-right">
                         <h3>How to refer a friend?</h3>
                         <div class="instructions-list">
                             <div class="instruction-item">
                                 <span class="step-number">1</span>
                                 <p>When your friend is purchasing the pro subscription, make sure they enter your referral code.</p>
-                            </div>
+                                </div>
                             <div class="instruction-item">
                                 <span class="step-number">2</span>
                                 <p>If they do, your friend will receive a week of Pro subscription for free.</p>
-                            </div>
+                             </div>
                             <div class="instruction-item">
                                 <span class="step-number">3</span>
                                 <p>Reach referral milestones to unlock rewards like cash prizes, giftcards and more!</p>
-                            </div>
+                             </div>
                             <div class="instruction-item highlight">
                                 <span class="step-number">4</span>
                                 <p>The top 3 individuals with the most referrals by the end of every month receive a cash prize.</p>
+                        </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
                 <!-- Referrals Leaderboard -->
                 <div class="leaderboard-section">
                     <h2>Referrals Leaderboard</h2>
-                    <div class="leaderboard-grid">
-                        <div class="leaderboard-card first-place">
-                            <div class="rank-badge">1st</div>
-                            <div class="avatar">👑</div>
-                            <h4>Alex K.</h4>
-                            <p class="referrals-count">18 referrals</p>
-                        </div>
-                        
-                        <div class="leaderboard-card second-place">
-                            <div class="rank-badge">2nd</div>
-                            <div class="avatar">🥈</div>
-                            <h4>Sarah M.</h4>
-                            <p class="referrals-count">12 referrals</p>
-                        </div>
-                        
-                        <div class="leaderboard-card third-place">
-                            <div class="rank-badge">3rd</div>
-                            <div class="avatar">🥉</div>
-                            <h4>Emma L.</h4>
-                            <p class="referrals-count">8 referrals</p>
-                        </div>
+                    <div class="leaderboard-grid" id="leaderboard-grid">
+                        <div class="leaderboard-card loading-card">
+                            <div class="avatar">⏳</div>
+                            <h4>Loading...</h4>
+                            <p class="referrals-count">Fetching leaderboard</p>
                     </div>
+                </div>
                 </div>
 
                 <!-- Referral Stats -->
@@ -2346,18 +2356,18 @@
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-icon">👥</div>
-                            <div class="stat-number">0</div>
-                            <div class="stat-label">Total Referrals</div>
+                            <div class="stat-number" id="total-referrals">0</div>
+                            <div class="stat-label">Pro Referrals</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon">💰</div>
-                            <div class="stat-number">$0</div>
+                            <div class="stat-number" id="total-earnings">£0</div>
                             <div class="stat-label">Earnings</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon">⚡</div>
-                            <div class="stat-number">0</div>
-                            <div class="stat-label">Active Users</div>
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-number" id="milestones-reached">0/4</div>
+                            <div class="stat-label">Milestones</div>
                         </div>
                     </div>
                 </div>
@@ -2672,17 +2682,17 @@
                     </select>
                 </div>
                 
-                <div class="form-group">
+                 <div class="form-group">
                     <label for="folder-title">Share Title</label>
                     <input type="text" id="folder-title" name="title" required placeholder="Enter a public title for this folder">
                 </div>
                 
-                <div class="form-group">
+                 <div class="form-group">
                     <label for="folder-description">Description</label>
                     <textarea id="folder-description" name="description" required placeholder="Briefly describe what's in this folder. e.g., Lecture notes and quizzes for the final exam."></textarea>
                 </div>
                 
-                <div class="form-group">
+                 <div class="form-group">
                     <label for="folder-tags">Tags (comma-separated)</label>
                     <input type="text" id="folder-tags" name="tags" placeholder="e.g., physics, quantum mechanics, exam prep">
                 </div>
@@ -2927,12 +2937,123 @@
                 });
             }
 
-            // Initialize referral code on page load
-            document.addEventListener('DOMContentLoaded', function() {
+            // Referral System API Functions
+            async function fetchUserStats() {
+                try {
+                    const response = await fetch('/api/referrals/user-stats');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        updateReferralDisplay(data.stats);
+                        updateMilestones(data.stats.milestones);
+                        updateStats(data.stats);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user stats:', error);
+                    showError('Failed to load referral stats');
+                }
+            }
+            
+            async function fetchLeaderboard() {
+                try {
+                    const response = await fetch('/api/referrals/leaderboard');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        updateLeaderboard(data.leaderboard);
+                    }
+                } catch (error) {
+                    console.error('Error fetching leaderboard:', error);
+                    showError('Failed to load leaderboard');
+                }
+            }
+            
+            function updateReferralDisplay(stats) {
                 const referralCodeElement = document.getElementById('referral-code');
                 if (referralCodeElement) {
-                    // Generate a random 6-digit code (placeholder for now)
-                    referralCodeElement.textContent = generateReferralCode();
+                    referralCodeElement.textContent = stats.referral_code || 'Generating...';
+                }
+            }
+            
+            function updateMilestones(milestones) {
+                Object.keys(milestones).forEach(milestone => {
+                    const statusElement = document.getElementById(`milestone-${milestone}-status`);
+                    if (statusElement) {
+                        if (milestones[milestone].reached) {
+                            statusElement.textContent = '✅';
+                            statusElement.classList.add('achieved');
+                        } else {
+                            statusElement.textContent = '❌';
+                            statusElement.classList.remove('achieved');
+                        }
+                    }
+                });
+            }
+            
+            function updateStats(stats) {
+                document.getElementById('total-referrals').textContent = stats.pro_referral_count;
+                document.getElementById('total-earnings').textContent = `£${stats.referral_earnings.toFixed(2)}`;
+                
+                // Count achieved milestones
+                const achievedMilestones = Object.values(stats.milestones).filter(m => m.reached).length;
+                document.getElementById('milestones-reached').textContent = `${achievedMilestones}/4`;
+            }
+            
+            function updateLeaderboard(leaderboard) {
+                const leaderboardGrid = document.getElementById('leaderboard-grid');
+                if (!leaderboardGrid) return;
+                
+                if (leaderboard.length === 0) {
+                    leaderboardGrid.innerHTML = `
+                        <div class="leaderboard-card">
+                            <div class="avatar">📊</div>
+                            <h4>No data yet</h4>
+                            <p class="referrals-count">Be the first to refer someone!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                leaderboardGrid.innerHTML = leaderboard.map((user, index) => {
+                    const rankClass = index === 0 ? 'first-place' : index === 1 ? 'second-place' : index === 2 ? 'third-place' : '';
+                    const rankBadge = index < 3 ? `${index + 1}${index === 0 ? 'st' : index === 1 ? 'nd' : 'rd'}` : `${index + 1}`;
+                    const avatar = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏆';
+                    
+                    return `
+                        <div class="leaderboard-card ${rankClass}">
+                            <div class="rank-badge">${rankBadge}</div>
+                            <div class="avatar">${avatar}</div>
+                            <h4>${user.display_name}</h4>
+                            <p class="referrals-count">${user.pro_referral_count} referrals</p>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            function showError(message) {
+                console.error(message);
+                // You can add a toast notification here if you have one
+            }
+            
+            // Initialize referral system on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Load referral data when Earn Money tab is activated
+                const earnMoneyTab = document.querySelector('.nav-tab[data-tab="earn-money"]');
+                if (earnMoneyTab) {
+                    earnMoneyTab.addEventListener('click', function() {
+                        setTimeout(() => {
+                            fetchUserStats();
+                            fetchLeaderboard();
+                        }, 100); // Small delay to ensure tab is visible
+                    });
+                }
+                
+                // Also load if already on earn-money tab
+                if (window.location.hash === '#earn-money') {
+                    setTimeout(() => {
+                        fetchUserStats();
+                        fetchLeaderboard();
+                    }, 100);
                 }
             });
             
