@@ -161,6 +161,315 @@
         .side-panel .nav-tab.active[data-tab="settings"] {
             background-image: linear-gradient(to right, #9ca3af, #64748b); /* gray -> slate */
         }
+        .side-panel .nav-tab.active[data-tab="earn-money"] {
+            background-image: linear-gradient(to right, #f59e0b, #d97706); /* amber -> orange */
+        }
+        
+        /* Earn Money Tab Golden Theme */
+        .earn-money-tab {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #b45309 75%, #92400e 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .earn-money-tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.9), transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 200px 90px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(2px 2px at 240px 50px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 280px 20px, rgba(255,255,255,0.9), transparent);
+            background-repeat: repeat;
+            background-size: 300px 100px;
+            animation: sparkle 3s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        
+        .earn-money-content {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 2rem;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .earn-money-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .earn-money-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #f59e0b, #d97706, #b45309);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .earn-money-header p {
+            font-size: 1.2rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        /* Referrals Leaderboard */
+        .leaderboard-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #fbbf24;
+        }
+        
+        .leaderboard-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .leaderboard-title::before,
+        .leaderboard-title::after {
+            content: '⭐';
+            font-size: 1.2rem;
+        }
+        
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+        
+        .podium-place {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .podium-place.first {
+            order: 2;
+        }
+        
+        .podium-place.second {
+            order: 1;
+        }
+        
+        .podium-place.third {
+            order: 3;
+        }
+        
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0.5rem;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .podium-place.first .podium-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+            background: linear-gradient(45deg, #ffd700, #ffb000);
+            border: 4px solid white;
+        }
+        
+        .podium-place.first .podium-avatar::after {
+            content: '👑';
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.2rem;
+        }
+        
+        .podium-place.second .podium-avatar {
+            background: linear-gradient(45deg, #c0c0c0, #a0a0a0);
+        }
+        
+        .podium-place.third .podium-avatar {
+            background: linear-gradient(45deg, #cd7f32, #b8860b);
+        }
+        
+        .podium-base {
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .podium-place.first .podium-base {
+            width: 100px;
+            height: 60px;
+            background: linear-gradient(45deg, #ffd700, #ffb000);
+            font-size: 1.5rem;
+        }
+        
+        .podium-place.second .podium-base {
+            height: 45px;
+            background: linear-gradient(45deg, #c0c0c0, #a0a0a0);
+        }
+        
+        .podium-place.third .podium-base {
+            height: 30px;
+            background: linear-gradient(45deg, #cd7f32, #b8860b);
+        }
+        
+        .podium-name {
+            font-weight: 600;
+            color: #374151;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .podium-referrals {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        /* Referral Code Section */
+        .referral-code-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #fbbf24;
+        }
+        
+        .referral-code-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+        
+        .referral-code-display {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            margin: 1rem 0;
+            display: inline-block;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            border: 2px solid white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .referral-code-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .copy-button {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .referral-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #fbbf24;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f59e0b;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
         
         .main-content {
             margin-left: 260px;
@@ -1729,6 +2038,10 @@
                 <i data-lucide="users"></i>
                 <span>🌍 Community</span>
             </a>
+            <a href="#" class="nav-tab" data-tab="earn-money">
+                <i data-lucide="dollar-sign"></i>
+                <span>💰 Earn Money</span>
+            </a>
             <a href="#" class="nav-tab" data-tab="profile">
                 <i data-lucide="user"></i>
                 <span>😎 Profile</span>
@@ -1937,6 +2250,79 @@
                         </div>
                         <div class="study-groups-list" id="study-groups-list">
                             <!-- Study groups will be dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="earn-money" class="tab-content">
+            <div class="earn-money-tab">
+                <div class="earn-money-content">
+                    <div class="earn-money-header">
+                        <h1>💰 Earn Money</h1>
+                        <p>Refer friends and earn rewards! Share your referral code and climb the leaderboard.</p>
+                    </div>
+
+                    <!-- Referrals Leaderboard -->
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-title">
+                            Referrals Leaderboard
+                        </div>
+                        
+                        <div class="podium">
+                            <!-- 2nd Place -->
+                            <div class="podium-place second">
+                                <div class="podium-avatar">2</div>
+                                <div class="podium-base">2nd</div>
+                                <div class="podium-name">Sarah M.</div>
+                                <div class="podium-referrals">12 referrals</div>
+                            </div>
+                            
+                            <!-- 1st Place -->
+                            <div class="podium-place first">
+                                <div class="podium-avatar">1</div>
+                                <div class="podium-base">1st</div>
+                                <div class="podium-name">Alex K.</div>
+                                <div class="podium-referrals">18 referrals</div>
+                            </div>
+                            
+                            <!-- 3rd Place -->
+                            <div class="podium-place third">
+                                <div class="podium-avatar">3</div>
+                                <div class="podium-base">3rd</div>
+                                <div class="podium-name">Emma L.</div>
+                                <div class="podium-referrals">8 referrals</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Referral Code Section -->
+                    <div class="referral-code-section">
+                        <div class="referral-code-title">
+                            This is your referral code
+                        </div>
+                        <div class="referral-code-display" id="referral-code">
+                            ABC123
+                        </div>
+                        <button class="copy-button" onclick="copyReferralCode()">
+                            📋 Copy Code
+                        </button>
+                    </div>
+
+                    <!-- Referral Stats -->
+                    <div class="referral-stats">
+                        <div class="stat-card">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Total Referrals</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">$0</div>
+                            <div class="stat-label">Earnings</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Active Users</div>
                         </div>
                     </div>
                 </div>
@@ -2474,6 +2860,44 @@
                         });
                         history.pushState(null, '', '#' + targetId);
                     });
+                }
+            });
+
+            // Earn Money Tab Functions
+            function generateReferralCode() {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * characters.length));
+                }
+                return result;
+            }
+
+            function copyReferralCode() {
+                const referralCode = document.getElementById('referral-code').textContent;
+                navigator.clipboard.writeText(referralCode).then(() => {
+                    // Show success feedback
+                    const button = event.target;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '✅ Copied!';
+                    button.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy referral code: ', err);
+                    alert('Failed to copy referral code. Please try again.');
+                });
+            }
+
+            // Initialize referral code on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const referralCodeElement = document.getElementById('referral-code');
+                if (referralCodeElement) {
+                    // Generate a random 6-digit code (placeholder for now)
+                    referralCodeElement.textContent = generateReferralCode();
                 }
             });
             

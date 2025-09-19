@@ -953,7 +953,7 @@
         .tool-category-back-button {
             margin-bottom: 2rem;
         }
-        
+
         /* Back to Dashboard Button in Navigation */
         .nav-link.back-to-dashboard {
             background: var(--primary-color) !important;
@@ -1569,28 +1569,28 @@
             <!-- Top Bar -->
             <header class="top-bar">
                 <div class="user-profile-section">
-                    <button class="button button-primary" id="quick-action-upload">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        Upload
-                    </button>
-                    <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
-                    <div class="notification-bell" id="notification-bell">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                        <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
-                         <div id="notification-panel">
-                            <div class="notification-header">Notifications</div>
-                            <ul class="notification-list">
-                                {% for notification in notifications %}
-                                <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
-                                    <p>{{ notification.message }}</p>
-                                    <span>{{ notification.created_at|timesince }} ago</span>
-                                </a>
-                                {% else %}
-                                <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
-                                {% endfor %}
-                            </ul>
+                        <button class="button button-primary" id="quick-action-upload">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Upload
+                        </button>
+                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
+                        <div class="notification-bell" id="notification-bell">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
+                             <div id="notification-panel">
+                                <div class="notification-header">Notifications</div>
+                                <ul class="notification-list">
+                                    {% for notification in notifications %}
+                                    <a href="{{ notification.link }}" class="notification-item {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+                                        <p>{{ notification.message }}</p>
+                                        <span>{{ notification.created_at|timesince }} ago</span>
+                                    </a>
+                                    {% else %}
+                                    <li style="padding: 1rem; text-align: center; color: var(--text-secondary);">No new notifications.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
-                    </div>
                     <div class="profile-dropdown" id="profile-dropdown">
                         <div class="profile-trigger">
                             <div class="profile-avatar">{{ current_user.email[0]|upper }}</div>
@@ -1630,9 +1630,9 @@
                                         <div class="icon-wrapper moon">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                                         </div>
-                                    </div>
-                                </label>
-                            </div>
+                                </div>
+                            </label>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -2845,26 +2845,16 @@
                 
                 revisionModal.style.display = 'none';
                 
-                // Add to task queue for tracking, but keep the direct execution for revision packs
-                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
-                const taskId = taskQueue.addTask('revision_pack', `Revision Pack: ${firstFileName}`, selectedFiles, {
-                    include_notes: payload.include_notes,
-                    num_flashcards: payload.num_flashcards,
-                    num_quiz_questions: payload.num_quiz_questions
-                });
-                
-                // Block all interactions while building
-                addGlobalInteractionBlocker();
-                
+                // Simplified revision pack generation without task queue
                 try {
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
                     if (result.success) {
-                        // Update task as completed
-                        taskQueue.updateTaskStatus(taskId, 'completed', 100, result);
                         
                         // Check if this is during onboarding
-                        const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || sessionStorage.getItem('showOnboardingCelebration') === '1';
+                        const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || 
+                                           sessionStorage.getItem('showOnboardingCelebration') === '1' ||
+                                           sessionStorage.getItem('onboardingGenerating') === '1';
                         
                         if (isOnboarding) {
                             // Mark onboarding as complete immediately
@@ -2872,24 +2862,21 @@
                             
                             // Persist a flag to show celebration after reload so folders reflect the new pack
                             sessionStorage.setItem('showOnboardingCelebration', '1');
-                            // Ensure onboarding tour does not restart on reload
+                            // Clean up onboarding flags
                             sessionStorage.removeItem('onboardingStep');
+                            sessionStorage.removeItem('onboardingGenerating');
                         }
                         
                         if (typeof hideLoading === 'function') { hideLoading(); }
                         window.location.hash = 'folders';
                         window.location.reload();
                     } else {
-                        taskQueue.updateTaskStatus(taskId, 'error', 0);
                         alert(`Error: ${result.message}`);
                         if (typeof hideLoading === 'function') { hideLoading(); }
-                        removeGlobalInteractionBlocker();
                     }
                 } catch (error) {
-                    taskQueue.updateTaskStatus(taskId, 'error', 0);
                     alert('A network or server error occurred.');
                     if (typeof hideLoading === 'function') { hideLoading(); }
-                    removeGlobalInteractionBlocker();
                 }
             });
 
@@ -3658,7 +3645,7 @@
 
         });
 
-            // --- Dark Mode Toggle Logic ---
+        // --- Dark Mode Toggle Logic ---
             const themeToggle = document.getElementById('theme-toggle');
             const dropdownThemeToggle = document.getElementById('theme-toggle-dropdown');
             
@@ -3964,8 +3951,8 @@ function ensureOnboardingNodesExist() {
     document.body.appendChild(t);
   }
 }
-        document.addEventListener('DOMContentLoaded', () => {
-          ensureOnboardingNodesExist();
+document.addEventListener('DOMContentLoaded', () => {
+  ensureOnboardingNodesExist();
           
           // Initialize slider value displays
           const flashcardsSlider = document.getElementById('num-flashcards');
@@ -4012,18 +3999,28 @@ function ensureOnboardingNodesExist() {
   // After reload: show celebration if flagged (only during onboarding)
   if (sessionStorage.getItem('showOnboardingCelebration') === '1') {
       sessionStorage.removeItem('showOnboardingCelebration');
+      sessionStorage.removeItem('onboardingGenerating'); // Clean up any remaining flags
+      
+      // Switch to folders tab
       const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
       if (foldersTab) foldersTab.click();
+      
+      // Wait for content to load, then show celebration
       setTimeout(() => {
           const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
           if (firstFolder) firstFolder.click();
+          
           // Spotlight newly created items if present
-          spotlightGeneratedItems();
-          // Re-enable interactions now that it's done
-          removeGlobalInteractionBlocker();
-      }, 250);
-      launchConfetti();
-      showCompletionBanner(true);
+          setTimeout(() => {
+              spotlightGeneratedItems();
+          }, 100);
+      }, 300);
+      
+      // Launch celebration
+      setTimeout(() => {
+          launchConfetti();
+          showCompletionBanner(true);
+      }, 500);
   }
 });
 
@@ -4051,23 +4048,33 @@ function ensureOnboardingNodesExist() {
                 });
             }
 
-            await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
-            document.querySelector('.nav-link[data-tab="tools"]').click();
+            try {
+                await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
+                document.querySelector('.nav-link[data-tab="tools"]').click();
 
-            await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
-            document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
+                await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
+                document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
 
-            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
-            revisionPackCard.click(); 
+                const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
+                revisionPackCard.click(); 
 
-            guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
-            guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
-            guideModal.classList.add('visible');
-            
-            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
-            generateBtn.addEventListener('click', function handleGenerate() {
-                guideModal.classList.remove('visible');
-            }, { once: true });
+                guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
+                guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
+                guideModal.classList.add('visible');
+                
+                const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
+                if (generateBtn) {
+                    generateBtn.addEventListener('click', function handleGenerate() {
+                        guideModal.classList.remove('visible');
+                        // Mark that we're in the generation phase
+                        sessionStorage.setItem('onboardingGenerating', '1');
+                    }, { once: true });
+                }
+            } catch (error) {
+                console.error('Onboarding error:', error);
+                // Clean up and hide UI if something goes wrong
+                hideOnboardingUI();
+            }
         }
 
         // Removed payoff animation to keep onboarding simple and fast
@@ -4151,7 +4158,7 @@ function ensureOnboardingNodesExist() {
                 dismiss.addEventListener('click', () => {
                     container.remove();
                     // End onboarding and clear spotlight when main banner is dismissed
-                    hideOnboardingUI();
+                        hideOnboardingUI();
                     document.querySelectorAll('.onboarding-highlight').forEach(el => {
                         el.classList.remove('onboarding-highlight');
                     });
@@ -4245,23 +4252,7 @@ function ensureOnboardingNodesExist() {
             tooltip.classList.add('visible');
         }
 
-        function addGlobalInteractionBlocker() {
-            if (document.getElementById('global-interaction-blocker')) return;
-            const blocker = document.createElement('div');
-            blocker.id = 'global-interaction-blocker';
-            blocker.style.position = 'fixed';
-            blocker.style.inset = '0';
-            blocker.style.background = 'rgba(0,0,0,0.2)';
-            blocker.style.backdropFilter = 'blur(0.5px)';
-            blocker.style.zIndex = '9998';
-            blocker.style.cursor = 'wait';
-            document.body.appendChild(blocker);
-        }
-
-        function removeGlobalInteractionBlocker() {
-            const el = document.getElementById('global-interaction-blocker');
-            if (el) el.remove();
-        }
+        // Global interaction blocker functions removed - no longer needed
 
         function hideOnboardingUI() {
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
