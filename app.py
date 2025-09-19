@@ -3379,10 +3379,10 @@ def build_revision_pack(hub_id):
             try:
                 print("Generating notes...")
                 interactive_html = generate_interactive_notes_html(limited_text)
-            note_ref = db.collection('notes').document()
-            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
-            batch.set(note_ref, new_note.to_dict())
-            folder_items.append({'id': note_ref.id, 'type': 'note'})
+                note_ref = db.collection('notes').document()
+                new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
+                batch.set(note_ref, new_note.to_dict())
+                folder_items.append({'id': note_ref.id, 'type': 'note'})
                 print("Notes generated successfully")
             except Exception as e:
                 print(f"Error generating notes: {e}")
