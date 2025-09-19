@@ -3228,11 +3228,11 @@
 
                 try {
                     // Get user's hubs from the page data (they're already loaded)
-                    const hubsData = {{ hubs_for_json | safe }};
+                    const hubsData = {{ hubs_for_json|tojson }};
                     
                     hubSelect.innerHTML = '<option value="" disabled selected>-- Choose a hub --</option>';
                     
-                    if (hubsData.length === 0) {
+                    if (!hubsData || hubsData.length === 0) {
                         hubSelect.innerHTML += '<option value="" disabled>No hubs available</option>';
                     } else {
                         hubsData.forEach(hub => {
