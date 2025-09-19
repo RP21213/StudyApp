@@ -1113,247 +1113,152 @@
             height: 16px;
         }
 
-        /* --- REVOLUTIONARY SPOTIFY PLAYER CSS --- */
+        /* --- IMPROVED SPOTIFY PLAYER CSS --- */
         #spotify-player-container {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            width: 420px;
-            height: 200px;
+            width: 380px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            padding: 0;
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
             z-index: 1001;
             transform: translateY(calc(100% + 2rem));
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden;
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
         }
         #spotify-player-container.visible {
             transform: translateY(0);
         }
         
-        .sp-player-content {
-            display: flex;
-            height: 100%;
-            position: relative;
+        .sp-track-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            margin-bottom: 1rem; 
         }
         
-        .sp-left-panel {
-            flex: 1;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-        }
-        
-        .sp-right-panel {
-            flex: 1;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        
-        .sp-album-art {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
+        .sp-album-art { 
+            width: 70px; 
+            height: 70px; 
+            border-radius: 12px; 
             background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             object-fit: cover;
+        }
+        
+        .sp-track-details { 
+            flex-grow: 1; 
+            min-width: 0; 
+            color: white;
+        }
+        
+        .sp-track-title { 
+            font-weight: 600; 
+            margin: 0; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sp-track-artist { 
+            font-size: 0.9rem; 
+            color: rgba(255, 255, 255, 0.8); 
+            margin: 0.25rem 0 0; 
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sp-progress-bar { 
+            width: 100%; 
+            height: 6px; 
+            background: rgba(255, 255, 255, 0.3); 
+            border-radius: 3px; 
+            cursor: pointer; 
             margin-bottom: 1rem;
         }
         
-        .sp-track-info-left {
-            color: white;
-        }
-        
-        .sp-track-title-left {
-            font-weight: 700;
-            font-size: 1.1rem;
-            margin: 0 0 0.5rem 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sp-track-artist-left {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin: 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sp-progress-container {
-            margin: 1rem 0;
-        }
-        
-        .sp-progress-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        .sp-progress {
-            height: 100%;
-            width: 0%;
-            background: white;
-            border-radius: 2px;
+        .sp-progress { 
+            height: 100%; 
+            width: 0%; 
+            background: white; 
+            border-radius: 3px; 
             transition: width 0.1s ease;
         }
         
-        .sp-progress-handle {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: white;
+        .sp-controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1rem;
+        }
+        
+        .sp-main-controls { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+        }
+        
+        .sp-main-controls button { 
+            background: rgba(255, 255, 255, 0.2); 
+            border: none; 
+            cursor: pointer; 
+            color: white; 
+            padding: 0.5rem; 
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        
-        .sp-progress-bar:hover .sp-progress-handle {
-            opacity: 1;
-        }
-        
-        .sp-time-display {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-top: 0.5rem;
-        }
-        
-        .sp-controls-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        
-        .sp-control-btn {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             transition: all 0.2s ease;
             backdrop-filter: blur(10px);
         }
         
-        .sp-control-btn:hover {
+        .sp-main-controls button:hover { 
             background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        
-        .sp-play-btn {
-            width: 48px;
-            height: 48px;
-            background: white;
-            color: #333;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sp-play-btn:hover {
-            background: #f0f0f0;
             transform: scale(1.05);
         }
         
-        .sp-right-content {
+        .sp-play-btn { 
+            background: white !important; 
+            color: #333 !important; 
+            width: 48px !important;
+            height: 48px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sp-play-btn:hover { 
+            background: #f0f0f0 !important;
+            transform: scale(1.05);
+        }
+        
+        .sp-volume-control { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
             color: white;
         }
         
-        .sp-now-playing {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .sp-volume-control svg {
+            color: rgba(255, 255, 255, 0.8);
         }
         
-        .sp-track-title-right {
-            font-weight: 600;
-            font-size: 1rem;
-            margin: 0 0 0.25rem 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        .sp-volume-control input[type=range] { 
+            width: 80px; 
+            background: transparent;
         }
         
-        .sp-track-artist-right {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin: 0 0 0.5rem 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sp-track-album {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin: 0 0 1rem 0;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-        }
-        
-        .sp-action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-        
-        .sp-action-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
-        }
-        
-        .sp-action-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-        
-        .sp-action-btn.active {
-            background: rgba(255, 255, 255, 0.3);
-            color: #ff6b6b;
-        }
-        
-        .sp-controls-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            justify-content: flex-end;
-        }
-        
-        .sp-playlist-select {
-            margin-top: 1rem;
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
+        .sp-playlist-select { 
+            margin-top: 1rem; 
+            width: 100%; 
+            padding: 0.75rem; 
+            border-radius: 8px; 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            background: rgba(255, 255, 255, 0.1); 
+            color: white; 
             backdrop-filter: blur(10px);
         }
         
@@ -1361,14 +1266,6 @@
             background: #333;
             color: white;
         }
-        
-        /* Dynamic background colors based on album art */
-        .sp-player-bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .sp-player-bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .sp-player-bg-pink { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-        .sp-player-bg-green { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-        .sp-player-bg-orange { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
-        .sp-player-bg-red { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
         
 /* Onboarding specific styles */
         #onboarding-spotlight-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); z-index: 1002; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%); }
@@ -2425,73 +2322,23 @@
     <!-- NEW: Spotify Player HTML -->
     {% if spotify_connected %}
     <div id="spotify-player-container">
-        <div class="sp-player-content">
-            <!-- Left Panel -->
-            <div class="sp-left-panel">
-                <div class="sp-track-info-left">
-                    <img id="sp-album-art" src="" alt="Album Art" class="sp-album-art">
-                    <div class="sp-track-details">
-                        <p id="sp-track-title-left" class="sp-track-title-left">Connecting to Spotify...</p>
-                        <p id="sp-track-artist-left" class="sp-track-artist-left">Please wait</p>
-                    </div>
-                </div>
-                
-                <div class="sp-progress-container">
-                    <div class="sp-progress-bar">
-                        <div id="sp-progress" class="sp-progress"></div>
-                        <div class="sp-progress-handle"></div>
-                    </div>
-                    <div class="sp-time-display">
-                        <span id="sp-current-time">0:00</span>
-                        <span id="sp-total-time">0:00</span>
-                    </div>
-                </div>
-                
-                <div class="sp-controls-left">
-                    <button id="sp-shuffle-btn" class="sp-control-btn" title="Shuffle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16,3 21,3 21,8"></polyline><path d="M4,20v-5a9,9 0 0,1 9-9h5"></path><polyline points="8,21 3,21 3,16"></polyline><path d="M20,4v5a9,9 0 0,1-9,9h-5"></path></svg>
-                    </button>
-                    <button id="sp-repeat-btn" class="sp-control-btn" title="Repeat">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17,1 21,5 17,9"></polyline><path d="M3,11V9a4,4 0 0,1 4-4H21"></path><polyline points="7,23 3,19 7,15"></polyline><path d="M21,13v2a4,4 0 0,1-4,4H3"></path></svg>
-                    </button>
-                    <button id="sp-prev-btn" class="sp-control-btn" title="Previous">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="19,20 9,12 19,4 19,20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
-                    </button>
-                    <button id="sp-play-btn" class="sp-play-btn" title="Play/Pause">
-                        <svg id="sp-play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
-                    </button>
-                </div>
+        <div class="sp-track-info">
+            <img id="sp-album-art" src="" alt="Album Art" class="sp-album-art">
+            <div class="sp-track-details">
+                <p id="sp-track-title">Connecting to Spotify...</p>
+                <p id="sp-track-artist">Please wait</p>
             </div>
-            
-            <!-- Right Panel -->
-            <div class="sp-right-panel">
-                <div class="sp-right-content">
-                    <div class="sp-now-playing">Now Playing</div>
-                    <div class="sp-track-title-right" id="sp-track-title-right">Connecting to Spotify...</div>
-                    <div class="sp-track-artist-right" id="sp-track-artist-right">Please wait</div>
-                    <div class="sp-track-album" id="sp-track-album">Loading...</div>
-                    
-                    <div class="sp-action-buttons">
-                        <button id="sp-like-btn" class="sp-action-btn" title="Like">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                        </button>
-                        <button id="sp-add-btn" class="sp-action-btn" title="Add to Playlist">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        </button>
-                        <button id="sp-share-btn" class="sp-action-btn" title="Share">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="sp-controls-right">
-                    <button id="sp-next-btn" class="sp-control-btn" title="Next">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,4 15,12 5,20 5,4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
-                    </button>
-                    <button id="sp-eq-btn" class="sp-control-btn" title="Equalizer">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                    </button>
-                </div>
+        </div>
+        <div class="sp-progress-bar"><div id="sp-progress" class="sp-progress"></div></div>
+        <div class="sp-controls">
+            <div class="sp-main-controls">
+                <button id="sp-prev-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg></button>
+                <button id="sp-play-btn" class="sp-play-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg></button>
+                <button id="sp-next-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg></button>
+            </div>
+            <div class="sp-volume-control">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+                <input type="range" id="sp-volume" min="0" max="100" value="80">
             </div>
         </div>
         
@@ -3850,28 +3697,15 @@
         const volumeSlider = document.getElementById('sp-volume');
         const playlistSelect = document.getElementById('sp-playlist-select');
         const albumArt = document.getElementById('sp-album-art');
-        const trackTitleLeft = document.getElementById('sp-track-title-left');
-        const trackArtistLeft = document.getElementById('sp-track-artist-left');
-        const trackTitleRight = document.getElementById('sp-track-title-right');
-        const trackArtistRight = document.getElementById('sp-track-artist-right');
-        const trackAlbum = document.getElementById('sp-track-album');
+        const trackTitle = document.getElementById('sp-track-title');
+        const trackArtist = document.getElementById('sp-track-artist');
         const progressBar = document.getElementById('sp-progress');
-        const currentTime = document.getElementById('sp-current-time');
-        const totalTime = document.getElementById('sp-total-time');
-        const shuffleBtn = document.getElementById('sp-shuffle-btn');
-        const repeatBtn = document.getElementById('sp-repeat-btn');
-        const likeBtn = document.getElementById('sp-like-btn');
-        const addBtn = document.getElementById('sp-add-btn');
-        const shareBtn = document.getElementById('sp-share-btn');
-        const eqBtn = document.getElementById('sp-eq-btn');
         
         const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg>`;
         const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
 
         let sdkDeviceId = null;
         let isPlayerReady = false;
-        let isShuffled = false;
-        let repeatMode = 0; // 0: off, 1: all, 2: one
 
         // --- SDK Initialization ---
         const player = new Spotify.Player({
@@ -3904,106 +3738,24 @@
             isPlayerReady = false;
         });
 
-        // --- Dynamic Background Color Function ---
-        const updatePlayerBackground = (imageUrl) => {
-            if (!imageUrl) return;
-            
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                
-                let r = 0, g = 0, b = 0;
-                let pixelCount = 0;
-                
-                // Sample every 10th pixel for performance
-                for (let i = 0; i < data.length; i += 40) {
-                    r += data[i];
-                    g += data[i + 1];
-                    b += data[i + 2];
-                    pixelCount++;
-                }
-                
-                r = Math.floor(r / pixelCount);
-                g = Math.floor(g / pixelCount);
-                b = Math.floor(b / pixelCount);
-                
-                // Determine background theme based on dominant color
-                const brightness = (r + g + b) / 3;
-                const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-                
-                let bgClass = 'sp-player-bg-purple'; // default
-                
-                if (brightness < 100) {
-                    bgClass = 'sp-player-bg-blue';
-                } else if (r > g && r > b) {
-                    bgClass = 'sp-player-bg-red';
-                } else if (g > r && g > b) {
-                    bgClass = 'sp-player-bg-green';
-                } else if (b > r && b > g) {
-                    bgClass = 'sp-player-bg-blue';
-                } else if (saturation < 50) {
-                    bgClass = 'sp-player-bg-orange';
-                } else {
-                    bgClass = 'sp-player-bg-pink';
-                }
-                
-                // Remove existing background classes
-                playerContainer.className = playerContainer.className.replace(/sp-player-bg-\w+/g, '');
-                playerContainer.classList.add(bgClass);
-            };
-            img.src = imageUrl;
-        };
-
         player.addListener('player_state_changed', (state) => {
             if (!state) {
-                trackTitleLeft.textContent = 'Player is idle';
-                trackArtistLeft.textContent = 'Select a playlist to start';
-                trackTitleRight.textContent = 'Player is idle';
-                trackArtistRight.textContent = 'Select a playlist to start';
-                trackAlbum.textContent = 'No track selected';
+                trackTitle.textContent = 'Player is idle';
+                trackArtist.textContent = 'Select a playlist to start';
                 albumArt.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
                 playBtn.innerHTML = playIcon;
                 progressBar.style.width = '0%';
-                currentTime.textContent = '0:00';
-                totalTime.textContent = '0:00';
                 return;
             }
 
             const currentTrack = state.track_window.current_track;
             const progressPercent = (state.position / state.duration) * 100;
-            const imageUrl = currentTrack.album.images[0]?.url || '';
 
-            // Update track info on both sides
-            trackTitleLeft.textContent = currentTrack.name;
-            trackArtistLeft.textContent = currentTrack.artists.map(artist => artist.name).join(', ');
-            trackTitleRight.textContent = currentTrack.name;
-            trackArtistRight.textContent = currentTrack.artists.map(artist => artist.name).join(', ');
-            trackAlbum.textContent = currentTrack.album.name;
-            
-            albumArt.src = imageUrl;
+            trackTitle.textContent = currentTrack.name;
+            trackArtist.textContent = currentTrack.artists.map(artist => artist.name).join(', ');
+            albumArt.src = currentTrack.album.images[0].url;
             progressBar.style.width = `${progressPercent}%`;
             playBtn.innerHTML = state.paused ? playIcon : pauseIcon;
-            
-            // Update time display
-            const formatTime = (ms) => {
-                const minutes = Math.floor(ms / 60000);
-                const seconds = Math.floor((ms % 60000) / 1000);
-                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            };
-            
-            currentTime.textContent = formatTime(state.position);
-            totalTime.textContent = formatTime(state.duration);
-            
-            // Update dynamic background
-            updatePlayerBackground(imageUrl);
         });
         
         player.addListener('account_error', ({ message }) => {
@@ -4047,55 +3799,6 @@
             player.nextTrack();
         });
 
-        // Shuffle button
-        shuffleBtn.addEventListener('click', () => {
-            if (!isPlayerReady) return;
-            isShuffled = !isShuffled;
-            shuffleBtn.classList.toggle('active', isShuffled);
-            // Note: Actual shuffle functionality would require Spotify Web API calls
-        });
-
-        // Repeat button
-        repeatBtn.addEventListener('click', () => {
-            if (!isPlayerReady) return;
-            repeatMode = (repeatMode + 1) % 3;
-            repeatBtn.classList.toggle('active', repeatMode > 0);
-            // Note: Actual repeat functionality would require Spotify Web API calls
-        });
-
-        // Like button
-        likeBtn.addEventListener('click', () => {
-            likeBtn.classList.toggle('active');
-            // Note: Actual like functionality would require Spotify Web API calls
-        });
-
-        // Add to playlist button
-        addBtn.addEventListener('click', () => {
-            // Note: This would open a modal to select playlist
-            console.log('Add to playlist clicked');
-        });
-
-        // Share button
-        shareBtn.addEventListener('click', () => {
-            // Note: This would open share options
-            console.log('Share clicked');
-        });
-
-        // Equalizer button
-        eqBtn.addEventListener('click', () => {
-            // Note: This would open equalizer settings
-            console.log('Equalizer clicked');
-        });
-
-        // Progress bar click
-        document.querySelector('.sp-progress-bar').addEventListener('click', (e) => {
-            if (!isPlayerReady) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const percentage = clickX / rect.width;
-            // Note: This would require access to current track duration
-            console.log('Seek to:', percentage * 100, '%');
-        });
         
         let volumeTimeout;
         volumeSlider.addEventListener('input', () => {
