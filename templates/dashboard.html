@@ -1375,6 +1375,14 @@
             background: #333;
             color: white;
         }
+        
+        /* Dynamic background colors based on album art */
+        .sp-player-bg-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .sp-player-bg-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .sp-player-bg-pink { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .sp-player-bg-green { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .sp-player-bg-orange { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .sp-player-bg-red { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
 
         /* --- NEW: Styles for Preview Modals --- */
         #preview-modal .modal-content { max-width: 550px; }
@@ -2882,6 +2890,64 @@
             isPlayerReady = false;
         });
 
+        // --- Dynamic Background Color Function ---
+        const updatePlayerBackground = (imageUrl) => {
+            if (!imageUrl) return;
+            
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                let r = 0, g = 0, b = 0;
+                let pixelCount = 0;
+                
+                // Sample every 10th pixel for performance
+                for (let i = 0; i < data.length; i += 40) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    pixelCount++;
+                }
+                
+                r = Math.floor(r / pixelCount);
+                g = Math.floor(g / pixelCount);
+                b = Math.floor(b / pixelCount);
+                
+                // Determine background theme based on dominant color
+                const brightness = (r + g + b) / 3;
+                const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+                
+                let bgClass = 'sp-player-bg-purple'; // default
+                
+                if (brightness < 100) {
+                    bgClass = 'sp-player-bg-blue';
+                } else if (r > g && r > b) {
+                    bgClass = 'sp-player-bg-red';
+                } else if (g > r && g > b) {
+                    bgClass = 'sp-player-bg-green';
+                } else if (b > r && b > g) {
+                    bgClass = 'sp-player-bg-blue';
+                } else if (saturation < 50) {
+                    bgClass = 'sp-player-bg-orange';
+                } else {
+                    bgClass = 'sp-player-bg-pink';
+                }
+                
+                // Remove existing background classes
+                playerContainer.className = playerContainer.className.replace(/sp-player-bg-\w+/g, '');
+                playerContainer.classList.add(bgClass);
+            };
+            img.src = imageUrl;
+        };
+
         player.addListener('player_state_changed', (state) => {
             if (!state) {
                 trackTitle.textContent = 'Player is idle';
@@ -2894,12 +2960,16 @@
 
             const currentTrack = state.track_window.current_track;
             const progressPercent = (state.position / state.duration) * 100;
+            const imageUrl = currentTrack.album.images[0]?.url || '';
 
             trackTitle.textContent = currentTrack.name;
             trackArtist.textContent = currentTrack.artists.map(artist => artist.name).join(', ');
-            albumArt.src = currentTrack.album.images[0].url;
+            albumArt.src = imageUrl;
             progressBar.style.width = `${progressPercent}%`;
             playBtn.innerHTML = state.paused ? playIcon : pauseIcon;
+            
+            // Update dynamic background
+            updatePlayerBackground(imageUrl);
         });
         
         player.addListener('account_error', ({ message }) => {
