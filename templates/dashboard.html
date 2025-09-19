@@ -165,223 +165,15 @@
             background-image: linear-gradient(to right, #f59e0b, #d97706); /* amber -> orange */
         }
         
-        /* Earn Money Tab Golden Theme */
-        .earn-money-tab {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #b45309 75%, #92400e 100%);
-            min-height: 100vh;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .earn-money-tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
-                radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.9), transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.7), transparent),
-                radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.5), transparent),
-                radial-gradient(1px 1px at 200px 90px, rgba(255,255,255,0.8), transparent),
-                radial-gradient(2px 2px at 240px 50px, rgba(255,255,255,0.6), transparent),
-                radial-gradient(1px 1px at 280px 20px, rgba(255,255,255,0.9), transparent);
-            background-repeat: repeat;
-            background-size: 300px 100px;
-            animation: sparkle 3s linear infinite;
-            pointer-events: none;
-        }
-        
-        @keyframes sparkle {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
-        }
-        
-        .earn-money-content {
-            position: relative;
-            z-index: 1;
-            background: var(--background-card, rgba(255, 255, 255, 0.95));
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            margin: 2rem;
-            padding: 2rem;
-            box-shadow: var(--card-shadow, 0 20px 40px rgba(0, 0, 0, 0.1));
-        }
-        
-        .earn-money-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-        
-        .earn-money-header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #f59e0b, #d97706, #b45309);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .earn-money-header p {
-            font-size: 1.2rem;
-            color: var(--text-secondary, #6b7280);
-            font-weight: 500;
-        }
-        
-        /* Referrals Leaderboard */
-        .leaderboard-container {
-            background: var(--background-card, white);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color, #e5e7eb);
-        }
-        
-        .leaderboard-title {
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--text-main, #374151);
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        
-        .leaderboard-title::before,
-        .leaderboard-title::after {
-            content: '⭐';
-            font-size: 1.2rem;
-        }
-        
-        .podium {
-            display: flex;
-            justify-content: center;
-            align-items: end;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding: 1rem 0;
-        }
-        
-        .podium-place {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
-        
-        .podium-place.first {
-            order: 2;
-        }
-        
-        .podium-place.second {
-            order: 1;
-        }
-        
-        .podium-place.third {
-            order: 3;
-        }
-        
-        .podium-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #d97706, #b45309);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            margin-bottom: 0.5rem;
-            border: 3px solid var(--border-color, white);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 2;
-        }
-        
-        .podium-place.first .podium-avatar {
-            width: 80px;
-            height: 80px;
-            font-size: 2rem;
-            background: linear-gradient(45deg, #b45309, #92400e);
-            border: 4px solid var(--border-color, white);
-        }
-        
-        .podium-place.first .podium-avatar::after {
-            content: '👑';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 1.2rem;
-        }
-        
-        .podium-place.second .podium-avatar {
-            background: linear-gradient(45deg, #6b7280, #4b5563);
-        }
-        
-        .podium-place.third .podium-avatar {
-            background: linear-gradient(45deg, #92400e, #78350f);
-        }
-        
-        .podium-base {
-            width: 80px;
-            height: 40px;
-            background: linear-gradient(45deg, #d97706, #b45309);
-            border-radius: 8px 8px 0 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .podium-place.first .podium-base {
-            width: 100px;
-            height: 60px;
-            background: linear-gradient(45deg, #b45309, #92400e);
-            font-size: 1.5rem;
-        }
-        
-        .podium-place.second .podium-base {
-            height: 45px;
-            background: linear-gradient(45deg, #6b7280, #4b5563);
-        }
-        
-        .podium-place.third .podium-base {
-            height: 30px;
-            background: linear-gradient(45deg, #92400e, #78350f);
-        }
-        
-        .podium-name {
-            font-weight: 600;
-            color: var(--text-main, #374151);
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-        }
-        
-        .podium-referrals {
-            font-size: 0.8rem;
-            color: var(--text-secondary, #6b7280);
-            margin-top: 0.25rem;
-        }
+        /* Earn Money Tab - Consistent with Site Aesthetic */
         
         /* Referral Code Section */
         .referral-code-section {
-            background: var(--background-card, white);
-            border-radius: 16px;
+            background: var(--background-white);
+            border-radius: 12px;
             padding: 2rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color, #e5e7eb);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
             display: flex;
             gap: 3rem;
             align-items: flex-start;
@@ -396,166 +188,206 @@
             flex: 1;
         }
         
-        .referral-code-title {
-            font-size: 1.5rem;
+        .referral-code-left h3,
+        .referral-code-right h3 {
+            font-size: 1.25rem;
             font-weight: 700;
-            color: var(--text-main, #374151);
-            margin-bottom: 1rem;
-        }
-        
-        .instructions-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-main, #374151);
+            color: var(--text-main);
             margin-bottom: 1.5rem;
         }
         
-        .instructions-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .instructions-list li {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-            position: relative;
-            color: var(--text-main, #374151);
-            line-height: 1.6;
-        }
-        
-        .instructions-list li::before {
-            content: counter(step-counter);
-            counter-increment: step-counter;
-            position: absolute;
-            left: 0;
-            top: 0;
-            background: linear-gradient(45deg, #d97706, #b45309);
+        .referral-code-display {
+            background: var(--primary-color);
             color: white;
-            width: 24px;
-            height: 24px;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin: 1rem 0;
+            display: inline-block;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .instructions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--background-light);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .instruction-item.highlight {
+            background: rgba(139, 92, 246, 0.1);
+            border-left-color: var(--primary-color);
+        }
+        
+        .step-number {
+            background: var(--primary-color);
+            color: white;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            flex-shrink: 0;
         }
         
-        .instructions-list {
-            counter-reset: step-counter;
+        .instruction-item p {
+            margin: 0;
+            color: var(--text-main);
+            line-height: 1.6;
         }
         
-        .instructions-list li:last-child {
-            margin-bottom: 0;
-            padding: 1rem;
-            background: var(--background-light, rgba(251, 191, 36, 0.1));
-            border-radius: 8px;
-            border-left: 4px solid #d97706;
+        /* Leaderboard Section */
+        .leaderboard-section {
+            margin-bottom: 2rem;
+        }
+        
+        .leaderboard-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+        
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .leaderboard-card {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .leaderboard-card.first-place {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(251, 191, 36, 0.1));
+        }
+        
+        .leaderboard-card.second-place {
+            border-color: #9ca3af;
+            background: linear-gradient(135deg, rgba(156, 163, 175, 0.05), rgba(156, 163, 175, 0.1));
+        }
+        
+        .leaderboard-card.third-place {
+            border-color: #cd7f32;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.05), rgba(205, 127, 50, 0.1));
+        }
+        
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        
+        .leaderboard-card.first-place .rank-badge {
+            background: #fbbf24;
+            color: #1f2937;
+        }
+        
+        .leaderboard-card.second-place .rank-badge {
+            background: #9ca3af;
+        }
+        
+        .leaderboard-card.third-place .rank-badge {
+            background: #cd7f32;
+        }
+        
+        .avatar {
+            font-size: 2rem;
+            margin: 0.5rem 0;
+        }
+        
+        .leaderboard-card h4 {
+            font-size: 1.1rem;
             font-weight: 600;
+            color: var(--text-main);
+            margin: 0.5rem 0;
         }
         
-        .instructions-list li:last-child::before {
-            background: linear-gradient(45deg, #d97706, #b45309);
-            width: 28px;
-            height: 28px;
+        .referrals-count {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        /* Referral Stats */
+        .referral-stats h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .stat-card {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+        
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 600;
             font-size: 0.9rem;
         }
         
-        /* Responsive design for mobile */
+        /* Responsive design */
         @media (max-width: 768px) {
             .referral-code-section {
                 flex-direction: column;
                 gap: 2rem;
             }
             
-            .referral-code-left,
-            .referral-code-right {
-                flex: none;
+            .leaderboard-grid,
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
-            
-            .instructions-list li {
-                margin-bottom: 0.75rem;
-            }
-        }
-        
-        .referral-code-display {
-            background: linear-gradient(45deg, #d97706, #b45309);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: 0.2em;
-            margin: 1rem 0;
-            display: inline-block;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            border: 2px solid var(--border-color, white);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .referral-code-display::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-        
-        .copy-button {
-            background: linear-gradient(45deg, #10b981, #059669);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .copy-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .referral-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        
-        .stat-card {
-            background: var(--background-card, white);
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color, #e5e7eb);
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #d97706;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-label {
-            color: var(--text-secondary, #6b7280);
-            font-weight: 600;
         }
         
         .main-content {
@@ -2344,84 +2176,92 @@
         </div>
 
         <div id="earn-money" class="tab-content">
-            <div class="earn-money-tab">
-                <div class="earn-money-content">
-                    <div class="earn-money-header">
+            <div class="container">
+                <header>
+                    <div class="header-text">
                         <h1>💰 Earn Money</h1>
                         <p>Refer friends and earn rewards! Share your referral code and climb the leaderboard.</p>
                     </div>
+                </header>
 
-                    <!-- Referrals Leaderboard -->
-                    <div class="leaderboard-container">
-                        <div class="leaderboard-title">
-                            Referrals Leaderboard
+                <!-- Referral Code Section -->
+                <div class="referral-code-section">
+                    <div class="referral-code-left">
+                        <h3>Your Referral Code</h3>
+                        <div class="referral-code-display" id="referral-code">
+                            ABC123
                         </div>
-                        
-                        <div class="podium">
-                            <!-- 2nd Place -->
-                            <div class="podium-place second">
-                                <div class="podium-avatar">2</div>
-                                <div class="podium-base">2nd</div>
-                                <div class="podium-name">Sarah M.</div>
-                                <div class="podium-referrals">12 referrals</div>
+                        <button class="button" onclick="copyReferralCode()">
+                            <i data-lucide="copy"></i> Copy Code
+                        </button>
+                    </div>
+                    
+                    <div class="referral-code-right">
+                        <h3>How to refer a friend?</h3>
+                        <div class="instructions-list">
+                            <div class="instruction-item">
+                                <span class="step-number">1</span>
+                                <p>When your friend is purchasing the pro subscription, make sure they enter your referral code.</p>
                             </div>
-                            
-                            <!-- 1st Place -->
-                            <div class="podium-place first">
-                                <div class="podium-avatar">1</div>
-                                <div class="podium-base">1st</div>
-                                <div class="podium-name">Alex K.</div>
-                                <div class="podium-referrals">18 referrals</div>
+                            <div class="instruction-item">
+                                <span class="step-number">2</span>
+                                <p>If they do, your friend will receive a week of Pro subscription for free.</p>
                             </div>
-                            
-                            <!-- 3rd Place -->
-                            <div class="podium-place third">
-                                <div class="podium-avatar">3</div>
-                                <div class="podium-base">3rd</div>
-                                <div class="podium-name">Emma L.</div>
-                                <div class="podium-referrals">8 referrals</div>
+                            <div class="instruction-item">
+                                <span class="step-number">3</span>
+                                <p>Reach referral milestones to unlock rewards like cash prizes, giftcards and more!</p>
+                            </div>
+                            <div class="instruction-item highlight">
+                                <span class="step-number">4</span>
+                                <p>The top 3 individuals with the most referrals by the end of every month receive a cash prize.</p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Referral Code Section -->
-                    <div class="referral-code-section">
-                        <div class="referral-code-left">
-                            <div class="referral-code-title">
-                                This is your referral code
-                            </div>
-                            <div class="referral-code-display" id="referral-code">
-                                ABC123
-                            </div>
-                            <button class="copy-button" onclick="copyReferralCode()">
-                                📋 Copy Code
-                            </button>
+                <!-- Referrals Leaderboard -->
+                <div class="leaderboard-section">
+                    <h2>Referrals Leaderboard</h2>
+                    <div class="leaderboard-grid">
+                        <div class="leaderboard-card first-place">
+                            <div class="rank-badge">1st</div>
+                            <div class="avatar">👑</div>
+                            <h4>Alex K.</h4>
+                            <p class="referrals-count">18 referrals</p>
                         </div>
                         
-                        <div class="referral-code-right">
-                            <div class="instructions-title">
-                                How to refer a friend?
-                            </div>
-                            <ol class="instructions-list">
-                                <li>When your friend is purchasing the pro subscription, make sure they enter your referral code.</li>
-                                <li>If they do, your friend will receive a week of Pro subscription for free.</li>
-                                <li>Reach referral milestones to unlock rewards like cash prizes, giftcards and more!</li>
-                                <li>The top 3 individuals with the most referrals by the end of every month receive a cash prize.</li>
-                            </ol>
+                        <div class="leaderboard-card second-place">
+                            <div class="rank-badge">2nd</div>
+                            <div class="avatar">🥈</div>
+                            <h4>Sarah M.</h4>
+                            <p class="referrals-count">12 referrals</p>
+                        </div>
+                        
+                        <div class="leaderboard-card third-place">
+                            <div class="rank-badge">3rd</div>
+                            <div class="avatar">🥉</div>
+                            <h4>Emma L.</h4>
+                            <p class="referrals-count">8 referrals</p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Referral Stats -->
-                    <div class="referral-stats">
+                <!-- Referral Stats -->
+                <div class="referral-stats">
+                    <h2>Your Stats</h2>
+                    <div class="stats-grid">
                         <div class="stat-card">
+                            <div class="stat-icon">👥</div>
                             <div class="stat-number">0</div>
                             <div class="stat-label">Total Referrals</div>
                         </div>
                         <div class="stat-card">
+                            <div class="stat-icon">💰</div>
                             <div class="stat-number">$0</div>
                             <div class="stat-label">Earnings</div>
                         </div>
                         <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
                             <div class="stat-number">0</div>
                             <div class="stat-label">Active Users</div>
                         </div>
