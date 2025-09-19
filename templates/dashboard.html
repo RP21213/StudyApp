@@ -2459,157 +2459,192 @@
         });
 
         // Community Tab Functionality
-        const communityTabs = document.querySelectorAll('.community-tab');
-        const communityTabContents = document.querySelectorAll('.community-tab-content');
+        document.addEventListener('DOMContentLoaded', function() {
+            const communityTabs = document.querySelectorAll('.community-tab');
+            const communityTabContents = document.querySelectorAll('.community-tab-content');
 
-        communityTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetTab = tab.dataset.tab;
-                
-                // Update active tab
-                communityTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Update active content
-                communityTabContents.forEach(content => {
-                    content.classList.remove('active');
+            communityTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Update active tab
+                    communityTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update active content
+                    communityTabContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${targetTab}-tab`).classList.add('active');
                 });
-                document.getElementById(`${targetTab}-tab`).classList.add('active');
             });
-        });
 
-        // Study Group Modals
-        const createStudyGroupBtn = document.getElementById('create-study-group-btn');
-        const joinStudyGroupBtn = document.getElementById('join-study-group-btn');
-        const createStudyGroupModal = document.getElementById('create-study-group-modal');
-        const joinStudyGroupModal = document.getElementById('join-study-group-modal');
-        const studyGroupCreatedModal = document.getElementById('study-group-created-modal');
+            // Study Group Modals
+            const createStudyGroupBtn = document.getElementById('create-study-group-btn');
+            const joinStudyGroupBtn = document.getElementById('join-study-group-btn');
+            const createStudyGroupModal = document.getElementById('create-study-group-modal');
+            const joinStudyGroupModal = document.getElementById('join-study-group-modal');
+            const studyGroupCreatedModal = document.getElementById('study-group-created-modal');
 
-        // Open modals
-        createStudyGroupBtn.addEventListener('click', () => {
-            createStudyGroupModal.classList.add('visible');
-        });
-
-        joinStudyGroupBtn.addEventListener('click', () => {
-            joinStudyGroupModal.classList.add('visible');
-        });
-
-        // Close modals
-        document.getElementById('close-create-study-group-modal').addEventListener('click', () => {
-            createStudyGroupModal.classList.remove('visible');
-        });
-
-        document.getElementById('close-join-study-group-modal').addEventListener('click', () => {
-            joinStudyGroupModal.classList.remove('visible');
-        });
-
-        document.getElementById('close-study-group-created-modal').addEventListener('click', () => {
-            studyGroupCreatedModal.classList.remove('visible');
-        });
-
-        document.getElementById('cancel-create-study-group').addEventListener('click', () => {
-            createStudyGroupModal.classList.remove('visible');
-        });
-
-        document.getElementById('cancel-join-study-group').addEventListener('click', () => {
-            joinStudyGroupModal.classList.remove('visible');
-        });
-
-        document.getElementById('close-study-group-created').addEventListener('click', () => {
-            studyGroupCreatedModal.classList.remove('visible');
-        });
-
-        // Generate random 5-digit code
-        function generateStudyGroupCode() {
-            return Math.floor(10000 + Math.random() * 90000).toString();
-        }
-
-        // Create Study Group Form
-        document.getElementById('create-study-group-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const name = formData.get('name');
-            const description = formData.get('description');
-            const code = generateStudyGroupCode();
-
-            try {
-                // Here you would make an API call to create the study group
-                // For now, we'll simulate it
-                console.log('Creating study group:', { name, description, code });
-                
-                // Show success modal with generated code
-                document.getElementById('generated-study-group-code').textContent = code;
-                createStudyGroupModal.classList.remove('visible');
-                studyGroupCreatedModal.classList.add('visible');
-                
-                // Reset form
-                e.target.reset();
-                
-                // Refresh study groups list
-                loadStudyGroups();
-                
-            } catch (error) {
-                console.error('Error creating study group:', error);
-                alert('Error creating study group. Please try again.');
+            // Open modals
+            if (createStudyGroupBtn) {
+                createStudyGroupBtn.addEventListener('click', () => {
+                    createStudyGroupModal.classList.add('visible');
+                });
             }
-        });
 
-        // Join Study Group Form
-        document.getElementById('join-study-group-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const code = formData.get('code');
-
-            try {
-                // Here you would make an API call to join the study group
-                console.log('Joining study group with code:', code);
-                
-                // Simulate success
-                alert('Successfully joined study group!');
-                joinStudyGroupModal.classList.remove('visible');
-                
-                // Reset form
-                e.target.reset();
-                
-                // Refresh study groups list
-                loadStudyGroups();
-                
-            } catch (error) {
-                console.error('Error joining study group:', error);
-                alert('Invalid study group code. Please check and try again.');
+            if (joinStudyGroupBtn) {
+                joinStudyGroupBtn.addEventListener('click', () => {
+                    joinStudyGroupModal.classList.add('visible');
+                });
             }
+
+            // Close modals
+            const closeCreateModal = document.getElementById('close-create-study-group-modal');
+            const closeJoinModal = document.getElementById('close-join-study-group-modal');
+            const closeCreatedModal = document.getElementById('close-study-group-created-modal');
+            const cancelCreate = document.getElementById('cancel-create-study-group');
+            const cancelJoin = document.getElementById('cancel-join-study-group');
+            const closeCreated = document.getElementById('close-study-group-created');
+
+            if (closeCreateModal) {
+                closeCreateModal.addEventListener('click', () => {
+                    createStudyGroupModal.classList.remove('visible');
+                });
+            }
+
+            if (closeJoinModal) {
+                closeJoinModal.addEventListener('click', () => {
+                    joinStudyGroupModal.classList.remove('visible');
+                });
+            }
+
+            if (closeCreatedModal) {
+                closeCreatedModal.addEventListener('click', () => {
+                    studyGroupCreatedModal.classList.remove('visible');
+                });
+            }
+
+            if (cancelCreate) {
+                cancelCreate.addEventListener('click', () => {
+                    createStudyGroupModal.classList.remove('visible');
+                });
+            }
+
+            if (cancelJoin) {
+                cancelJoin.addEventListener('click', () => {
+                    joinStudyGroupModal.classList.remove('visible');
+                });
+            }
+
+            if (closeCreated) {
+                closeCreated.addEventListener('click', () => {
+                    studyGroupCreatedModal.classList.remove('visible');
+                });
+            }
+
+            // Generate random 5-digit code
+            function generateStudyGroupCode() {
+                return Math.floor(10000 + Math.random() * 90000).toString();
+            }
+
+            // Create Study Group Form
+            const createForm = document.getElementById('create-study-group-form');
+            if (createForm) {
+                createForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const name = formData.get('name');
+                    const description = formData.get('description');
+                    const code = generateStudyGroupCode();
+
+                    try {
+                        // Here you would make an API call to create the study group
+                        // For now, we'll simulate it
+                        console.log('Creating study group:', { name, description, code });
+                        
+                        // Show success modal with generated code
+                        document.getElementById('generated-study-group-code').textContent = code;
+                        createStudyGroupModal.classList.remove('visible');
+                        studyGroupCreatedModal.classList.add('visible');
+                        
+                        // Reset form
+                        e.target.reset();
+                        
+                        // Refresh study groups list
+                        loadStudyGroups();
+                        
+                    } catch (error) {
+                        console.error('Error creating study group:', error);
+                        alert('Error creating study group. Please try again.');
+                    }
+                });
+            }
+
+            // Join Study Group Form
+            const joinForm = document.getElementById('join-study-group-form');
+            if (joinForm) {
+                joinForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const code = formData.get('code');
+
+                    try {
+                        // Here you would make an API call to join the study group
+                        console.log('Joining study group with code:', code);
+                        
+                        // Simulate success
+                        alert('Successfully joined study group!');
+                        joinStudyGroupModal.classList.remove('visible');
+                        
+                        // Reset form
+                        e.target.reset();
+                        
+                        // Refresh study groups list
+                        loadStudyGroups();
+                        
+                    } catch (error) {
+                        console.error('Error joining study group:', error);
+                        alert('Invalid study group code. Please check and try again.');
+                    }
+                });
+            }
+
+            // Copy study group code
+            const copyCodeBtn = document.getElementById('copy-study-group-code');
+            if (copyCodeBtn) {
+                copyCodeBtn.addEventListener('click', () => {
+                    const code = document.getElementById('generated-study-group-code').textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        alert('Study group code copied to clipboard!');
+                    });
+                });
+            }
+
+            // Load study groups (placeholder function)
+            function loadStudyGroups() {
+                const studyGroupsList = document.getElementById('study-groups-list');
+                if (studyGroupsList) {
+                    // This would be populated with actual study groups from the API
+                    // For now, showing a placeholder
+                    studyGroupsList.innerHTML = `
+                        <div class="study-group-card">
+                            <h4>CS101 Study Group</h4>
+                            <p>Introduction to Computer Science study group</p>
+                            <div class="study-group-meta">
+                                <span>5 members</span>
+                                <span class="study-group-code">12345</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // Initialize study groups on page load
+            loadStudyGroups();
         });
-
-        // Copy study group code
-        document.getElementById('copy-study-group-code').addEventListener('click', () => {
-            const code = document.getElementById('generated-study-group-code').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Study group code copied to clipboard!');
-            });
-        });
-
-        // Load study groups (placeholder function)
-        function loadStudyGroups() {
-            const studyGroupsList = document.getElementById('study-groups-list');
-            
-            // This would be populated with actual study groups from the API
-            // For now, showing a placeholder
-            studyGroupsList.innerHTML = `
-                <div class="study-group-card">
-                    <h4>CS101 Study Group</h4>
-                    <p>Introduction to Computer Science study group</p>
-                    <div class="study-group-meta">
-                        <span>5 members</span>
-                        <span class="study-group-code">12345</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Initialize study groups on page load
-        loadStudyGroups();
     </script>
     {% endif %}
 
