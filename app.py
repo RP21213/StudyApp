@@ -5185,7 +5185,7 @@ def get_global_resources():
             
             # Add user profile and folder contents to resource
             resource_dict['owner_name'] = user_profile.get('display_name', 'Unknown User')
-            resource_dict['owner_avatar'] = user_profile.get('profile_picture_url', '/static/default-avatar.png')
+            resource_dict['owner_avatar'] = user_profile.get('profile_picture_url', '/static/images/default-avatar.svg')
             resource_dict['folder_contents'] = folder_contents
             
             resources.append(resource_dict)
