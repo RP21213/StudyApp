@@ -18,6 +18,7 @@ from fpdf import FPDF
 import csv
 from flask import Response
 from datetime import datetime, timedelta, timezone
+from twilio.rest import Client
 import threading
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
@@ -167,6 +168,12 @@ SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+
+# --- NEW: Twilio Configuration ---
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN) if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN else None
 SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1/"
 SPOTIFY_REDIRECT_URI = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000") + "/spotify/callback"
 # Added "streaming", "user-read-email", "user-read-private" for the SDK
@@ -1105,6 +1112,92 @@ def login():
 
     return render_template('login.html')
 
+# --- NEW: Phone Verification Routes ---
+@app.route('/send-verification-code', methods=['POST'])
+def send_verification_code():
+    """Send SMS verification code to phone number"""
+    try:
+        data = request.get_json()
+        phone_number = data.get('phone_number')
+        
+        if not phone_number:
+            return jsonify({"success": False, "message": "Phone number is required"}), 400
+        
+        # Validate phone number format (basic validation)
+        if not re.match(r'^\+?[1-9]\d{1,14}$', phone_number.replace(' ', '').replace('-', '')):
+            return jsonify({"success": False, "message": "Invalid phone number format"}), 400
+        
+        # Check if phone number is already registered
+        users_ref = db.collection('users').where('phone_number', '==', phone_number).limit(1).stream()
+        if list(users_ref):
+            return jsonify({"success": False, "message": "Phone number already registered"}), 400
+        
+        # Generate 6-digit verification code
+        verification_code = str(random.randint(100000, 999999))
+        
+        # Store verification code in session (expires in 5 minutes)
+        session[f'verification_code_{phone_number}'] = verification_code
+        session[f'verification_expiry_{phone_number}'] = datetime.now().timestamp() + 300  # 5 minutes
+        
+        # Send SMS via Twilio
+        if twilio_client:
+            try:
+                message = twilio_client.messages.create(
+                    body=f'Your Foci verification code is: {verification_code}. This code expires in 5 minutes.',
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=phone_number
+                )
+                return jsonify({"success": True, "message": "Verification code sent successfully"})
+            except Exception as e:
+                print(f"Twilio error: {e}")
+                return jsonify({"success": False, "message": "Failed to send verification code. Please try again."}), 500
+        else:
+            # Development mode - just log the code
+            print(f"DEV MODE: Verification code for {phone_number} is: {verification_code}")
+            return jsonify({"success": True, "message": f"Verification code sent (DEV: {verification_code})"})
+            
+    except Exception as e:
+        print(f"Error sending verification code: {e}")
+        return jsonify({"success": False, "message": "An error occurred. Please try again."}), 500
+
+@app.route('/verify-phone-code', methods=['POST'])
+def verify_phone_code():
+    """Verify the SMS code entered by user"""
+    try:
+        data = request.get_json()
+        phone_number = data.get('phone_number')
+        entered_code = data.get('code')
+        
+        if not phone_number or not entered_code:
+            return jsonify({"success": False, "message": "Phone number and code are required"}), 400
+        
+        # Check if verification code exists and hasn't expired
+        stored_code = session.get(f'verification_code_{phone_number}')
+        expiry_time = session.get(f'verification_expiry_{phone_number}', 0)
+        
+        if not stored_code:
+            return jsonify({"success": False, "message": "No verification code found. Please request a new one."}), 400
+        
+        if datetime.now().timestamp() > expiry_time:
+            # Clean up expired code
+            session.pop(f'verification_code_{phone_number}', None)
+            session.pop(f'verification_expiry_{phone_number}', None)
+            return jsonify({"success": False, "message": "Verification code expired. Please request a new one."}), 400
+        
+        if stored_code != entered_code:
+            return jsonify({"success": False, "message": "Invalid verification code"}), 400
+        
+        # Code is valid - mark phone as verified in session
+        session[f'phone_verified_{phone_number}'] = True
+        session.pop(f'verification_code_{phone_number}', None)
+        session.pop(f'verification_expiry_{phone_number}', None)
+        
+        return jsonify({"success": True, "message": "Phone number verified successfully"})
+        
+    except Exception as e:
+        print(f"Error verifying phone code: {e}")
+        return jsonify({"success": False, "message": "An error occurred. Please try again."}), 500
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if current_user.is_authenticated:
@@ -1112,10 +1205,28 @@ def signup():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
+        phone_number = request.form.get('phone_number')
 
+        # Validate required fields
+        if not all([email, password, phone_number]):
+            flash('All fields are required.')
+            return redirect(url_for('signup'))
+
+        # Check if email already exists
         users_ref = db.collection('users').where('email', '==', email).limit(1).stream()
         if list(users_ref):
             flash('Email address already exists.')
+            return redirect(url_for('signup'))
+        
+        # Check if phone number is already registered
+        phone_ref = db.collection('users').where('phone_number', '==', phone_number).limit(1).stream()
+        if list(phone_ref):
+            flash('Phone number already registered.')
+            return redirect(url_for('signup'))
+        
+        # Verify phone number was verified in session
+        if not session.get(f'phone_verified_{phone_number}'):
+            flash('Please verify your phone number first.')
             return redirect(url_for('signup'))
         
         password_hash = generate_password_hash(password, method='pbkdf2:sha256')
@@ -1125,6 +1236,8 @@ def signup():
             id=user_ref.id, 
             email=email, 
             password_hash=password_hash,
+            phone_number=phone_number,
+            phone_verified=True,
             has_completed_onboarding=False # Explicitly set for new users
         )
         user_ref.set(new_user.to_dict())
@@ -1163,6 +1276,9 @@ def signup():
         hub_ref.set(welcome_hub.to_dict())
         # --- END ONBOARDING LOGIC ---
 
+        # Clean up phone verification session
+        session.pop(f'phone_verified_{phone_number}', None)
+        
         login_user(new_user, remember=True)
         return redirect(url_for('dashboard'))
 

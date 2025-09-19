@@ -51,6 +51,8 @@ class User(UserMixin):
                  # --- NEW: Onboarding Fields ---
                  has_completed_onboarding=False,
                  referral_source=None, goals=None, email_opt_in=False, theme_preference='light',
+                 # --- NEW: Phone Verification Fields ---
+                 phone_number=None, phone_verified=False,
                  **kwargs):
         self.id = id
         self.email = email
@@ -82,6 +84,10 @@ class User(UserMixin):
         self.goals = goals
         self.email_opt_in = email_opt_in
         self.theme_preference = theme_preference
+        
+        # --- NEW: Phone Verification Properties ---
+        self.phone_number = phone_number
+        self.phone_verified = phone_verified
 
     def to_dict(self):
         return {
@@ -111,6 +117,8 @@ class User(UserMixin):
             'goals': self.goals,
             'email_opt_in': self.email_opt_in,
             'theme_preference': self.theme_preference,
+            'phone_number': self.phone_number,
+            'phone_verified': self.phone_verified,
         }
 
     @staticmethod
@@ -142,7 +150,10 @@ class User(UserMixin):
             referral_source=source.get('referral_source'),
             goals=source.get('goals'),
             email_opt_in=source.get('email_opt_in', False),
-            theme_preference=source.get('theme_preference', 'light')
+            theme_preference=source.get('theme_preference', 'light'),
+            # --- NEW: Phone Verification from dict ---
+            phone_number=source.get('phone_number'),
+            phone_verified=source.get('phone_verified', False)
         )
     
 # --- NEW: Model for Note-Taking with Slides ---
