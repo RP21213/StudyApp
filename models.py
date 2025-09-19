@@ -476,8 +476,8 @@ class StudyGroupMember:
         return StudyGroupMember(**source)
 
 class SharedResource:
-    def __init__(self, id, resource_type, resource_id, hub_id, owner_id, study_group_id=None, 
-                 title, description, tags=None, created_at=None, likes=0, imports=0, 
+    def __init__(self, id, resource_type, resource_id, hub_id, owner_id, title, description,
+                 study_group_id=None, tags=None, created_at=None, likes=0, imports=0, 
                  liked_by=None, imported_by=None, **kwargs):
         self.id = id
         self.resource_type = resource_type  # 'folder', 'note', 'flashcard', 'quiz', 'cheatsheet'
