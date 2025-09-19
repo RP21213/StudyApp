@@ -3400,7 +3400,7 @@ def build_revision_pack(hub_id):
                 
                 try:
                     flashcards_raw = generate_flashcards_from_text(limited_text, num_flashcards)
-            flashcards_parsed = parse_flashcards(flashcards_raw)
+                    flashcards_parsed = parse_flashcards(flashcards_raw)
                     if not flashcards_parsed:
                         flashcards_parsed = simple_cards
                 except:
