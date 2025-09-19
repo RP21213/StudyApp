@@ -429,3 +429,89 @@ class CalendarEvent:
         # The firestore library automatically converts timestamps to datetime objects.
         # This method is now simpler and more robust against library version changes.
         return CalendarEvent(**source)
+
+# --- NEW: Study Group Models ---
+class StudyGroup:
+    def __init__(self, id, name, description, code, owner_id, created_at=None, member_count=1, **kwargs):
+        self.id = id
+        self.name = name
+        self.description = description or ""
+        self.code = code  # 5-digit code for joining
+        self.owner_id = owner_id
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.member_count = member_count
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'code': self.code,
+            'owner_id': self.owner_id,
+            'created_at': self.created_at,
+            'member_count': self.member_count,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return StudyGroup(**source)
+
+class StudyGroupMember:
+    def __init__(self, id, study_group_id, user_id, joined_at=None, **kwargs):
+        self.id = id
+        self.study_group_id = study_group_id
+        self.user_id = user_id
+        self.joined_at = joined_at or datetime.now(timezone.utc)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'study_group_id': self.study_group_id,
+            'user_id': self.user_id,
+            'joined_at': self.joined_at,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return StudyGroupMember(**source)
+
+class SharedResource:
+    def __init__(self, id, resource_type, resource_id, hub_id, owner_id, study_group_id=None, 
+                 title, description, tags=None, created_at=None, likes=0, imports=0, 
+                 liked_by=None, imported_by=None, **kwargs):
+        self.id = id
+        self.resource_type = resource_type  # 'folder', 'note', 'flashcard', 'quiz', 'cheatsheet'
+        self.resource_id = resource_id  # ID of the original resource
+        self.hub_id = hub_id  # Original hub ID
+        self.owner_id = owner_id
+        self.study_group_id = study_group_id  # None for global sharing
+        self.title = title
+        self.description = description
+        self.tags = tags if tags is not None else []
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.likes = likes
+        self.imports = imports
+        self.liked_by = liked_by if liked_by is not None else []
+        self.imported_by = imported_by if imported_by is not None else []
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'resource_type': self.resource_type,
+            'resource_id': self.resource_id,
+            'hub_id': self.hub_id,
+            'owner_id': self.owner_id,
+            'study_group_id': self.study_group_id,
+            'title': self.title,
+            'description': self.description,
+            'tags': self.tags,
+            'created_at': self.created_at,
+            'likes': self.likes,
+            'imports': self.imports,
+            'liked_by': self.liked_by,
+            'imported_by': self.imported_by,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return SharedResource(**source)

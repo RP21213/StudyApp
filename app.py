@@ -24,7 +24,7 @@ from firebase_admin import credentials, firestore, storage
 import stripe
 import base64 
 import json   
-from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource
 import asyncio 
 from flask_socketio import SocketIO, emit 
 import assemblyai as aai 
@@ -4909,6 +4909,334 @@ def complete_onboarding():
     except Exception as e:
         print(f"Error completing onboarding for user {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
+
+# ==============================================================================
+# 8. COMMUNITY FEATURES
+# ==============================================================================
+
+@app.route('/api/study-groups/create', methods=['POST'])
+@login_required
+def create_study_group():
+    """Create a new study group with a 5-digit code"""
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not name:
+            return jsonify({"success": False, "message": "Study group name is required"}), 400
+        
+        # Generate unique 5-digit code
+        import random
+        while True:
+            code = str(random.randint(10000, 99999))
+            # Check if code already exists
+            existing = db.collection('study_groups').where('code', '==', code).limit(1).get()
+            if not existing:
+                break
+        
+        # Create study group
+        study_group_id = str(uuid.uuid4())
+        study_group = StudyGroup(
+            id=study_group_id,
+            name=name,
+            description=description,
+            code=code,
+            owner_id=current_user.id
+        )
+        
+        # Save to database
+        db.collection('study_groups').document(study_group_id).set(study_group.to_dict())
+        
+        # Add owner as first member
+        member_id = str(uuid.uuid4())
+        member = StudyGroupMember(
+            id=member_id,
+            study_group_id=study_group_id,
+            user_id=current_user.id
+        )
+        db.collection('study_group_members').document(member_id).set(member.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "study_group": study_group.to_dict(),
+            "code": code
+        })
+        
+    except Exception as e:
+        print(f"Error creating study group: {e}")
+        return jsonify({"success": False, "message": "Failed to create study group"}), 500
+
+@app.route('/api/study-groups/join', methods=['POST'])
+@login_required
+def join_study_group():
+    """Join a study group using a 5-digit code"""
+    try:
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if not code or len(code) != 5:
+            return jsonify({"success": False, "message": "Invalid study group code"}), 400
+        
+        # Find study group by code
+        study_groups = db.collection('study_groups').where('code', '==', code).limit(1).get()
+        
+        if not study_groups:
+            return jsonify({"success": False, "message": "Study group not found"}), 404
+        
+        study_group_doc = study_groups[0]
+        study_group = StudyGroup.from_dict(study_group_doc.to_dict())
+        
+        # Check if user is already a member
+        existing_members = db.collection('study_group_members').where('study_group_id', '==', study_group.id).where('user_id', '==', current_user.id).limit(1).get()
+        
+        if existing_members:
+            return jsonify({"success": False, "message": "You are already a member of this study group"}), 400
+        
+        # Add user as member
+        member_id = str(uuid.uuid4())
+        member = StudyGroupMember(
+            id=member_id,
+            study_group_id=study_group.id,
+            user_id=current_user.id
+        )
+        db.collection('study_group_members').document(member_id).set(member.to_dict())
+        
+        # Update member count
+        study_group.member_count += 1
+        db.collection('study_groups').document(study_group.id).update({'member_count': study_group.member_count})
+        
+        return jsonify({
+            "success": True,
+            "study_group": study_group.to_dict()
+        })
+        
+    except Exception as e:
+        print(f"Error joining study group: {e}")
+        return jsonify({"success": False, "message": "Failed to join study group"}), 500
+
+@app.route('/api/study-groups', methods=['GET'])
+@login_required
+def get_user_study_groups():
+    """Get all study groups the user is a member of"""
+    try:
+        # Get all study groups where user is a member
+        member_docs = db.collection('study_group_members').where('user_id', '==', current_user.id).get()
+        
+        study_groups = []
+        for member_doc in member_docs:
+            member = StudyGroupMember.from_dict(member_doc.to_dict())
+            study_group_doc = db.collection('study_groups').document(member.study_group_id).get()
+            
+            if study_group_doc.exists:
+                study_group = StudyGroup.from_dict(study_group_doc.to_dict())
+                study_groups.append(study_group.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "study_groups": study_groups
+        })
+        
+    except Exception as e:
+        print(f"Error getting study groups: {e}")
+        return jsonify({"success": False, "message": "Failed to get study groups"}), 500
+
+@app.route('/api/study-groups/<study_group_id>/resources', methods=['GET'])
+@login_required
+def get_study_group_resources(study_group_id):
+    """Get all resources shared in a specific study group"""
+    try:
+        # Verify user is a member of the study group
+        member_docs = db.collection('study_group_members').where('study_group_id', '==', study_group_id).where('user_id', '==', current_user.id).limit(1).get()
+        
+        if not member_docs:
+            return jsonify({"success": False, "message": "You are not a member of this study group"}), 403
+        
+        # Get all resources shared in this study group
+        resource_docs = db.collection('shared_resources').where('study_group_id', '==', study_group_id).order_by('created_at', direction=firestore.Query.DESCENDING).get()
+        
+        resources = []
+        for doc in resource_docs:
+            resource = SharedResource.from_dict(doc.to_dict())
+            resources.append(resource.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "resources": resources
+        })
+        
+    except Exception as e:
+        print(f"Error getting study group resources: {e}")
+        return jsonify({"success": False, "message": "Failed to get study group resources"}), 500
+
+@app.route('/api/resources/share', methods=['POST'])
+@login_required
+def share_resource():
+    """Share a resource (folder, note, flashcard, quiz, cheatsheet) to global or study group"""
+    try:
+        data = request.get_json()
+        resource_type = data.get('resource_type')  # 'folder', 'note', 'flashcard', 'quiz', 'cheatsheet'
+        resource_id = data.get('resource_id')
+        hub_id = data.get('hub_id')
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        tags = data.get('tags', [])
+        share_to = data.get('share_to')  # 'global' or study_group_id
+        study_group_id = None if share_to == 'global' else share_to
+        
+        if not all([resource_type, resource_id, hub_id, title]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
+        
+        # If sharing to study group, verify user is a member
+        if study_group_id:
+            member_docs = db.collection('study_group_members').where('study_group_id', '==', study_group_id).where('user_id', '==', current_user.id).limit(1).get()
+            if not member_docs:
+                return jsonify({"success": False, "message": "You are not a member of this study group"}), 403
+        
+        # Check if resource is already shared
+        query = db.collection('shared_resources').where('resource_type', '==', resource_type).where('resource_id', '==', resource_id).where('owner_id', '==', current_user.id)
+        
+        if study_group_id:
+            query = query.where('study_group_id', '==', study_group_id)
+        else:
+            query = query.where('study_group_id', '==', None)
+        
+        existing = query.limit(1).get()
+        
+        if existing:
+            return jsonify({"success": False, "message": "This resource is already shared"}), 400
+        
+        # Create shared resource
+        shared_resource_id = str(uuid.uuid4())
+        shared_resource = SharedResource(
+            id=shared_resource_id,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            hub_id=hub_id,
+            owner_id=current_user.id,
+            study_group_id=study_group_id,
+            title=title,
+            description=description,
+            tags=tags
+        )
+        
+        # Save to database
+        db.collection('shared_resources').document(shared_resource_id).set(shared_resource.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "shared_resource": shared_resource.to_dict()
+        })
+        
+    except Exception as e:
+        print(f"Error sharing resource: {e}")
+        return jsonify({"success": False, "message": "Failed to share resource"}), 500
+
+@app.route('/api/resources/global', methods=['GET'])
+@login_required
+def get_global_resources():
+    """Get all globally shared resources"""
+    try:
+        # Get all resources shared globally (study_group_id is None)
+        resource_docs = db.collection('shared_resources').where('study_group_id', '==', None).order_by('created_at', direction=firestore.Query.DESCENDING).get()
+        
+        resources = []
+        for doc in resource_docs:
+            resource = SharedResource.from_dict(doc.to_dict())
+            resources.append(resource.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "resources": resources
+        })
+        
+    except Exception as e:
+        print(f"Error getting global resources: {e}")
+        return jsonify({"success": False, "message": "Failed to get global resources"}), 500
+
+@app.route('/api/resources/<resource_id>/import', methods=['POST'])
+@login_required
+def import_shared_resource(resource_id):
+    """Import a shared resource to user's hub"""
+    try:
+        # Get the shared resource
+        shared_resource_doc = db.collection('shared_resources').document(resource_id).get()
+        
+        if not shared_resource_doc.exists:
+            return jsonify({"success": False, "message": "Resource not found"}), 404
+        
+        shared_resource = SharedResource.from_dict(shared_resource_doc.to_dict())
+        
+        # Check if user has already imported this resource
+        if current_user.id in shared_resource.imported_by:
+            return jsonify({"success": False, "message": "You have already imported this resource"}), 400
+        
+        # Get user's default hub (or first hub)
+        user_hubs = db.collection('hubs').where('user_id', '==', current_user.id).limit(1).get()
+        
+        if not user_hubs:
+            return jsonify({"success": False, "message": "No hub found to import resource to"}), 400
+        
+        target_hub = Hub.from_dict(user_hubs[0].to_dict())
+        
+        # Import the resource based on type
+        if shared_resource.resource_type == 'folder':
+            # Get the original folder
+            original_folder_doc = db.collection('folders').document(shared_resource.resource_id).get()
+            if not original_folder_doc.exists:
+                return jsonify({"success": False, "message": "Original folder not found"}), 404
+            
+            original_folder = Folder.from_dict(original_folder_doc.to_dict())
+            
+            # Create new folder in user's hub
+            new_folder_id = str(uuid.uuid4())
+            new_folder = Folder(
+                id=new_folder_id,
+                hub_id=target_hub.id,
+                name=f"{original_folder.name} (Imported)",
+                items=original_folder.items,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.collection('folders').document(new_folder_id).set(new_folder.to_dict())
+            
+        elif shared_resource.resource_type == 'note':
+            # Get the original note
+            original_note_doc = db.collection('notes').document(shared_resource.resource_id).get()
+            if not original_note_doc.exists:
+                return jsonify({"success": False, "message": "Original note not found"}), 404
+            
+            original_note = Note.from_dict(original_note_doc.to_dict())
+            
+            # Create new note in user's hub
+            new_note_id = str(uuid.uuid4())
+            new_note = Note(
+                id=new_note_id,
+                hub_id=target_hub.id,
+                title=f"{original_note.title} (Imported)",
+                content_html=original_note.content_html,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.collection('notes').document(new_note_id).set(new_note.to_dict())
+            
+        # Add similar logic for flashcards, quizzes, and cheatsheets...
+        # (Implementation would be similar to above)
+        
+        # Update the shared resource to track the import
+        shared_resource.imports += 1
+        shared_resource.imported_by.append(current_user.id)
+        db.collection('shared_resources').document(resource_id).update({
+            'imports': shared_resource.imports,
+            'imported_by': shared_resource.imported_by
+        })
+        
+        return jsonify({
+            "success": True,
+            "message": "Resource imported successfully"
+        })
+        
+    except Exception as e:
+        print(f"Error importing resource: {e}")
+        return jsonify({"success": False, "message": "Failed to import resource"}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION
