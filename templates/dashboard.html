@@ -693,6 +693,35 @@
         .upgrade-prompt h2 { font-size: 1.75rem; margin: 0 0 0.5rem 0; }
         .upgrade-prompt p { color: var(--text-secondary); max-width: 500px; margin: 0 auto 1.5rem auto; }
 
+        /* Community Placeholder Styles */
+        .community-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            background: var(--background-white);
+            border-radius: 16px;
+            border: 2px dashed var(--border-color);
+            margin-top: 2rem;
+        }
+        .placeholder-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        .placeholder-content i {
+            margin-bottom: 1.5rem;
+        }
+        .placeholder-content h2 {
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            font-size: 1.5rem;
+        }
+        .placeholder-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
         /* --- Profile Tab Styles --- */
         .profile-content-card {
             background-color: var(--background-white);
@@ -1163,13 +1192,10 @@
 
         <div id="community" class="tab-content">
             <div class="container">
-                {% if current_user.subscription_tier in ['pro', 'admin'] %}
                 <header>
                     <div class="header-text">
                         <h1>Community Library 🌍</h1>
-                        <p>Discover and share study materials with students around the world. 
-                           <span style="font-weight: 600; color: var(--primary-color);">📚 {{ total_shared_count }} packs shared!</span>
-                        </p>
+                        <p>Share your study materials with the community and discover resources from other students.</p>
                     </div>
                     <div class="header-actions">
                          <button class="button" id="share-folder-btn">
@@ -1178,135 +1204,14 @@
                     </div>
                 </header>
                 
-                <div class="section-header">
-                    <h2>🚀 Discover All Resources</h2>
-                </div>
-                <div class="community-toolbar">
-                    <div class="filter-tabs" id="community-filter-tabs">
-                        <button class="filter-tab active" data-filter="all">All</button>
-                        <button class="filter-tab" data-filter="Notes">Notes 📒</button>
-                        <button class="filter-tab" data-filter="Quiz">Quizzes 📊</button>
-                        <button class="filter-tab" data-filter="Flashcards">Flashcards 🎴</button>
-                        <button class="filter-tab" data-filter="Pack">Packs 📦</button>
-                    </div>
-                    <div class="search-bar">
-                         <i data-lucide="search"></i>
-                        <input type="text" id="community-search-input" placeholder="Search by title, description, or tag...">
-                    </div>
-                    <div class="sort-filter">
-                        <select id="community-sort-select">
-                            <option value="created_at">Sort by: Most Recent</option>
-                            <option value="likes">Sort by: Most Liked</option>
-                            <option value="imports">Sort by: Most Imported</option>
-                        </select>
+                <!-- Clean slate - ready for innovative features -->
+                <div class="community-placeholder">
+                    <div class="placeholder-content">
+                        <i data-lucide="users" size="64" style="opacity: 0.3;"></i>
+                        <h2>Community Library</h2>
+                        <p>This space is ready for innovative community features. Start by sharing a folder to contribute to the community!</p>
                     </div>
                 </div>
-
-                <div class="community-grid" id="community-grid-main">
-                    {% for item in shared_folders %}
-                    <div class="community-card card-style-{{ item.folder_type|lower }}" 
-                         data-folder-type="{{ item.folder_type }}" 
-                         data-search-content="{{ item.folder.title }} {{ item.folder.description }} {{ item.folder.tags|join(' ') }}"
-                         data-preview-title="{{ item.folder.title }}"
-                         data-preview-description="{{ item.folder.description }}"
-                         data-preview-items='{{ item.items_preview|tojson }}'>
-
-                        <!-- Resource Type Badge -->
-                        <div class="card-type-badge badge-{{ item.folder_type|lower }}">
-                            {% if item.folder_type == 'Notes' %}<i data-lucide="notebook-tabs" size="16"></i>
-                            {% elif item.folder_type == 'Quiz' %}<i data-lucide="clipboard-list" size="16"></i>
-                            {% elif item.folder_type == 'Flashcards' %}<i data-lucide="layers-3" size="16"></i>
-                            {% else %}<i data-lucide="package-2" size="16"></i>
-                            {% endif %}
-                            <span>{{ item.folder_type }}</span>
-                        </div>
-                        
-                        <div class="community-card-header">
-                            <div class="header-user-info">
-                                <img src="{{ item.owner_avatar }}" alt="User Avatar">
-                                <div class="user-info">
-                                    <h3>{{ item.owner_name }}</h3>
-                                    <p>Shared {{ item.folder.created_at|timesince }} ago</p>
-                                </div>
-                            </div>
-                            <div class="header-actions">
-                                <button class="button button-secondary preview-btn" title="Preview Folder">
-                                    <i data-lucide="eye" size="16"></i>
-                                </button>
-                                <button class="button import-btn" data-shared-folder-id="{{ item.folder.id }}" title="Import Folder">
-                                    <i data-lucide="download-cloud" size="16"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="community-card-body">
-                             <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                                <h2>{{ item.folder.title }}</h2>
-                                {% if item.folder.imports > 10 %}
-                                <div class="popular-badge">
-                                    <i data-lucide="flame" size="14"></i>&nbsp;Popular
-                                </div>
-                                {% endif %}
-                             </div>
-                             <p>{{ item.folder.description }}</p>
-                             {% if item.folder.tags %}
-                             <div class="tag-list">
-                                {% for tag in item.folder.tags %}
-                                <span class="tag">{{ tag }}</span>
-                                {% endfor %}
-                             </div>
-                             {% endif %}
-                        </div>
-                        <div class="community-card-footer">
-                            <div class="card-stats-pills">
-                                <!-- Like Pill -->
-                                <span class="stat-pill">
-                                    <button class="like-btn {% if item.current_user_has_liked %}liked{% endif %}"
-                                            data-folder-id="{{ item.folder.id }}"
-                                            {% if not item.current_user_has_imported %}
-                                                disabled title="You must import this folder to like it"
-                                            {% else %}
-                                                title="Like this folder"
-                                            {% endif %}>
-                                        <i data-lucide="thumbs-up" size="16"></i>
-                                    </button>
-                                    <span id="like-count-{{ item.folder.id }}">{{ item.folder.likes }}</span>
-                                </span>
-                                <!-- Import Pill -->
-                                <span class="stat-pill">
-                                    <i data-lucide="download" size="14"></i>
-                                    <span>{{ item.folder.imports }}</span>
-                                </span>
-                                <!-- Items Pill -->
-                                <span class="stat-pill">
-                                    <i data-lucide="package" size="14"></i>
-                                    <span>{{ item.item_count }}</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="community-empty-state">
-                        <i data-lucide="package-x" size="64"></i>
-                        <h2>The Library is Empty</h2>
-                        <p>No folders have been shared to the community yet. Why not be the first to contribute?</p>
-                        <button class="button" id="share-folder-btn-empty">
-                            <i data-lucide="share-2"></i> Share Your First Folder
-                        </button>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="upgrade-prompt">
-                    <i data-lucide="lock" size="48"></i>
-                    <h2>Unlock the Community Library</h2>
-                    <p>Access thousands of shared study folders from students worldwide, and share your own work. Upgrade to a Pro account to join the community.</p>
-                    <form action="{{ url_for('create_checkout_session') }}" method="POST">
-                        <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
-                        <button type="submit" class="button">🚀 Upgrade to Pro</button>
-                    </form>
-                </div>
-                {% endif %}
             </div>
         </div>
         
