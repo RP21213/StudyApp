@@ -3755,51 +3755,105 @@
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+                
+                // Resize for performance (max 100x100)
+                const maxSize = 100;
+                const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 
+                // Collect color data with better sampling
                 let r = 0, g = 0, b = 0;
                 let pixelCount = 0;
+                let colorMap = {};
                 
-                // Sample every 10th pixel for performance
-                for (let i = 0; i < data.length; i += 40) {
-                    r += data[i];
-                    g += data[i + 1];
-                    b += data[i + 2];
+                // Sample every 5th pixel for better accuracy
+                for (let i = 0; i < data.length; i += 20) {
+                    const red = data[i];
+                    const green = data[i + 1];
+                    const blue = data[i + 2];
+                    const alpha = data[i + 3];
+                    
+                    // Skip transparent pixels
+                    if (alpha < 128) continue;
+                    
+                    r += red;
+                    g += green;
+                    b += blue;
                     pixelCount++;
+                    
+                    // Create color buckets for better analysis
+                    const colorKey = Math.floor(red/32) + ',' + Math.floor(green/32) + ',' + Math.floor(blue/32);
+                    colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
                 }
+                
+                if (pixelCount === 0) return; // No valid pixels
                 
                 r = Math.floor(r / pixelCount);
                 g = Math.floor(g / pixelCount);
                 b = Math.floor(b / pixelCount);
                 
-                // Determine background theme based on dominant color
+                // Calculate more accurate metrics
                 const brightness = (r + g + b) / 3;
-                const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+                const maxRGB = Math.max(r, g, b);
+                const minRGB = Math.min(r, g, b);
+                const saturation = maxRGB === 0 ? 0 : (maxRGB - minRGB) / maxRGB;
+                
+                // Determine if image is grayscale
+                const isGrayscale = Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30;
                 
                 let bgClass = 'sp-player-bg-purple'; // default
                 
-                if (brightness < 100) {
-                    bgClass = 'sp-player-bg-blue';
-                } else if (r > g && r > b) {
-                    bgClass = 'sp-player-bg-red';
-                } else if (g > r && g > b) {
-                    bgClass = 'sp-player-bg-green';
-                } else if (b > r && b > g) {
-                    bgClass = 'sp-player-bg-blue';
-                } else if (saturation < 50) {
-                    bgClass = 'sp-player-bg-orange';
+                // Better color analysis
+                if (isGrayscale) {
+                    // Handle grayscale images
+                    if (brightness < 80) {
+                        bgClass = 'sp-player-bg-blue'; // Dark grayscale -> blue
+                    } else if (brightness < 160) {
+                        bgClass = 'sp-player-bg-purple'; // Medium grayscale -> purple
+                    } else {
+                        bgClass = 'sp-player-bg-orange'; // Light grayscale -> warm orange
+                    }
                 } else {
-                    bgClass = 'sp-player-bg-pink';
+                    // Handle colored images with more nuanced logic
+                    const redDominance = r / (r + g + b + 1);
+                    const greenDominance = g / (r + g + b + 1);
+                    const blueDominance = b / (r + g + b + 1);
+                    
+                    if (brightness < 60) {
+                        bgClass = 'sp-player-bg-blue'; // Very dark -> blue
+                    } else if (redDominance > 0.45 && redDominance > greenDominance && redDominance > blueDominance) {
+                        bgClass = 'sp-player-bg-red';
+                    } else if (greenDominance > 0.4 && greenDominance > redDominance && greenDominance > blueDominance) {
+                        bgClass = 'sp-player-bg-green';
+                    } else if (blueDominance > 0.4 && blueDominance > redDominance && blueDominance > greenDominance) {
+                        bgClass = 'sp-player-bg-blue';
+                    } else if (brightness > 180 && saturation < 0.3) {
+                        bgClass = 'sp-player-bg-orange'; // Light and low saturation -> warm
+                    } else if (saturation > 0.6) {
+                        bgClass = 'sp-player-bg-pink'; // High saturation -> vibrant
+                    } else {
+                        bgClass = 'sp-player-bg-purple'; // Default fallback
+                    }
                 }
                 
                 // Remove existing background classes
                 playerContainer.className = playerContainer.className.replace(/sp-player-bg-\w+/g, '');
                 playerContainer.classList.add(bgClass);
+                
+                // Debug logging (remove in production)
+                console.log('Color Analysis:', {
+                    rgb: [r, g, b],
+                    brightness,
+                    saturation,
+                    isGrayscale,
+                    chosenTheme: bgClass
+                });
             };
             img.src = imageUrl;
         };
