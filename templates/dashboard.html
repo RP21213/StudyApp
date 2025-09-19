@@ -855,6 +855,81 @@
             margin: 0;
         }
 
+        /* Radio Button Styles */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .radio-label:hover {
+            border-color: #6c757d;
+            background-color: #f8f9fa;
+        }
+
+        .radio-label input[type="radio"] {
+            display: none;
+        }
+
+        .radio-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #6c757d;
+            border-radius: 50%;
+            margin-right: 1rem;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-custom {
+            border-color: #007bff;
+            background-color: #007bff;
+        }
+
+        .radio-label input[type="radio"]:checked + .radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        .radio-content {
+            flex: 1;
+        }
+
+        .radio-content strong {
+            display: block;
+            color: #495057;
+            margin-bottom: 0.25rem;
+        }
+
+        .radio-content small {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
         /* --- Profile Tab Styles --- */
         .profile-content-card {
             background-color: var(--background-white);
@@ -1648,7 +1723,7 @@
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form action="{{ url_for('share_folder') }}" method="POST">
+            <form id="share-folder-form">
                 <div class="form-group">
                     <label for="folder-select">Select a Folder to Share</label>
                     <select id="folder-select" name="folder_id" required>
@@ -1658,19 +1733,56 @@
                         {% endfor %}
                     </select>
                 </div>
-                 <div class="form-group">
+                
+                <div class="form-group">
+                    <label for="share-destination">Share to:</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="share_destination" value="global" checked>
+                            <span class="radio-custom"></span>
+                            <div class="radio-content">
+                                <strong>Global Community</strong>
+                                <small>Share with all users worldwide</small>
+                            </div>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="share_destination" value="study_group">
+                            <span class="radio-custom"></span>
+                            <div class="radio-content">
+                                <strong>Study Group</strong>
+                                <small>Share with a specific study group</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="study-group-selection" style="display: none;">
+                    <label for="study-group-select">Select Study Group</label>
+                    <select id="study-group-select" name="study_group_id">
+                        <option value="" disabled selected>-- Choose a study group --</option>
+                        <!-- Study groups will be loaded dynamically -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
                     <label for="folder-title">Share Title</label>
                     <input type="text" id="folder-title" name="title" required placeholder="Enter a public title for this folder">
                 </div>
-                 <div class="form-group">
+                
+                <div class="form-group">
                     <label for="folder-description">Description</label>
                     <textarea id="folder-description" name="description" required placeholder="Briefly describe what's in this folder. e.g., Lecture notes and quizzes for the final exam."></textarea>
                 </div>
-                 <div class="form-group">
+                
+                <div class="form-group">
                     <label for="folder-tags">Tags (comma-separated)</label>
                     <input type="text" id="folder-tags" name="tags" placeholder="e.g., physics, quantum mechanics, exam prep">
                 </div>
-                <button type="submit" class="button">Share to Community</button>
+                
+                <div class="form-actions">
+                    <button type="button" class="button button-secondary" id="cancel-share-folder">Cancel</button>
+                    <button type="submit" class="button" id="share-folder-submit">Share Folder</button>
+                </div>
             </form>
         </div>
     </div>
@@ -2775,11 +2887,124 @@
             const shareFolderBtn = document.getElementById('share-folder-btn');
             const shareFolderBtnEmpty = document.getElementById('share-folder-btn-empty');
             const shareModalOverlay = document.getElementById('share-folder-modal');
+            const shareForm = document.getElementById('share-folder-form');
+            const shareDestinationRadios = document.querySelectorAll('input[name="share_destination"]');
+            const studyGroupSelection = document.getElementById('study-group-selection');
+            const studyGroupSelect = document.getElementById('study-group-select');
 
             function openShareModal() {
                 if (shareModalOverlay) {
                     shareModalOverlay.classList.add('visible');
+                    loadStudyGroupsForSharing();
                 }
+            }
+
+            // Handle radio button changes
+            shareDestinationRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'study_group') {
+                        studyGroupSelection.style.display = 'block';
+                        studyGroupSelect.required = true;
+                    } else {
+                        studyGroupSelection.style.display = 'none';
+                        studyGroupSelect.required = false;
+                    }
+                });
+            });
+
+            // Load study groups for sharing dropdown
+            async function loadStudyGroupsForSharing() {
+                try {
+                    const response = await fetch('/api/study-groups');
+                    const result = await response.json();
+                    
+                    if (result.success && studyGroupSelect) {
+                        studyGroupSelect.innerHTML = '<option value="" disabled selected>-- Choose a study group --</option>';
+                        
+                        if (result.study_groups.length === 0) {
+                            studyGroupSelect.innerHTML += '<option value="" disabled>No study groups available</option>';
+                        } else {
+                            result.study_groups.forEach(group => {
+                                const option = document.createElement('option');
+                                option.value = group.id;
+                                option.textContent = group.name;
+                                studyGroupSelect.appendChild(option);
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading study groups for sharing:', error);
+                }
+            }
+
+            // Handle share folder form submission
+            if (shareForm) {
+                shareForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const folderId = formData.get('folder_id');
+                    const title = formData.get('title');
+                    const description = formData.get('description');
+                    const tags = formData.get('tags');
+                    const shareDestination = formData.get('share_destination');
+                    const studyGroupId = formData.get('study_group_id');
+
+                    // Validate form
+                    if (!folderId || !title || !description) {
+                        alert('Please fill in all required fields.');
+                        return;
+                    }
+
+                    if (shareDestination === 'study_group' && !studyGroupId) {
+                        alert('Please select a study group.');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/resources/share', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                resource_type: 'folder',
+                                resource_id: folderId,
+                                title: title,
+                                description: description,
+                                tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                                study_group_id: shareDestination === 'study_group' ? studyGroupId : null
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            alert('Folder shared successfully!');
+                            shareModalOverlay.classList.remove('visible');
+                            shareForm.reset();
+                            studyGroupSelection.style.display = 'none';
+                            studyGroupSelect.required = false;
+                        } else {
+                            alert(result.message || 'Error sharing folder. Please try again.');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error sharing folder:', error);
+                        alert('Error sharing folder. Please try again.');
+                    }
+                });
+            }
+
+            // Cancel button
+            const cancelShareBtn = document.getElementById('cancel-share-folder');
+            if (cancelShareBtn) {
+                cancelShareBtn.addEventListener('click', () => {
+                    shareModalOverlay.classList.remove('visible');
+                    shareForm.reset();
+                    studyGroupSelection.style.display = 'none';
+                    studyGroupSelect.required = false;
+                });
             }
 
             if (shareFolderBtn) {
