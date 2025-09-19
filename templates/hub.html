@@ -2843,13 +2843,27 @@
                     include_notes: form.include_notes.checked
                 };
                 
+                // Show loading state
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalButtonText = submitButton.textContent;
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Generating Pack...';
+                
+                // Close modal but keep loading state
                 revisionModal.style.display = 'none';
                 
-                // Simplified revision pack generation without task queue
+                // Show loading overlay
+                showLoadingOverlay('Generating your revision pack...', 'This may take 30-60 seconds depending on document size.');
+                
                 try {
                     const response = await fetch(`/hub/${hubId}/build_revision_pack`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                     const result = await response.json();
+                    
+                    hideLoadingOverlay();
+                    
                     if (result.success) {
+                        // Show success message
+                        showSuccessMessage('Revision pack created successfully!');
                         
                         // Check if this is during onboarding
                         const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || 
@@ -2867,16 +2881,27 @@
                             sessionStorage.removeItem('onboardingGenerating');
                         }
                         
-                        if (typeof hideLoading === 'function') { hideLoading(); }
-                        window.location.hash = 'folders';
-                        window.location.reload();
+                        // Navigate to folders and reload after a short delay
+                        setTimeout(() => {
+                            window.location.hash = 'folders';
+                            window.location.reload();
+                        }, 1500);
                     } else {
-                        alert(`Error: ${result.message}`);
-                        if (typeof hideLoading === 'function') { hideLoading(); }
+                        showErrorMessage(`Error: ${result.message}`);
+                        // Reset button state
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalButtonText;
+                        revisionModal.style.display = 'flex';
                     }
                 } catch (error) {
-                    alert('A network or server error occurred.');
-                    if (typeof hideLoading === 'function') { hideLoading(); }
+                    hideLoadingOverlay();
+                    showErrorMessage('A network or server error occurred. Please try again.');
+                    console.error('Revision pack generation error:', error);
+                    
+                    // Reset button state
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalButtonText;
+                    revisionModal.style.display = 'flex';
                 }
             });
 
@@ -4082,16 +4107,202 @@ document.addEventListener('DOMContentLoaded', () => {
         async function showOnboardingCompletionCelebration() {
             try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
             sessionStorage.removeItem('onboardingStep');
-            if (typeof hideLoading === 'function') { hideLoading(); }
+            hideLoadingOverlay();
+            
+            // Show success message first
+            showSuccessMessage('Welcome to Foci! Your revision pack is ready.');
+            
             // Navigate to folders
             const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
             if (foldersTab) foldersTab.click();
-            // Expand the most recent/new folder if present
-            const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
-            if (firstFolder) firstFolder.click();
-            // Fire confetti and show completion banner
-            launchConfetti();
-            showCompletionBanner();
+            
+            // Wait a moment then expand the most recent/new folder if present
+            setTimeout(() => {
+                const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
+                if (firstFolder) firstFolder.click();
+                // Fire confetti and show completion banner
+                launchConfetti();
+                showCompletionBanner();
+            }, 1000);
+        }
+
+        // Loading overlay and message functions
+        function showLoadingOverlay(title = 'Processing...', subtitle = 'Please wait while we process your request.') {
+            const overlay = document.createElement('div');
+            overlay.id = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-content">
+                    <div class="loading-spinner">
+                        <i data-lucide="loader-2" class="animate-spin"></i>
+                    </div>
+                    <h3>${title}</h3>
+                    <p>${subtitle}</p>
+                </div>
+            `;
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(5px);
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .loading-content {
+                    background: var(--background-white);
+                    padding: 3rem;
+                    border-radius: 16px;
+                    text-align: center;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    max-width: 400px;
+                    width: 90%;
+                }
+                .loading-spinner {
+                    font-size: 3rem;
+                    color: var(--primary-color);
+                    margin-bottom: 1rem;
+                }
+                .loading-content h3 {
+                    margin: 0 0 0.5rem 0;
+                    color: var(--text-main);
+                    font-size: 1.5rem;
+                }
+                .loading-content p {
+                    margin: 0;
+                    color: var(--text-secondary);
+                    line-height: 1.5;
+                }
+                .animate-spin {
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(overlay);
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+        
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+        
+        function showSuccessMessage(message) {
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div class="success-notification">
+                    <i data-lucide="check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                z-index: 10001;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .success-notification {
+                    background: linear-gradient(135deg, #10b981, #059669);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+                    font-weight: 600;
+                }
+                .success-notification i {
+                    font-size: 1.2rem;
+                }
+                @keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(notification);
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+        
+        function showErrorMessage(message) {
+            const notification = document.createElement('div');
+            notification.innerHTML = `
+                <div class="error-notification">
+                    <i data-lucide="alert-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            notification.style.cssText = `
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                z-index: 10001;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .error-notification {
+                    background: linear-gradient(135deg, #ef4444, #dc2626);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+                    font-weight: 600;
+                }
+                .error-notification i {
+                    font-size: 1.2rem;
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(notification);
+            
+            // Initialize Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
         }
 
         function launchConfetti() {
