@@ -25,7 +25,7 @@ from firebase_admin import credentials, firestore, storage
 import stripe
 import base64 
 import json   
-from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource, Referral
 import asyncio 
 from flask_socketio import SocketIO, emit 
 import assemblyai as aai 
@@ -174,6 +174,28 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN) if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN else None
+
+# --- NEW: Referral System Utilities ---
+def generate_referral_code():
+    """Generate a unique 6-digit referral code"""
+    while True:
+        code = str(random.randint(100000, 999999))
+        # Check if code already exists
+        existing_user = db.collection('users').where('referral_code', '==', code).limit(1).stream()
+        if not list(existing_user):
+            return code
+
+def validate_referral_code(code):
+    """Validate if a referral code exists and return the referrer user"""
+    if not code or len(code) != 6 or not code.isdigit():
+        return None
+    
+    users = db.collection('users').where('referral_code', '==', code).limit(1).stream()
+    for user_doc in users:
+        user_data = user_doc.to_dict()
+        return User.from_dict(user_data)
+    return None
+
 SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1/"
 SPOTIFY_REDIRECT_URI = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000") + "/spotify/callback"
 # Added "streaming", "user-read-email", "user-read-private" for the SDK
@@ -1229,7 +1251,23 @@ def signup():
             flash('Please verify your phone number first.')
             return redirect(url_for('signup'))
         
+        # --- NEW: Handle Referral Code ---
+        referral_code = request.form.get('referral_code', '').strip()
+        referred_by = None
+        
+        if referral_code:
+            referrer_user = validate_referral_code(referral_code)
+            if referrer_user:
+                referred_by = referrer_user.id
+                print(f"Valid referral code {referral_code} from user {referrer_user.email}")
+            else:
+                flash('Invalid referral code.')
+                return redirect(url_for('signup'))
+        
         password_hash = generate_password_hash(password, method='pbkdf2:sha256')
+        
+        # Generate unique referral code for new user
+        new_referral_code = generate_referral_code()
         
         user_ref = db.collection('users').document()
         new_user = User(
@@ -1238,9 +1276,24 @@ def signup():
             password_hash=password_hash,
             phone_number=phone_number,
             phone_verified=True,
-            has_completed_onboarding=False # Explicitly set for new users
+            has_completed_onboarding=False, # Explicitly set for new users
+            referral_code=new_referral_code, # Generate unique code for new user
+            referred_by=referred_by # Set if they were referred
         )
         user_ref.set(new_user.to_dict())
+
+        # --- NEW: Create Referral Record if applicable ---
+        if referred_by:
+            referral_ref = db.collection('referrals').document()
+            referral = Referral(
+                id=referral_ref.id,
+                referrer_id=referred_by,
+                referred_id=new_user.id,
+                referral_code=referral_code,
+                status='pending'
+            )
+            referral_ref.set(referral.to_dict())
+            print(f"Created referral record: {referral_ref.id}")
 
         # --- ONBOARDING LOGIC ---
         # 1. Create the Welcome Hub
@@ -5711,6 +5764,208 @@ def delete_shared_resource(resource_id):
     except Exception as e:
         print(f"Error deleting resource: {e}")
         return jsonify({"success": False, "message": "Error deleting resource"}), 500
+
+# ==============================================================================
+# 8. REFERRAL SYSTEM API ENDPOINTS
+# ==============================================================================
+
+@app.route('/api/referrals/generate-code', methods=['POST'])
+@login_required
+def generate_user_referral_code():
+    """Generate or get user's referral code"""
+    try:
+        # Check if user already has a referral code
+        if current_user.referral_code:
+            return jsonify({
+                "success": True, 
+                "referral_code": current_user.referral_code,
+                "message": "Referral code retrieved"
+            })
+        
+        # Generate new referral code for user
+        new_code = generate_referral_code()
+        
+        # Update user in database
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({'referral_code': new_code})
+        
+        # Update current user object
+        current_user.referral_code = new_code
+        
+        return jsonify({
+            "success": True, 
+            "referral_code": new_code,
+            "message": "Referral code generated"
+        })
+        
+    except Exception as e:
+        print(f"Error generating referral code: {e}")
+        return jsonify({"success": False, "message": "Error generating referral code"}), 500
+
+@app.route('/api/referrals/validate-code', methods=['POST'])
+@login_required
+def validate_user_referral_code():
+    """Validate a referral code"""
+    try:
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if not code:
+            return jsonify({"success": False, "message": "Referral code is required"}), 400
+        
+        # Check if user is trying to use their own code
+        if code == current_user.referral_code:
+            return jsonify({"success": False, "message": "You cannot use your own referral code"}), 400
+        
+        # Validate the code
+        referrer = validate_referral_code(code)
+        if referrer:
+            return jsonify({
+                "success": True, 
+                "valid": True,
+                "referrer_name": referrer.display_name,
+                "message": f"Valid referral code from {referrer.display_name}"
+            })
+        else:
+            return jsonify({
+                "success": True, 
+                "valid": False,
+                "message": "Invalid referral code"
+            })
+            
+    except Exception as e:
+        print(f"Error validating referral code: {e}")
+        return jsonify({"success": False, "message": "Error validating referral code"}), 500
+
+@app.route('/api/referrals/user-stats', methods=['GET'])
+@login_required
+def get_user_referral_stats():
+    """Get user's referral statistics"""
+    try:
+        # Get user's current stats
+        stats = {
+            "pro_referral_count": current_user.pro_referral_count,
+            "referral_earnings": current_user.referral_earnings,
+            "referral_code": current_user.referral_code,
+            "milestones": {
+                "3": {"reached": current_user.pro_referral_count >= 3, "reward": "One month Pro for free"},
+                "10": {"reached": current_user.pro_referral_count >= 10, "reward": "£20 Amazon giftcard"},
+                "20": {"reached": current_user.pro_referral_count >= 20, "reward": "£50 Amazon giftcard"},
+                "50": {"reached": current_user.pro_referral_count >= 50, "reward": "£100 Amazon giftcard"}
+            }
+        }
+        
+        return jsonify({"success": True, "stats": stats})
+        
+    except Exception as e:
+        print(f"Error getting referral stats: {e}")
+        return jsonify({"success": False, "message": "Error getting referral stats"}), 500
+
+@app.route('/api/referrals/leaderboard', methods=['GET'])
+@login_required
+def get_referral_leaderboard():
+    """Get monthly referral leaderboard"""
+    try:
+        # Get top users by pro referral count for current month
+        current_month = datetime.now(timezone.utc).strftime('%Y-%m')
+        
+        # Query users sorted by pro_referral_count (descending)
+        users_query = db.collection('users').order_by('pro_referral_count', direction=firestore.Query.DESCENDING).limit(10).stream()
+        
+        leaderboard = []
+        for user_doc in users_query:
+            user_data = user_doc.to_dict()
+            if user_data.get('pro_referral_count', 0) > 0:  # Only include users with referrals
+                leaderboard.append({
+                    "display_name": user_data.get('display_name', 'Anonymous'),
+                    "pro_referral_count": user_data.get('pro_referral_count', 0),
+                    "avatar_url": user_data.get('avatar_url', '/static/images/default-avatar.svg')
+                })
+        
+        return jsonify({"success": True, "leaderboard": leaderboard})
+        
+    except Exception as e:
+        print(f"Error getting leaderboard: {e}")
+        return jsonify({"success": False, "message": "Error getting leaderboard"}), 500
+
+@app.route('/api/referrals/process-pro-subscription', methods=['POST'])
+@login_required
+def process_pro_subscription_referral():
+    """Process referral when user subscribes to Pro (called from subscription webhook)"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({"success": False, "message": "User ID is required"}), 400
+        
+        # Get the user who just subscribed
+        user_doc = db.collection('users').document(user_id).get()
+        if not user_doc.exists:
+            return jsonify({"success": False, "message": "User not found"}), 404
+        
+        user_data = user_doc.to_dict()
+        user = User.from_dict(user_data)
+        
+        # Check if this user was referred
+        if not user.referred_by:
+            return jsonify({"success": True, "message": "No referral to process"})
+        
+        # Find the referral record
+        referrals_query = db.collection('referrals').where('referred_id', '==', user_id).where('status', '==', 'pending').stream()
+        
+        for referral_doc in referrals_query:
+            referral_data = referral_doc.to_dict()
+            referral = Referral.from_dict(referral_data)
+            
+            # Update referral status
+            referral.status = 'pro_subscribed'
+            referral.pro_subscribed_at = datetime.now(timezone.utc)
+            referral_doc.reference.update({
+                'status': 'pro_subscribed',
+                'pro_subscribed_at': referral.pro_subscribed_at
+            })
+            
+            # Update referrer's stats
+            referrer_ref = db.collection('users').document(referral.referrer_id)
+            referrer_ref.update({
+                'pro_referral_count': firestore.Increment(1)
+            })
+            
+            # Check for milestone rewards
+            referrer_doc = referrer_ref.get()
+            referrer_data = referrer_doc.to_dict()
+            new_count = referrer_data.get('pro_referral_count', 0)
+            
+            # Process milestone rewards
+            if new_count == 3:
+                # Give 1 month Pro for free
+                referrer_ref.update({
+                    'subscription_tier': 'pro',
+                    'subscription_active': True
+                })
+                referral.reward_type = 'pro_month'
+                referral.reward_amount = 9.99  # Approximate Pro monthly value
+                
+            elif new_count in [10, 20, 50]:
+                # Mark for gift card reward (manual processing)
+                gift_amounts = {10: 20, 20: 50, 50: 100}
+                referral.reward_type = 'giftcard'
+                referral.reward_amount = gift_amounts[new_count]
+            
+            # Update referral record with reward info
+            referral_doc.reference.update({
+                'reward_type': referral.reward_type,
+                'reward_amount': referral.reward_amount
+            })
+            
+            print(f"Processed referral for user {user.email} -> {referral.referrer_id}, new count: {new_count}")
+        
+        return jsonify({"success": True, "message": "Referral processed successfully"})
+        
+    except Exception as e:
+        print(f"Error processing referral: {e}")
+        return jsonify({"success": False, "message": "Error processing referral"}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION

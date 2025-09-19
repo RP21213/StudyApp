@@ -53,6 +53,8 @@ class User(UserMixin):
                  referral_source=None, goals=None, email_opt_in=False, theme_preference='light',
                  # --- NEW: Phone Verification Fields ---
                  phone_number=None, phone_verified=False,
+                 # --- NEW: Referral Fields ---
+                 referral_code=None, referred_by=None, pro_referral_count=0, referral_earnings=0.0,
                  **kwargs):
         self.id = id
         self.email = email
@@ -88,6 +90,12 @@ class User(UserMixin):
         # --- NEW: Phone Verification Properties ---
         self.phone_number = phone_number
         self.phone_verified = phone_verified
+        
+        # --- NEW: Referral Properties ---
+        self.referral_code = referral_code
+        self.referred_by = referred_by
+        self.pro_referral_count = pro_referral_count
+        self.referral_earnings = referral_earnings
 
     def to_dict(self):
         return {
@@ -119,6 +127,11 @@ class User(UserMixin):
             'theme_preference': self.theme_preference,
             'phone_number': self.phone_number,
             'phone_verified': self.phone_verified,
+            # --- NEW: Referral to dict ---
+            'referral_code': self.referral_code,
+            'referred_by': self.referred_by,
+            'pro_referral_count': self.pro_referral_count,
+            'referral_earnings': self.referral_earnings,
         }
 
     @staticmethod
@@ -153,7 +166,12 @@ class User(UserMixin):
             theme_preference=source.get('theme_preference', 'light'),
             # --- NEW: Phone Verification from dict ---
             phone_number=source.get('phone_number'),
-            phone_verified=source.get('phone_verified', False)
+            phone_verified=source.get('phone_verified', False),
+            # --- NEW: Referral from dict ---
+            referral_code=source.get('referral_code'),
+            referred_by=source.get('referred_by'),
+            pro_referral_count=source.get('pro_referral_count', 0),
+            referral_earnings=source.get('referral_earnings', 0.0)
         )
     
 # --- NEW: Model for Note-Taking with Slides ---
@@ -526,3 +544,35 @@ class SharedResource:
     @staticmethod
     def from_dict(source):
         return SharedResource(**source)
+
+# --- NEW: Referral Model for Tracking Pro Subscriptions ---
+class Referral:
+    def __init__(self, id, referrer_id, referred_id, referral_code, status='pending', 
+                 created_at=None, pro_subscribed_at=None, reward_amount=0.0, 
+                 reward_type=None, **kwargs):
+        self.id = id
+        self.referrer_id = referrer_id
+        self.referred_id = referred_id
+        self.referral_code = referral_code
+        self.status = status  # 'pending', 'pro_subscribed', 'rewarded'
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.pro_subscribed_at = pro_subscribed_at
+        self.reward_amount = reward_amount
+        self.reward_type = reward_type  # 'pro_month', 'giftcard', 'cash'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'referrer_id': self.referrer_id,
+            'referred_id': self.referred_id,
+            'referral_code': self.referral_code,
+            'status': self.status,
+            'created_at': self.created_at,
+            'pro_subscribed_at': self.pro_subscribed_at,
+            'reward_amount': self.reward_amount,
+            'reward_type': self.reward_type,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return Referral(**source)
