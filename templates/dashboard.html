@@ -1729,7 +1729,7 @@
                     <select id="folder-select" name="folder_id" required>
                         <option value="" disabled selected>-- Choose a folder --</option>
                         {% for folder in all_user_folders %}
-                            <option value="{{ folder.id }}">{{ folder.hub_name }} / {{ folder.name }}</option>
+                            <option value="{{ folder.id }}" data-hub-id="{{ folder.hub_id }}">{{ folder.hub_name }} / {{ folder.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -2950,8 +2950,13 @@
                     const shareDestination = formData.get('share_destination');
                     const studyGroupId = formData.get('study_group_id');
 
+                    // Get hub_id from selected folder
+                    const folderSelect = document.getElementById('folder-select');
+                    const selectedOption = folderSelect.options[folderSelect.selectedIndex];
+                    const hubId = selectedOption.getAttribute('data-hub-id');
+
                     // Validate form
-                    if (!folderId || !title || !description) {
+                    if (!folderId || !title || !description || !hubId) {
                         alert('Please fill in all required fields.');
                         return;
                     }
@@ -2961,23 +2966,29 @@
                         return;
                     }
 
+                    // Debug: Log the data being sent
+                    const shareData = {
+                        resource_type: 'folder',
+                        resource_id: folderId,
+                        hub_id: hubId,
+                        title: title,
+                        description: description,
+                        tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                        share_to: shareDestination === 'study_group' ? studyGroupId : 'global'
+                    };
+                    console.log('Sharing data:', shareData);
+
                     try {
                         const response = await fetch('/api/resources/share', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({
-                                resource_type: 'folder',
-                                resource_id: folderId,
-                                title: title,
-                                description: description,
-                                tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-                                study_group_id: shareDestination === 'study_group' ? studyGroupId : null
-                            })
+                            body: JSON.stringify(shareData)
                         });
                         
                         const result = await response.json();
+                        console.log('Server response:', result);
                         
                         if (result.success) {
                             alert('Folder shared successfully!');
