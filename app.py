@@ -3406,11 +3406,11 @@ def build_revision_pack(hub_id):
                 except:
                     flashcards_parsed = simple_cards
                 
-            if flashcards_parsed:
-                fc_ref = db.collection('activities').document()
-                new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
-                batch.set(fc_ref, new_fc.to_dict())
-                folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+                if flashcards_parsed:
+                    fc_ref = db.collection('activities').document()
+                    new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+                    batch.set(fc_ref, new_fc.to_dict())
+                    folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
                     print("Flashcards generated successfully")
             except Exception as e:
                 print(f"Error generating flashcards: {e}")
@@ -3439,17 +3439,17 @@ def build_revision_pack(hub_id):
                 
                 try:
                     quiz_json = generate_quiz_from_text(limited_text, num_quiz_questions)
-            quiz_data = safe_load_json(quiz_json)
+                    quiz_data = safe_load_json(quiz_json)
                     if not quiz_data.get('questions'):
                         quiz_data = simple_quiz
                 except:
                     quiz_data = simple_quiz
                 
-            if quiz_data.get('questions'):
-                quiz_ref = db.collection('activities').document()
-                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
-                batch.set(quiz_ref, new_quiz.to_dict())
-                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+                if quiz_data.get('questions'):
+                    quiz_ref = db.collection('activities').document()
+                    new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
+                    batch.set(quiz_ref, new_quiz.to_dict())
+                    folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
                     print("Quiz generated successfully")
             except Exception as e:
                 print(f"Error generating quiz: {e}")
@@ -3850,7 +3850,7 @@ def run_async_tool(hub_id):
 
         elif tool == 'flashcards':
             flashcards_raw = generate_flashcards_from_text(hub_text)
-            flashcards_parsed = parse_flashcards(raw_text)
+            flashcards_parsed = parse_flashcards(flashcards_raw)
             fc_ref = db.collection('activities').document()
             new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Quick Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
             fc_ref.set(new_fc.to_dict())
@@ -3875,7 +3875,7 @@ def run_async_tool(hub_id):
             analysis_markdown = analyse_papers_with_ai(hub_text)
             analysis_html = markdown.markdown(analysis_markdown)
             note_ref = db.collection('notes').document()
-            new_note = Note(id=analysis_note_ref.id, hub_id=hub_id, title=f"Analysis of {first_file_name}", content_html=analysis_html)
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Analysis of {first_file_name}", content_html=analysis_html)
             note_ref.set(new_note.to_dict())
             redirect_url = url_for('view_note', note_id=note_ref.id)
 
