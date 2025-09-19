@@ -916,6 +916,98 @@
             font-size: 0.9rem;
             line-height: 1.4;
         }
+        .resource-author {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .author-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+        .author-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .author-name {
+            font-weight: 500;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        .author-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .resource-preview {
+            background: var(--background-body);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .preview-title {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .preview-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .preview-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .preview-item-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.7;
+        }
+        .resource-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .preview-btn {
+            background: var(--background-interactive);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preview-btn:hover {
+            background: var(--background-interactive-hover);
+            border-color: var(--primary-color);
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
         .global-resource-meta {
             display: flex;
             justify-content: space-between;
@@ -1331,6 +1423,128 @@
             position: fixed;
             z-index: 1004;
             transition: all 1s cubic-bezier(0.5, 0, 0.75, 0); /* Ease-in */
+        }
+
+        /* Success Modal Styles */
+        .success-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal-content {
+            background: var(--background-card);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-modal-overlay.visible .success-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            animation: slideInUp 0.5s ease-out 0.2s both;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            animation: slideInUp 0.5s ease-out 0.3s both;
+        }
+
+        .success-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: slideInUp 0.5s ease-out 0.4s both;
+        }
+
+        .success-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Animations */
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Pulse animation for the checkmark */
+        .success-icon::before {
+            content: "✅";
+            display: inline-block;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
     </style>
     <script>
@@ -3123,8 +3337,28 @@
                         } else {
                             globalResourcesList.innerHTML = result.resources.map(resource => `
                                 <div class="global-resource-card" data-resource-id="${resource.id}">
+                                    <div class="resource-author">
+                                        <img src="${resource.owner_avatar || '/static/default-avatar.png'}" alt="${resource.owner_name}" class="author-avatar" onerror="this.src='/static/default-avatar.png'">
+                                        <div class="author-info">
+                                            <div class="author-name">${resource.owner_name}</div>
+                                            <div class="author-time">${new Date(resource.created_at).toLocaleDateString()}</div>
+                                        </div>
+                                    </div>
                                     <h4>${resource.title}</h4>
                                     <p>${resource.description || 'No description provided'}</p>
+                                    ${resource.folder_contents && resource.folder_contents.length > 0 ? `
+                                        <div class="resource-preview">
+                                            <div class="preview-title">Folder Contents:</div>
+                                            <div class="preview-items">
+                                                ${resource.folder_contents.map(item => `
+                                                    <div class="preview-item">
+                                                        <span class="preview-item-icon">${item.icon}</span>
+                                                        <span>${item.title}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
                                     <div class="global-resource-meta">
                                         <span>${resource.likes} like${resource.likes !== 1 ? 's' : ''}</span>
                                         <span>${resource.imports} import${resource.imports !== 1 ? 's' : ''}</span>
@@ -3134,13 +3368,15 @@
                                             ${resource.tags.map(tag => `<span class="global-resource-tag">${tag}</span>`).join('')}
                                         </div>
                                     ` : ''}
-                                    <div class="global-resource-actions">
+                                    <div class="resource-actions">
+                                        <button class="preview-btn" onclick="previewResource('${resource.id}')">Preview</button>
                                         <button class="import-btn" data-resource-id="${resource.id}">
                                             <i data-lucide="download"></i> Import
                                         </button>
                                         <button class="like-btn" data-resource-id="${resource.id}">
                                             <i data-lucide="heart"></i> ${resource.likes}
                                         </button>
+                                        ${resource.owner_id === '${current_user.id}' ? `<button class="delete-btn" onclick="deleteResource('${resource.id}')">Delete</button>` : ''}
                                     </div>
                                 </div>
                             `).join('');
@@ -3262,12 +3498,19 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        alert('Resource imported successfully!');
-                        // Close modal
+                        // Close import modal
                         document.getElementById('import-resource-modal').classList.remove('visible');
-                        // Refresh the resources list
-                        loadGlobalResources();
-                        loadStudyGroups(); // Also refresh study groups in case we're viewing them
+                        
+                        // Show success modal
+                        showSuccessModal(
+                            'Successfully Imported!',
+                            'The resource has been added to your hub.',
+                            () => {
+                                // Refresh the resources list after modal closes
+                                loadGlobalResources();
+                                loadStudyGroups(); // Also refresh study groups in case we're viewing them
+                            }
+                        );
                     } else {
                         alert(result.message || 'Error importing resource. Please try again.');
                     }
@@ -3454,11 +3697,22 @@
                         console.log('Server response:', result);
                         
                         if (result.success) {
-                            alert('Folder shared successfully!');
+                            // Close the share modal
                             shareModalOverlay.classList.remove('visible');
                             shareForm.reset();
                             studyGroupSelection.style.display = 'none';
                             studyGroupSelect.required = false;
+                            
+                            // Show success modal
+                            const destination = shareDestination === 'study_group' ? 'study group' : 'global community';
+                            showSuccessModal(
+                                'Successfully Uploaded!',
+                                `Your folder has been shared to the ${destination}.`,
+                                () => {
+                                    // Optional callback after modal closes
+                                    console.log('Success modal closed');
+                                }
+                            );
                         } else {
                             alert(result.message || 'Error sharing folder. Please try again.');
                         }
@@ -3561,6 +3815,101 @@
                 });
             }
         });
+
+        // Success modal functionality
+        function showSuccessModal(title, message, callback) {
+            const modal = document.createElement('div');
+            modal.className = 'success-modal-overlay';
+            modal.innerHTML = `
+                <div class="success-modal-content">
+                    <div class="success-icon"></div>
+                    <h2 class="success-title">${title}</h2>
+                    <p class="success-message">${message}</p>
+                    <button class="success-button" onclick="closeSuccessModal(this)">Got it!</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Trigger animation
+            setTimeout(() => {
+                modal.classList.add('visible');
+            }, 10);
+            
+            // Store callback for later use
+            modal.callback = callback;
+        }
+
+        function closeSuccessModal(button) {
+            const modal = button.closest('.success-modal-overlay');
+            modal.classList.remove('visible');
+            
+            setTimeout(() => {
+                if (modal.callback) {
+                    modal.callback();
+                }
+                modal.remove();
+            }, 300);
+        }
+
+        // Preview resource functionality
+        function previewResource(resourceId) {
+            // Find the resource card
+            const resourceCard = document.querySelector(`[data-resource-id="${resourceId}"]`);
+            if (!resourceCard) return;
+
+            const previewDiv = resourceCard.querySelector('.resource-preview');
+            if (!previewDiv) return;
+
+            // Toggle preview visibility
+            if (previewDiv.style.display === 'none' || previewDiv.style.display === '') {
+                previewDiv.style.display = 'block';
+                previewDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        // Delete resource functionality
+        async function deleteResource(resourceId) {
+            if (!confirm('Are you sure you want to delete this resource? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/resources/${resourceId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Remove the resource card from the DOM
+                    const resourceCard = document.querySelector(`[data-resource-id="${resourceId}"]`);
+                    if (resourceCard) {
+                        resourceCard.remove();
+                    }
+                    
+                    // Show success message
+                    showSuccessModal(
+                        'Resource Deleted!',
+                        'The resource has been successfully removed from the community.',
+                        () => {
+                            // Refresh the resources list
+                            loadGlobalResources();
+                        }
+                    );
+                } else {
+                    alert(result.message || 'Error deleting resource. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error deleting resource:', error);
+                alert('Error deleting resource. Please try again.');
+            }
+        }
     </script>
 
     <!-- Study Group Modals -->

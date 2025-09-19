@@ -1232,6 +1232,128 @@
         .edit-cancel-btn:hover {
             background: var(--background-interactive-hover);
         }
+
+        /* Success Modal Styles */
+        .success-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .success-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-modal-content {
+            background: var(--background-card);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-modal-overlay.visible .success-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: successBounce 0.6s ease-out;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            animation: slideInUp 0.5s ease-out 0.2s both;
+        }
+
+        .success-message {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            animation: slideInUp 0.5s ease-out 0.3s both;
+        }
+
+        .success-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: slideInUp 0.5s ease-out 0.4s both;
+        }
+
+        .success-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Animations */
+        @keyframes successBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Pulse animation for the checkmark */
+        .success-icon::before {
+            content: "✅";
+            display: inline-block;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1723,7 +1845,7 @@
                             <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
                                 <div class="asset-details">
-                                    <h5 id="title-slide-note-{{ slide_note.id }}">{{ slide_note.title }}</h5>
+                                    <h5 id="slide_notes-title-{{ slide_note.id }}">{{ slide_note.title }}</h5>
                                     <button class="edit-button" data-type="slide_notes" data-id="{{ slide_note.id }}" title="Edit slide notes title">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
@@ -1753,7 +1875,7 @@
                             <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                                 <div class="asset-details">
-                                    <h5 id="title-note-{{ note.id }}">{{ note.title }}</h5>
+                                    <h5 id="note-title-{{ note.id }}">{{ note.title }}</h5>
                                     <button class="edit-button" data-type="note" data-id="{{ note.id }}" title="Edit note title">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
@@ -1783,7 +1905,7 @@
                             <a href="{{ url_for('edit_flashcard_set', activity_id=fc_set.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                 <div class="asset-details">
-                                    <h5 id="title-flashcards-{{ fc_set.id }}">{{ fc_set.title }}</h5>
+                                    <h5 id="flashcards-title-{{ fc_set.id }}">{{ fc_set.title }}</h5>
                                     <button class="edit-button" data-type="flashcards" data-id="{{ fc_set.id }}" title="Edit flashcard title">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                     </button>
@@ -1814,7 +1936,7 @@
                                 <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="asset-details">
-                                        <h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
+                                        <h5 id="quiz-title-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
                                         <button class="edit-button" data-type="quiz" data-id="{{ quiz.id }}" title="Edit quiz title">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         </button>
@@ -1826,7 +1948,7 @@
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="asset-details">
-                                        <h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
+                                        <h5 id="quiz-title-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
                                         <button class="edit-button" data-type="quiz" data-id="{{ quiz.id }}" title="Edit quiz title">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                         </button>
@@ -4025,6 +4147,52 @@ function ensureOnboardingNodesExist() {
                 titleElement.innerHTML = titleElement.textContent;
             }
         }
+
+        // Success modal functionality
+        function showSuccessModal(title, message, callback) {
+            const modal = document.createElement('div');
+            modal.className = 'success-modal-overlay';
+            modal.innerHTML = `
+                <div class="success-modal-content">
+                    <div class="success-icon"></div>
+                    <h2 class="success-title">${title}</h2>
+                    <p class="success-message">${message}</p>
+                    <button class="success-button" onclick="closeSuccessModal(this)">Got it!</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Trigger animation
+            setTimeout(() => {
+                modal.classList.add('visible');
+            }, 10);
+            
+            // Store callback for later use
+            modal.callback = callback;
+        }
+
+        function closeSuccessModal(button) {
+            const modal = button.closest('.success-modal-overlay');
+            modal.classList.remove('visible');
+            
+            setTimeout(() => {
+                if (modal.callback) {
+                    modal.callback();
+                }
+                modal.remove();
+            }, 300);
+        }
     </script>
+
+    <!-- Success Modal -->
+    <div id="success-modal-overlay" class="success-modal-overlay">
+        <div class="success-modal-content">
+            <div class="success-icon"></div>
+            <h2 class="success-title">Successfully Uploaded!</h2>
+            <p class="success-message">Your folder has been shared to the community.</p>
+            <button class="success-button" onclick="closeSuccessModal(this)">Got it!</button>
+        </div>
+    </div>
 </body>
 </html>

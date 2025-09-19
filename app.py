@@ -5135,7 +5135,7 @@ def share_resource():
 @app.route('/api/resources/global', methods=['GET'])
 @login_required
 def get_global_resources():
-    """Get all globally shared resources"""
+    """Get all globally shared resources with user profile info and folder contents"""
     try:
         # Get all resources shared globally (study_group_id is None)
         resource_docs = db.collection('shared_resources').where('study_group_id', '==', None).order_by('created_at', direction=firestore.Query.DESCENDING).get()
@@ -5143,7 +5143,52 @@ def get_global_resources():
         resources = []
         for doc in resource_docs:
             resource = SharedResource.from_dict(doc.to_dict())
-            resources.append(resource.to_dict())
+            resource_dict = resource.to_dict()
+            
+            # Get user profile information
+            user_doc = db.collection('users').document(resource.owner_id).get()
+            user_profile = user_doc.to_dict() if user_doc.exists else {}
+            
+            # Get folder contents if it's a folder
+            folder_contents = []
+            if resource.resource_type == 'folder':
+                folder_doc = db.collection('folders').document(resource.resource_id).get()
+                if folder_doc.exists:
+                    folder_data = folder_doc.to_dict()
+                    items = folder_data.get('items', [])
+                    
+                    # Get details for each item in the folder
+                    for item in items:
+                        item_id = item.get('id')
+                        item_type = item.get('type')
+                        
+                        if item_type == 'note':
+                            note_doc = db.collection('notes').document(item_id).get()
+                            if note_doc.exists:
+                                note_data = note_doc.to_dict()
+                                folder_contents.append({
+                                    'id': item_id,
+                                    'type': 'note',
+                                    'title': note_data.get('title', 'Untitled Note'),
+                                    'icon': '📝'
+                                })
+                        elif item_type in ['quiz', 'flashcards']:
+                            activity_doc = db.collection('activities').document(item_id).get()
+                            if activity_doc.exists:
+                                activity_data = activity_doc.to_dict()
+                                folder_contents.append({
+                                    'id': item_id,
+                                    'type': item_type,
+                                    'title': activity_data.get('title', f'Untitled {item_type.title()}'),
+                                    'icon': '🧠' if item_type == 'quiz' else '🃏'
+                                })
+            
+            # Add user profile and folder contents to resource
+            resource_dict['owner_name'] = user_profile.get('display_name', 'Unknown User')
+            resource_dict['owner_avatar'] = user_profile.get('profile_picture_url', '/static/default-avatar.png')
+            resource_dict['folder_contents'] = folder_contents
+            
+            resources.append(resource_dict)
         
         return jsonify({
             "success": True,
@@ -5525,6 +5570,31 @@ def update_slide_notes_title(session_id):
     except Exception as e:
         print(f"Error updating slide notes title: {e}")
         return jsonify({"success": False, "message": "Error updating slide notes title"}), 500
+
+@app.route('/api/resources/<resource_id>/delete', methods=['DELETE'])
+@login_required
+def delete_shared_resource(resource_id):
+    """Delete a shared resource (only by owner)"""
+    try:
+        # Get the shared resource
+        shared_resource_doc = db.collection('shared_resources').document(resource_id).get()
+        if not shared_resource_doc.exists:
+            return jsonify({"success": False, "message": "Resource not found"}), 404
+        
+        shared_resource = SharedResource.from_dict(shared_resource_doc.to_dict())
+        
+        # Check if user owns this resource
+        if shared_resource.owner_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to delete this resource"}), 403
+        
+        # Delete the shared resource
+        shared_resource_doc.reference.delete()
+        
+        return jsonify({"success": True, "message": "Resource deleted successfully"})
+        
+    except Exception as e:
+        print(f"Error deleting resource: {e}")
+        return jsonify({"success": False, "message": "Error deleting resource"}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION
