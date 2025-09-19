@@ -209,6 +209,73 @@
             font-family: 'Courier New', monospace;
         }
         
+        .copy-code-button {
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: #1f2937;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin: 1rem 0;
+            display: inline-block;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+        
+        .copy-code-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+        }
+        
+        /* Milestones Section */
+        .milestones-section {
+            margin-top: 2rem;
+        }
+        
+        .milestones-section h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .milestones-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .milestone-card {
+            background: var(--background-light);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .milestone-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .milestone-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .milestone-reward {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
         .instructions-list {
             display: flex;
             flex-direction: column;
@@ -386,6 +453,10 @@
             
             .leaderboard-grid,
             .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .milestones-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -2191,9 +2262,32 @@
                         <div class="referral-code-display" id="referral-code">
                             ABC123
                         </div>
-                        <button class="button" onclick="copyReferralCode()">
+                        <button class="copy-code-button" onclick="copyReferralCode()">
                             <i data-lucide="copy"></i> Copy Code
                         </button>
+                        
+                        <!-- Milestones -->
+                        <div class="milestones-section">
+                            <h4>Referral Milestones</h4>
+                            <div class="milestones-grid">
+                                <div class="milestone-card">
+                                    <div class="milestone-number">3</div>
+                                    <div class="milestone-reward">One month Pro for free</div>
+                                </div>
+                                <div class="milestone-card">
+                                    <div class="milestone-number">10</div>
+                                    <div class="milestone-reward">£20 Amazon giftcard</div>
+                                </div>
+                                <div class="milestone-card">
+                                    <div class="milestone-number">20</div>
+                                    <div class="milestone-reward">£50 Amazon giftcard</div>
+                                </div>
+                                <div class="milestone-card">
+                                    <div class="milestone-number">50</div>
+                                    <div class="milestone-reward">£100 Amazon giftcard</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="referral-code-right">
