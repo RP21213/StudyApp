@@ -4049,26 +4049,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
-                document.querySelector('.nav-link[data-tab="tools"]').click();
+            await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
+            document.querySelector('.nav-link[data-tab="tools"]').click();
 
-                await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
-                document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
+            await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
+            document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
 
-                const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
-                revisionPackCard.click(); 
+            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
+            revisionPackCard.click(); 
 
-                guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
-                guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
-                guideModal.classList.add('visible');
-                
-                const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
+            guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
+            guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
+            guideModal.classList.add('visible');
+            
+            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
                 if (generateBtn) {
-                    generateBtn.addEventListener('click', function handleGenerate() {
-                        guideModal.classList.remove('visible');
+            generateBtn.addEventListener('click', function handleGenerate() {
+                guideModal.classList.remove('visible');
                         // Mark that we're in the generation phase
                         sessionStorage.setItem('onboardingGenerating', '1');
-                    }, { once: true });
+            }, { once: true });
                 }
             } catch (error) {
                 console.error('Onboarding error:', error);

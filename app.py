@@ -3379,10 +3379,10 @@ def build_revision_pack(hub_id):
             try:
                 print("Generating notes...")
                 interactive_html = generate_interactive_notes_html(limited_text)
-                note_ref = db.collection('notes').document()
-                new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
-                batch.set(note_ref, new_note.to_dict())
-                folder_items.append({'id': note_ref.id, 'type': 'note'})
+            note_ref = db.collection('notes').document()
+            new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
+            batch.set(note_ref, new_note.to_dict())
+            folder_items.append({'id': note_ref.id, 'type': 'note'})
                 print("Notes generated successfully")
             except Exception as e:
                 print(f"Error generating notes: {e}")
@@ -3400,17 +3400,17 @@ def build_revision_pack(hub_id):
                 
                 try:
                     flashcards_raw = generate_flashcards_from_text(limited_text, num_flashcards)
-                    flashcards_parsed = parse_flashcards(flashcards_raw)
+            flashcards_parsed = parse_flashcards(flashcards_raw)
                     if not flashcards_parsed:
                         flashcards_parsed = simple_cards
                 except:
                     flashcards_parsed = simple_cards
                 
-                if flashcards_parsed:
-                    fc_ref = db.collection('activities').document()
-                    new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
-                    batch.set(fc_ref, new_fc.to_dict())
-                    folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
+            if flashcards_parsed:
+                fc_ref = db.collection('activities').document()
+                new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
+                batch.set(fc_ref, new_fc.to_dict())
+                folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
                     print("Flashcards generated successfully")
             except Exception as e:
                 print(f"Error generating flashcards: {e}")
@@ -3439,17 +3439,17 @@ def build_revision_pack(hub_id):
                 
                 try:
                     quiz_json = generate_quiz_from_text(limited_text, num_quiz_questions)
-                    quiz_data = safe_load_json(quiz_json)
+            quiz_data = safe_load_json(quiz_json)
                     if not quiz_data.get('questions'):
                         quiz_data = simple_quiz
                 except:
                     quiz_data = simple_quiz
                 
-                if quiz_data.get('questions'):
-                    quiz_ref = db.collection('activities').document()
-                    new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
-                    batch.set(quiz_ref, new_quiz.to_dict())
-                    folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
+            if quiz_data.get('questions'):
+                quiz_ref = db.collection('activities').document()
+                new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
+                batch.set(quiz_ref, new_quiz.to_dict())
+                folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
                     print("Quiz generated successfully")
             except Exception as e:
                 print(f"Error generating quiz: {e}")

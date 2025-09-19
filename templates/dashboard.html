@@ -229,25 +229,25 @@
         
         .earn-money-header p {
             font-size: 1.2rem;
-            color: #6b7280;
+            color: var(--text-secondary, #6b7280);
             font-weight: 500;
         }
         
         /* Referrals Leaderboard */
         .leaderboard-container {
-            background: white;
+            background: var(--background-card, white);
             border-radius: 16px;
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid #fbbf24;
+            border: 1px solid var(--border-color, #e5e7eb);
         }
         
         .leaderboard-title {
             text-align: center;
             font-size: 1.8rem;
             font-weight: 700;
-            color: #92400e;
+            color: var(--text-main, #374151);
             margin-bottom: 2rem;
             display: flex;
             align-items: center;
@@ -364,32 +364,119 @@
         
         .podium-name {
             font-weight: 600;
-            color: #374151;
+            color: var(--text-main, #374151);
             margin-top: 0.5rem;
             font-size: 0.9rem;
         }
         
         .podium-referrals {
             font-size: 0.8rem;
-            color: #6b7280;
+            color: var(--text-secondary, #6b7280);
             margin-top: 0.25rem;
         }
         
         /* Referral Code Section */
         .referral-code-section {
-            background: white;
+            background: var(--background-card, white);
             border-radius: 16px;
             padding: 2rem;
-            text-align: center;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border: 2px solid #fbbf24;
+            border: 1px solid var(--border-color, #e5e7eb);
+            display: flex;
+            gap: 3rem;
+            align-items: flex-start;
+        }
+        
+        .referral-code-left {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .referral-code-right {
+            flex: 1;
         }
         
         .referral-code-title {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #92400e;
+            color: var(--text-main, #374151);
             margin-bottom: 1rem;
+        }
+        
+        .instructions-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main, #374151);
+            margin-bottom: 1.5rem;
+        }
+        
+        .instructions-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .instructions-list li {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-main, #374151);
+            line-height: 1.6;
+        }
+        
+        .instructions-list li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .instructions-list {
+            counter-reset: step-counter;
+        }
+        
+        .instructions-list li:last-child {
+            margin-bottom: 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            font-weight: 600;
+        }
+        
+        .instructions-list li:last-child::before {
+            background: linear-gradient(45deg, #ffd700, #ffb000);
+            width: 28px;
+            height: 28px;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .referral-code-section {
+                flex-direction: column;
+                gap: 2rem;
+            }
+            
+            .referral-code-left,
+            .referral-code-right {
+                flex: none;
+            }
+            
+            .instructions-list li {
+                margin-bottom: 0.75rem;
+            }
         }
         
         .referral-code-display {
@@ -451,12 +538,12 @@
         }
         
         .stat-card {
-            background: white;
+            background: var(--background-card, white);
             padding: 1.5rem;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid #fbbf24;
+            border: 1px solid var(--border-color, #e5e7eb);
         }
         
         .stat-number {
@@ -467,7 +554,7 @@
         }
         
         .stat-label {
-            color: #6b7280;
+            color: var(--text-secondary, #6b7280);
             font-weight: 600;
         }
         
@@ -2299,15 +2386,29 @@
 
                     <!-- Referral Code Section -->
                     <div class="referral-code-section">
-                        <div class="referral-code-title">
-                            This is your referral code
+                        <div class="referral-code-left">
+                            <div class="referral-code-title">
+                                This is your referral code
+                            </div>
+                            <div class="referral-code-display" id="referral-code">
+                                ABC123
+                            </div>
+                            <button class="copy-button" onclick="copyReferralCode()">
+                                📋 Copy Code
+                            </button>
                         </div>
-                        <div class="referral-code-display" id="referral-code">
-                            ABC123
+                        
+                        <div class="referral-code-right">
+                            <div class="instructions-title">
+                                How to refer a friend?
+                            </div>
+                            <ol class="instructions-list">
+                                <li>When your friend is purchasing the pro subscription, make sure they enter your referral code.</li>
+                                <li>If they do, your friend will receive a week of Pro subscription for free.</li>
+                                <li>Reach referral milestones to unlock rewards like cash prizes, giftcards and more!</li>
+                                <li>The top 3 individuals with the most referrals by the end of every month receive a cash prize.</li>
+                            </ol>
                         </div>
-                        <button class="copy-button" onclick="copyReferralCode()">
-                            📋 Copy Code
-                        </button>
                     </div>
 
                     <!-- Referral Stats -->
