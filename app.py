@@ -5159,6 +5159,9 @@ def get_global_resources():
 def import_shared_resource(resource_id):
     """Import a shared resource to user's hub"""
     try:
+        data = request.get_json()
+        target_hub_id = data.get('hub_id')
+        
         # Get the shared resource
         shared_resource_doc = db.collection('shared_resources').document(resource_id).get()
         
@@ -5171,13 +5174,25 @@ def import_shared_resource(resource_id):
         if current_user.id in shared_resource.imported_by:
             return jsonify({"success": False, "message": "You have already imported this resource"}), 400
         
-        # Get user's default hub (or first hub)
-        user_hubs = db.collection('hubs').where('user_id', '==', current_user.id).limit(1).get()
-        
-        if not user_hubs:
-            return jsonify({"success": False, "message": "No hub found to import resource to"}), 400
-        
-        target_hub = Hub.from_dict(user_hubs[0].to_dict())
+        # Get the target hub
+        if target_hub_id:
+            # Use specified hub
+            target_hub_doc = db.collection('hubs').document(target_hub_id).get()
+            if not target_hub_doc.exists:
+                return jsonify({"success": False, "message": "Target hub not found"}), 404
+            
+            # Verify user owns the hub
+            target_hub = Hub.from_dict(target_hub_doc.to_dict())
+            if target_hub.user_id != current_user.id:
+                return jsonify({"success": False, "message": "You don't have permission to import to this hub"}), 403
+        else:
+            # Get user's default hub (or first hub)
+            user_hubs = db.collection('hubs').where('user_id', '==', current_user.id).limit(1).get()
+            
+            if not user_hubs:
+                return jsonify({"success": False, "message": "No hub found to import resource to"}), 400
+            
+            target_hub = Hub.from_dict(user_hubs[0].to_dict())
         
         # Import the resource based on type
         if shared_resource.resource_type == 'folder':
@@ -5237,6 +5252,22 @@ def import_shared_resource(resource_id):
     except Exception as e:
         print(f"Error importing resource: {e}")
         return jsonify({"success": False, "message": "Failed to import resource"}), 500
+
+@app.route('/api/resources/<resource_id>', methods=['GET'])
+@login_required
+def get_shared_resource(resource_id):
+    """Get a single shared resource by ID"""
+    try:
+        shared_resource_doc = db.collection('shared_resources').document(resource_id).get()
+        if not shared_resource_doc.exists:
+            return jsonify({"success": False, "message": "Resource not found"}), 404
+        
+        shared_resource = SharedResource.from_dict(shared_resource_doc.to_dict())
+        return jsonify({"success": True, "resource": shared_resource.to_dict()})
+        
+    except Exception as e:
+        print(f"Error getting resource: {e}")
+        return jsonify({"success": False, "message": "Error getting resource"}), 500
 
 @app.route('/api/resources/<resource_id>/like', methods=['POST'])
 @login_required

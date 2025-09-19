@@ -975,6 +975,24 @@
             border-color: var(--primary-color);
         }
 
+        /* Import Resource Modal Styles */
+        .import-resource-info {
+            background: var(--background-light);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .import-resource-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+        .import-resource-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
         /* Radio Button Styles */
         .radio-group {
             display: flex;
@@ -3015,7 +3033,7 @@
                         <div class="study-group-card" style="text-align: center; grid-column: 1 / -1;">
                             <h4>No Resources Yet</h4>
                             <p>No resources have been shared in this study group yet.</p>
-                            <button class="button" onclick="loadStudyGroups()">Back to Study Groups</button>
+                            <button class="button" id="back-to-study-groups-empty">Back to Study Groups</button>
                         </div>
                     `;
                 } else {
@@ -3023,7 +3041,7 @@
                         <div class="study-group-card" style="grid-column: 1 / -1; margin-bottom: 1rem;">
                             <h4>Study Group Resources</h4>
                             <p>Resources shared in this study group</p>
-                            <button class="button button-secondary" onclick="loadStudyGroups()">Back to Study Groups</button>
+                            <button class="button button-secondary" id="back-to-study-groups">Back to Study Groups</button>
                         </div>
                         ${resources.map(resource => `
                             <div class="study-group-card" data-resource-id="${resource.id}">
@@ -3064,6 +3082,18 @@
                             likeResource(resourceId, btn);
                         });
                     });
+                }
+                
+                // Add event listeners for back buttons
+                const backBtn = document.getElementById('back-to-study-groups');
+                const backBtnEmpty = document.getElementById('back-to-study-groups-empty');
+                
+                if (backBtn) {
+                    backBtn.addEventListener('click', loadStudyGroups);
+                }
+                
+                if (backBtnEmpty) {
+                    backBtnEmpty.addEventListener('click', loadStudyGroups);
                 }
             }
 
@@ -3149,22 +3179,95 @@
                 }
             }
 
-            // Import a resource
+            // Import a resource - show modal first
             async function importResource(resourceId) {
+                // Get resource details first
+                try {
+                    const response = await fetch(`/api/resources/${resourceId}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show import modal with resource details
+                        showImportModal(result.resource);
+                    } else {
+                        alert('Error loading resource details. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error loading resource details:', error);
+                    alert('Error loading resource details. Please try again.');
+                }
+            }
+
+            // Show import modal
+            function showImportModal(resource) {
+                const importModal = document.getElementById('import-resource-modal');
+                const titleElement = document.getElementById('import-resource-title');
+                const descriptionElement = document.getElementById('import-resource-description');
+                const hubSelect = document.getElementById('import-hub-select');
+                
+                if (importModal && titleElement && descriptionElement && hubSelect) {
+                    // Set resource details
+                    titleElement.textContent = resource.title;
+                    descriptionElement.textContent = resource.description || 'No description provided';
+                    
+                    // Load user's hubs
+                    loadHubsForImport();
+                    
+                    // Show modal
+                    importModal.classList.add('visible');
+                    
+                    // Store resource ID for later use
+                    importModal.dataset.resourceId = resource.id;
+                }
+            }
+
+            // Load user's hubs for import selection
+            async function loadHubsForImport() {
+                const hubSelect = document.getElementById('import-hub-select');
+                if (!hubSelect) return;
+
+                try {
+                    // Get user's hubs from the page data (they're already loaded)
+                    const hubsData = {{ hubs_for_json | safe }};
+                    
+                    hubSelect.innerHTML = '<option value="" disabled selected>-- Choose a hub --</option>';
+                    
+                    if (hubsData.length === 0) {
+                        hubSelect.innerHTML += '<option value="" disabled>No hubs available</option>';
+                    } else {
+                        hubsData.forEach(hub => {
+                            const option = document.createElement('option');
+                            option.value = hub.id;
+                            option.textContent = hub.name;
+                            hubSelect.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading hubs for import:', error);
+                    hubSelect.innerHTML = '<option value="" disabled>Error loading hubs</option>';
+                }
+            }
+
+            // Confirm import
+            async function confirmImport(resourceId, hubId) {
                 try {
                     const response = await fetch(`/api/resources/${resourceId}/import`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                        }
+                        },
+                        body: JSON.stringify({ hub_id: hubId })
                     });
                     
                     const result = await response.json();
                     
                     if (result.success) {
                         alert('Resource imported successfully!');
-                        // Refresh the global resources list
+                        // Close modal
+                        document.getElementById('import-resource-modal').classList.remove('visible');
+                        // Refresh the resources list
                         loadGlobalResources();
+                        loadStudyGroups(); // Also refresh study groups in case we're viewing them
                     } else {
                         alert(result.message || 'Error importing resource. Please try again.');
                     }
@@ -3411,6 +3514,52 @@
             if (shareFolderBtnEmpty) {
                 shareFolderBtnEmpty.addEventListener('click', openShareModal);
             }
+
+            // Import Resource Modal Event Listeners
+            const importModal = document.getElementById('import-resource-modal');
+            const importForm = document.getElementById('import-resource-form');
+            const closeImportModal = document.getElementById('close-import-resource-modal');
+            const cancelImportBtn = document.getElementById('cancel-import-resource');
+
+            // Close modal
+            if (closeImportModal) {
+                closeImportModal.addEventListener('click', () => {
+                    importModal.classList.remove('visible');
+                });
+            }
+
+            if (cancelImportBtn) {
+                cancelImportBtn.addEventListener('click', () => {
+                    importModal.classList.remove('visible');
+                });
+            }
+
+            // Close modal when clicking outside
+            if (importModal) {
+                importModal.addEventListener('click', (e) => {
+                    if (e.target === importModal) {
+                        importModal.classList.remove('visible');
+                    }
+                });
+            }
+
+            // Handle form submission
+            if (importForm) {
+                importForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const hubId = formData.get('hub_id');
+                    const resourceId = importModal.dataset.resourceId;
+
+                    if (!hubId || !resourceId) {
+                        alert('Please select a hub to import to.');
+                        return;
+                    }
+
+                    await confirmImport(resourceId, hubId);
+                });
+            }
         });
     </script>
 
@@ -3489,6 +3638,37 @@
                         <button type="button" class="button button-secondary" id="close-study-group-created">Got it</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Resource Modal -->
+    <div class="modal-overlay" id="import-resource-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Resource</h2>
+                <button class="modal-close" id="close-import-resource-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="import-resource-info">
+                    <h3 id="import-resource-title">Resource Title</h3>
+                    <p id="import-resource-description">Resource description</p>
+                </div>
+                <form id="import-resource-form">
+                    <div class="form-group">
+                        <label for="import-hub-select">Select Hub to Import To:</label>
+                        <select id="import-hub-select" name="hub_id" required>
+                            <option value="" disabled selected>-- Choose a hub --</option>
+                            <!-- Hubs will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="button button-secondary" id="cancel-import-resource">Cancel</button>
+                        <button type="submit" class="button" id="confirm-import-resource">Import Resource</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
