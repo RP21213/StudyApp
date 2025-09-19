@@ -1156,6 +1156,82 @@
         .onboarding-highlight { position: relative; z-index: 1003; pointer-events: auto !important; }
         #onboarding-guide-modal { position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); z-index: 1005; background-color: var(--background-card); padding: 1.5rem 2rem; border-radius: 12px; box-shadow: var(--shadow-lg); max-width: 500px; text-align: center; opacity: 0; transition: opacity 0.3s ease; visibility: hidden; }
         #onboarding-guide-modal.visible { opacity: 1; visibility: visible; }
+
+        /* Edit functionality styles */
+        .edit-button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            opacity: 0;
+            margin-left: 0.5rem;
+        }
+        
+        .asset-item:hover .edit-button,
+        .folder-header:hover .edit-button {
+            opacity: 1;
+        }
+        
+        .edit-button:hover {
+            color: var(--primary-color);
+            background-color: var(--background-interactive-hover);
+        }
+        
+        .edit-input {
+            background: var(--background-white);
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: inherit;
+            font-weight: inherit;
+            color: var(--text-main);
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .edit-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .edit-save-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-save-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .edit-cancel-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-cancel-btn:hover {
+            background: var(--background-interactive-hover);
+        }
     </style>
 </head>
 <body>
@@ -1583,7 +1659,10 @@
                                 <div class="folder-header-title">
                                     <div class="asset-icon" style="background-color: #fefce8; color: #a16207;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg></div>
                                     <div>
-                                        <h5>{{ folder.name }}</h5>
+                                        <h5 id="folder-title-{{ folder.id }}">{{ folder.name }}</h5>
+                                        <button class="edit-button" data-type="folder" data-id="{{ folder.id }}" title="Edit folder name">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
                                         <span>{{ folder.hydrated_items|length }} items</span>
                                     </div>
                                 </div>
@@ -1643,7 +1722,13 @@
                         <li class="asset-item" data-id="{{ slide_note.id }}" data-type="slide_notes">
                             <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
-                                <div class="asset-details"><h5 id="title-slide-note-{{ slide_note.id }}">{{ slide_note.title }}</h5><span>Created {{ slide_note.created_at|timesince }} ago</span></div>
+                                <div class="asset-details">
+                                    <h5 id="title-slide-note-{{ slide_note.id }}">{{ slide_note.title }}</h5>
+                                    <button class="edit-button" data-type="slide_notes" data-id="{{ slide_note.id }}" title="Edit slide notes title">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </button>
+                                    <span>Created {{ slide_note.created_at|timesince }} ago</span>
+                                </div>
                             </a>
                         </li>
                         {% else %}
@@ -1667,7 +1752,13 @@
                             <input type="checkbox" class="asset-checkbox">
                             <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link">
                                 <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-                                <div class="asset-details"><h5 id="title-note-{{ note.id }}">{{ note.title }}</h5><span>Created {{ note.created_at|timesince }} ago</span></div>
+                                <div class="asset-details">
+                                    <h5 id="title-note-{{ note.id }}">{{ note.title }}</h5>
+                                    <button class="edit-button" data-type="note" data-id="{{ note.id }}" title="Edit note title">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </button>
+                                    <span>Created {{ note.created_at|timesince }} ago</span>
+                                </div>
                             </a>
                         </li>
                         {% else %}
@@ -1693,6 +1784,9 @@
                                 <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                 <div class="asset-details">
                                     <h5 id="title-flashcards-{{ fc_set.id }}">{{ fc_set.title }}</h5>
+                                    <button class="edit-button" data-type="flashcards" data-id="{{ fc_set.id }}" title="Edit flashcard title">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                    </button>
                                     <span>Created {{ fc_set.created_at|timesince }} ago</span>
                                 </div>
                             </a>
@@ -1719,13 +1813,25 @@
                             {% if quiz.status == 'graded' %}
                                 <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                    <div class="asset-details"><h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5><span>Completed {{ quiz.created_at|timesince }} ago</span></div>
+                                    <div class="asset-details">
+                                        <h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
+                                        <button class="edit-button" data-type="quiz" data-id="{{ quiz.id }}" title="Edit quiz title">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <span>Completed {{ quiz.created_at|timesince }} ago</span>
+                                    </div>
                                 </a>
                                 <div class="asset-score"><span>{{ quiz.score }}%</span></div>
                             {% else %}
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="asset-link">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
-                                    <div class="asset-details"><h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5><span>Ready to take</span></div>
+                                    <div class="asset-details">
+                                        <h5 id="title-quiz-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
+                                        <button class="edit-button" data-type="quiz" data-id="{{ quiz.id }}" title="Edit quiz title">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                        </button>
+                                        <span>Ready to take</span>
+                                    </div>
                                 </a>
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="button button-primary" style="padding: 0.5rem 1rem;">Take Quiz</a>
                             {% endif %}
@@ -3798,6 +3904,126 @@ function ensureOnboardingNodesExist() {
             document.querySelectorAll('.onboarding-highlight').forEach(el => {
                 el.classList.remove('onboarding-highlight');
             });
+        }
+
+        // Edit functionality for all items
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners to all edit buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.edit-button')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const button = e.target.closest('.edit-button');
+                    const itemType = button.dataset.type;
+                    const itemId = button.dataset.id;
+                    
+                    startEdit(itemType, itemId, button);
+                }
+            });
+        });
+
+        function startEdit(itemType, itemId, button) {
+            const titleElement = document.getElementById(`${itemType}-title-${itemId}`);
+            if (!titleElement) return;
+
+            const originalTitle = titleElement.textContent;
+            
+            // Create input field
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'edit-input';
+            input.value = originalTitle;
+            input.maxLength = 100;
+            
+            // Create action buttons
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'edit-actions';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'edit-save-btn';
+            saveBtn.textContent = 'Save';
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'edit-cancel-btn';
+            cancelBtn.textContent = 'Cancel';
+            
+            actionsDiv.appendChild(saveBtn);
+            actionsDiv.appendChild(cancelBtn);
+            
+            // Replace title with input and actions
+            titleElement.innerHTML = '';
+            titleElement.appendChild(input);
+            titleElement.appendChild(actionsDiv);
+            
+            // Focus and select input
+            input.focus();
+            input.select();
+            
+            // Save functionality
+            saveBtn.addEventListener('click', () => {
+                const newTitle = input.value.trim();
+                if (newTitle && newTitle !== originalTitle) {
+                    saveTitle(itemType, itemId, newTitle, titleElement);
+                } else {
+                    cancelEdit(titleElement, originalTitle);
+                }
+            });
+            
+            // Cancel functionality
+            cancelBtn.addEventListener('click', () => {
+                cancelEdit(titleElement, originalTitle);
+            });
+            
+            // Save on Enter key
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newTitle = input.value.trim();
+                    if (newTitle && newTitle !== originalTitle) {
+                        saveTitle(itemType, itemId, newTitle, titleElement);
+                    } else {
+                        cancelEdit(titleElement, originalTitle);
+                    }
+                }
+            });
+            
+            // Cancel on Escape key
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cancelEdit(titleElement, originalTitle);
+                }
+            });
+        }
+
+        function cancelEdit(titleElement, originalTitle) {
+            titleElement.innerHTML = originalTitle;
+        }
+
+        async function saveTitle(itemType, itemId, newTitle, titleElement) {
+            try {
+                const response = await fetch(`/api/${itemType}/${itemId}/update_title`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ title: newTitle })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    titleElement.innerHTML = newTitle;
+                } else {
+                    alert('Error updating title: ' + (result.message || 'Unknown error'));
+                    // Revert to original title
+                    titleElement.innerHTML = titleElement.textContent;
+                }
+            } catch (error) {
+                console.error('Error updating title:', error);
+                alert('Error updating title. Please try again.');
+                // Revert to original title
+                titleElement.innerHTML = titleElement.textContent;
+            }
         }
     </script>
 </body>

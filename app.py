@@ -5205,11 +5205,53 @@ def import_shared_resource(resource_id):
             
             # Create new folder in user's hub
             new_folder_id = str(uuid.uuid4())
+            new_folder_items = []
+            
+            # Copy each item from the original folder
+            for item_ref in original_folder.items:
+                item_id = item_ref.get('id')
+                item_type = item_ref.get('type')
+                
+                if item_type == 'note':
+                    # Copy the note
+                    original_note_doc = db.collection('notes').document(item_id).get()
+                    if original_note_doc.exists:
+                        original_note = Note.from_dict(original_note_doc.to_dict())
+                        new_note_id = str(uuid.uuid4())
+                        new_note = Note(
+                            id=new_note_id,
+                            hub_id=target_hub.id,
+                            title=f"{original_note.title} (Imported)",
+                            content_html=original_note.content_html,
+                            created_at=datetime.now(timezone.utc)
+                        )
+                        db.collection('notes').document(new_note_id).set(new_note.to_dict())
+                        new_folder_items.append({'id': new_note_id, 'type': 'note'})
+                
+                elif item_type in ['quiz', 'flashcards']:
+                    # Copy the activity
+                    original_activity_doc = db.collection('activities').document(item_id).get()
+                    if original_activity_doc.exists:
+                        original_activity = Activity.from_dict(original_activity_doc.to_dict())
+                        new_activity_id = str(uuid.uuid4())
+                        new_activity = Activity(
+                            id=new_activity_id,
+                            hub_id=target_hub.id,
+                            type=original_activity.type,
+                            title=f"{original_activity.title} (Imported)",
+                            data=original_activity.data,
+                            status='completed',  # Mark as completed since it's imported
+                            created_at=datetime.now(timezone.utc)
+                        )
+                        db.collection('activities').document(new_activity_id).set(new_activity.to_dict())
+                        new_folder_items.append({'id': new_activity_id, 'type': item_type})
+            
+            # Create the new folder with copied items
             new_folder = Folder(
                 id=new_folder_id,
                 hub_id=target_hub.id,
                 name=f"{original_folder.name} (Imported)",
-                items=original_folder.items,
+                items=new_folder_items,
                 created_at=datetime.now(timezone.utc)
             )
             db.collection('folders').document(new_folder_id).set(new_folder.to_dict())
@@ -5302,6 +5344,187 @@ def like_shared_resource(resource_id):
     except Exception as e:
         print(f"Error liking resource: {e}")
         return jsonify({"success": False, "message": "Error liking resource"}), 500
+
+# Edit title API endpoints
+@app.route('/api/folder/<folder_id>/update_title', methods=['POST'])
+@login_required
+def update_folder_title(folder_id):
+    """Update folder title"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            return jsonify({"success": False, "message": "Title cannot be empty"}), 400
+        
+        # Get the folder and verify ownership
+        folder_doc = db.collection('folders').document(folder_id).get()
+        if not folder_doc.exists:
+            return jsonify({"success": False, "message": "Folder not found"}), 404
+        
+        folder = Folder.from_dict(folder_doc.to_dict())
+        
+        # Verify user owns the hub that contains this folder
+        hub_doc = db.collection('hubs').document(folder.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to edit this folder"}), 403
+        
+        # Update the folder title
+        folder_doc.reference.update({'name': new_title})
+        
+        return jsonify({"success": True, "message": "Folder title updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating folder title: {e}")
+        return jsonify({"success": False, "message": "Error updating folder title"}), 500
+
+@app.route('/api/note/<note_id>/update_title', methods=['POST'])
+@login_required
+def update_note_title(note_id):
+    """Update note title"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            return jsonify({"success": False, "message": "Title cannot be empty"}), 400
+        
+        # Get the note and verify ownership
+        note_doc = db.collection('notes').document(note_id).get()
+        if not note_doc.exists:
+            return jsonify({"success": False, "message": "Note not found"}), 404
+        
+        note = Note.from_dict(note_doc.to_dict())
+        
+        # Verify user owns the hub that contains this note
+        hub_doc = db.collection('hubs').document(note.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to edit this note"}), 403
+        
+        # Update the note title
+        note_doc.reference.update({'title': new_title})
+        
+        return jsonify({"success": True, "message": "Note title updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating note title: {e}")
+        return jsonify({"success": False, "message": "Error updating note title"}), 500
+
+@app.route('/api/flashcards/<activity_id>/update_title', methods=['POST'])
+@login_required
+def update_flashcards_title(activity_id):
+    """Update flashcards title"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            return jsonify({"success": False, "message": "Title cannot be empty"}), 400
+        
+        # Get the activity and verify ownership
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            return jsonify({"success": False, "message": "Activity not found"}), 404
+        
+        activity = Activity.from_dict(activity_doc.to_dict())
+        
+        # Verify user owns the hub that contains this activity
+        hub_doc = db.collection('hubs').document(activity.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to edit this activity"}), 403
+        
+        # Update the activity title
+        activity_doc.reference.update({'title': new_title})
+        
+        return jsonify({"success": True, "message": "Flashcards title updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating flashcards title: {e}")
+        return jsonify({"success": False, "message": "Error updating flashcards title"}), 500
+
+@app.route('/api/quiz/<activity_id>/update_title', methods=['POST'])
+@login_required
+def update_quiz_title(activity_id):
+    """Update quiz title"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            return jsonify({"success": False, "message": "Title cannot be empty"}), 400
+        
+        # Get the activity and verify ownership
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            return jsonify({"success": False, "message": "Activity not found"}), 404
+        
+        activity = Activity.from_dict(activity_doc.to_dict())
+        
+        # Verify user owns the hub that contains this activity
+        hub_doc = db.collection('hubs').document(activity.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to edit this activity"}), 403
+        
+        # Update the activity title
+        activity_doc.reference.update({'title': new_title})
+        
+        return jsonify({"success": True, "message": "Quiz title updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating quiz title: {e}")
+        return jsonify({"success": False, "message": "Error updating quiz title"}), 500
+
+@app.route('/api/slide_notes/<session_id>/update_title', methods=['POST'])
+@login_required
+def update_slide_notes_title(session_id):
+    """Update slide notes title"""
+    try:
+        data = request.get_json()
+        new_title = data.get('title', '').strip()
+        
+        if not new_title:
+            return jsonify({"success": False, "message": "Title cannot be empty"}), 400
+        
+        # Get the slide notes session and verify ownership
+        session_doc = db.collection('slide_notes_sessions').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        
+        # Verify user owns the hub that contains this session
+        hub_doc = db.collection('hubs').document(session_data['hub_id']).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "You don't have permission to edit this session"}), 403
+        
+        # Update the session title
+        session_doc.reference.update({'title': new_title})
+        
+        return jsonify({"success": True, "message": "Slide notes title updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating slide notes title: {e}")
+        return jsonify({"success": False, "message": "Error updating slide notes title"}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION
