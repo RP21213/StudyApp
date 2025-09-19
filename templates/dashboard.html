@@ -203,12 +203,12 @@
         .earn-money-content {
             position: relative;
             z-index: 1;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--background-card, rgba(255, 255, 255, 0.95));
             backdrop-filter: blur(10px);
             border-radius: 20px;
             margin: 2rem;
             padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow, 0 20px 40px rgba(0, 0, 0, 0.1));
         }
         
         .earn-money-header {
@@ -293,7 +293,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            background: linear-gradient(45deg, #d97706, #b45309);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -301,7 +301,7 @@
             font-weight: bold;
             color: white;
             margin-bottom: 0.5rem;
-            border: 3px solid white;
+            border: 3px solid var(--border-color, white);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             position: relative;
             z-index: 2;
@@ -311,8 +311,8 @@
             width: 80px;
             height: 80px;
             font-size: 2rem;
-            background: linear-gradient(45deg, #ffd700, #ffb000);
-            border: 4px solid white;
+            background: linear-gradient(45deg, #b45309, #92400e);
+            border: 4px solid var(--border-color, white);
         }
         
         .podium-place.first .podium-avatar::after {
@@ -324,17 +324,17 @@
         }
         
         .podium-place.second .podium-avatar {
-            background: linear-gradient(45deg, #c0c0c0, #a0a0a0);
+            background: linear-gradient(45deg, #6b7280, #4b5563);
         }
         
         .podium-place.third .podium-avatar {
-            background: linear-gradient(45deg, #cd7f32, #b8860b);
+            background: linear-gradient(45deg, #92400e, #78350f);
         }
         
         .podium-base {
             width: 80px;
             height: 40px;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            background: linear-gradient(45deg, #d97706, #b45309);
             border-radius: 8px 8px 0 0;
             display: flex;
             align-items: center;
@@ -348,18 +348,18 @@
         .podium-place.first .podium-base {
             width: 100px;
             height: 60px;
-            background: linear-gradient(45deg, #ffd700, #ffb000);
+            background: linear-gradient(45deg, #b45309, #92400e);
             font-size: 1.5rem;
         }
         
         .podium-place.second .podium-base {
             height: 45px;
-            background: linear-gradient(45deg, #c0c0c0, #a0a0a0);
+            background: linear-gradient(45deg, #6b7280, #4b5563);
         }
         
         .podium-place.third .podium-base {
             height: 30px;
-            background: linear-gradient(45deg, #cd7f32, #b8860b);
+            background: linear-gradient(45deg, #92400e, #78350f);
         }
         
         .podium-name {
@@ -430,7 +430,7 @@
             position: absolute;
             left: 0;
             top: 0;
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            background: linear-gradient(45deg, #d97706, #b45309);
             color: white;
             width: 24px;
             height: 24px;
@@ -449,14 +449,14 @@
         .instructions-list li:last-child {
             margin-bottom: 0;
             padding: 1rem;
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            background: var(--background-light, rgba(251, 191, 36, 0.1));
             border-radius: 8px;
-            border-left: 4px solid #f59e0b;
+            border-left: 4px solid #d97706;
             font-weight: 600;
         }
         
         .instructions-list li:last-child::before {
-            background: linear-gradient(45deg, #ffd700, #ffb000);
+            background: linear-gradient(45deg, #d97706, #b45309);
             width: 28px;
             height: 28px;
             font-size: 0.9rem;
@@ -480,7 +480,7 @@
         }
         
         .referral-code-display {
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            background: linear-gradient(45deg, #d97706, #b45309);
             color: white;
             padding: 1rem 2rem;
             border-radius: 12px;
@@ -490,7 +490,7 @@
             margin: 1rem 0;
             display: inline-block;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-            border: 2px solid white;
+            border: 2px solid var(--border-color, white);
             position: relative;
             overflow: hidden;
         }
@@ -549,7 +549,7 @@
         .stat-number {
             font-size: 2rem;
             font-weight: 800;
-            color: #f59e0b;
+            color: #d97706;
             margin-bottom: 0.5rem;
         }
         
