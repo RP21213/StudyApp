@@ -722,6 +722,139 @@
             line-height: 1.6;
         }
 
+        /* Community Tabs Styles */
+        .community-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin: 2rem 0 1.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .community-tab {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .community-tab:hover {
+            color: var(--text-main);
+            background-color: var(--background-light);
+        }
+        .community-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: var(--background-light);
+        }
+        .community-tab i {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Community Tab Content */
+        .community-tab-content {
+            display: none;
+        }
+        .community-tab-content.active {
+            display: block;
+        }
+
+        /* Study Groups Styles */
+        .study-groups-container {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .study-groups-header {
+            margin-bottom: 1.5rem;
+        }
+        .study-groups-header h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+        .study-groups-header p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+        .study-groups-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .study-group-card {
+            background: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .study-group-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+        .study-group-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+        .study-group-card p {
+            margin: 0 0 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .study-group-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .study-group-code {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Study Group Modals */
+        .success-content {
+            text-align: center;
+        }
+        .study-group-code-display {
+            margin: 1.5rem 0;
+        }
+        .study-group-code-display h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+        }
+        .code-box {
+            font-family: 'Courier New', monospace;
+            font-size: 2rem;
+            font-weight: bold;
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: inline-block;
+            letter-spacing: 0.2em;
+        }
+        .study-group-code-display p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
         /* --- Profile Tab Styles --- */
         .profile-content-card {
             background-color: var(--background-white);
@@ -1198,18 +1331,51 @@
                         <p>Share your study materials with the community and discover resources from other students.</p>
                     </div>
                     <div class="header-actions">
-                         <button class="button" id="share-folder-btn">
+                        <button class="button" id="share-folder-btn">
                             <i data-lucide="share-2"></i> Share a Folder
+                        </button>
+                        <button class="button button-secondary" id="create-study-group-btn">
+                            <i data-lucide="users-plus"></i> Create a Study Group
+                        </button>
+                        <button class="button button-secondary" id="join-study-group-btn">
+                            <i data-lucide="user-plus"></i> Join a Study Group
                         </button>
                     </div>
                 </header>
                 
-                <!-- Clean slate - ready for innovative features -->
-                <div class="community-placeholder">
-                    <div class="placeholder-content">
-                        <i data-lucide="users" size="64" style="opacity: 0.3;"></i>
-                        <h2>Community Library</h2>
-                        <p>This space is ready for innovative community features. Start by sharing a folder to contribute to the community!</p>
+                <!-- Community Tabs -->
+                <div class="community-tabs">
+                    <button class="community-tab active" data-tab="global">
+                        <i data-lucide="globe"></i>
+                        <span>Global</span>
+                    </button>
+                    <button class="community-tab" data-tab="study-groups">
+                        <i data-lucide="users"></i>
+                        <span>Study Groups</span>
+                    </button>
+                </div>
+
+                <!-- Global Tab Content -->
+                <div id="global-tab" class="community-tab-content active">
+                    <div class="community-placeholder">
+                        <div class="placeholder-content">
+                            <i data-lucide="globe" size="64" style="opacity: 0.3;"></i>
+                            <h2>Global Community</h2>
+                            <p>Share and discover study materials from students worldwide. Your shared content will be visible to everyone in the global community.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Groups Tab Content -->
+                <div id="study-groups-tab" class="community-tab-content">
+                    <div class="study-groups-container">
+                        <div class="study-groups-header">
+                            <h3>Your Study Groups</h3>
+                            <p>Join study groups to share materials with specific groups of students.</p>
+                        </div>
+                        <div class="study-groups-list" id="study-groups-list">
+                            <!-- Study groups will be dynamically loaded here -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2291,7 +2457,239 @@
 
             onboardingModal.classList.add('visible');
         });
+
+        // Community Tab Functionality
+        const communityTabs = document.querySelectorAll('.community-tab');
+        const communityTabContents = document.querySelectorAll('.community-tab-content');
+
+        communityTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Update active tab
+                communityTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                communityTabContents.forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${targetTab}-tab`).classList.add('active');
+            });
+        });
+
+        // Study Group Modals
+        const createStudyGroupBtn = document.getElementById('create-study-group-btn');
+        const joinStudyGroupBtn = document.getElementById('join-study-group-btn');
+        const createStudyGroupModal = document.getElementById('create-study-group-modal');
+        const joinStudyGroupModal = document.getElementById('join-study-group-modal');
+        const studyGroupCreatedModal = document.getElementById('study-group-created-modal');
+
+        // Open modals
+        createStudyGroupBtn.addEventListener('click', () => {
+            createStudyGroupModal.classList.add('visible');
+        });
+
+        joinStudyGroupBtn.addEventListener('click', () => {
+            joinStudyGroupModal.classList.add('visible');
+        });
+
+        // Close modals
+        document.getElementById('close-create-study-group-modal').addEventListener('click', () => {
+            createStudyGroupModal.classList.remove('visible');
+        });
+
+        document.getElementById('close-join-study-group-modal').addEventListener('click', () => {
+            joinStudyGroupModal.classList.remove('visible');
+        });
+
+        document.getElementById('close-study-group-created-modal').addEventListener('click', () => {
+            studyGroupCreatedModal.classList.remove('visible');
+        });
+
+        document.getElementById('cancel-create-study-group').addEventListener('click', () => {
+            createStudyGroupModal.classList.remove('visible');
+        });
+
+        document.getElementById('cancel-join-study-group').addEventListener('click', () => {
+            joinStudyGroupModal.classList.remove('visible');
+        });
+
+        document.getElementById('close-study-group-created').addEventListener('click', () => {
+            studyGroupCreatedModal.classList.remove('visible');
+        });
+
+        // Generate random 5-digit code
+        function generateStudyGroupCode() {
+            return Math.floor(10000 + Math.random() * 90000).toString();
+        }
+
+        // Create Study Group Form
+        document.getElementById('create-study-group-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const name = formData.get('name');
+            const description = formData.get('description');
+            const code = generateStudyGroupCode();
+
+            try {
+                // Here you would make an API call to create the study group
+                // For now, we'll simulate it
+                console.log('Creating study group:', { name, description, code });
+                
+                // Show success modal with generated code
+                document.getElementById('generated-study-group-code').textContent = code;
+                createStudyGroupModal.classList.remove('visible');
+                studyGroupCreatedModal.classList.add('visible');
+                
+                // Reset form
+                e.target.reset();
+                
+                // Refresh study groups list
+                loadStudyGroups();
+                
+            } catch (error) {
+                console.error('Error creating study group:', error);
+                alert('Error creating study group. Please try again.');
+            }
+        });
+
+        // Join Study Group Form
+        document.getElementById('join-study-group-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const code = formData.get('code');
+
+            try {
+                // Here you would make an API call to join the study group
+                console.log('Joining study group with code:', code);
+                
+                // Simulate success
+                alert('Successfully joined study group!');
+                joinStudyGroupModal.classList.remove('visible');
+                
+                // Reset form
+                e.target.reset();
+                
+                // Refresh study groups list
+                loadStudyGroups();
+                
+            } catch (error) {
+                console.error('Error joining study group:', error);
+                alert('Invalid study group code. Please check and try again.');
+            }
+        });
+
+        // Copy study group code
+        document.getElementById('copy-study-group-code').addEventListener('click', () => {
+            const code = document.getElementById('generated-study-group-code').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Study group code copied to clipboard!');
+            });
+        });
+
+        // Load study groups (placeholder function)
+        function loadStudyGroups() {
+            const studyGroupsList = document.getElementById('study-groups-list');
+            
+            // This would be populated with actual study groups from the API
+            // For now, showing a placeholder
+            studyGroupsList.innerHTML = `
+                <div class="study-group-card">
+                    <h4>CS101 Study Group</h4>
+                    <p>Introduction to Computer Science study group</p>
+                    <div class="study-group-meta">
+                        <span>5 members</span>
+                        <span class="study-group-code">12345</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize study groups on page load
+        loadStudyGroups();
     </script>
     {% endif %}
+
+    <!-- Study Group Modals -->
+    <!-- Create Study Group Modal -->
+    <div class="modal-overlay" id="create-study-group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create a Study Group</h2>
+                <button class="modal-close" id="close-create-study-group-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="create-study-group-form">
+                    <div class="form-group">
+                        <label for="study-group-name">Study Group Name</label>
+                        <input type="text" id="study-group-name" name="name" placeholder="e.g., CS101 Study Group" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="study-group-description">Description (Optional)</label>
+                        <textarea id="study-group-description" name="description" placeholder="Describe what this study group is about..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="button button-secondary" id="cancel-create-study-group">Cancel</button>
+                        <button type="submit" class="button">Create Study Group</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Study Group Modal -->
+    <div class="modal-overlay" id="join-study-group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Join a Study Group</h2>
+                <button class="modal-close" id="close-join-study-group-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="join-study-group-form">
+                    <div class="form-group">
+                        <label for="study-group-code">Study Group Code</label>
+                        <input type="text" id="study-group-code" name="code" placeholder="Enter 5-digit code" maxlength="5" required>
+                        <small>Ask the study group creator for the 5-digit code</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="button button-secondary" id="cancel-join-study-group">Cancel</button>
+                        <button type="submit" class="button">Join Study Group</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Study Group Created Success Modal -->
+    <div class="modal-overlay" id="study-group-created-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Study Group Created! 🎉</h2>
+                <button class="modal-close" id="close-study-group-created-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="success-content">
+                    <div class="study-group-code-display">
+                        <h3>Your Study Group Code:</h3>
+                        <div class="code-box" id="generated-study-group-code">12345</div>
+                        <p>Share this code with others so they can join your study group!</p>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="button" id="copy-study-group-code">Copy Code</button>
+                        <button type="button" class="button button-secondary" id="close-study-group-created">Got it</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
