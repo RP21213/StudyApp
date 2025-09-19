@@ -5238,6 +5238,40 @@ def import_shared_resource(resource_id):
         print(f"Error importing resource: {e}")
         return jsonify({"success": False, "message": "Failed to import resource"}), 500
 
+@app.route('/api/resources/<resource_id>/like', methods=['POST'])
+@login_required
+def like_shared_resource(resource_id):
+    """Like or unlike a shared resource"""
+    try:
+        # Get the shared resource
+        shared_resource_doc = db.collection('shared_resources').document(resource_id).get()
+        if not shared_resource_doc.exists:
+            return jsonify({"success": False, "message": "Resource not found"}), 404
+        
+        shared_resource = SharedResource.from_dict(shared_resource_doc.to_dict())
+        
+        # Check if user has already liked this resource
+        user_liked = current_user.id in shared_resource.liked_by
+        
+        if user_liked:
+            # Unlike the resource
+            shared_resource_doc.reference.update({
+                'likes': shared_resource.likes - 1,
+                'liked_by': firestore.ArrayRemove([current_user.id])
+            })
+            return jsonify({"success": True, "liked": False, "likes": shared_resource.likes - 1})
+        else:
+            # Like the resource
+            shared_resource_doc.reference.update({
+                'likes': shared_resource.likes + 1,
+                'liked_by': firestore.ArrayUnion([current_user.id])
+            })
+            return jsonify({"success": True, "liked": True, "likes": shared_resource.likes + 1})
+        
+    except Exception as e:
+        print(f"Error liking resource: {e}")
+        return jsonify({"success": False, "message": "Error liking resource"}), 500
+
 # ==============================================================================
 # 9. MAIN EXECUTION
 # ==============================================================================

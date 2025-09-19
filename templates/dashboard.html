@@ -869,6 +869,112 @@
             margin: 0;
         }
 
+        /* Global Resources Styles */
+        .global-resources-container {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .global-resources-header {
+            margin-bottom: 1.5rem;
+        }
+        .global-resources-header h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+        .global-resources-header p {
+            margin: 0;
+            color: var(--text-secondary);
+        }
+        .global-resources-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .global-resource-card {
+            background: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+        .global-resource-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+        .global-resource-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+        .global-resource-card p {
+            margin: 0 0 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .global-resource-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .global-resource-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .global-resource-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .global-resource-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .import-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .import-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        .like-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .like-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        .like-btn.liked {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
         /* Radio Button Styles */
         .radio-group {
             display: flex;
@@ -1446,11 +1552,13 @@
 
                 <!-- Global Tab Content -->
                 <div id="global-tab" class="community-tab-content active">
-                    <div class="community-placeholder">
-                        <div class="placeholder-content">
-                            <i data-lucide="globe" size="64" style="opacity: 0.3;"></i>
-                            <h2>Global Community</h2>
-                            <p>Share and discover study materials from students worldwide. Your shared content will be visible to everyone in the global community.</p>
+                    <div class="global-resources-container">
+                        <div class="global-resources-header">
+                            <h3>Global Community Resources</h3>
+                            <p>Discover and import study materials shared by students worldwide.</p>
+                        </div>
+                        <div class="global-resources-list" id="global-resources-list">
+                            <!-- Global resources will be dynamically loaded here -->
                         </div>
                     </div>
                 </div>
@@ -2879,10 +2987,15 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        // Switch to study groups tab and show resources
-                        // This would open a modal or navigate to a resources view
-                        console.log('Study group resources:', result.resources);
-                        alert(`Found ${result.resources.length} resources in this study group!`);
+                        // Switch to study groups tab
+                        document.querySelectorAll('.community-tab').forEach(tab => tab.classList.remove('active'));
+                        document.querySelector('[data-tab="study-groups"]').classList.add('active');
+                        
+                        document.querySelectorAll('.community-tab-content').forEach(content => content.classList.remove('active'));
+                        document.getElementById('study-groups-tab').classList.add('active');
+                        
+                        // Display resources in the study groups tab
+                        displayStudyGroupResources(result.resources, studyGroupId);
                     } else {
                         alert(result.message || 'Error loading study group resources');
                     }
@@ -2892,8 +3005,212 @@
                 }
             }
 
+            // Display study group resources
+            function displayStudyGroupResources(resources, studyGroupId) {
+                const studyGroupsList = document.getElementById('study-groups-list');
+                if (!studyGroupsList) return;
+
+                if (resources.length === 0) {
+                    studyGroupsList.innerHTML = `
+                        <div class="study-group-card" style="text-align: center; grid-column: 1 / -1;">
+                            <h4>No Resources Yet</h4>
+                            <p>No resources have been shared in this study group yet.</p>
+                            <button class="button" onclick="loadStudyGroups()">Back to Study Groups</button>
+                        </div>
+                    `;
+                } else {
+                    studyGroupsList.innerHTML = `
+                        <div class="study-group-card" style="grid-column: 1 / -1; margin-bottom: 1rem;">
+                            <h4>Study Group Resources</h4>
+                            <p>Resources shared in this study group</p>
+                            <button class="button button-secondary" onclick="loadStudyGroups()">Back to Study Groups</button>
+                        </div>
+                        ${resources.map(resource => `
+                            <div class="study-group-card" data-resource-id="${resource.id}">
+                                <h4>${resource.title}</h4>
+                                <p>${resource.description || 'No description provided'}</p>
+                                <div class="study-group-meta">
+                                    <span>${resource.likes} like${resource.likes !== 1 ? 's' : ''}</span>
+                                    <span>${resource.imports} import${resource.imports !== 1 ? 's' : ''}</span>
+                                </div>
+                                ${resource.tags && resource.tags.length > 0 ? `
+                                    <div class="global-resource-tags">
+                                        ${resource.tags.map(tag => `<span class="global-resource-tag">${tag}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                                <div class="global-resource-actions">
+                                    <button class="import-btn" data-resource-id="${resource.id}">
+                                        <i data-lucide="download"></i> Import
+                                    </button>
+                                    <button class="like-btn" data-resource-id="${resource.id}">
+                                        <i data-lucide="heart"></i> ${resource.likes}
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    `;
+                    
+                    // Add click handlers to import and like buttons
+                    studyGroupsList.querySelectorAll('.import-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const resourceId = btn.dataset.resourceId;
+                            importResource(resourceId);
+                        });
+                    });
+                    
+                    studyGroupsList.querySelectorAll('.like-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const resourceId = btn.dataset.resourceId;
+                            likeResource(resourceId, btn);
+                        });
+                    });
+                }
+            }
+
             // Initialize study groups on page load
             loadStudyGroups();
+
+            // Load global resources on page load
+            loadGlobalResources();
+
+            // Load global resources from backend
+            async function loadGlobalResources() {
+                const globalResourcesList = document.getElementById('global-resources-list');
+                if (!globalResourcesList) return;
+
+                try {
+                    const response = await fetch('/api/resources/global');
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        if (result.resources.length === 0) {
+                            globalResourcesList.innerHTML = `
+                                <div class="global-resource-card" style="text-align: center; grid-column: 1 / -1;">
+                                    <h4>No Resources Yet</h4>
+                                    <p>Be the first to share a folder to the global community!</p>
+                                </div>
+                            `;
+                        } else {
+                            globalResourcesList.innerHTML = result.resources.map(resource => `
+                                <div class="global-resource-card" data-resource-id="${resource.id}">
+                                    <h4>${resource.title}</h4>
+                                    <p>${resource.description || 'No description provided'}</p>
+                                    <div class="global-resource-meta">
+                                        <span>${resource.likes} like${resource.likes !== 1 ? 's' : ''}</span>
+                                        <span>${resource.imports} import${resource.imports !== 1 ? 's' : ''}</span>
+                                    </div>
+                                    ${resource.tags && resource.tags.length > 0 ? `
+                                        <div class="global-resource-tags">
+                                            ${resource.tags.map(tag => `<span class="global-resource-tag">${tag}</span>`).join('')}
+                                        </div>
+                                    ` : ''}
+                                    <div class="global-resource-actions">
+                                        <button class="import-btn" data-resource-id="${resource.id}">
+                                            <i data-lucide="download"></i> Import
+                                        </button>
+                                        <button class="like-btn" data-resource-id="${resource.id}">
+                                            <i data-lucide="heart"></i> ${resource.likes}
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                            
+                            // Add click handlers to import and like buttons
+                            globalResourcesList.querySelectorAll('.import-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const resourceId = btn.dataset.resourceId;
+                                    importResource(resourceId);
+                                });
+                            });
+                            
+                            globalResourcesList.querySelectorAll('.like-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const resourceId = btn.dataset.resourceId;
+                                    likeResource(resourceId, btn);
+                                });
+                            });
+                        }
+                    } else {
+                        globalResourcesList.innerHTML = `
+                            <div class="global-resource-card" style="text-align: center; grid-column: 1 / -1;">
+                                <h4>Error Loading Resources</h4>
+                                <p>Please try refreshing the page.</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error loading global resources:', error);
+                    globalResourcesList.innerHTML = `
+                        <div class="global-resource-card" style="text-align: center; grid-column: 1 / -1;">
+                            <h4>Error Loading Resources</h4>
+                            <p>Please try refreshing the page.</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // Import a resource
+            async function importResource(resourceId) {
+                try {
+                    const response = await fetch(`/api/resources/${resourceId}/import`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Resource imported successfully!');
+                        // Refresh the global resources list
+                        loadGlobalResources();
+                    } else {
+                        alert(result.message || 'Error importing resource. Please try again.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error importing resource:', error);
+                    alert('Error importing resource. Please try again.');
+                }
+            }
+
+            // Like a resource
+            async function likeResource(resourceId, button) {
+                try {
+                    const response = await fetch(`/api/resources/${resourceId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update the button and count
+                        const isLiked = result.liked;
+                        const newCount = result.likes;
+                        
+                        if (isLiked) {
+                            button.classList.add('liked');
+                        } else {
+                            button.classList.remove('liked');
+                        }
+                        
+                        button.innerHTML = `<i data-lucide="heart"></i> ${newCount}`;
+                        
+                        // Refresh the global resources list to update all counts
+                        loadGlobalResources();
+                    } else {
+                        alert(result.message || 'Error liking resource. Please try again.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error liking resource:', error);
+                    alert('Error liking resource. Please try again.');
+                }
+            }
 
             // Share folder button functionality
             const shareFolderBtn = document.getElementById('share-folder-btn');
