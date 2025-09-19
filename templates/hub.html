@@ -2290,6 +2290,10 @@
 
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
+                    // Allow the Back to Dashboard button to navigate normally
+                    if (link.classList.contains('back-to-dashboard')) {
+                        return; // Let the default link behavior work
+                    }
                     e.preventDefault();
                     showTab(e.currentTarget.dataset.tab);
                 });
