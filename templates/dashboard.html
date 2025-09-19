@@ -243,6 +243,8 @@
         .modal-content {
             background: var(--background-white); padding: 2rem; border-radius: 12px;
             width: 100%; max-width: 450px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1001;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
@@ -251,8 +253,20 @@
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; }
         .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);
-            font-size: 1rem; box-sizing: border-box; background-color: var(--background-light); color: var(--text-main);
+            width: 100%; 
+            padding: 0.75rem 1rem; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color);
+            font-size: 1rem; 
+            box-sizing: border-box; 
+            background-color: var(--background-light); 
+            color: var(--text-main);
+            transition: border-color 0.2s ease;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         .form-group textarea { min-height: 80px; }
         .modal-content .button { width: 100%; justify-content: center; }
@@ -1876,8 +1890,6 @@
                 shareModalOverlay.classList.add('visible');
             }
             // Share folder button will be handled in the community tab section
-            document.getElementById('close-share-modal-btn')?.addEventListener('click', () => shareModalOverlay.classList.remove('visible'));
-            if(shareModalOverlay) shareModalOverlay.addEventListener('click', e => { if (e.target === shareModalOverlay) shareModalOverlay.classList.remove('visible'); });
             
             if (folderSelect && folderTitleInput) {
                 folderSelect.addEventListener('change', () => {
@@ -2896,6 +2908,21 @@
                 if (shareModalOverlay) {
                     shareModalOverlay.classList.add('visible');
                     loadStudyGroupsForSharing();
+                    
+                    // Debug: Check if form elements are accessible
+                    const titleInput = document.getElementById('folder-title');
+                    const descInput = document.getElementById('folder-description');
+                    const tagsInput = document.getElementById('folder-tags');
+                    
+                    console.log('Title input:', titleInput);
+                    console.log('Description input:', descInput);
+                    console.log('Tags input:', tagsInput);
+                    
+                    // Test if inputs are disabled
+                    if (titleInput) {
+                        console.log('Title input disabled:', titleInput.disabled);
+                        console.log('Title input readonly:', titleInput.readOnly);
+                    }
                 }
             }
 
@@ -2954,9 +2981,25 @@
                     const folderSelect = document.getElementById('folder-select');
                     const selectedOption = folderSelect.options[folderSelect.selectedIndex];
                     const hubId = selectedOption.getAttribute('data-hub-id');
+                    
+                    // Debug: Check if hub_id was found
+                    console.log('Selected option:', selectedOption);
+                    console.log('Hub ID from data-hub-id:', hubId);
+                    console.log('All data attributes:', selectedOption.dataset);
+
+                    // Debug: Log all form values
+                    console.log('Form validation debug:');
+                    console.log('folderId:', folderId);
+                    console.log('title:', title);
+                    console.log('description:', description);
+                    console.log('hubId:', hubId);
+                    console.log('tags:', tags);
+                    console.log('shareDestination:', shareDestination);
+                    console.log('studyGroupId:', studyGroupId);
 
                     // Validate form
                     if (!folderId || !title || !description || !hubId) {
+                        console.log('Validation failed - missing required fields');
                         alert('Please fill in all required fields.');
                         return;
                     }
@@ -3007,6 +3050,17 @@
                 });
             }
 
+            // Close button
+            const closeShareBtn = document.getElementById('close-share-modal-btn');
+            if (closeShareBtn) {
+                closeShareBtn.addEventListener('click', () => {
+                    shareModalOverlay.classList.remove('visible');
+                    shareForm.reset();
+                    studyGroupSelection.style.display = 'none';
+                    studyGroupSelect.required = false;
+                });
+            }
+
             // Cancel button
             const cancelShareBtn = document.getElementById('cancel-share-folder');
             if (cancelShareBtn) {
@@ -3015,6 +3069,18 @@
                     shareForm.reset();
                     studyGroupSelection.style.display = 'none';
                     studyGroupSelect.required = false;
+                });
+            }
+
+            // Close modal when clicking outside
+            if (shareModalOverlay) {
+                shareModalOverlay.addEventListener('click', (e) => {
+                    if (e.target === shareModalOverlay) {
+                        shareModalOverlay.classList.remove('visible');
+                        shareForm.reset();
+                        studyGroupSelection.style.display = 'none';
+                        studyGroupSelect.required = false;
+                    }
                 });
             }
 

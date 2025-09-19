@@ -1343,7 +1343,7 @@ def dashboard():
         folders_query = db.collection('folders').where('hub_id', '==', hub.id).stream()
         for folder_doc in folders_query:
             folder = Folder.from_dict(folder_doc.to_dict())
-            all_user_folders.append({"id": folder.id, "name": folder.name, "hub_name": hub.name})
+            all_user_folders.append({"id": folder.id, "name": folder.name, "hub_name": hub.name, "hub_id": hub.id})
 
     hubs_for_json = [hub.to_dict() for hub in hubs_list]
     stats = _get_user_stats(current_user.id)
