@@ -8,7 +8,7 @@ import markdown
 import re
 import random
 from datetime import datetime, timezone
-from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify
+from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from openai import OpenAI
