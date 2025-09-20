@@ -2994,6 +2994,23 @@
                 });
             }
 
+            // Referral System API Functions (moved before tab handler)
+            async function fetchUserStats() {
+                try {
+                    const response = await fetch('/api/referrals/user-stats');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        updateReferralDisplay(data.stats);
+                        updateMilestones(data.stats.milestones);
+                        updateStats(data.stats);
+                    }
+                } catch (error) {
+                    console.error('Error fetching user stats:', error);
+                    showError('Failed to load referral stats');
+                }
+            }
+
             // Tab functionality
             const tabs = document.querySelectorAll('.nav-tab');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -3014,6 +3031,14 @@
                             }
                         });
                         history.pushState(null, '', '#' + targetId);
+                        
+                        // Special handling for earn-money tab
+                        if (targetId === 'earn-money') {
+                            setTimeout(() => {
+                                fetchUserStats();
+                                fetchLeaderboard();
+                            }, 100);
+                        }
                     });
                 }
             });
@@ -3047,22 +3072,6 @@
                 });
             }
 
-            // Referral System API Functions
-            async function fetchUserStats() {
-                try {
-                    const response = await fetch('/api/referrals/user-stats');
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        updateReferralDisplay(data.stats);
-                        updateMilestones(data.stats.milestones);
-                        updateStats(data.stats);
-                    }
-                } catch (error) {
-                    console.error('Error fetching user stats:', error);
-                    showError('Failed to load referral stats');
-                }
-            }
             
             async function fetchLeaderboard() {
                 try {
@@ -3229,18 +3238,7 @@
             
             // Initialize referral system on page load
             document.addEventListener('DOMContentLoaded', function() {
-                // Load referral data when Earn Money tab is activated
-                const earnMoneyTab = document.querySelector('.nav-tab[data-tab="earn-money"]');
-                if (earnMoneyTab) {
-                    earnMoneyTab.addEventListener('click', function() {
-                        setTimeout(() => {
-                            fetchUserStats();
-                            fetchLeaderboard();
-                        }, 100); // Small delay to ensure tab is visible
-                    });
-                }
-                
-                // Also load if already on earn-money tab
+                // Load referral data if already on earn-money tab
                 if (window.location.hash === '#earn-money') {
                     setTimeout(() => {
                         fetchUserStats();
