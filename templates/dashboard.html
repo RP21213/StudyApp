@@ -2469,7 +2469,7 @@
 
                 <!-- Referrals Leaderboard -->
                 <div class="leaderboard-section">
-                    <h2>Referrals Leaderboard</h2>
+                    <h2>Referrals Leaderboard - The top three referees every month win a HUGE cash prize</h2>
                     <div class="leaderboard-grid" id="leaderboard-grid">
                         <div class="leaderboard-card loading-card">
                             <div class="avatar">⏳</div>
@@ -3322,7 +3322,7 @@
                 leaderboardGrid.innerHTML = leaderboard.map((user, index) => {
                     const rankClass = index === 0 ? 'first-place' : index === 1 ? 'second-place' : index === 2 ? 'third-place' : '';
                     const rankBadge = index < 3 ? `${index + 1}${index === 0 ? 'st' : index === 1 ? 'nd' : 'rd'}` : `${index + 1}`;
-                    const avatar = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏆';
+                    const avatar = index === 0 ? '£100' : index === 1 ? '£50' : index === 2 ? '£25' : '🏆';
                     
                     return `
                         <div class="leaderboard-card ${rankClass}">
