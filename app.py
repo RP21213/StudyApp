@@ -150,11 +150,17 @@ try:
     BUCKET_NAME = os.getenv("FIREBASE_BUCKET_NAME", "ai-study-hub-f3040.firebasestorage.app")
     firebase_admin.initialize_app(cred, {'storageBucket': BUCKET_NAME})
     print("Firebase initialized successfully!")
+    
+    # Initialize Firestore and Storage only if Firebase init succeeded
+    db = firestore.client()
+    bucket = storage.bucket()
+    
 except Exception as e:
     print(f"Firebase initialization failed. Error: {e}")
-
-db = firestore.client()
-bucket = storage.bucket()
+    print("⚠️  Running in development mode without Firebase - some features will be limited")
+    # Set dummy objects for development
+    db = None
+    bucket = None
 
 # --- Flask App and OpenAI Client Initialization (MODIFIED) ---
 app = Flask(__name__)
@@ -195,6 +201,85 @@ def validate_referral_code(code):
         user_data = user_doc.to_dict()
         return User.from_dict(user_data)
     return None
+
+def process_referral_rewards(user_id):
+    """Process referral rewards when a user subscribes to Pro"""
+    try:
+        # Get the user who just subscribed
+        user_doc = db.collection('users').document(user_id).get()
+        if not user_doc.exists:
+            print(f"User {user_id} not found for referral processing")
+            return
+        
+        user_data = user_doc.to_dict()
+        user = User.from_dict(user_data)
+        
+        # Check if this user was referred
+        if not user.referred_by:
+            print(f"User {user.email} was not referred - no rewards to process")
+            return
+        
+        # Find the referral record
+        referrals_query = db.collection('referrals').where('referred_id', '==', user_id).where('status', '==', 'pending').stream()
+        
+        for referral_doc in referrals_query:
+            referral_data = referral_doc.to_dict()
+            referral = Referral.from_dict(referral_data)
+            
+            # Update referral status
+            referral.status = 'pro_subscribed'
+            referral.pro_subscribed_at = datetime.now(timezone.utc)
+            referral_doc.reference.update({
+                'status': 'pro_subscribed',
+                'pro_subscribed_at': referral.pro_subscribed_at
+            })
+            
+            # Update referrer's stats
+            referrer_ref = db.collection('users').document(referral.referrer_id)
+            referrer_ref.update({
+                'pro_referral_count': firestore.Increment(1)
+            })
+            
+            # Get updated referrer data to check milestones
+            referrer_doc = referrer_ref.get()
+            referrer_data = referrer_doc.to_dict()
+            new_count = referrer_data.get('pro_referral_count', 0)
+            
+            # Process milestone rewards
+            reward_processed = False
+            if new_count == 3:
+                # Give 1 month Pro for free
+                referrer_ref.update({
+                    'subscription_tier': 'pro',
+                    'subscription_active': True
+                })
+                referral.reward_type = 'pro_month'
+                referral.reward_amount = 9.99  # Approximate Pro monthly value
+                reward_processed = True
+                print(f"🎉 {referrer_data.get('email', 'Unknown')} reached 3 referrals! Reward: 1 month Pro free")
+                
+            elif new_count in [10, 20, 50]:
+                # Mark for gift card reward (manual processing needed)
+                gift_amounts = {10: 20, 20: 50, 50: 100}
+                referral.reward_type = 'giftcard'
+                referral.reward_amount = gift_amounts[new_count]
+                reward_processed = True
+                print(f"🎉 {referrer_data.get('email', 'Unknown')} reached {new_count} referrals! Reward: £{gift_amounts[new_count]} Amazon giftcard")
+            
+            # Update referral record with reward info
+            referral_doc.reference.update({
+                'reward_type': referral.reward_type,
+                'reward_amount': referral.reward_amount
+            })
+            
+            print(f"✅ Processed referral for user {user.email} -> {referrer_data.get('email', 'Unknown')}, new count: {new_count}")
+            
+            # Send notification to referrer (optional - you can implement this later)
+            # send_referral_notification(referral.referrer_id, new_count, reward_processed)
+            
+    except Exception as e:
+        print(f"Error in process_referral_rewards: {e}")
+        raise
 
 SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1/"
 SPOTIFY_REDIRECT_URI = os.getenv("YOUR_DOMAIN", "http://127.0.0.1:5000") + "/spotify/callback"
@@ -1246,8 +1331,8 @@ def signup():
             flash('Phone number already registered.')
             return redirect(url_for('signup'))
         
-        # Verify phone number was verified in session
-        if not session.get(f'phone_verified_{phone_number}'):
+        # Verify phone number was verified in session (skip in development)
+        if not session.get(f'phone_verified_{phone_number}') and not app.debug:
             flash('Please verify your phone number first.')
             return redirect(url_for('signup'))
         
@@ -2182,6 +2267,12 @@ def stripe_webhook():
                 'stripe_subscription_id': session.subscription
             })
             print(f"User {user_id} successfully subscribed to Pro plan.")
+            
+            # --- NEW: Process Referral Rewards ---
+            try:
+                process_referral_rewards(user_id)
+            except Exception as e:
+                print(f"Error processing referral rewards for user {user_id}: {e}")
 
     # Handle other subscription events like cancellations
     elif event['type'] == 'customer.subscription.deleted':
@@ -5888,84 +5979,6 @@ def get_referral_leaderboard():
         print(f"Error getting leaderboard: {e}")
         return jsonify({"success": False, "message": "Error getting leaderboard"}), 500
 
-@app.route('/api/referrals/process-pro-subscription', methods=['POST'])
-@login_required
-def process_pro_subscription_referral():
-    """Process referral when user subscribes to Pro (called from subscription webhook)"""
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            return jsonify({"success": False, "message": "User ID is required"}), 400
-        
-        # Get the user who just subscribed
-        user_doc = db.collection('users').document(user_id).get()
-        if not user_doc.exists:
-            return jsonify({"success": False, "message": "User not found"}), 404
-        
-        user_data = user_doc.to_dict()
-        user = User.from_dict(user_data)
-        
-        # Check if this user was referred
-        if not user.referred_by:
-            return jsonify({"success": True, "message": "No referral to process"})
-        
-        # Find the referral record
-        referrals_query = db.collection('referrals').where('referred_id', '==', user_id).where('status', '==', 'pending').stream()
-        
-        for referral_doc in referrals_query:
-            referral_data = referral_doc.to_dict()
-            referral = Referral.from_dict(referral_data)
-            
-            # Update referral status
-            referral.status = 'pro_subscribed'
-            referral.pro_subscribed_at = datetime.now(timezone.utc)
-            referral_doc.reference.update({
-                'status': 'pro_subscribed',
-                'pro_subscribed_at': referral.pro_subscribed_at
-            })
-            
-            # Update referrer's stats
-            referrer_ref = db.collection('users').document(referral.referrer_id)
-            referrer_ref.update({
-                'pro_referral_count': firestore.Increment(1)
-            })
-            
-            # Check for milestone rewards
-            referrer_doc = referrer_ref.get()
-            referrer_data = referrer_doc.to_dict()
-            new_count = referrer_data.get('pro_referral_count', 0)
-            
-            # Process milestone rewards
-            if new_count == 3:
-                # Give 1 month Pro for free
-                referrer_ref.update({
-                    'subscription_tier': 'pro',
-                    'subscription_active': True
-                })
-                referral.reward_type = 'pro_month'
-                referral.reward_amount = 9.99  # Approximate Pro monthly value
-                
-            elif new_count in [10, 20, 50]:
-                # Mark for gift card reward (manual processing)
-                gift_amounts = {10: 20, 20: 50, 50: 100}
-                referral.reward_type = 'giftcard'
-                referral.reward_amount = gift_amounts[new_count]
-            
-            # Update referral record with reward info
-            referral_doc.reference.update({
-                'reward_type': referral.reward_type,
-                'reward_amount': referral.reward_amount
-            })
-            
-            print(f"Processed referral for user {user.email} -> {referral.referrer_id}, new count: {new_count}")
-        
-        return jsonify({"success": True, "message": "Referral processed successfully"})
-        
-    except Exception as e:
-        print(f"Error processing referral: {e}")
-        return jsonify({"success": False, "message": "Error processing referral"}), 500
 
 # ==============================================================================
 # 9. MAIN EXECUTION
