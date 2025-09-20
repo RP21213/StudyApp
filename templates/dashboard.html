@@ -3055,9 +3055,10 @@
 
             function copyReferralCode() {
                 const referralCode = document.getElementById('referral-code').textContent;
+                const button = document.querySelector('.copy-code-button');
+                
                 navigator.clipboard.writeText(referralCode).then(() => {
                     // Show success feedback
-                    const button = event.target;
                     const originalText = button.innerHTML;
                     button.innerHTML = '✅ Copied!';
                     button.style.background = 'linear-gradient(45deg, #10b981, #059669)';
