@@ -165,6 +165,118 @@
             background-image: linear-gradient(to right, #f59e0b, #d97706); /* amber -> orange */
         }
         
+        .side-panel .nav-tab.active[data-tab="my-values"] {
+            background-image: linear-gradient(to right, #3b82f6, #1d4ed8); /* blue gradient */
+        }
+        
+        /* My Values Tab - Crisis Support */
+        .values-section {
+            margin-top: 2rem;
+        }
+        
+        .crisis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .crisis-card {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .flag-container {
+            flex-shrink: 0;
+            width: 60px;
+            height: 40px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        
+        .palestine-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #000 0%, #000 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #009639 66.66%, #009639 100%);
+        }
+        
+        .syria-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #ce1126 0%, #ce1126 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #000 66.66%, #000 100%);
+        }
+        
+        .sudan-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, 
+                #d21034 0%, #d21034 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #000 66.66%, #000 100%);
+        }
+        
+        .yemen-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #ce1126 0%, #ce1126 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #000 66.66%, #000 100%);
+        }
+        
+        .crisis-info h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .crisis-info p {
+            color: var(--text-secondary);
+            margin: 0 0 1rem 0;
+            line-height: 1.5;
+        }
+        
+        .crisis-info ul {
+            margin: 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .crisis-info li {
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+        }
+        
+        /* Responsive Design for My Values */
+        @media (max-width: 768px) {
+            .crisis-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .crisis-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .flag-container {
+                align-self: center;
+            }
+        }
+        
         /* Earn Money Tab - Consistent with Site Aesthetic */
         
         /* Referral Code Section */
@@ -2166,6 +2278,10 @@
                 <i data-lucide="dollar-sign"></i>
                 <span>💰 Earn Money</span>
             </a>
+            <a href="#" class="nav-tab" data-tab="my-values">
+                <i data-lucide="heart"></i>
+                <span>💙 My Values</span>
+            </a>
             <a href="#" class="nav-tab" data-tab="profile">
                 <i data-lucide="user"></i>
                 <span>😎 Profile</span>
@@ -2497,6 +2613,90 @@
                             <div class="stat-icon">🎯</div>
                             <div class="stat-number" id="milestones-reached">0/4</div>
                             <div class="stat-label">Milestones</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="my-values" class="tab-content">
+            <div class="container">
+                <header>
+                    <div class="header-text">
+                        <h1>💙 My Values</h1>
+                        <p>This site was built during a time of global crisis. It is important that we remember and acknowledge those currently suffering around the world. 10% of all proceeds from this site goes towards supporting those in crisis.</p>
+                    </div>
+                </header>
+                
+                <!-- Crisis Support Section -->
+                <div class="values-section">
+                    <div class="crisis-grid">
+                        <!-- Palestine -->
+                        <div class="crisis-card">
+                            <div class="flag-container">
+                                <div class="palestine-flag"></div>
+                            </div>
+                            <div class="crisis-info">
+                                <h3>Palestine</h3>
+                                <p>Supporting humanitarian aid and relief efforts in Palestine through donations to:</p>
+                                <ul>
+                                    <li>Palestinian Red Crescent Society</li>
+                                    <li>UNRWA (UN Relief and Works Agency)</li>
+                                    <li>Medical Aid for Palestinians</li>
+                                    <li>Palestine Children's Relief Fund</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Syria -->
+                        <div class="crisis-card">
+                            <div class="flag-container">
+                                <div class="syria-flag"></div>
+                            </div>
+                            <div class="crisis-info">
+                                <h3>Syria</h3>
+                                <p>Supporting refugees and displaced families through donations to:</p>
+                                <ul>
+                                    <li>UNHCR (UN Refugee Agency)</li>
+                                    <li>Syrian American Medical Society</li>
+                                    <li>International Rescue Committee</li>
+                                    <li>Save the Children Syria</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Sudan -->
+                        <div class="crisis-card">
+                            <div class="flag-container">
+                                <div class="sudan-flag"></div>
+                            </div>
+                            <div class="crisis-info">
+                                <h3>Sudan</h3>
+                                <p>Supporting emergency relief and medical aid through donations to:</p>
+                                <ul>
+                                    <li>Doctors Without Borders Sudan</li>
+                                    <li>UNICEF Sudan</li>
+                                    <li>World Food Programme Sudan</li>
+                                    <li>International Committee of the Red Cross Sudan</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Yemen -->
+                        <div class="crisis-card">
+                            <div class="flag-container">
+                                <div class="yemen-flag"></div>
+                            </div>
+                            <div class="crisis-info">
+                                <h3>Yemen</h3>
+                                <p>Supporting humanitarian assistance and food security through donations to:</p>
+                                <ul>
+                                    <li>UNICEF Yemen</li>
+                                    <li>World Food Programme Yemen</li>
+                                    <li>Médecins Sans Frontières Yemen</li>
+                                    <li>Yemen Relief and Reconstruction Foundation</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
