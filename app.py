@@ -2274,6 +2274,14 @@ def stripe_webhook():
             })
             print(f"User {user_id} successfully subscribed to Pro plan.")
             
+            # Verify the update worked
+            updated_user_doc = db.collection('users').document(user_id).get()
+            if updated_user_doc.exists:
+                updated_data = updated_user_doc.to_dict()
+                print(f"✅ User subscription updated - Tier: {updated_data.get('subscription_tier')}, Active: {updated_data.get('subscription_active')}")
+            else:
+                print(f"❌ Failed to verify user subscription update")
+            
             # --- NEW: Process Referral Rewards ---
             try:
                 print(f"🎯 Starting referral rewards processing for user {user_id}")
@@ -2297,6 +2305,25 @@ def stripe_webhook():
             print(f"User {user_doc.id}'s subscription was cancelled.")
 
     return 'Success', 200
+
+@app.route('/debug/subscription-status')
+@login_required
+def debug_subscription_status():
+    """Debug route to check user's subscription status"""
+    user_doc = db.collection('users').document(current_user.id).get()
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+        return jsonify({
+            "user_id": current_user.id,
+            "email": current_user.email,
+            "subscription_tier": user_data.get('subscription_tier'),
+            "subscription_active": user_data.get('subscription_active'),
+            "stripe_customer_id": user_data.get('stripe_customer_id'),
+            "stripe_subscription_id": user_data.get('stripe_subscription_id'),
+            "referred_by": user_data.get('referred_by'),
+            "pro_referral_count": user_data.get('pro_referral_count', 0)
+        })
+    return jsonify({"error": "User not found"}), 404
 
 # ==============================================================================
 # 6. CORE APP & HUB ROUTES
