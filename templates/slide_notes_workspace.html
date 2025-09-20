@@ -148,6 +148,228 @@
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
+
+        /* Annotation Tools */
+        .slide-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        #annotation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .annotation-tools {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background-color: var(--background-card);
+            border-bottom: 1px solid var(--border-color);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .annotation-tool {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--background-card);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .annotation-tool:hover {
+            background-color: var(--background-interactive-hover);
+        }
+
+        .annotation-tool.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* AI Q&A Modal */
+        .ai-qa-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ai-qa-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .ai-qa-content {
+            background: var(--background-card);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-qa-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .ai-qa-header h2 {
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .close-qa-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .suggested-questions {
+            margin-bottom: 1.5rem;
+        }
+
+        .suggested-questions h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .question-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .question-chip {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-light);
+            border: 1px solid var(--primary-color);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+        }
+
+        .question-chip:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .qa-input-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .qa-input-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        #qa-text-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--background-body);
+            color: var(--text-main);
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        .qa-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .qa-response {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--background-body);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .qa-response h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+        }
+
+        .qa-response p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Glossary Tooltips */
+        .glossary-tooltip {
+            position: absolute;
+            background: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-width: 300px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+
+        .glossary-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .glossary-tooltip h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .glossary-tooltip p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .glossary-highlight {
+            background-color: rgba(79, 70, 229, 0.2);
+            border-bottom: 2px solid var(--primary-color);
+            cursor: help;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -166,12 +388,32 @@
     <main class="split-container">
         <div class="slide-pane">
             <div class="slide-viewer" id="slide-viewer">
-                <canvas id="pdf-canvas"></canvas>
+                <div class="slide-container">
+                    <canvas id="pdf-canvas"></canvas>
+                    <canvas id="annotation-canvas"></canvas>
+                </div>
+                <div class="annotation-tools">
+                    <button id="highlight-btn" class="annotation-tool active" data-tool="highlight" title="Highlight text">
+                        <span>🖍️</span> Highlight
+                    </button>
+                    <button id="draw-btn" class="annotation-tool" data-tool="draw" title="Draw on slide">
+                        <span>✏️</span> Draw
+                    </button>
+                    <button id="erase-btn" class="annotation-tool" data-tool="erase" title="Erase annotations">
+                        <span>🧹</span> Erase
+                    </button>
+                    <button id="clear-annotations-btn" class="annotation-tool" data-tool="clear" title="Clear all annotations">
+                        <span>🗑️</span> Clear
+                    </button>
+                </div>
             </div>
             <div class="slide-controls">
                 <button id="prev-page">Previous</button>
                 <span id="page-num"></span> / <span id="page-count"></span>
                 <button id="next-page">Next</button>
+                <button id="ai-qa-btn" class="button button-secondary" style="margin-left: 1rem;">
+                    <span>🤖</span> Ask AI about this slide
+                </button>
             </div>
         </div>
 
@@ -183,6 +425,49 @@
             <div id="notes-editor-container"></div>
         </div>
     </main>
+
+    <!-- AI Q&A Modal -->
+    <div id="ai-qa-modal" class="ai-qa-modal">
+        <div class="ai-qa-content">
+            <div class="ai-qa-header">
+                <h2>🤖 Ask AI about this slide</h2>
+                <button class="close-qa-modal" onclick="closeQAModal()">&times;</button>
+            </div>
+            
+            <div class="suggested-questions">
+                <h3>Suggested questions:</h3>
+                <div class="question-chips">
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">Explain in simpler terms</div>
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">Give me a real-world example</div>
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">How does this relate to previous topics?</div>
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">What are the key takeaways?</div>
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">Can you provide more context?</div>
+                    <div class="question-chip" onclick="askSuggestedQuestion(this.textContent)">What questions might appear on an exam?</div>
+                </div>
+            </div>
+            
+            <div class="qa-input-section">
+                <h3>Or ask your own question:</h3>
+                <textarea id="qa-text-input" placeholder="Type your question about this slide..."></textarea>
+            </div>
+            
+            <div class="qa-actions">
+                <button class="button button-secondary" onclick="closeQAModal()">Cancel</button>
+                <button id="submit-qa-btn" class="button button-primary" onclick="submitQuestion()">Ask AI</button>
+            </div>
+            
+            <div id="qa-response" class="qa-response" style="display: none;">
+                <h4>AI Response:</h4>
+                <p id="qa-response-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glossary Tooltip -->
+    <div id="glossary-tooltip" class="glossary-tooltip">
+        <h4 id="tooltip-term"></h4>
+        <p id="tooltip-definition"></p>
+    </div>
 
     <!-- PDF.js and Quill.js libraries -->
     <script src="https://mozilla.github.io/pdf.js/build/pdf.mjs" type="module"></script>
@@ -197,12 +482,21 @@
         const pdfUrl = "{{ pdf_url }}";
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
+        const annotationCanvas = document.getElementById('annotation-canvas');
+        const annotationCtx = annotationCanvas.getContext('2d');
         const prevPageBtn = document.getElementById('prev-page');
         const nextPageBtn = document.getElementById('next-page');
         const pageNumEl = document.getElementById('page-num');
         const pageCountEl = document.getElementById('page-count');
         const saveBtn = document.getElementById('save-notes-btn');
         const saveStatus = document.getElementById('save-status');
+        const aiQaBtn = document.getElementById('ai-qa-btn');
+        const aiQaModal = document.getElementById('ai-qa-modal');
+        const qaTextInput = document.getElementById('qa-text-input');
+        const submitQaBtn = document.getElementById('submit-qa-btn');
+        const qaResponse = document.getElementById('qa-response');
+        const qaResponseText = document.getElementById('qa-response-text');
+        const glossaryTooltip = document.getElementById('glossary-tooltip');
 
         // --- State Management ---
         let pdfDoc = null;
@@ -211,6 +505,17 @@
         let pageNumPending = null;
         let scale = 1.5;
         let slideNotesData = {}; // Object to store notes HTML for each slide, e.g., { 1: "<p>...</p>", 2: "<p>...</p>" }
+        
+        // Annotation state
+        let currentTool = 'highlight';
+        let isDrawing = false;
+        let annotationData = {}; // Store annotations per page
+        let lastX = 0;
+        let lastY = 0;
+        
+        // Glossary state
+        let glossaryTerms = new Map();
+        let tooltipTimeout = null;
 
         // --- Quill Editor Setup ---
         const quill = new Quill('#notes-editor-container', {
@@ -233,9 +538,20 @@
             const viewport = page.getViewport({ scale: scale });
             canvas.height = viewport.height;
             canvas.width = viewport.width;
+            
+            // Set annotation canvas size to match PDF canvas
+            annotationCanvas.height = viewport.height;
+            annotationCanvas.width = viewport.width;
 
             const renderContext = { canvasContext: ctx, viewport: viewport };
             await page.render(renderContext).promise;
+            
+            // Render existing annotations for this page
+            renderAnnotations(num);
+            
+            // Extract and highlight glossary terms
+            extractAndHighlightTerms(page, viewport);
+            
             pageRendering = false;
 
             if (pageNumPending !== null) {
@@ -275,6 +591,182 @@
             // 3. Load new notes
             const newNotes = slideNotesData[pageNum] || '<p><br></p>';
             quill.root.innerHTML = newNotes;
+        }
+
+        // --- Annotation Functions ---
+        function setupAnnotationTools() {
+            const tools = document.querySelectorAll('.annotation-tool');
+            tools.forEach(tool => {
+                tool.addEventListener('click', () => {
+                    tools.forEach(t => t.classList.remove('active'));
+                    tool.classList.add('active');
+                    currentTool = tool.dataset.tool;
+                });
+            });
+
+            // Annotation canvas event listeners
+            annotationCanvas.addEventListener('mousedown', startDrawing);
+            annotationCanvas.addEventListener('mousemove', draw);
+            annotationCanvas.addEventListener('mouseup', stopDrawing);
+            annotationCanvas.addEventListener('mouseout', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            if (currentTool === 'clear') {
+                clearAnnotations();
+                return;
+            }
+            
+            isDrawing = true;
+            const rect = annotationCanvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+            
+            if (currentTool === 'highlight') {
+                annotationCtx.globalCompositeOperation = 'multiply';
+                annotationCtx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                annotationCtx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+                annotationCtx.lineWidth = 20;
+            } else if (currentTool === 'draw') {
+                annotationCtx.globalCompositeOperation = 'source-over';
+                annotationCtx.strokeStyle = '#ff0000';
+                annotationCtx.lineWidth = 3;
+                annotationCtx.lineCap = 'round';
+            } else if (currentTool === 'erase') {
+                annotationCtx.globalCompositeOperation = 'destination-out';
+                annotationCtx.lineWidth = 20;
+            }
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = annotationCanvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+
+            annotationCtx.beginPath();
+            annotationCtx.moveTo(lastX, lastY);
+            annotationCtx.lineTo(currentX, currentY);
+            annotationCtx.stroke();
+
+            lastX = currentX;
+            lastY = currentY;
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                saveAnnotations();
+            }
+        }
+
+        function clearAnnotations() {
+            annotationCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+            delete annotationData[pageNum];
+            saveAnnotations();
+        }
+
+        function renderAnnotations(pageNum) {
+            if (annotationData[pageNum]) {
+                const image = new Image();
+                image.onload = () => {
+                    annotationCtx.clearRect(0, 0, annotationCanvas.width, annotationCanvas.height);
+                    annotationCtx.drawImage(image, 0, 0);
+                };
+                image.src = annotationData[pageNum];
+            }
+        }
+
+        function saveAnnotations() {
+            annotationData[pageNum] = annotationCanvas.toDataURL();
+        }
+
+        // --- Glossary Functions ---
+        function extractAndHighlightTerms(page, viewport) {
+            // Common academic terms that should be highlighted
+            const commonTerms = [
+                'exogenous', 'endogenous', 'supply', 'demand', 'equilibrium', 'elasticity',
+                'marginal', 'utility', 'consumption', 'production', 'cost', 'revenue',
+                'profit', 'monopoly', 'oligopoly', 'perfect competition', 'market failure',
+                'externalities', 'public goods', 'GDP', 'inflation', 'unemployment',
+                'fiscal policy', 'monetary policy', 'interest rate', 'exchange rate',
+                'trade', 'comparative advantage', 'absolute advantage', 'tariff', 'quota'
+            ];
+
+            // This is a simplified version - in a real implementation, you'd use
+            // PDF.js text extraction to find and highlight actual text positions
+            // For now, we'll simulate with mouse hover detection
+        }
+
+        function showGlossaryTooltip(term, definition, x, y) {
+            document.getElementById('tooltip-term').textContent = term;
+            document.getElementById('tooltip-definition').textContent = definition;
+            
+            glossaryTooltip.style.left = x + 'px';
+            glossaryTooltip.style.top = y + 'px';
+            glossaryTooltip.classList.add('visible');
+        }
+
+        function hideGlossaryTooltip() {
+            glossaryTooltip.classList.remove('visible');
+        }
+
+        // --- AI Q&A Functions ---
+        function openQAModal() {
+            aiQaModal.classList.add('visible');
+            qaTextInput.focus();
+        }
+
+        function closeQAModal() {
+            aiQaModal.classList.remove('visible');
+            qaResponse.style.display = 'none';
+            qaTextInput.value = '';
+        }
+
+        function askSuggestedQuestion(question) {
+            qaTextInput.value = question;
+            submitQuestion();
+        }
+
+        async function submitQuestion() {
+            const question = qaTextInput.value.trim();
+            if (!question) return;
+
+            submitQaBtn.disabled = true;
+            submitQaBtn.textContent = 'Asking AI...';
+            
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const slideText = textContent.items.map(item => item.str).join(' ');
+
+                const response = await fetch("{{ url_for('slide_notes_ai_assist') }}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'qa',
+                        slide_text: slideText,
+                        hub_id: '{{ session.hub_id }}',
+                        slide_number: pageNum,
+                        question: question
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message);
+
+                qaResponseText.textContent = result.answer || result.message;
+                qaResponse.style.display = 'block';
+
+            } catch (error) {
+                console.error('Q&A error:', error);
+                qaResponseText.textContent = 'Sorry, there was an error getting the AI response.';
+                qaResponse.style.display = 'block';
+            } finally {
+                submitQaBtn.disabled = false;
+                submitQaBtn.textContent = 'Ask AI';
+            }
         }
         
         // --- Save and AI Functions ---
@@ -386,10 +878,14 @@ async function saveNotes() {
                 prevPageBtn.addEventListener('click', onPrevPage);
                 nextPageBtn.addEventListener('click', onNextPage);
                 saveBtn.addEventListener('click', saveNotes);
+                aiQaBtn.addEventListener('click', openQAModal);
                 
                 document.querySelectorAll('.ai-assist-bar button').forEach(btn => {
                     btn.addEventListener('click', () => handleAiAssist(btn.dataset.action));
                 });
+
+                // Setup annotation tools
+                setupAnnotationTools();
 
                 // Auto-save every 30 seconds
                 setInterval(saveNotes, 30000);

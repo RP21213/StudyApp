@@ -487,6 +487,30 @@ def generate_flashcards_from_slide_text(text):
     )
     return response.choices[0].message.content
 
+def generate_qa_answer(slide_text, question):
+    """Generates an AI answer to a question about slide content."""
+    prompt = f"""You are an expert tutor helping a student understand academic content. 
+
+Slide Content:
+{slide_text}
+
+Student Question: {question}
+
+Please provide a clear, helpful answer that:
+1. Directly addresses the student's question
+2. References specific content from the slide when relevant
+3. Uses simple, understandable language
+4. Provides examples or explanations when helpful
+5. Keeps the response concise but comprehensive
+
+Answer:"""
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
 # --- AI function for Revision Pack preview ---
 def generate_revision_preview(text):
     """Generates a summary, key terms, and sample items for a revision pack preview."""
@@ -2182,6 +2206,7 @@ def slide_notes_ai_assist():
     slide_text = data.get('slide_text')
     hub_id = data.get('hub_id')
     slide_num = data.get('slide_number', 'current')
+    question = data.get('question', '')
     
     if not action or not slide_text or not hub_id:
         return jsonify({"success": False, "message": "Missing action, hub_id, or slide text"}), 400
@@ -2202,6 +2227,13 @@ def slide_notes_ai_assist():
             fc_ref.set(new_fc.to_dict())
 
             return jsonify({"success": True, "message": f"Flashcard set created! You can find it in 'My Flashcards'.", "redirect_url": url_for('edit_flashcard_set', activity_id=fc_ref.id)})
+        
+        elif action == 'qa':
+            if not question:
+                return jsonify({"success": False, "message": "Question is required for Q&A"}), 400
+            
+            answer = generate_qa_answer(slide_text, question)
+            return jsonify({"success": True, "answer": answer})
         
         else:
             return jsonify({"success": False, "message": "Invalid action"}), 400
