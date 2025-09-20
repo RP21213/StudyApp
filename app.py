@@ -2325,6 +2325,15 @@ def debug_subscription_status():
         })
     return jsonify({"error": "User not found"}), 404
 
+@app.route('/debug/webhook-test')
+def webhook_test():
+    """Test route to verify webhook endpoint is accessible"""
+    return jsonify({
+        "status": "Webhook endpoint is accessible",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "endpoint_secret_configured": bool(os.getenv("STRIPE_ENDPOINT_SECRET"))
+    })
+
 # ==============================================================================
 # 6. CORE APP & HUB ROUTES
 # ==============================================================================
