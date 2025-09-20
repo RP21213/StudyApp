@@ -205,18 +205,21 @@ def validate_referral_code(code):
 def process_referral_rewards(user_id):
     """Process referral rewards when a user subscribes to Pro"""
     try:
+        print(f"🔍 Getting user data for {user_id}")
         # Get the user who just subscribed
         user_doc = db.collection('users').document(user_id).get()
         if not user_doc.exists:
-            print(f"User {user_id} not found for referral processing")
+            print(f"❌ User {user_id} not found for referral processing")
             return
         
         user_data = user_doc.to_dict()
         user = User.from_dict(user_data)
+        print(f"📧 User email: {user.email}")
+        print(f"🔗 User referred_by: {user.referred_by}")
         
         # Check if this user was referred
         if not user.referred_by:
-            print(f"User {user.email} was not referred - no rewards to process")
+            print(f"ℹ️ User {user.email} was not referred - no rewards to process")
             return
         
         # Find the referral record
@@ -2238,6 +2241,7 @@ def create_checkout_session():
 
 @app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
+    print("🔔 Stripe webhook received!")
     payload = request.data
     sig_header = request.headers.get('Stripe-Signature')
     endpoint_secret = os.getenv("STRIPE_ENDPOINT_SECRET")
@@ -2247,15 +2251,17 @@ def stripe_webhook():
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
+        print(f"✅ Webhook event verified: {event['type']}")
     except ValueError as e:
-        # Invalid payload
+        print(f"❌ Invalid payload: {e}")
         return 'Invalid payload', 400
     except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
+        print(f"❌ Invalid signature: {e}")
         return 'Invalid signature', 400
 
     # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
+        print("🎉 Processing checkout.session.completed event")
         session = event['data']['object']
         user_id = session.get('metadata', {}).get('user_id')
         if user_id:
@@ -2270,9 +2276,13 @@ def stripe_webhook():
             
             # --- NEW: Process Referral Rewards ---
             try:
+                print(f"🎯 Starting referral rewards processing for user {user_id}")
                 process_referral_rewards(user_id)
+                print(f"✅ Completed referral rewards processing for user {user_id}")
             except Exception as e:
-                print(f"Error processing referral rewards for user {user_id}: {e}")
+                print(f"❌ Error processing referral rewards for user {user_id}: {e}")
+                import traceback
+                traceback.print_exc()
 
     # Handle other subscription events like cancellations
     elif event['type'] == 'customer.subscription.deleted':
