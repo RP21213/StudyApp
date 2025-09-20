@@ -3004,17 +3004,24 @@
 
         // Show Pro upgrade success modal
         function showProUpgradeSuccessModal() {
+            console.log('showProUpgradeSuccessModal called');
             const modal = document.getElementById('pro-upgrade-success-modal');
+            console.log('Modal element found:', modal);
+            
             if (modal) {
                 modal.classList.add('visible');
+                console.log('Modal made visible');
                 
                 // Add animation delay for the icon
                 setTimeout(() => {
                     const icon = modal.querySelector('.success-icon');
                     if (icon) {
                         icon.style.animation = 'bounce 0.6s ease-in-out';
+                        console.log('Bounce animation applied to icon');
                     }
                 }, 200);
+            } else {
+                console.error('Pro upgrade success modal element not found');
             }
         }
 
@@ -3366,18 +3373,15 @@
                     const sessionId = urlParams.get('session_id');
                     
                     if (sessionId) {
-                        // User came from Stripe checkout - check if they're now Pro
-                        const response = await fetch('/api/referral-discount-status');
-                        const data = await response.json();
+                        console.log('Session ID detected:', sessionId);
                         
-                        if (data.success) {
-                            // Check if user has Pro features (this would need to be determined by checking subscription status)
-                            // For now, we'll show the modal if they have a session_id (indicating successful payment)
-                            showProUpgradeSuccessModal();
-                            
-                            // Clean up URL
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                        }
+                        // User came from Stripe checkout - check if they're now Pro
+                        // We'll show the modal for any successful checkout session
+                        showProUpgradeSuccessModal();
+                        
+                        // Clean up URL to remove session_id parameter
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        console.log('Pro upgrade success modal shown');
                     }
                 } catch (error) {
                     console.error('Error checking Pro upgrade status:', error);
@@ -3398,6 +3402,7 @@
                 checkReferralDiscountStatus();
                 
                 // Check if user just upgraded to Pro
+                console.log('Checking Pro upgrade status...');
                 checkProUpgradeStatus();
             });
             
