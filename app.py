@@ -854,9 +854,50 @@ def handle_audio_chunk(data):
         # Handle fallback mode (no AssemblyAI API key)
         if streaming_client == "fallback":
             print("Using fallback transcription mode - no AssemblyAI API key")
-            # In fallback mode, don't generate fake transcripts
-            # Just acknowledge the audio chunk was received
-            print(f"Audio chunk received (size: {len(audio_data)} bytes) - AssemblyAI API key needed for real transcription")
+            
+            # Check if this is a test session (user can enable test mode)
+            test_mode = session_data.get('test_mode', False)
+            
+            if test_mode:
+                # Simulate realistic speech for testing
+                import time
+                time.sleep(0.5)  # Simulate processing time
+                
+                # Generate realistic test transcript
+                test_transcripts = [
+                    "Today we're going to discuss machine learning algorithms.",
+                    "The first concept we need to understand is supervised learning.",
+                    "Supervised learning uses labeled training data to make predictions.",
+                    "Examples include classification and regression problems.",
+                    "In classification, we predict discrete categories like spam or not spam.",
+                    "Regression predicts continuous values like house prices.",
+                    "The key difference is the type of output we're trying to predict."
+                ]
+                
+                # Use a simple counter to cycle through test transcripts
+                chunk_count = session_data.get('test_chunk_count', 0)
+                if chunk_count < len(test_transcripts):
+                    simulated_transcript = test_transcripts[chunk_count]
+                    session_data['test_chunk_count'] = chunk_count + 1
+                    
+                    # Update transcript buffer
+                    session_data['transcript_buffer'] += simulated_transcript + " "
+                    
+                    # Generate updated notes
+                    updated_notes = generate_live_notes_update(
+                        session_data['current_notes'], 
+                        simulated_transcript
+                    )
+                    session_data['current_notes'] = updated_notes
+                    
+                    # Emit updated notes to client
+                    emit('notes_updated', {
+                        'notes_html': updated_notes,
+                        'transcript_chunk': simulated_transcript
+                    })
+            else:
+                # Just acknowledge the audio chunk was received
+                print(f"Audio chunk received (size: {len(audio_data)} bytes) - AssemblyAI API key needed for real transcription")
             return
         
         # Connect streaming client if not already connected
@@ -944,6 +985,20 @@ def handle_test_connection(data):
     """Test WebSocket connection."""
     print(f"Test connection received: {data}")
     emit('test_response', {'message': 'Hello from server', 'timestamp': datetime.now().isoformat()})
+
+@socketio.on('enable_test_mode')
+def handle_enable_test_mode(data):
+    """Enable test mode for fallback transcription."""
+    session_id = request.sid
+    session_data = realtime_sessions.get(session_id)
+    
+    if session_data:
+        session_data['test_mode'] = True
+        session_data['test_chunk_count'] = 0
+        print(f"Test mode enabled for session {session_id}")
+        emit('test_mode_enabled', {'message': 'Test mode enabled - realistic speech simulation active'})
+    else:
+        emit('error', {'message': 'No active session found'})
 
 @socketio.on('disconnect')
 def handle_disconnect():

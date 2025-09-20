@@ -286,6 +286,7 @@
             </div>
             <button id="start-btn" class="button start-btn">Start Live Capture</button>
             <button id="stop-btn" class="button stop-btn">Stop Recording</button>
+            <button id="test-mode-btn" class="button" style="background-color: #8b5cf6; color: white;">Enable Test Mode</button>
             <button id="save-btn" class="button" style="background-color: var(--primary-color); color: white; display: none;">Save Notes</button>
             <div class="status-indicator">
                 <div class="status-dot" id="status-dot"></div>
@@ -316,6 +317,7 @@
             const startBtn = document.getElementById('start-btn');
             const stopBtn = document.getElementById('stop-btn');
             const saveBtn = document.getElementById('save-btn');
+            const testModeBtn = document.getElementById('test-mode-btn');
             const statusDot = document.getElementById('status-dot');
             const statusText = document.getElementById('status-text');
             const titleInput = document.getElementById('lecture-title');
@@ -385,6 +387,11 @@
                 
                 // Scroll to bottom of transcript
                 transcriptContent.scrollTop = transcriptContent.scrollHeight;
+            });
+            
+            socket.on('test_mode_enabled', (data) => {
+                console.log('Test mode enabled:', data);
+                showMessage('success', data.message);
             });
             
             socket.on('lecture_stopped', (data) => {
@@ -498,6 +505,14 @@
                         hub_id: hubId
                     });
                 }
+            }
+            
+            function enableTestMode() {
+                console.log('Enabling test mode...');
+                socket.emit('enable_test_mode', {});
+                testModeBtn.textContent = 'Test Mode Active';
+                testModeBtn.style.backgroundColor = '#10b981';
+                showMessage('success', 'Test mode enabled! Start recording to see simulated speech.');
             }
             
             function sendAudioChunk(audioBlob) {
@@ -619,6 +634,10 @@
             stopBtn.addEventListener('click', (e) => {
                 console.log('Stop button clicked!', e);
                 stopRecording();
+            });
+            testModeBtn.addEventListener('click', (e) => {
+                console.log('Test mode button clicked!', e);
+                enableTestMode();
             });
             saveBtn.addEventListener('click', (e) => {
                 console.log('Save button clicked!', e);
