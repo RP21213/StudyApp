@@ -300,11 +300,12 @@
         /* Add Referral Code Section */
         .add-referral-section {
             background: var(--background-white);
-            border-radius: 6px;
-            padding: 0.75rem;
-            margin: 0.75rem 0.5rem;
+            border-radius: 8px;
+            padding: 1rem;
             border: 1px solid var(--border-color);
             border-left: 3px solid #10b981;
+            min-width: 280px;
+            box-shadow: var(--shadow-sm);
         }
         
         .add-referral-section h4 {
@@ -594,9 +595,9 @@
         .tab-content.active { display: block; }
 
         .container { max-width: 1400px; margin: 0 auto; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
+        header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); gap: 2rem; }
         .header-text { flex-grow: 1; }
-        .header-actions { display: flex; align-items: center; gap: 1.5rem; }
+        .header-actions { display: flex; align-items: flex-start; gap: 1.5rem; flex-shrink: 0; }
         .header-text h1 { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.25rem; }
         .header-text p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0; }
         
@@ -2023,6 +2024,18 @@
             margin-bottom: 1rem;
             animation: successBounce 0.6s ease-out;
         }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
 
         .success-title {
             font-size: 1.5rem;
@@ -2164,18 +2177,6 @@
             </a>
         </nav>
         
-        <!-- Add Referral Code Section (for users who didn't use one during signup) -->
-        <div class="add-referral-section" id="add-referral-section" style="display: none;">
-            <h4>Add Referral Code</h4>
-            <p class="section-description">Support a friend!</p>
-            <div class="referral-input-group">
-                <input type="text" id="add-referral-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
-                <button id="add-referral-btn" class="add-referral-button" onclick="addReferralCode()">
-                    <i data-lucide="plus"></i> Add
-                </button>
-            </div>
-            <div id="referral-status" class="referral-status"></div>
-        </div>
         
         <div class="side-panel-footer">
             {% if not spotify_connected %}
@@ -2378,8 +2379,8 @@
                         </div>
                         <div class="study-groups-list" id="study-groups-list">
                             <!-- Study groups will be dynamically loaded here -->
-                        </div>
-                    </div>
+                                </div>
+                            </div>
                 </div>
             </div>
         </div>
@@ -2390,7 +2391,21 @@
                     <div class="header-text">
                         <h1>💰 Earn Money</h1>
                         <p>Refer friends and earn rewards! Share your referral code and climb the leaderboard.</p>
+                    </div>
+                            <div class="header-actions">
+                        <!-- Add Referral Code Section (for users who didn't use one during signup) -->
+                        <div class="add-referral-section" id="add-referral-section" style="display: none;">
+                            <h4>Add Referral Code</h4>
+                            <p class="section-description">Support a friend!</p>
+                            <div class="referral-input-group">
+                                <input type="text" id="add-referral-code" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                                <button id="add-referral-btn" class="add-referral-button" onclick="addReferralCode()">
+                                    <i data-lucide="plus"></i> Add
+                                </button>
+                            </div>
+                            <div id="referral-status" class="referral-status"></div>
                         </div>
+                    </div>
                 </header>
 
                 <!-- Referral Code Section -->
@@ -2429,9 +2444,9 @@
                                     <div class="milestone-status" id="milestone-50-status">❌</div>
                                 </div>
                             </div>
+                            </div>
                         </div>
-                    </div>
-                    
+
                     
                     <div class="referral-code-right">
                         <h3>How to refer a friend?</h3>
@@ -2931,13 +2946,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showReferralStatus('Referral code added successfully! Thank you for supporting a friend.', 'success');
                     codeInput.value = '';
                     
-                    // Hide the add referral section after successful addition
-                    setTimeout(() => {
-                        document.getElementById('add-referral-section').style.display = 'none';
-                    }, 3000);
+                    // Hide the add referral section immediately
+                    document.getElementById('add-referral-section').style.display = 'none';
+                    
+                    // Show success modal
+                    showReferralSuccessModal();
                     
                     // Refresh stats to show updated data
                     setTimeout(() => {
@@ -2955,6 +2970,39 @@
                 // Re-enable button
                 addButton.disabled = false;
                 addButton.innerHTML = '<i data-lucide="plus"></i> Add Code';
+            }
+        }
+
+        // Show referral success modal
+        function showReferralSuccessModal() {
+            const modal = document.getElementById('referral-success-modal');
+            if (modal) {
+                modal.classList.add('visible');
+                
+                // Add animation delay for the icon
+                setTimeout(() => {
+                    const icon = modal.querySelector('.success-icon');
+                    if (icon) {
+                        icon.style.animation = 'bounce 0.6s ease-in-out';
+                    }
+                }, 200);
+            }
+        }
+
+        // Redirect to upgrade when user clicks the button
+        function redirectToUpgrade() {
+            const upgradeForm = document.getElementById('upgrade-form');
+            if (upgradeForm) {
+                upgradeForm.submit();
+            } else {
+                // Fallback: redirect to dashboard and scroll to upgrade button
+                window.location.href = '#hubs';
+                setTimeout(() => {
+                    const upgradeButton = document.querySelector('#upgrade-button');
+                    if (upgradeButton) {
+                        upgradeButton.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 100);
             }
         }
 
@@ -5080,6 +5128,7 @@
                     <i data-lucide="x"></i>
                 </button>
             </div>
+
             <div class="modal-body">
                 <div class="import-resource-info">
                     <h3 id="import-resource-title">Resource Title</h3>
@@ -5099,6 +5148,18 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Referral Success Modal -->
+    <div class="success-modal-overlay" id="referral-success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">🔓</div>
+            <h2 class="success-title">Well done!</h2>
+            <p class="success-message">By using a referral code, your first month Pro subscription is 50% off!</p>
+            <button class="button success-button" onclick="redirectToUpgrade()">
+                🚀 Upgrade to Pro
+            </button>
         </div>
     </div>
 </body>
