@@ -176,87 +176,111 @@
         
         .crisis-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-top: 2rem;
         }
         
-        .crisis-card {
-            background: var(--background-white);
+        /* Flip Card Styles */
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
             border-radius: 12px;
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
             display: flex;
-            gap: 1rem;
-            align-items: flex-start;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        
+        .flip-card-front {
+            background: var(--background-white);
+            border: 1px solid var(--border-color);
+        }
+        
+        .flip-card-back {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            transform: rotateY(180deg);
         }
         
         .flag-container {
-            flex-shrink: 0;
-            width: 60px;
-            height: 40px;
-            border-radius: 4px;
+            width: 120px;
+            height: 80px;
+            border-radius: 8px;
             overflow: hidden;
             border: 1px solid #ddd;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
-        .palestine-flag {
+        .flag-image {
             width: 100%;
             height: 100%;
-            background: linear-gradient(to bottom, 
-                #000 0%, #000 33.33%,
-                #fff 33.33%, #fff 66.66%,
-                #009639 66.66%, #009639 100%);
+            object-fit: cover;
         }
         
-        .syria-flag {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                #ce1126 0%, #ce1126 33.33%,
-                #fff 33.33%, #fff 66.66%,
-                #000 66.66%, #000 100%);
-        }
-        
-        .sudan-flag {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to right, 
-                #d21034 0%, #d21034 33.33%,
-                #fff 33.33%, #fff 66.66%,
-                #000 66.66%, #000 100%);
-        }
-        
-        .yemen-flag {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, 
-                #ce1126 0%, #ce1126 33.33%,
-                #fff 33.33%, #fff 66.66%,
-                #000 66.66%, #000 100%);
-        }
-        
-        .crisis-info h3 {
-            font-size: 1.25rem;
+        .flip-card-front h3 {
+            font-size: 1.5rem;
             font-weight: 600;
             color: var(--text-main);
-            margin: 0 0 0.5rem 0;
+            margin: 0.5rem 0;
         }
         
-        .crisis-info p {
+        .flip-card-front p {
             color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .flip-card-back h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            color: white;
+        }
+        
+        .flip-card-back p {
             margin: 0 0 1rem 0;
             line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
         }
         
-        .crisis-info ul {
+        .flip-card-back ul {
             margin: 0;
             padding-left: 1.5rem;
-            color: var(--text-secondary);
+            text-align: left;
+            color: rgba(255, 255, 255, 0.9);
         }
         
-        .crisis-info li {
-            margin-bottom: 0.25rem;
+        .flip-card-back li {
+            margin-bottom: 0.5rem;
             line-height: 1.4;
         }
         
@@ -267,13 +291,13 @@
                 gap: 1.5rem;
             }
             
-            .crisis-card {
-                flex-direction: column;
-                text-align: center;
+            .flip-card {
+                height: 280px;
             }
             
             .flag-container {
-                align-self: center;
+                width: 100px;
+                height: 65px;
             }
         }
         
@@ -2263,31 +2287,24 @@
         <div class="logo">Foci</div>
         <nav class="nav-tabs">
             <a href="#" class="nav-tab active" data-tab="hubs">
-                <i data-lucide="layout-grid"></i>
                 <span>📝 Hubs</span>
             </a>
             <a href="#" class="nav-tab" data-tab="progress">
-                <i data-lucide="trending-up"></i>
                 <span>📈 Progress</span>
             </a>
             <a href="#" class="nav-tab" data-tab="community">
-                <i data-lucide="users"></i>
                 <span>🌍 Community</span>
             </a>
             <a href="#" class="nav-tab" data-tab="earn-money">
-                <i data-lucide="dollar-sign"></i>
                 <span>💰 Earn Money</span>
             </a>
             <a href="#" class="nav-tab" data-tab="my-values">
-                <i data-lucide="heart"></i>
                 <span>💙 My Values</span>
             </a>
             <a href="#" class="nav-tab" data-tab="profile">
-                <i data-lucide="user"></i>
                 <span>😎 Profile</span>
             </a>
             <a href="#" class="nav-tab" data-tab="settings">
-                 <i data-lucide="settings"></i>
                 <span>⚙️ Settings</span>
             </a>
         </nav>
@@ -2632,70 +2649,71 @@
                 <div class="values-section">
                     <div class="crisis-grid">
                         <!-- Palestine -->
-                        <div class="crisis-card">
-                            <div class="flag-container">
-                                <div class="palestine-flag"></div>
-                            </div>
-                            <div class="crisis-info">
-                                <h3>Palestine</h3>
-                                <p>Supporting humanitarian aid and relief efforts in Palestine through donations to:</p>
-                                <ul>
-                                    <li>Palestinian Red Crescent Society</li>
-                                    <li>UNRWA (UN Relief and Works Agency)</li>
-                                    <li>Medical Aid for Palestinians</li>
-                                    <li>Palestine Children's Relief Fund</li>
-                                </ul>
+                        <div class="flip-card" onclick="flipCard(this)">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="flag-container">
+                                        <img src="/static/images/palestine-flag.png" alt="Palestine Flag" class="flag-image">
+                                    </div>
+                                    <h3>Palestine</h3>
+                                    <p>Click to see charities</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h3>Palestine</h3>
+                                    <p>Supporting humanitarian aid and relief efforts through donations to:</p>
+                                    <ul>
+                                        <li>Palestinian Red Crescent Society</li>
+                                        <li>UNRWA (UN Relief and Works Agency)</li>
+                                        <li>Medical Aid for Palestinians</li>
+                                        <li>Palestine Children's Relief Fund</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Syria -->
-                        <div class="crisis-card">
-                            <div class="flag-container">
-                                <div class="syria-flag"></div>
-                            </div>
-                            <div class="crisis-info">
-                                <h3>Syria</h3>
-                                <p>Supporting refugees and displaced families through donations to:</p>
-                                <ul>
-                                    <li>UNHCR (UN Refugee Agency)</li>
-                                    <li>Syrian American Medical Society</li>
-                                    <li>International Rescue Committee</li>
-                                    <li>Save the Children Syria</li>
-                                </ul>
+                        <div class="flip-card" onclick="flipCard(this)">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="flag-container">
+                                        <img src="/static/images/syria-flag.png" alt="Syria Flag" class="flag-image">
+                                    </div>
+                                    <h3>Syria</h3>
+                                    <p>Click to see charities</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h3>Syria</h3>
+                                    <p>Supporting refugees and displaced families through donations to:</p>
+                                    <ul>
+                                        <li>UNHCR (UN Refugee Agency)</li>
+                                        <li>Syrian American Medical Society</li>
+                                        <li>International Rescue Committee</li>
+                                        <li>Save the Children Syria</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- Sudan -->
-                        <div class="crisis-card">
-                            <div class="flag-container">
-                                <div class="sudan-flag"></div>
-                            </div>
-                            <div class="crisis-info">
-                                <h3>Sudan</h3>
-                                <p>Supporting emergency relief and medical aid through donations to:</p>
-                                <ul>
-                                    <li>Doctors Without Borders Sudan</li>
-                                    <li>UNICEF Sudan</li>
-                                    <li>World Food Programme Sudan</li>
-                                    <li>International Committee of the Red Cross Sudan</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <!-- Yemen -->
-                        <div class="crisis-card">
-                            <div class="flag-container">
-                                <div class="yemen-flag"></div>
-                            </div>
-                            <div class="crisis-info">
-                                <h3>Yemen</h3>
-                                <p>Supporting humanitarian assistance and food security through donations to:</p>
-                                <ul>
-                                    <li>UNICEF Yemen</li>
-                                    <li>World Food Programme Yemen</li>
-                                    <li>Médecins Sans Frontières Yemen</li>
-                                    <li>Yemen Relief and Reconstruction Foundation</li>
-                                </ul>
+                        <div class="flip-card" onclick="flipCard(this)">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <div class="flag-container">
+                                        <img src="/static/images/sudan-flag.png" alt="Sudan Flag" class="flag-image">
+                                    </div>
+                                    <h3>Sudan</h3>
+                                    <p>Click to see charities</p>
+                                </div>
+                                <div class="flip-card-back">
+                                    <h3>Sudan</h3>
+                                    <p>Supporting emergency relief and medical aid through donations to:</p>
+                                    <ul>
+                                        <li>Doctors Without Borders Sudan</li>
+                                        <li>UNICEF Sudan</li>
+                                        <li>World Food Programme Sudan</li>
+                                        <li>International Committee of the Red Cross Sudan</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3231,6 +3249,11 @@
             if (modal) {
                 modal.classList.remove('visible');
             }
+        }
+
+        // Flip card function for My Values tab
+        function flipCard(card) {
+            card.classList.toggle('flipped');
         }
 
         function showReferralStatus(message, type) {
