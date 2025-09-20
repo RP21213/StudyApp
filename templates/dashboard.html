@@ -297,6 +297,103 @@
             opacity: 0.7;
         }
         
+        /* Add Referral Code Section */
+        .add-referral-section {
+            background: var(--background-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid #10b981;
+        }
+        
+        .add-referral-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+        
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .referral-input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .referral-input-group input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            background-color: var(--background-light);
+            color: var(--text-main);
+            text-align: center;
+            letter-spacing: 0.1em;
+            font-family: monospace;
+        }
+        
+        .referral-input-group input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+        
+        .add-referral-button {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .add-referral-button:hover {
+            background: linear-gradient(45deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+        
+        .add-referral-button:disabled {
+            background: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .referral-status {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .referral-status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            color: #059669;
+            display: block;
+        }
+        
+        .referral-status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #dc2626;
+            display: block;
+        }
+        
         .instructions-list {
             display: flex;
             flex-direction: column;
@@ -2312,9 +2409,22 @@
                                     <div class="milestone-status" id="milestone-50-status">❌</div>
                                 </div>
                             </div>
-                            </div>
                         </div>
-
+                    </div>
+                    
+                    <!-- Add Referral Code Section (for users who didn't use one during signup) -->
+                    <div class="add-referral-section" id="add-referral-section" style="display: none;">
+                        <h3>Add Referral Code</h3>
+                        <p class="section-description">Didn't use a referral code during signup? Add one now to support a friend!</p>
+                        <div class="referral-input-group">
+                            <input type="text" id="add-referral-code" placeholder="Enter 6-digit referral code" maxlength="6" pattern="[0-9]{6}">
+                            <button id="add-referral-btn" class="add-referral-button" onclick="addReferralCode()">
+                                <i data-lucide="plus"></i> Add Code
+                            </button>
+                        </div>
+                        <div id="referral-status" class="referral-status"></div>
+                    </div>
+                    
                     <div class="referral-code-right">
                         <h3>How to refer a friend?</h3>
                         <div class="instructions-list">
@@ -2973,6 +3083,17 @@
                 if (referralCodeElement) {
                     referralCodeElement.textContent = stats.referral_code || 'Generating...';
                 }
+                
+                // Show/hide add referral section based on whether user was referred
+                const addReferralSection = document.getElementById('add-referral-section');
+                if (addReferralSection) {
+                    // Show the section if user wasn't referred (referred_by is null/empty)
+                    if (!stats.referred_by) {
+                        addReferralSection.style.display = 'block';
+                    } else {
+                        addReferralSection.style.display = 'none';
+                    }
+                }
             }
             
             function updateMilestones(milestones) {
@@ -3033,6 +3154,77 @@
             function showError(message) {
                 console.error(message);
                 // You can add a toast notification here if you have one
+            }
+            
+            async function addReferralCode() {
+                const codeInput = document.getElementById('add-referral-code');
+                const addButton = document.getElementById('add-referral-btn');
+                const statusDiv = document.getElementById('referral-status');
+                
+                const code = codeInput.value.trim();
+                
+                if (!code) {
+                    showReferralStatus('Please enter a referral code', 'error');
+                    return;
+                }
+                
+                if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                    showReferralStatus('Please enter a valid 6-digit referral code', 'error');
+                    return;
+                }
+                
+                // Disable button and show loading
+                addButton.disabled = true;
+                addButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Adding...';
+                
+                try {
+                    const response = await fetch('/api/referrals/add-code', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ code: code })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showReferralStatus('Referral code added successfully! Thank you for supporting a friend.', 'success');
+                        codeInput.value = '';
+                        
+                        // Hide the add referral section after successful addition
+                        setTimeout(() => {
+                            document.getElementById('add-referral-section').style.display = 'none';
+                        }, 3000);
+                        
+                        // Refresh stats to show updated data
+                        setTimeout(() => {
+                            fetchUserStats();
+                        }, 1000);
+                        
+                    } else {
+                        showReferralStatus(data.message || 'Failed to add referral code', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error adding referral code:', error);
+                    showReferralStatus('Failed to add referral code. Please try again.', 'error');
+                } finally {
+                    // Re-enable button
+                    addButton.disabled = false;
+                    addButton.innerHTML = '<i data-lucide="plus"></i> Add Code';
+                }
+            }
+            
+            function showReferralStatus(message, type) {
+                const statusDiv = document.getElementById('referral-status');
+                statusDiv.textContent = message;
+                statusDiv.className = `referral-status ${type}`;
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
             }
             
             // Initialize referral system on page load

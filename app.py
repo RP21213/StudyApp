@@ -5938,6 +5938,7 @@ def get_user_referral_stats():
             "pro_referral_count": current_user.pro_referral_count,
             "referral_earnings": current_user.referral_earnings,
             "referral_code": current_user.referral_code,
+            "referred_by": current_user.referred_by,  # Add this field
             "milestones": {
                 "3": {"reached": current_user.pro_referral_count >= 3, "reward": "One month Pro for free"},
                 "10": {"reached": current_user.pro_referral_count >= 10, "reward": "£20 Amazon giftcard"},
@@ -5978,6 +5979,58 @@ def get_referral_leaderboard():
     except Exception as e:
         print(f"Error getting leaderboard: {e}")
         return jsonify({"success": False, "message": "Error getting leaderboard"}), 500
+
+@app.route('/api/referrals/add-code', methods=['POST'])
+@login_required
+def add_referral_code():
+    """Add a referral code for users who didn't use one during signup"""
+    try:
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if not code:
+            return jsonify({"success": False, "message": "Referral code is required"}), 400
+        
+        # Check if user already has a referral (prevent multiple referral codes)
+        if current_user.referred_by:
+            return jsonify({"success": False, "message": "You have already used a referral code"}), 400
+        
+        # Validate the referral code
+        referrer = validate_referral_code(code)
+        if not referrer:
+            return jsonify({"success": False, "message": "Invalid referral code"}), 400
+        
+        # Check if user is trying to use their own code
+        if referrer.id == current_user.id:
+            return jsonify({"success": False, "message": "You cannot use your own referral code"}), 400
+        
+        # Update user with referral information
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({
+            'referred_by': referrer.id
+        })
+        
+        # Create referral record
+        referral_ref = db.collection('referrals').document()
+        referral = Referral(
+            id=referral_ref.id,
+            referrer_id=referrer.id,
+            referred_id=current_user.id,
+            referral_code=code,
+            status='pending'
+        )
+        referral_ref.set(referral.to_dict())
+        
+        print(f"✅ User {current_user.email} added referral code {code} from {referrer.email}")
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Referral code added successfully! You're now supporting {referrer.display_name}"
+        })
+        
+    except Exception as e:
+        print(f"Error adding referral code: {e}")
+        return jsonify({"success": False, "message": "Error adding referral code"}), 500
 
 
 # ==============================================================================
