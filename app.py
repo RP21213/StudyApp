@@ -29,6 +29,17 @@ from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notificat
 import asyncio 
 from flask_socketio import SocketIO, emit, join_room, leave_room 
 import assemblyai as aai 
+from assemblyai.streaming.v3 import (
+    BeginEvent,
+    StreamingClient,
+    StreamingClientOptions,
+    StreamingError,
+    StreamingEvents,
+    StreamingParameters,
+    StreamingSessionParameters,
+    TerminationEvent,
+    TurnEvent,
+)
 from flask import request
 
 # --- NEW: Imports for Spotify ---
@@ -300,11 +311,7 @@ aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
 # --- NEW: Real-time transcription configuration ---
 REALTIME_TRANSCRIPTION_CONFIG = {
     "sample_rate": 16000,
-    "word_boost": ["lecture", "professor", "chapter", "section", "important", "key", "concept", "definition", "formula", "equation"],
-    "punctuate": True,
-    "format_text": True,
-    "utterance_end_ms": 1000,
-    "speaker_labels": False
+    "format_turns": True
 }
 
 # --- NEW: Real-time transcription session storage ---
@@ -312,9 +319,9 @@ realtime_sessions = {}  # Store active transcription sessions
 
 # --- NEW: Real-time transcription functions ---
 def create_realtime_transcriber():
-    """Create and configure AssemblyAI Real-Time Transcriber."""
+    """Create and configure AssemblyAI v3 Streaming Client."""
     try:
-        print(f"Creating transcriber with config: {REALTIME_TRANSCRIPTION_CONFIG}")
+        print(f"Creating v3 streaming client with config: {REALTIME_TRANSCRIPTION_CONFIG}")
         print(f"AssemblyAI API key present: {bool(aai.settings.api_key)}")
         
         # Check if API key is available
@@ -322,60 +329,67 @@ def create_realtime_transcriber():
             print("No AssemblyAI API key found, using fallback mode")
             return "fallback"  # Return a special value for fallback mode
         
-        transcriber = aai.RealtimeTranscriber(
-            sample_rate=REALTIME_TRANSCRIPTION_CONFIG["sample_rate"],
-            word_boost=REALTIME_TRANSCRIPTION_CONFIG["word_boost"],
-            on_data=handle_realtime_transcript,
-            on_error=handle_realtime_error,
-            on_open=handle_realtime_open,
-            on_close=handle_realtime_close
+        # Create v3 streaming client
+        client = StreamingClient(
+            StreamingClientOptions(
+                api_key=aai.settings.api_key,
+                api_host="streaming.assemblyai.com",
+            )
         )
-        print("Transcriber created successfully")
-        return transcriber
+        
+        print("v3 Streaming client created successfully")
+        return client
     except Exception as e:
-        print(f"Error creating realtime transcriber: {e}")
+        print(f"Error creating v3 streaming client: {e}")
         import traceback
         traceback.print_exc()
         print("Using fallback mode")
-        return "fallback"  # Return fallback mode
+        return "fallback"
 
-def handle_realtime_transcript(transcript):
-    """Handle incoming transcript data from AssemblyAI."""
-    if transcript.text:
-        # Find the session for this transcript
-        for session_id, session_data in realtime_sessions.items():
-            if session_data.get('transcriber_active'):
-                # Update transcript buffer
-                session_data['transcript_buffer'] += transcript.text + " "
-                
-                # Generate updated notes
-                updated_notes = generate_live_notes_update(
-                    session_data['current_notes'], 
-                    transcript.text
-                )
-                session_data['current_notes'] = updated_notes
-                
-                # Emit to client via WebSocket
-                socketio.emit('notes_updated', {
-                    'notes_html': updated_notes,
-                    'transcript_chunk': transcript.text
-                }, room=session_id)
-                break
-
-def handle_realtime_error(error):
-    """Handle realtime transcription errors."""
-    print(f"Realtime transcription error: {error}")
-    # Emit error to all active sessions
-    for session_id in realtime_sessions.keys():
-        socketio.emit('error', {'message': f'Transcription error: {str(error)}'}, room=session_id)
-
-def handle_realtime_open():
-    """Handle realtime connection open."""
-    print("Realtime transcription connection opened")
-
-def handle_realtime_close():
-    """Handle realtime connection close."""
-    print("Realtime transcription connection closed")
+def setup_streaming_events(client, session_id):
+    """Set up event handlers for the streaming client."""
+    def on_begin(event: BeginEvent):
+        print(f"Session started: {event.id}")
+        # Store session ID in our session data
+        if session_id in realtime_sessions:
+            realtime_sessions[session_id]['assemblyai_session_id'] = event.id
+    
+    def on_turn(event: TurnEvent):
+        print(f"Turn received: {event.transcript} (end_of_turn: {event.end_of_turn})")
+        
+        # Update session with new transcript
+        if session_id in realtime_sessions:
+            session_data = realtime_sessions[session_id]
+            session_data['transcript_buffer'] += event.transcript + " "
+            
+            # Generate updated notes
+            updated_notes = generate_live_notes_update(
+                session_data['current_notes'], 
+                event.transcript
+            )
+            session_data['current_notes'] = updated_notes
+            
+            # Emit to client via WebSocket
+            socketio.emit('notes_updated', {
+                'notes_html': updated_notes,
+                'transcript_chunk': event.transcript
+            }, room=session_id)
+    
+    def on_terminated(event: TerminationEvent):
+        print(f"Session terminated: {event.audio_duration_seconds} seconds of audio processed")
+    
+    def on_error(error: StreamingError):
+        print(f"AssemblyAI streaming error: {error}")
+        # Emit error to client
+        socketio.emit('error', {'message': f'Transcription error: {error}'}, room=session_id)
+    
+    # Set up event handlers
+    client.on(StreamingEvents.Begin, on_begin)
+    client.on(StreamingEvents.Turn, on_turn)
+    client.on(StreamingEvents.Termination, on_terminated)
+    client.on(StreamingEvents.Error, on_error)
+    
+    return client
 
 # --- NEW: Configure Stripe ---
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -695,6 +709,7 @@ def generate_live_notes_update(previous_notes, new_transcript, is_final=False):
     """
     
     try:
+        print(f"Calling OpenAI API for live notes update...")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
@@ -702,6 +717,7 @@ def generate_live_notes_update(previous_notes, new_transcript, is_final=False):
         )
         
         updated_content = response.choices[0].message.content.strip()
+        print(f"OpenAI API response received successfully")
         
         # Replace the content in the previous notes
         updated_notes = re.sub(
@@ -715,6 +731,8 @@ def generate_live_notes_update(previous_notes, new_transcript, is_final=False):
         
     except Exception as e:
         print(f"Error generating live notes update: {e}")
+        import traceback
+        traceback.print_exc()
         # Return previous notes with error message
         error_content = f"{previous_content}<p><em>Error updating notes: {str(e)}</em></p>"
         return re.sub(
@@ -779,8 +797,8 @@ def handle_start_live_lecture(data):
         'current_notes': generate_initial_notes_structure(lecture_title),
         'transcript_buffer': '',
         'is_active': True,
-        'transcriber': transcriber,
-        'transcriber_active': False
+        'streaming_client': transcriber,
+        'client_connected': False
     }
     
     # Store session data
@@ -819,13 +837,13 @@ def handle_audio_chunk(data):
         return
     
     try:
-        transcriber = session_data.get('transcriber')
-        if not transcriber:
+        streaming_client = session_data.get('streaming_client')
+        if not streaming_client:
             emit('error', {'message': 'Transcription service not available'})
             return
         
         # Handle fallback mode (no AssemblyAI API key)
-        if transcriber == "fallback":
+        if streaming_client == "fallback":
             print("Using fallback transcription mode")
             # Simulate transcription for testing
             import time
@@ -851,17 +869,27 @@ def handle_audio_chunk(data):
             })
             return
         
-        # Connect transcriber if not already connected
-        if not session_data.get('transcriber_active'):
-            transcriber.connect()
-            session_data['transcriber_active'] = True
+        # Connect streaming client if not already connected
+        if not session_data.get('client_connected'):
+            # Set up event handlers
+            setup_streaming_events(streaming_client, session_id)
+            
+            # Connect to streaming service
+            streaming_client.connect(
+                StreamingParameters(
+                    sample_rate=REALTIME_TRANSCRIPTION_CONFIG["sample_rate"],
+                    format_turns=REALTIME_TRANSCRIPTION_CONFIG["format_turns"],
+                )
+            )
+            session_data['client_connected'] = True
+            print("Connected to AssemblyAI v3 streaming service")
         
         # Convert base64 audio data to bytes
         import base64
         audio_bytes = base64.b64decode(audio_data)
         
-        # Stream audio to AssemblyAI
-        transcriber.stream(audio_bytes)
+        # Stream audio to AssemblyAI v3
+        streaming_client.stream(audio_bytes)
         
     except Exception as e:
         print(f"Error processing audio chunk: {e}")
@@ -879,11 +907,12 @@ def handle_stop_live_lecture(data):
         return
     
     try:
-        # Disconnect transcriber
-        transcriber = session_data.get('transcriber')
-        if transcriber and transcriber != "fallback" and session_data.get('transcriber_active'):
-            transcriber.close()
-            session_data['transcriber_active'] = False
+        # Disconnect streaming client
+        streaming_client = session_data.get('streaming_client')
+        if streaming_client and streaming_client != "fallback" and session_data.get('client_connected'):
+            streaming_client.disconnect(terminate=True)
+            session_data['client_connected'] = False
+            print("Disconnected from AssemblyAI v3 streaming service")
         
         # Mark session as inactive
         session_data['is_active'] = False
