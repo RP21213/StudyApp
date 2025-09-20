@@ -204,31 +204,13 @@
             font-size: 1.5rem;
             font-weight: 700;
             letter-spacing: 0.1em;
-            margin: 1rem 0;
-            display: inline-block;
+            margin: 1rem auto;
+            display: block;
             font-family: 'Courier New', monospace;
+            text-align: center;
+            max-width: fit-content;
         }
         
-        .copy-code-button {
-            background: linear-gradient(45deg, #fbbf24, #f59e0b);
-            color: #1f2937;
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-            margin: 1rem 0;
-            display: inline-block;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: none;
-        }
-        
-        .copy-code-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
-        }
         
         /* Milestones Section */
         .milestones-section {
@@ -2051,6 +2033,23 @@
             margin-bottom: 1.5rem;
             animation: slideInUp 0.5s ease-out 0.3s both;
         }
+        
+        .pro-features-list {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .feature-item {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 0.75rem;
+            padding-left: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .feature-item:last-child {
+            margin-bottom: 0;
+        }
 
         .success-button {
             background: var(--primary-color);
@@ -2391,7 +2390,7 @@
                     <div class="header-text">
                         <h1>💰 Earn Money</h1>
                         <p>Refer friends and earn rewards! Share your referral code and climb the leaderboard.</p>
-                    </div>
+                            </div>
                             <div class="header-actions">
                         <!-- Add Referral Code Section (for users who didn't use one during signup) -->
                         <div class="add-referral-section" id="add-referral-section" style="display: none;">
@@ -2415,9 +2414,6 @@
                         <div class="referral-code-display" id="referral-code">
                             <span class="loading-text">Loading...</span>
                                 </div>
-                        <button class="copy-code-button" onclick="copyReferralCode()">
-                            <i data-lucide="copy"></i> Copy Code
-                                </button>
                         
                         <!-- Milestones -->
                         <div class="milestones-section">
@@ -2427,25 +2423,25 @@
                                     <div class="milestone-number">3</div>
                                     <div class="milestone-reward">One month Pro for free</div>
                                     <div class="milestone-status" id="milestone-3-status">❌</div>
-                                </div>
+                             </div>
                                 <div class="milestone-card" data-milestone="10">
                                     <div class="milestone-number">10</div>
                                     <div class="milestone-reward">£20 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-10-status">❌</div>
-                                </div>
+                             </div>
                                 <div class="milestone-card" data-milestone="20">
                                     <div class="milestone-number">20</div>
                                     <div class="milestone-reward">£50 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-20-status">❌</div>
-                                </div>
+                        </div>
                                 <div class="milestone-card" data-milestone="50">
                                     <div class="milestone-number">50</div>
                                     <div class="milestone-reward">£100 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-50-status">❌</div>
-                                </div>
-                            </div>
                             </div>
                         </div>
+                    </div>
+                    </div>
 
                     
                     <div class="referral-code-right">
@@ -2454,11 +2450,11 @@
                             <div class="instruction-item">
                                 <span class="step-number">1</span>
                                 <p>When your friend is purchasing the pro subscription, make sure they enter your referral code.</p>
-                                </div>
+                </div>
                             <div class="instruction-item">
                                 <span class="step-number">2</span>
                                 <p>If they do, your friend will receive 50% off their Pro subscription!</p>
-                             </div>
+                </div>
                             <div class="instruction-item">
                                 <span class="step-number">3</span>
                                 <p>Reach referral milestones to unlock rewards like cash prizes, giftcards and more!</p>
@@ -3006,6 +3002,30 @@
             }
         }
 
+        // Show Pro upgrade success modal
+        function showProUpgradeSuccessModal() {
+            const modal = document.getElementById('pro-upgrade-success-modal');
+            if (modal) {
+                modal.classList.add('visible');
+                
+                // Add animation delay for the icon
+                setTimeout(() => {
+                    const icon = modal.querySelector('.success-icon');
+                    if (icon) {
+                        icon.style.animation = 'bounce 0.6s ease-in-out';
+                    }
+                }, 200);
+            }
+        }
+
+        // Close Pro upgrade modal
+        function closeProUpgradeModal() {
+            const modal = document.getElementById('pro-upgrade-success-modal');
+            if (modal) {
+                modal.classList.remove('visible');
+            }
+        }
+
         function showReferralStatus(message, type) {
             console.log('showReferralStatus called:', message, type);
             const statusDiv = document.getElementById('referral-status');
@@ -3338,6 +3358,32 @@
                 }
             }
 
+            // Check if user just upgraded to Pro and show success modal
+            async function checkProUpgradeStatus() {
+                try {
+                    // Check URL parameters for successful upgrade
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const sessionId = urlParams.get('session_id');
+                    
+                    if (sessionId) {
+                        // User came from Stripe checkout - check if they're now Pro
+                        const response = await fetch('/api/referral-discount-status');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Check if user has Pro features (this would need to be determined by checking subscription status)
+                            // For now, we'll show the modal if they have a session_id (indicating successful payment)
+                            showProUpgradeSuccessModal();
+                            
+                            // Clean up URL
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking Pro upgrade status:', error);
+                }
+            }
+
             // Initialize referral system on page load
             document.addEventListener('DOMContentLoaded', function() {
                 // Load referral data if already on earn-money tab
@@ -3350,6 +3396,9 @@
                 
                 // Check discount status on page load
                 checkReferralDiscountStatus();
+                
+                // Check if user just upgraded to Pro
+                checkProUpgradeStatus();
             });
             
             const currentHash = window.location.hash.substring(1);
@@ -5159,6 +5208,25 @@
             <p class="success-message">By using a referral code, your first month Pro subscription is 50% off!</p>
             <button class="button success-button" onclick="redirectToUpgrade()">
                 🚀 Upgrade to Pro
+            </button>
+        </div>
+    </div>
+
+    <!-- Pro Upgrade Success Modal -->
+    <div class="success-modal-overlay" id="pro-upgrade-success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">😊</div>
+            <h2 class="success-title">Amazing!</h2>
+            <p class="success-message">You have now unlocked the following:</p>
+            <div class="pro-features-list">
+                <div class="feature-item">✅ Unlimited uses of all tools</div>
+                <div class="feature-item">✅ Unlimited study hubs</div>
+                <div class="feature-item">✅ All premium features</div>
+                <div class="feature-item">✅ No rate limits</div>
+                <div class="feature-item">✅ Faster customer support</div>
+            </div>
+            <button class="button success-button" onclick="closeProUpgradeModal()">
+                Get Started
             </button>
         </div>
     </div>
