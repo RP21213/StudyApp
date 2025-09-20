@@ -914,8 +914,7 @@ def handle_stop_live_lecture(data):
             session_data['client_connected'] = False
             print("Disconnected from AssemblyAI v3 streaming service")
         
-        # Mark session as inactive
-        session_data['is_active'] = False
+        # Set end time but keep session active until processing is complete
         session_data['end_time'] = datetime.now().isoformat()
         
         # Generate final notes
@@ -925,10 +924,18 @@ def handle_stop_live_lecture(data):
             is_final=True
         )
         
+        # Calculate duration properly
+        try:
+            start_time = datetime.fromisoformat(session_data.get('start_time', ''))
+            end_time = datetime.fromisoformat(session_data.get('end_time', ''))
+            duration = (end_time - start_time).total_seconds()
+        except (ValueError, TypeError):
+            duration = 0
+        
         emit('lecture_stopped', {
             'final_notes': final_notes,
             'full_transcript': session_data['transcript_buffer'],
-            'duration': session_data.get('end_time', '') - session_data.get('start_time', '')
+            'duration': duration
         })
         
     except Exception as e:
@@ -936,7 +943,9 @@ def handle_stop_live_lecture(data):
         emit('error', {'message': f'Error stopping lecture: {str(e)}'})
     
     finally:
-        # Clean up session data
+        # Mark session as inactive and clean up
+        if session_id in realtime_sessions:
+            realtime_sessions[session_id]['is_active'] = False
         realtime_sessions.pop(session_id, None)
         leave_room(session_id)
 
