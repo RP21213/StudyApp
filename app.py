@@ -662,14 +662,22 @@ def generate_live_summary_update(previous_summary, new_transcript_chunk):
     return response.choices[0].message.content
 
 # --- NEW: Real-time note generation functions ---
-def generate_initial_notes_structure(lecture_title):
+def generate_initial_notes_structure(lecture_title, is_fallback=False):
     """Generate an initial HTML structure for live note-taking."""
+    if is_fallback:
+        content = """
+            <p><em>Live transcription is not available - AssemblyAI API key needed for real-time transcription.</em></p>
+            <p><em>Please add your AssemblyAI API key to enable live transcription and note-taking.</em></p>
+        """
+    else:
+        content = '<p><em>Live transcription and note-taking in progress...</em></p>'
+    
     return f"""
     <div class="live-notes">
         <h1>{lecture_title}</h1>
         <div class="notes-timestamp">Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
         <div class="notes-content">
-            <p><em>Live transcription and note-taking in progress...</em></p>
+            {content}
         </div>
     </div>
     """
@@ -790,11 +798,12 @@ def handle_start_live_lecture(data):
     print("Transcriber created successfully")
     
     # Initialize session data
+    is_fallback = (transcriber == "fallback")
     session_data = {
         'hub_id': hub_id,
         'title': lecture_title,
         'start_time': datetime.now().isoformat(),
-        'current_notes': generate_initial_notes_structure(lecture_title),
+        'current_notes': generate_initial_notes_structure(lecture_title, is_fallback),
         'transcript_buffer': '',
         'is_active': True,
         'streaming_client': transcriber,
@@ -844,29 +853,10 @@ def handle_audio_chunk(data):
         
         # Handle fallback mode (no AssemblyAI API key)
         if streaming_client == "fallback":
-            print("Using fallback transcription mode")
-            # Simulate transcription for testing
-            import time
-            time.sleep(0.5)  # Simulate processing time
-            
-            # Generate simulated transcript
-            simulated_transcript = f"Fallback transcription: Audio chunk received at {datetime.now().strftime('%H:%M:%S')}"
-            
-            # Update transcript buffer
-            session_data['transcript_buffer'] += simulated_transcript + " "
-            
-            # Generate updated notes
-            updated_notes = generate_live_notes_update(
-                session_data['current_notes'], 
-                simulated_transcript
-            )
-            session_data['current_notes'] = updated_notes
-            
-            # Emit updated notes to client
-            emit('notes_updated', {
-                'notes_html': updated_notes,
-                'transcript_chunk': simulated_transcript
-            })
+            print("Using fallback transcription mode - no AssemblyAI API key")
+            # In fallback mode, don't generate fake transcripts
+            # Just acknowledge the audio chunk was received
+            print(f"Audio chunk received (size: {len(audio_data)} bytes) - AssemblyAI API key needed for real transcription")
             return
         
         # Connect streaming client if not already connected
