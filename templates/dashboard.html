@@ -3388,6 +3388,31 @@
                 }
             }
 
+            // Test function to check if modal exists and can be shown
+            function testProModal() {
+                console.log('🧪 Testing Pro modal...');
+                const modal = document.getElementById('pro-upgrade-success-modal');
+                console.log('Modal element:', modal);
+                if (modal) {
+                    console.log('Modal classes:', modal.className);
+                    console.log('Modal style:', modal.style.cssText);
+                }
+            }
+
+            // Run test immediately
+            testProModal();
+
+            // Simple test: if there's a session_id in URL, show modal after 2 seconds
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionId = urlParams.get('session_id');
+            if (sessionId) {
+                console.log('🎯 Session ID detected, will test modal in 2 seconds...');
+                setTimeout(() => {
+                    console.log('🎯 Testing modal display...');
+                    showProUpgradeSuccessModal();
+                }, 2000);
+            }
+
             // Initialize referral system on page load
             document.addEventListener('DOMContentLoaded', function() {
                 // Load referral data if already on earn-money tab
