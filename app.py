@@ -27,7 +27,7 @@ import base64
 import json   
 from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource, Referral
 import asyncio 
-from flask_socketio import SocketIO, emit 
+from flask_socketio import SocketIO, emit, join_room, leave_room 
 import assemblyai as aai 
 from flask import request
 
@@ -296,6 +296,74 @@ vector_store_cache = {}
 
 # --- NEW: Configure AssemblyAI ---
 aai.settings.api_key = os.getenv("ASSEMBLYAI_API_KEY")
+
+# --- NEW: Real-time transcription configuration ---
+REALTIME_TRANSCRIPTION_CONFIG = {
+    "sample_rate": 16000,
+    "word_boost": ["lecture", "professor", "chapter", "section", "important", "key", "concept", "definition", "formula", "equation"],
+    "punctuate": True,
+    "format_text": True,
+    "utterance_end_ms": 1000,
+    "speaker_labels": False
+}
+
+# --- NEW: Real-time transcription session storage ---
+realtime_sessions = {}  # Store active transcription sessions
+
+# --- NEW: Real-time transcription functions ---
+def create_realtime_transcriber():
+    """Create and configure AssemblyAI Real-Time Transcriber."""
+    try:
+        transcriber = aai.RealtimeTranscriber(
+            sample_rate=REALTIME_TRANSCRIPTION_CONFIG["sample_rate"],
+            word_boost=REALTIME_TRANSCRIPTION_CONFIG["word_boost"],
+            on_data=handle_realtime_transcript,
+            on_error=handle_realtime_error,
+            on_open=handle_realtime_open,
+            on_close=handle_realtime_close
+        )
+        return transcriber
+    except Exception as e:
+        print(f"Error creating realtime transcriber: {e}")
+        return None
+
+def handle_realtime_transcript(transcript):
+    """Handle incoming transcript data from AssemblyAI."""
+    if transcript.text:
+        # Find the session for this transcript
+        for session_id, session_data in realtime_sessions.items():
+            if session_data.get('transcriber_active'):
+                # Update transcript buffer
+                session_data['transcript_buffer'] += transcript.text + " "
+                
+                # Generate updated notes
+                updated_notes = generate_live_notes_update(
+                    session_data['current_notes'], 
+                    transcript.text
+                )
+                session_data['current_notes'] = updated_notes
+                
+                # Emit to client via WebSocket
+                socketio.emit('notes_updated', {
+                    'notes_html': updated_notes,
+                    'transcript_chunk': transcript.text
+                }, room=session_id)
+                break
+
+def handle_realtime_error(error):
+    """Handle realtime transcription errors."""
+    print(f"Realtime transcription error: {error}")
+    # Emit error to all active sessions
+    for session_id in realtime_sessions.keys():
+        socketio.emit('error', {'message': f'Transcription error: {str(error)}'}, room=session_id)
+
+def handle_realtime_open():
+    """Handle realtime connection open."""
+    print("Realtime transcription connection opened")
+
+def handle_realtime_close():
+    """Handle realtime connection close."""
+    print("Realtime transcription connection closed")
 
 # --- NEW: Configure Stripe ---
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -567,6 +635,83 @@ def generate_live_summary_update(previous_summary, new_transcript_chunk):
     )
     return response.choices[0].message.content
 
+# --- NEW: Real-time note generation functions ---
+def generate_initial_notes_structure(lecture_title):
+    """Generate an initial HTML structure for live note-taking."""
+    return f"""
+    <div class="live-notes">
+        <h1>{lecture_title}</h1>
+        <div class="notes-timestamp">Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+        <div class="notes-content">
+            <p><em>Live transcription and note-taking in progress...</em></p>
+        </div>
+    </div>
+    """
+
+def generate_live_notes_update(previous_notes, new_transcript, is_final=False):
+    """
+    Generate updated notes from new transcript chunk.
+    Uses a more sophisticated approach for real-time note generation.
+    """
+    # Extract the content area from previous notes
+    import re
+    content_match = re.search(r'<div class="notes-content">(.*?)</div>', previous_notes, re.DOTALL)
+    previous_content = content_match.group(1) if content_match else ""
+    
+    prompt = f"""
+    You are an expert AI note-taker for university lectures. Your task is to update lecture notes in real-time.
+    
+    CURRENT NOTES CONTENT:
+    {previous_content}
+    
+    NEW TRANSCRIPT CHUNK:
+    {new_transcript}
+    
+    Instructions:
+    1. Analyze the new transcript for key concepts, definitions, examples, and important points
+    2. Update the notes by:
+       - Adding new concepts as bullet points or sections
+       - Expanding on existing topics if the new content relates
+       - Creating new headings for major topic changes
+       - Highlighting important terms with <strong> tags
+       - Adding examples or explanations
+    3. Maintain clean HTML structure with proper headings (h2, h3), paragraphs, and lists
+    4. Keep notes concise but comprehensive
+    5. If this is the final chunk, add a conclusion section
+    
+    Return ONLY the updated content for the notes-content div, without the wrapper div.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3  # Lower temperature for more consistent formatting
+        )
+        
+        updated_content = response.choices[0].message.content.strip()
+        
+        # Replace the content in the previous notes
+        updated_notes = re.sub(
+            r'<div class="notes-content">.*?</div>',
+            f'<div class="notes-content">{updated_content}</div>',
+            previous_notes,
+            flags=re.DOTALL
+        )
+        
+        return updated_notes
+        
+    except Exception as e:
+        print(f"Error generating live notes update: {e}")
+        # Return previous notes with error message
+        error_content = f"{previous_content}<p><em>Error updating notes: {str(e)}</em></p>"
+        return re.sub(
+            r'<div class="notes-content">.*?</div>',
+            f'<div class="notes-content">{error_content}</div>',
+            previous_notes,
+            flags=re.DOTALL
+        )
+
 
 # --- NEW: Route to render the live lecture page ---
 @app.route("/hub/<hub_id>/live_lecture")
@@ -576,7 +721,200 @@ def live_lecture_page(hub_id):
     if not hub_doc.exists or Hub.from_dict(hub_doc.to_dict()).user_id != current_user.id:
         flash("Hub not found or you don't have access.", "error")
         return redirect(url_for('dashboard'))
-    return render_template("live_lecture.html", hub_id=hub_id)
+    return render_template("live_lecture_realtime.html", hub_id=hub_id)
+
+# --- NEW: WebSocket handlers for real-time lecture capture ---
+@socketio.on('start_live_lecture')
+@login_required
+def handle_start_live_lecture(data):
+    """Handle starting a live lecture session."""
+    hub_id = data.get('hub_id')
+    lecture_title = data.get('title', f"Live Lecture - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    session_id = request.sid  # Get unique session ID
+    
+    # Verify user has access to the hub
+    hub_doc = db.collection('hubs').document(hub_id).get()
+    if not hub_doc.exists or Hub.from_dict(hub_doc.to_dict()).user_id != current_user.id:
+        emit('error', {'message': 'Hub not found or access denied'})
+        return
+    
+    # Create realtime transcriber
+    transcriber = create_realtime_transcriber()
+    if not transcriber:
+        emit('error', {'message': 'Failed to initialize transcription service. Please check your AssemblyAI API key.'})
+        return
+    
+    # Initialize session data
+    session_data = {
+        'hub_id': hub_id,
+        'title': lecture_title,
+        'start_time': datetime.now().isoformat(),
+        'current_notes': generate_initial_notes_structure(lecture_title),
+        'transcript_buffer': '',
+        'is_active': True,
+        'transcriber': transcriber,
+        'transcriber_active': False
+    }
+    
+    # Store session data
+    realtime_sessions[session_id] = session_data
+    
+    # Join the session room for targeted messaging
+    join_room(session_id)
+    
+    emit('lecture_started', {
+        'title': lecture_title,
+        'initial_notes': session_data['current_notes']
+    })
+
+@socketio.on('audio_chunk')
+@login_required
+def handle_audio_chunk(data):
+    """Handle incoming audio chunk for real-time transcription."""
+    session_id = request.sid
+    audio_data = data.get('audio_data')
+    
+    if not audio_data:
+        emit('error', {'message': 'Missing audio_data'})
+        return
+    
+    # Get session data
+    session_data = realtime_sessions.get(session_id)
+    if not session_data or not session_data.get('is_active'):
+        emit('error', {'message': 'No active lecture session'})
+        return
+    
+    try:
+        transcriber = session_data.get('transcriber')
+        if not transcriber:
+            emit('error', {'message': 'Transcription service not available'})
+            return
+        
+        # Connect transcriber if not already connected
+        if not session_data.get('transcriber_active'):
+            transcriber.connect()
+            session_data['transcriber_active'] = True
+        
+        # Convert base64 audio data to bytes
+        import base64
+        audio_bytes = base64.b64decode(audio_data)
+        
+        # Stream audio to AssemblyAI
+        transcriber.stream(audio_bytes)
+        
+    except Exception as e:
+        print(f"Error processing audio chunk: {e}")
+        emit('error', {'message': f'Error processing audio: {str(e)}'})
+
+@socketio.on('stop_live_lecture')
+@login_required
+def handle_stop_live_lecture(data):
+    """Handle stopping a live lecture session."""
+    session_id = request.sid
+    
+    # Get session data
+    session_data = realtime_sessions.get(session_id)
+    if not session_data:
+        emit('error', {'message': 'No active lecture session'})
+        return
+    
+    try:
+        # Disconnect transcriber
+        transcriber = session_data.get('transcriber')
+        if transcriber and session_data.get('transcriber_active'):
+            transcriber.close()
+            session_data['transcriber_active'] = False
+        
+        # Mark session as inactive
+        session_data['is_active'] = False
+        session_data['end_time'] = datetime.now().isoformat()
+        
+        # Generate final notes
+        final_notes = generate_live_notes_update(
+            session_data['current_notes'],
+            session_data['transcript_buffer'],
+            is_final=True
+        )
+        
+        emit('lecture_stopped', {
+            'final_notes': final_notes,
+            'full_transcript': session_data['transcript_buffer'],
+            'duration': session_data.get('end_time', '') - session_data.get('start_time', '')
+        })
+        
+    except Exception as e:
+        print(f"Error stopping lecture: {e}")
+        emit('error', {'message': f'Error stopping lecture: {str(e)}'})
+    
+    finally:
+        # Clean up session data
+        realtime_sessions.pop(session_id, None)
+        leave_room(session_id)
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle client disconnection and cleanup."""
+    session_id = request.sid
+    
+    # Clean up any active transcription session
+    if session_id in realtime_sessions:
+        session_data = realtime_sessions[session_id]
+        
+        # Disconnect transcriber if active
+        transcriber = session_data.get('transcriber')
+        if transcriber and session_data.get('transcriber_active'):
+            try:
+                transcriber.close()
+            except:
+                pass
+        
+        # Remove session
+        realtime_sessions.pop(session_id, None)
+        leave_room(session_id)
+
+# --- NEW: Route to save live lecture notes ---
+@app.route("/hub/<hub_id>/save_live_lecture_notes", methods=["POST"])
+@login_required
+def save_live_lecture_notes(hub_id):
+    """Save live lecture notes to the database."""
+    try:
+        title = request.form.get('title', f"Live Lecture - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        notes_html = request.form.get('notes_html', '')
+        full_transcript = request.form.get('full_transcript', '')
+        
+        if not notes_html:
+            return jsonify({"success": False, "message": "No notes content provided"}), 400
+        
+        # Create note in database
+        note_ref = db.collection('notes').document()
+        new_note = Note(
+            id=note_ref.id,
+            hub_id=hub_id,
+            title=title,
+            content_html=notes_html
+        )
+        note_ref.set(new_note.to_dict())
+        
+        # If there's a transcript, also create a raw transcript note
+        if full_transcript:
+            transcript_ref = db.collection('notes').document()
+            transcript_note = Note(
+                id=transcript_ref.id,
+                hub_id=hub_id,
+                title=f"{title} - Full Transcript",
+                content_html=f"<div class='transcript'><pre>{full_transcript}</pre></div>"
+            )
+            transcript_ref.set(transcript_note.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "message": "Live lecture notes saved successfully!",
+            "note_id": note_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error saving live lecture notes: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
 
 
 def generate_cheat_sheet_json(text):

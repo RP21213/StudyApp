@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Lecture Capture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --border-color: #e5e7eb;
+            --background-body: #f4f5f7;
+            --text-muted: #6b7280;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .header h1 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+        
+        .header p {
+            color: var(--text-muted);
+            margin: 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        
+        .button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .start-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .start-btn:hover {
+            background-color: #059669;
+        }
+        
+        .stop-btn {
+            background-color: var(--danger-color);
+            color: white;
+            display: none;
+        }
+        
+        .stop-btn:hover {
+            background-color: #dc2626;
+        }
+        
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+        
+        .status-dot.recording {
+            background-color: var(--danger-color);
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-dot.processing {
+            background-color: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            height: fit-content;
+        }
+        
+        .panel h3 {
+            margin: 0 0 1rem 0;
+            color: #1f2937;
+            font-size: 1.25rem;
+        }
+        
+        .transcript-panel {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .transcript-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #374151;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .notes-panel {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .notes-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #374151;
+        }
+        
+        .notes-content h1, .notes-content h2, .notes-content h3 {
+            color: #1f2937;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .notes-content h1:first-child {
+            margin-top: 0;
+        }
+        
+        .notes-content ul, .notes-content ol {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .notes-content li {
+            margin: 0.25rem 0;
+        }
+        
+        .notes-content strong {
+            color: var(--primary-color);
+        }
+        
+        .notes-timestamp {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--danger-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: white;
+            animation: pulse 1s infinite;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Live Lecture Capture</h1>
+            <p>Real-time transcription and intelligent note-taking for your lectures</p>
+        </div>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="lecture-title">Lecture Title</label>
+                <input type="text" id="lecture-title" value="Live Lecture - {{ now.strftime('%Y-%m-%d %H:%M') }}">
+            </div>
+            <button id="start-btn" class="button start-btn">Start Live Capture</button>
+            <button id="stop-btn" class="button stop-btn">Stop Recording</button>
+            <button id="save-btn" class="button" style="background-color: var(--primary-color); color: white; display: none;">Save Notes</button>
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Ready to start</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel transcript-panel">
+                <h3>Live Transcript</h3>
+                <div id="transcript-content" class="transcript-content">
+                    Transcript will appear here as you speak...
+                </div>
+            </div>
+            
+            <div class="panel notes-panel">
+                <h3>Live Notes</h3>
+                <div id="notes-content" class="notes-content">
+                    <p><em>Notes will be generated in real-time as the lecture progresses...</em></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const saveBtn = document.getElementById('save-btn');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const titleInput = document.getElementById('lecture-title');
+            const transcriptContent = document.getElementById('transcript-content');
+            const notesContent = document.getElementById('notes-content');
+            const hubId = '{{ hub_id }}';
+            
+            // Initialize Socket.IO connection
+            const socket = io();
+            
+            let mediaRecorder;
+            let audioStream;
+            let isRecording = false;
+            let transcriptBuffer = '';
+            let finalNotes = '';
+            let fullTranscript = '';
+            
+            // Socket event handlers
+            socket.on('lecture_started', (data) => {
+                console.log('Lecture started:', data);
+                updateStatus('recording', 'Recording in progress...');
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+                titleInput.disabled = true;
+                
+                // Initialize notes with the provided structure
+                notesContent.innerHTML = data.initial_notes;
+            });
+            
+            socket.on('notes_updated', (data) => {
+                console.log('Notes updated:', data);
+                notesContent.innerHTML = data.notes_html;
+                
+                // Add new transcript chunk
+                transcriptBuffer += data.transcript_chunk + ' ';
+                transcriptContent.textContent = transcriptBuffer;
+                
+                // Scroll to bottom of transcript
+                transcriptContent.scrollTop = transcriptContent.scrollHeight;
+            });
+            
+            socket.on('lecture_stopped', (data) => {
+                console.log('Lecture stopped:', data);
+                updateStatus('idle', 'Lecture completed - Ready to save');
+                startBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                saveBtn.style.display = 'block';
+                titleInput.disabled = false;
+                
+                // Store final data
+                finalNotes = data.final_notes;
+                fullTranscript = data.full_transcript;
+                
+                // Show final notes
+                notesContent.innerHTML = data.final_notes;
+                
+                // Show success message
+                showMessage('success', 'Lecture captured successfully! Click "Save Notes" to save to your hub.');
+            });
+            
+            socket.on('error', (data) => {
+                console.error('Socket error:', data);
+                showMessage('error', data.message);
+                resetUI();
+            });
+            
+            // Audio recording functions
+            async function startRecording() {
+                try {
+                    audioStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            sampleRate: 16000,
+                            channelCount: 1,
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        } 
+                    });
+                    
+                    mediaRecorder = new MediaRecorder(audioStream, {
+                        mimeType: 'audio/webm;codecs=opus'
+                    });
+                    
+                    const audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            audioChunks.push(event.data);
+                        }
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        // Send final audio chunk if any
+                        if (audioChunks.length > 0) {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                            sendAudioChunk(audioBlob);
+                        }
+                    };
+                    
+                    // Start recording with small time slices for real-time processing
+                    mediaRecorder.start(500); // 500ms chunks for better real-time performance
+                    isRecording = true;
+                    
+                    // Send audio chunks more frequently for real-time transcription
+                    const chunkInterval = setInterval(() => {
+                        if (isRecording && audioChunks.length > 0) {
+                            const audioBlob = new Blob(audioChunks.splice(0), { type: 'audio/webm' });
+                            sendAudioChunk(audioBlob);
+                        }
+                    }, 1000); // Send every 1 second for real-time processing
+                    
+                    // Store interval ID for cleanup
+                    mediaRecorder.chunkInterval = chunkInterval;
+                    
+                    // Start the lecture session
+                    socket.emit('start_live_lecture', {
+                        hub_id: hubId,
+                        title: titleInput.value
+                    });
+                    
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    showMessage('error', 'Could not access microphone. Please check permissions.');
+                }
+            }
+            
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    isRecording = false;
+                    mediaRecorder.stop();
+                    
+                    // Clear the chunk interval
+                    if (mediaRecorder.chunkInterval) {
+                        clearInterval(mediaRecorder.chunkInterval);
+                    }
+                    
+                    // Stop all audio tracks
+                    if (audioStream) {
+                        audioStream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    // Notify server that lecture has stopped
+                    socket.emit('stop_live_lecture', {
+                        hub_id: hubId
+                    });
+                }
+            }
+            
+            function sendAudioChunk(audioBlob) {
+                // Convert blob to base64 for transmission
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64Audio = reader.result.split(',')[1];
+                    socket.emit('audio_chunk', {
+                        hub_id: hubId,
+                        audio_data: base64Audio
+                    });
+                };
+                reader.readAsDataURL(audioBlob);
+            }
+            
+            function updateStatus(type, text) {
+                statusDot.className = `status-dot ${type}`;
+                statusText.textContent = text;
+            }
+            
+            function showMessage(type, message) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `${type}-message`;
+                messageDiv.textContent = message;
+                
+                // Insert after the controls
+                const controls = document.querySelector('.controls');
+                controls.parentNode.insertBefore(messageDiv, controls.nextSibling);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    messageDiv.remove();
+                }, 5000);
+            }
+            
+            async function saveNotes() {
+                if (!finalNotes) {
+                    showMessage('error', 'No notes to save. Please record a lecture first.');
+                    return;
+                }
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('title', titleInput.value);
+                    formData.append('notes_html', finalNotes);
+                    formData.append('full_transcript', fullTranscript);
+                    
+                    const response = await fetch(`/hub/${hubId}/save_live_lecture_notes`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showMessage('success', 'Notes saved successfully! Redirecting to hub...');
+                        setTimeout(() => {
+                            window.location.href = `/hub/${hubId}`;
+                        }, 2000);
+                    } else {
+                        showMessage('error', result.message || 'Failed to save notes');
+                    }
+                } catch (error) {
+                    console.error('Error saving notes:', error);
+                    showMessage('error', 'Failed to save notes. Please try again.');
+                }
+            }
+            
+            function resetUI() {
+                startBtn.style.display = 'block';
+                stopBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                titleInput.disabled = false;
+                updateStatus('idle', 'Ready to start');
+                
+                // Clear content
+                transcriptContent.textContent = 'Transcript will appear here as you speak...';
+                notesContent.innerHTML = '<p><em>Notes will be generated in real-time as the lecture progresses...</em></p>';
+                
+                // Reset variables
+                transcriptBuffer = '';
+                finalNotes = '';
+                fullTranscript = '';
+                
+                if (mediaRecorder && mediaRecorder.chunkInterval) {
+                    clearInterval(mediaRecorder.chunkInterval);
+                }
+                
+                if (audioStream) {
+                    audioStream.getTracks().forEach(track => track.stop());
+                }
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startRecording);
+            stopBtn.addEventListener('click', stopRecording);
+            saveBtn.addEventListener('click', saveNotes);
+            
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (isRecording) {
+                    stopRecording();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
