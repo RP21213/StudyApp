@@ -2219,22 +2219,47 @@ def slide_notes_ai_assist():
 @login_required
 def create_checkout_session():
     price_id = request.form.get('price_id')
+    
     try:
+        # Check if user was referred (has a referred_by value)
+        user_doc = db.collection('users').document(current_user.id).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+        was_referred = user_data.get('referred_by') is not None
+        
+        # Create line items with discount if user was referred
+        line_items = [{
+            'price': price_id,
+            'quantity': 1,
+        }]
+        
+        # If user was referred, add a 50% discount
+        discounts = []
+        if was_referred:
+            # Create a 50% discount coupon
+            try:
+                coupon = stripe.Coupon.create(
+                    percent_off=50,
+                    duration='once',
+                    name='Referral Discount',
+                    id=f'referral_{current_user.id}_{int(datetime.now().timestamp())}'
+                )
+                discounts.append({'coupon': coupon.id})
+                print(f"🎯 Created 50% discount coupon for referred user {current_user.email}")
+            except Exception as e:
+                print(f"❌ Failed to create discount coupon: {e}")
+        
         checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    'price': price_id,
-                    'quantity': 1,
-                },
-            ],
+            line_items=line_items,
             mode='subscription',
             success_url=YOUR_DOMAIN + '/dashboard?session_id={CHECKOUT_SESSION_ID}',
             cancel_url=YOUR_DOMAIN + '/',
             customer_email=current_user.email,
+            discounts=discounts if discounts else None,
             # Pass user ID to identify the user in webhook
-            metadata={'user_id': current_user.id}
+            metadata={'user_id': current_user.id, 'was_referred': str(was_referred)}
         )
     except Exception as e:
+        print(f"❌ Error creating checkout session: {e}")
         return str(e)
 
     return redirect(checkout_session.url, code=303)
@@ -2333,6 +2358,25 @@ def webhook_test():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "endpoint_secret_configured": bool(os.getenv("STRIPE_ENDPOINT_SECRET"))
     })
+
+@app.route('/api/referral-discount-status', methods=['GET'])
+@login_required
+def get_referral_discount_status():
+    """Check if user is eligible for referral discount"""
+    try:
+        user_doc = db.collection('users').document(current_user.id).get()
+        user_data = user_doc.to_dict() if user_doc.exists else {}
+        was_referred = user_data.get('referred_by') is not None
+        
+        return jsonify({
+            "success": True,
+            "eligible_for_discount": was_referred,
+            "original_price": 4.49,
+            "discounted_price": 2.25 if was_referred else 4.49
+        })
+    except Exception as e:
+        print(f"Error checking referral discount status: {e}")
+        return jsonify({"success": False, "message": "Error checking discount status"}), 500
 
 # ==============================================================================
 # 6. CORE APP & HUB ROUTES
