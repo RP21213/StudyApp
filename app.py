@@ -5933,17 +5933,49 @@ def validate_user_referral_code():
 def get_user_referral_stats():
     """Get user's referral statistics"""
     try:
-        # Get user's current stats
+        # Handle existing users who don't have referral fields yet
+        user_ref = db.collection('users').document(current_user.id)
+        user_doc = user_ref.get()
+        
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            
+            # Check if user needs referral fields initialized
+            needs_update = False
+            if 'referral_code' not in user_data:
+                user_data['referral_code'] = generate_referral_code()
+                needs_update = True
+            if 'referred_by' not in user_data:
+                user_data['referred_by'] = None
+                needs_update = True
+            if 'pro_referral_count' not in user_data:
+                user_data['pro_referral_count'] = 0
+                needs_update = True
+            if 'referral_earnings' not in user_data:
+                user_data['referral_earnings'] = 0.0
+                needs_update = True
+            
+            # Update user record if needed
+            if needs_update:
+                user_ref.update({
+                    'referral_code': user_data['referral_code'],
+                    'referred_by': user_data['referred_by'],
+                    'pro_referral_count': user_data['pro_referral_count'],
+                    'referral_earnings': user_data['referral_earnings']
+                })
+                print(f"✅ Updated user {current_user.email} with referral fields")
+        
+        # Get user's current stats (with defaults for missing fields)
         stats = {
-            "pro_referral_count": current_user.pro_referral_count,
-            "referral_earnings": current_user.referral_earnings,
-            "referral_code": current_user.referral_code,
-            "referred_by": current_user.referred_by,  # Add this field
+            "pro_referral_count": getattr(current_user, 'pro_referral_count', 0),
+            "referral_earnings": getattr(current_user, 'referral_earnings', 0.0),
+            "referral_code": getattr(current_user, 'referral_code', None) or user_data.get('referral_code', 'Generating...'),
+            "referred_by": getattr(current_user, 'referred_by', None),
             "milestones": {
-                "3": {"reached": current_user.pro_referral_count >= 3, "reward": "One month Pro for free"},
-                "10": {"reached": current_user.pro_referral_count >= 10, "reward": "£20 Amazon giftcard"},
-                "20": {"reached": current_user.pro_referral_count >= 20, "reward": "£50 Amazon giftcard"},
-                "50": {"reached": current_user.pro_referral_count >= 50, "reward": "£100 Amazon giftcard"}
+                "3": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 3, "reward": "One month Pro for free"},
+                "10": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 10, "reward": "£20 Amazon giftcard"},
+                "20": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 20, "reward": "£50 Amazon giftcard"},
+                "50": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 50, "reward": "£100 Amazon giftcard"}
             }
         }
         
