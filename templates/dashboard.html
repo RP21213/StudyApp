@@ -2885,6 +2885,90 @@
     {% endif %}
 
     <script>
+        // Global functions for referral system
+        async function addReferralCode() {
+            console.log('addReferralCode function called');
+            const codeInput = document.getElementById('add-referral-code');
+            const addButton = document.getElementById('add-referral-btn');
+            const statusDiv = document.getElementById('referral-status');
+            
+            console.log('Elements found:', { codeInput, addButton, statusDiv });
+            
+            const code = codeInput.value.trim();
+            console.log('Code entered:', code);
+            
+            if (!code) {
+                showReferralStatus('Please enter a referral code', 'error');
+                return;
+            }
+            
+            if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                showReferralStatus('Please enter a valid 6-digit referral code', 'error');
+                return;
+            }
+            
+            // Disable button and show loading
+            addButton.disabled = true;
+            addButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Adding...';
+            
+            try {
+                const response = await fetch('/api/referrals/add-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showReferralStatus('Referral code added successfully! Thank you for supporting a friend.', 'success');
+                    codeInput.value = '';
+                    
+                    // Hide the add referral section after successful addition
+                    setTimeout(() => {
+                        document.getElementById('add-referral-section').style.display = 'none';
+                    }, 3000);
+                    
+                    // Refresh stats to show updated data
+                    setTimeout(() => {
+                        fetchUserStats();
+                    }, 1000);
+                    
+                } else {
+                    showReferralStatus(data.message || 'Failed to add referral code', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error adding referral code:', error);
+                showReferralStatus('Failed to add referral code. Please try again.', 'error');
+            } finally {
+                // Re-enable button
+                addButton.disabled = false;
+                addButton.innerHTML = '<i data-lucide="plus"></i> Add Code';
+            }
+        }
+
+        function showReferralStatus(message, type) {
+            console.log('showReferralStatus called:', message, type);
+            const statusDiv = document.getElementById('referral-status');
+            console.log('Status div found:', statusDiv);
+            
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.className = `referral-status ${type}`;
+                statusDiv.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            } else {
+                console.error('Status div not found!');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Modal functionality
             const openModalBtn = document.getElementById('open-modal-btn');
@@ -3166,88 +3250,7 @@
                 // You can add a toast notification here if you have one
             }
             
-            async function addReferralCode() {
-                console.log('addReferralCode function called');
-                const codeInput = document.getElementById('add-referral-code');
-                const addButton = document.getElementById('add-referral-btn');
-                const statusDiv = document.getElementById('referral-status');
-                
-                console.log('Elements found:', { codeInput, addButton, statusDiv });
-                
-                const code = codeInput.value.trim();
-                console.log('Code entered:', code);
-                
-                if (!code) {
-                    showReferralStatus('Please enter a referral code', 'error');
-                    return;
-                }
-                
-                if (code.length !== 6 || !/^\d{6}$/.test(code)) {
-                    showReferralStatus('Please enter a valid 6-digit referral code', 'error');
-                    return;
-                }
-                
-                // Disable button and show loading
-                addButton.disabled = true;
-                addButton.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Adding...';
-                
-                try {
-                    const response = await fetch('/api/referrals/add-code', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ code: code })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        showReferralStatus('Referral code added successfully! Thank you for supporting a friend.', 'success');
-                        codeInput.value = '';
-                        
-                        // Hide the add referral section after successful addition
-                        setTimeout(() => {
-                            document.getElementById('add-referral-section').style.display = 'none';
-                        }, 3000);
-                        
-                        // Refresh stats to show updated data
-                        setTimeout(() => {
-                            fetchUserStats();
-                        }, 1000);
-                        
-                    } else {
-                        showReferralStatus(data.message || 'Failed to add referral code', 'error');
-                    }
-                    
-                } catch (error) {
-                    console.error('Error adding referral code:', error);
-                    showReferralStatus('Failed to add referral code. Please try again.', 'error');
-                } finally {
-                    // Re-enable button
-                    addButton.disabled = false;
-                    addButton.innerHTML = '<i data-lucide="plus"></i> Add Code';
-                }
-            }
             
-            function showReferralStatus(message, type) {
-                console.log('showReferralStatus called:', message, type);
-                const statusDiv = document.getElementById('referral-status');
-                console.log('Status div found:', statusDiv);
-                
-                if (statusDiv) {
-                    statusDiv.textContent = message;
-                    statusDiv.className = `referral-status ${type}`;
-                    statusDiv.style.display = 'block';
-                    
-                    // Auto-hide after 5 seconds
-                    setTimeout(() => {
-                        statusDiv.style.display = 'none';
-                    }, 5000);
-                } else {
-                    console.error('Status div not found!');
-                }
-            }
             
             // Initialize referral system on page load
             document.addEventListener('DOMContentLoaded', function() {
