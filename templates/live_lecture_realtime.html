@@ -312,6 +312,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing live lecture...');
             const startBtn = document.getElementById('start-btn');
             const stopBtn = document.getElementById('stop-btn');
             const saveBtn = document.getElementById('save-btn');
@@ -322,8 +323,24 @@
             const notesContent = document.getElementById('notes-content');
             const hubId = '{{ hub_id }}';
             
+            console.log('Elements found:', {
+                startBtn: !!startBtn,
+                stopBtn: !!stopBtn,
+                saveBtn: !!saveBtn,
+                statusDot: !!statusDot,
+                statusText: !!statusText,
+                titleInput: !!titleInput,
+                transcriptContent: !!transcriptContent,
+                notesContent: !!notesContent,
+                hubId: hubId
+            });
+            
             // Initialize Socket.IO connection
-            const socket = io();
+               const socket = io({
+                   transports: ['websocket', 'polling'],
+                   upgrade: true,
+                   rememberUpgrade: true
+               });
             
             let mediaRecorder;
             let audioStream;
@@ -437,12 +454,12 @@
                     isRecording = true;
                     
                     // Send audio chunks more frequently for real-time transcription
-                    const chunkInterval = setInterval(() => {
-                        if (isRecording && audioChunks.length > 0) {
-                            const audioBlob = new Blob(audioChunks.splice(0), { type: 'audio/webm' });
-                            sendAudioChunk(audioBlob);
-                        }
-                    }, 1000); // Send every 1 second for real-time processing
+                       const chunkInterval = setInterval(() => {
+                           if (isRecording && audioChunks.length > 0) {
+                               const audioBlob = new Blob(audioChunks.splice(0), { type: 'audio/webm' });
+                               sendAudioChunk(audioBlob);
+                           }
+                       }, 3000); // Send every 3 seconds to reduce payload size for real-time processing
                     
                     // Store interval ID for cleanup
                     mediaRecorder.chunkInterval = chunkInterval;
@@ -484,14 +501,29 @@
             }
             
             function sendAudioChunk(audioBlob) {
+                console.log('Sending audio chunk, size:', audioBlob.size);
+                
+                // Skip if blob is too large (over 1MB)
+                if (audioBlob.size > 1024 * 1024) {
+                    console.log('Audio chunk too large, skipping');
+                    return;
+                }
+                
                 // Convert blob to base64 for transmission
                 const reader = new FileReader();
                 reader.onload = () => {
                     const base64Audio = reader.result.split(',')[1];
-                    socket.emit('audio_chunk', {
-                        hub_id: hubId,
-                        audio_data: base64Audio
-                    });
+                    try {
+                        socket.emit('audio_chunk', {
+                            hub_id: hubId,
+                            audio_data: base64Audio
+                        });
+                    } catch (error) {
+                        console.error('Error sending audio chunk:', error);
+                    }
+                };
+                reader.onerror = function(error) {
+                    console.error('Error reading audio blob:', error);
                 };
                 reader.readAsDataURL(audioBlob);
             }
@@ -575,9 +607,34 @@
             }
             
             // Event listeners
-            startBtn.addEventListener('click', startRecording);
-            stopBtn.addEventListener('click', stopRecording);
-            saveBtn.addEventListener('click', saveNotes);
+            console.log('Setting up event listeners...');
+            console.log('Start button:', startBtn);
+            console.log('Stop button:', stopBtn);
+            console.log('Save button:', saveBtn);
+            
+            startBtn.addEventListener('click', (e) => {
+                console.log('Start button clicked!', e);
+                startRecording();
+            });
+            stopBtn.addEventListener('click', (e) => {
+                console.log('Stop button clicked!', e);
+                stopRecording();
+            });
+            saveBtn.addEventListener('click', (e) => {
+                console.log('Save button clicked!', e);
+                saveNotes();
+            });
+            
+            console.log('Event listeners set up successfully');
+            
+            // Test if button is clickable
+            startBtn.style.cursor = 'pointer';
+            console.log('Start button cursor set to pointer');
+            
+            // Add a simple test click handler
+            startBtn.onclick = function(e) {
+                console.log('Direct onclick handler triggered!', e);
+            };
             
             // Cleanup on page unload
             window.addEventListener('beforeunload', () => {

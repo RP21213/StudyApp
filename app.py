@@ -737,14 +737,23 @@ def live_lecture_page(hub_id):
 
 # --- NEW: WebSocket handlers for real-time lecture capture ---
 @socketio.on('start_live_lecture')
-@login_required
 def handle_start_live_lecture(data):
     """Handle starting a live lecture session."""
-    print(f"Received start_live_lecture event: {data}")
+    print(f"=== START LIVE LECTURE EVENT RECEIVED ===")
+    print(f"Data: {data}")
+    print(f"User: {current_user.id if current_user.is_authenticated else 'Not authenticated'}")
+    print(f"Session ID: {request.sid}")
+    
+    # Check authentication
+    if not current_user.is_authenticated:
+        print("User not authenticated")
+        emit('error', {'message': 'Authentication required'})
+        return
+    
     hub_id = data.get('hub_id')
     lecture_title = data.get('title', f"Live Lecture - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     session_id = request.sid  # Get unique session ID
-    print(f"Session ID: {session_id}, Hub ID: {hub_id}")
+    print(f"Hub ID: {hub_id}, Title: {lecture_title}")
     
     # Verify user has access to the hub
     hub_doc = db.collection('hubs').document(hub_id).get()
@@ -789,7 +798,6 @@ def handle_start_live_lecture(data):
     print("lecture_started event emitted")
 
 @socketio.on('audio_chunk')
-@login_required
 def handle_audio_chunk(data):
     """Handle incoming audio chunk for real-time transcription."""
     session_id = request.sid
@@ -797,6 +805,11 @@ def handle_audio_chunk(data):
     
     if not audio_data:
         emit('error', {'message': 'Missing audio_data'})
+        return
+    
+    # Check audio data size to prevent payload errors
+    if len(audio_data) > 2 * 1024 * 1024:  # 2MB limit
+        print(f"Audio chunk too large: {len(audio_data)} bytes, skipping")
         return
     
     # Get session data
@@ -855,7 +868,6 @@ def handle_audio_chunk(data):
         emit('error', {'message': f'Error processing audio: {str(e)}'})
 
 @socketio.on('stop_live_lecture')
-@login_required
 def handle_stop_live_lecture(data):
     """Handle stopping a live lecture session."""
     session_id = request.sid
