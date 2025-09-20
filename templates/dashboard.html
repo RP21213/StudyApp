@@ -2195,7 +2195,7 @@
                     </div>
                     <div class="header-actions">
                         {% if current_user.subscription_tier == 'free' %}
-                        <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                        <form action="/create-checkout-session" method="POST">
                             <input type="hidden" name="price_id" value="price_1S1asEGkDG2V766LQ7dfdNQL">
                             <button type="submit" class="button">🚀 Upgrade to Pro</button>
                         </form>
