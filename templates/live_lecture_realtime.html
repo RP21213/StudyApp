@@ -333,6 +333,20 @@
             let fullTranscript = '';
             
             // Socket event handlers
+            socket.on('connect', () => {
+                console.log('Socket connected:', socket.id);
+                // Test the connection
+                socket.emit('test_connection', { message: 'Hello from client' });
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('Socket disconnected');
+            });
+            
+            socket.on('test_response', (data) => {
+                console.log('Test response received:', data);
+            });
+            
             socket.on('lecture_started', (data) => {
                 console.log('Lecture started:', data);
                 updateStatus('recording', 'Recording in progress...');
@@ -383,7 +397,9 @@
             
             // Audio recording functions
             async function startRecording() {
+                console.log('Start recording clicked');
                 try {
+                    console.log('Requesting microphone access...');
                     audioStream = await navigator.mediaDevices.getUserMedia({ 
                         audio: {
                             sampleRate: 16000,
@@ -393,10 +409,12 @@
                             autoGainControl: true
                         } 
                     });
+                    console.log('Microphone access granted');
                     
                     mediaRecorder = new MediaRecorder(audioStream, {
                         mimeType: 'audio/webm;codecs=opus'
                     });
+                    console.log('MediaRecorder created');
                     
                     const audioChunks = [];
                     
@@ -430,10 +448,12 @@
                     mediaRecorder.chunkInterval = chunkInterval;
                     
                     // Start the lecture session
+                    console.log('Emitting start_live_lecture event...');
                     socket.emit('start_live_lecture', {
                         hub_id: hubId,
                         title: titleInput.value
                     });
+                    console.log('start_live_lecture event emitted');
                     
                 } catch (err) {
                     console.error('Error accessing microphone:', err);
