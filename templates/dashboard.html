@@ -246,6 +246,79 @@
             object-fit: cover;
         }
         
+        /* Flag Designs */
+        .palestine-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #000 0%, #000 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #009639 66.66%, #009639 100%);
+            position: relative;
+        }
+        
+        .palestine-flag::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 33.33%;
+            height: 100%;
+            background: #ce1126;
+            clip-path: polygon(0 0, 0 100%, 100% 50%);
+        }
+        
+        .syria-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #ce1126 0%, #ce1126 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #000 66.66%, #000 100%);
+            position: relative;
+        }
+        
+        .syria-flag::before,
+        .syria-flag::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #009639;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .syria-flag::before {
+            left: 35%;
+        }
+        
+        .syria-flag::after {
+            right: 35%;
+        }
+        
+        .sudan-flag {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                #d21034 0%, #d21034 33.33%,
+                #fff 33.33%, #fff 66.66%,
+                #000 66.66%, #000 100%);
+            position: relative;
+        }
+        
+        .sudan-flag::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 33.33%;
+            height: 100%;
+            background: #009639;
+            clip-path: polygon(0 0, 0 100%, 100% 50%);
+        }
+        
         .flip-card-front h3 {
             font-size: 1.5rem;
             font-weight: 600;
@@ -2653,7 +2726,7 @@
                             <div class="flip-card-inner">
                                 <div class="flip-card-front">
                                     <div class="flag-container">
-                                        <img src="/static/images/palestine-flag.png" alt="Palestine Flag" class="flag-image">
+                                        <div class="palestine-flag"></div>
                                     </div>
                                     <h3>Palestine</h3>
                                     <p>Click to see charities</p>
@@ -2676,7 +2749,7 @@
                             <div class="flip-card-inner">
                                 <div class="flip-card-front">
                                     <div class="flag-container">
-                                        <img src="/static/images/syria-flag.png" alt="Syria Flag" class="flag-image">
+                                        <div class="syria-flag"></div>
                                     </div>
                                     <h3>Syria</h3>
                                     <p>Click to see charities</p>
@@ -2699,7 +2772,7 @@
                             <div class="flip-card-inner">
                                 <div class="flip-card-front">
                                     <div class="flag-container">
-                                        <img src="/static/images/sudan-flag.png" alt="Sudan Flag" class="flag-image">
+                                        <div class="sudan-flag"></div>
                                     </div>
                                     <h3>Sudan</h3>
                                     <p>Click to see charities</p>
