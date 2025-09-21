@@ -4519,8 +4519,17 @@ Best regards,
                         return;
                     }
                     
-                    // Apply background image
-                    document.body.style.backgroundImage = `url('/static/background-images/${backgroundName}')`;
+                    // Apply background image with proper file extension
+                    const imageExtensions = {
+                        'citynight': 'citynight.jpg',
+                        'forest': 'forest.jpg', 
+                        'mountains': 'mountains.png',
+                        'nature': 'nature.png',
+                        'sea': 'sea.png'
+                    };
+                    
+                    const imageFile = imageExtensions[backgroundName] || backgroundName;
+                    document.body.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
                     document.body.style.backgroundAttachment = 'fixed';
                     document.body.style.backgroundSize = 'cover';
                     document.body.style.backgroundPosition = 'center';
