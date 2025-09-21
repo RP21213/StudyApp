@@ -176,6 +176,16 @@ except Exception as e:
 # --- Flask App and OpenAI Client Initialization (MODIFIED) ---
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv("FLASK_SECRET_KEY", "a-default-secret-key-for-development")
+
+# Custom JSON encoder to handle Undefined values
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if str(obj) == 'Undefined' or (hasattr(obj, '__class__') and 'Undefined' in str(obj.__class__)):
+            return None
+        return super().default(obj)
+
+app.json_encoder = CustomJSONEncoder
+
 socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
@@ -2248,7 +2258,7 @@ def hub_page(hub_id):
             return {k: clean_undefined_values(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [clean_undefined_values(item) for item in obj]
-        elif str(obj) == 'Undefined':
+        elif str(obj) == 'Undefined' or obj is None or hasattr(obj, '__class__') and 'Undefined' in str(obj.__class__):
             return None
         else:
             return obj
@@ -2463,6 +2473,18 @@ def hub_page(hub_id):
     # --- NEW: Check for Spotify connection ---
     spotify_connected_status = True if current_user.spotify_refresh_token else False
 
+    # Convert all objects to dictionaries to ensure JSON serialization
+    def obj_to_dict(obj):
+        """Convert object to dictionary, handling Undefined values."""
+        if hasattr(obj, 'to_dict'):
+            return clean_undefined_values(obj.to_dict())
+        elif isinstance(obj, list):
+            return [obj_to_dict(item) for item in obj]
+        elif isinstance(obj, dict):
+            return clean_undefined_values(obj)
+        else:
+            return clean_undefined_values(obj)
+    
     return render_template(
         "hub.html", 
         hub=hub,
@@ -2470,16 +2492,17 @@ def hub_page(hub_id):
         total_xp=total_xp,
         streak_days=streak_days,
         level_data=level_data,
-        # Pass all other data as before
-        all_notes=all_notes, 
-        all_sessions=all_sessions, 
-        all_flashcards=all_flashcards, 
-        all_quizzes_and_exams=all_quizzes_and_exams,
+        # Pass all other data as before - convert to dicts for JSON serialization
+        all_activities=[obj_to_dict(activity) for activity in all_activities],
+        all_notes=[obj_to_dict(note) for note in all_notes], 
+        all_sessions=[obj_to_dict(session) for session in all_sessions], 
+        all_flashcards=[obj_to_dict(fc) for fc in all_flashcards], 
+        all_quizzes_and_exams=[obj_to_dict(q) for q in all_quizzes_and_exams],
         topic_mastery=topic_mastery,
         spotlight=spotlight,
         today_xp=today_xp,
-        all_folders=all_folders,
-        all_slide_notes=all_slide_notes, # NEW: Pass slide notes to template
+        all_folders=[obj_to_dict(folder) for folder in all_folders],
+        all_slide_notes=[obj_to_dict(slide) for slide in all_slide_notes], # NEW: Pass slide notes to template
         yesterday_activities=yesterday_activities,
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
