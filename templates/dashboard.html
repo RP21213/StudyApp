@@ -4510,12 +4510,31 @@ Best regards,
                 // Apply background image
                 function applyBackgroundImage(backgroundName) {
                     if (backgroundName === 'default') {
-                        // Remove any background styling
+                        // Remove any background styling from all elements
                         document.body.style.backgroundImage = '';
                         document.body.style.backgroundAttachment = '';
                         document.body.style.backgroundSize = '';
                         document.body.style.backgroundPosition = '';
                         document.body.style.backgroundRepeat = '';
+                        
+                        const sidebar = document.querySelector('.side-panel');
+                        const mainContent = document.querySelector('.main-content');
+                        
+                        if (sidebar) {
+                            sidebar.style.backgroundImage = '';
+                            sidebar.style.backgroundAttachment = '';
+                            sidebar.style.backgroundSize = '';
+                            sidebar.style.backgroundPosition = '';
+                            sidebar.style.backgroundRepeat = '';
+                        }
+                        
+                        if (mainContent) {
+                            mainContent.style.backgroundImage = '';
+                            mainContent.style.backgroundAttachment = '';
+                            mainContent.style.backgroundSize = '';
+                            mainContent.style.backgroundPosition = '';
+                            mainContent.style.backgroundRepeat = '';
+                        }
                         return;
                     }
                     
@@ -4529,11 +4548,33 @@ Best regards,
                     };
                     
                     const imageFile = imageExtensions[backgroundName] || backgroundName;
+                    
+                    // Apply to body and all main containers
                     document.body.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
                     document.body.style.backgroundAttachment = 'fixed';
                     document.body.style.backgroundSize = 'cover';
                     document.body.style.backgroundPosition = 'center';
                     document.body.style.backgroundRepeat = 'no-repeat';
+                    
+                    // Also apply to sidebar and main content areas
+                    const sidebar = document.querySelector('.side-panel');
+                    const mainContent = document.querySelector('.main-content');
+                    
+                    if (sidebar) {
+                        sidebar.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
+                        sidebar.style.backgroundAttachment = 'fixed';
+                        sidebar.style.backgroundSize = 'cover';
+                        sidebar.style.backgroundPosition = 'center';
+                        sidebar.style.backgroundRepeat = 'no-repeat';
+                    }
+                    
+                    if (mainContent) {
+                        mainContent.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
+                        mainContent.style.backgroundAttachment = 'fixed';
+                        mainContent.style.backgroundSize = 'cover';
+                        mainContent.style.backgroundPosition = 'center';
+                        mainContent.style.backgroundRepeat = 'no-repeat';
+                    }
                 }
                 
                 // Initialize on page load
