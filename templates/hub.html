@@ -214,6 +214,122 @@
             margin-top: auto;
             flex-shrink: 0;
         }
+        
+        /* Earn Money Banner */
+        .earn-money-banner {
+            margin: 1rem 0.5rem;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .earn-money-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
+        }
+        
+        .banner-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .banner-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .banner-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1f2937;
+            line-height: 1.2;
+        }
+        
+        .banner-subtitle {
+            font-size: 0.8rem;
+            color: #374151;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+        
+        .banner-button {
+            background: rgba(31, 41, 55, 0.9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .banner-button:hover {
+            background: rgba(31, 41, 55, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .banner-button:active {
+            transform: translateY(0);
+        }
+        
+        .banner-arrow {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+        }
+        
+        .banner-button:hover .banner-arrow {
+            transform: translateX(2px);
+        }
+        
+        /* Collapsed state for banner */
+        .sidebar.collapsed .earn-money-banner {
+            margin: 0.5rem 0.25rem;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .sidebar.collapsed .banner-content {
+            gap: 0.5rem;
+        }
+        
+        .sidebar.collapsed .banner-title {
+            font-size: 0.85rem;
+        }
+        
+        .sidebar.collapsed .banner-subtitle {
+            font-size: 0.7rem;
+        }
+        
+        .sidebar.collapsed .banner-button {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        
+        .sidebar.collapsed .banner-arrow {
+            width: 14px;
+            height: 14px;
+        }
 
         /* --- Main Content Wrapper --- */
         .main-wrapper {
@@ -1636,6 +1752,20 @@
                 </ul>
             </nav>
 
+            <!-- Earn Money Banner -->
+            <div class="earn-money-banner">
+                <div class="banner-content">
+                    <div class="banner-text">
+                        <span class="banner-title">💰 Earn up to £100!</span>
+                        <span class="banner-subtitle">Refer friends & get rewards</span>
+                    </div>
+                    <button class="banner-button" onclick="goToEarnMoney()">
+                        <span class="banner-button-text">Go to</span>
+                        <svg class="banner-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+
             <!-- Task Queue Section -->
             <div class="task-queue-section">
                 <div class="task-queue-header">
@@ -2879,6 +3009,11 @@
                  if (tabId === 'progress') {
                     renderQuizChart();
                 }
+            }
+            
+            function goToEarnMoney() {
+                // Redirect to dashboard with earn money tab
+                window.location.href = "{{ url_for('dashboard') }}#earn-money";
             }
 
             navLinks.forEach(link => {
