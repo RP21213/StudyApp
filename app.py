@@ -234,7 +234,7 @@ def process_referral_rewards(user_id):
             return
         
         # Find the referral record
-        referrals_query = db.collection('referrals').where('referred_id', '==', user_id).where('status', '==', 'pending').stream()
+        referrals_query = db.collection('referrals').where(filter=firestore.FieldFilter('referred_id', '==', user_id)).where(filter=firestore.FieldFilter('status', '==', 'pending')).stream()
         
         for referral_doc in referrals_query:
             referral_data = referral_doc.to_dict()
@@ -2242,18 +2242,24 @@ def hub_page(hub_id):
         flash("You do not have permission to view this hub.", "error")
         return redirect(url_for('dashboard'))
 
+    def clean_undefined_values(obj):
+        """Recursively clean Undefined values from any object."""
+        if isinstance(obj, dict):
+            return {k: clean_undefined_values(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [clean_undefined_values(item) for item in obj]
+        elif str(obj) == 'Undefined':
+            return None
+        else:
+            return obj
+    
     activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
     all_activities = []
     for doc in activities_query:
         try:
             activity_data = doc.to_dict()
-            # Clean any Undefined values from the data
-            cleaned_data = {}
-            for key, value in activity_data.items():
-                if value is not None and str(value) != 'Undefined':
-                    cleaned_data[key] = value
-                else:
-                    cleaned_data[key] = None  # Replace Undefined with None
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(activity_data)
             
             activity = Activity.from_dict(cleaned_data)
             all_activities.append(activity)
@@ -2266,13 +2272,8 @@ def hub_page(hub_id):
     for note in notes_query:
         try:
             note_data = note.to_dict()
-            # Clean any Undefined values from the data
-            cleaned_data = {}
-            for key, value in note_data.items():
-                if value is not None and str(value) != 'Undefined':
-                    cleaned_data[key] = value
-                else:
-                    cleaned_data[key] = None  # Replace Undefined with None
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(note_data)
             
             note_obj = Note.from_dict(cleaned_data)
             all_notes.append(note_obj)
@@ -2285,13 +2286,8 @@ def hub_page(hub_id):
     for doc in sessions_query:
         try:
             session_data = doc.to_dict()
-            # Clean any Undefined values from the data
-            cleaned_data = {}
-            for key, value in session_data.items():
-                if value is not None and str(value) != 'Undefined':
-                    cleaned_data[key] = value
-                else:
-                    cleaned_data[key] = None  # Replace Undefined with None
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(session_data)
             
             session = StudySession.from_dict(cleaned_data)
             all_sessions.append(session)
@@ -2304,13 +2300,8 @@ def hub_page(hub_id):
     for doc in folders_query:
         try:
             folder_data = doc.to_dict()
-            # Clean any Undefined values from the data
-            cleaned_data = {}
-            for key, value in folder_data.items():
-                if value is not None and str(value) != 'Undefined':
-                    cleaned_data[key] = value
-                else:
-                    cleaned_data[key] = None  # Replace Undefined with None
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(folder_data)
             
             folder = Folder.from_dict(cleaned_data)
             all_folders.append(folder)
@@ -2324,13 +2315,8 @@ def hub_page(hub_id):
     for doc in slide_notes_query:
         try:
             slide_data = doc.to_dict()
-            # Clean any Undefined values from the data
-            cleaned_data = {}
-            for key, value in slide_data.items():
-                if value is not None and str(value) != 'Undefined':
-                    cleaned_data[key] = value
-                else:
-                    cleaned_data[key] = None  # Replace Undefined with None
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(slide_data)
             
             slide_note = AnnotatedSlideDeck.from_dict(cleaned_data)
             all_slide_notes.append(slide_note)
@@ -6084,7 +6070,7 @@ def join_study_group():
         study_group = StudyGroup.from_dict(study_group_doc.to_dict())
         
         # Check if user is already a member
-        existing_members = db.collection('study_group_members').where('study_group_id', '==', study_group.id).where('user_id', '==', current_user.id).limit(1).get()
+        existing_members = db.collection('study_group_members').where(filter=firestore.FieldFilter('study_group_id', '==', study_group.id)).where(filter=firestore.FieldFilter('user_id', '==', current_user.id)).limit(1).get()
         
         if existing_members:
             return jsonify({"success": False, "message": "You are already a member of this study group"}), 400
@@ -6143,7 +6129,7 @@ def get_study_group_resources(study_group_id):
     """Get all resources shared in a specific study group"""
     try:
         # Verify user is a member of the study group
-        member_docs = db.collection('study_group_members').where('study_group_id', '==', study_group_id).where('user_id', '==', current_user.id).limit(1).get()
+        member_docs = db.collection('study_group_members').where(filter=firestore.FieldFilter('study_group_id', '==', study_group_id)).where(filter=firestore.FieldFilter('user_id', '==', current_user.id)).limit(1).get()
         
         if not member_docs:
             return jsonify({"success": False, "message": "You are not a member of this study group"}), 403
@@ -6185,17 +6171,17 @@ def share_resource():
         
         # If sharing to study group, verify user is a member
         if study_group_id:
-            member_docs = db.collection('study_group_members').where('study_group_id', '==', study_group_id).where('user_id', '==', current_user.id).limit(1).get()
+            member_docs = db.collection('study_group_members').where(filter=firestore.FieldFilter('study_group_id', '==', study_group_id)).where(filter=firestore.FieldFilter('user_id', '==', current_user.id)).limit(1).get()
             if not member_docs:
                 return jsonify({"success": False, "message": "You are not a member of this study group"}), 403
         
         # Check if resource is already shared
-        query = db.collection('shared_resources').where('resource_type', '==', resource_type).where('resource_id', '==', resource_id).where('owner_id', '==', current_user.id)
+        query = db.collection('shared_resources').where(filter=firestore.FieldFilter('resource_type', '==', resource_type)).where(filter=firestore.FieldFilter('resource_id', '==', resource_id)).where(filter=firestore.FieldFilter('owner_id', '==', current_user.id))
         
         if study_group_id:
-            query = query.where('study_group_id', '==', study_group_id)
+            query = query.where(filter=firestore.FieldFilter('study_group_id', '==', study_group_id))
         else:
-            query = query.where('study_group_id', '==', None)
+            query = query.where(filter=firestore.FieldFilter('study_group_id', '==', None))
         
         existing = query.limit(1).get()
         
