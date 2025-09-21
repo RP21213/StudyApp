@@ -2544,6 +2544,7 @@ def update_settings():
     allowed_keys = [
         'profile_visible', 'activity_visible', 'default_note_privacy',
         'font_size_preference', 'high_contrast_mode', 'language',
+        'background_preference',
         # Onboarding housekeeping fields
         'referral_source', 'goals', 'email_opt_in', 'theme_preference'
     ]
