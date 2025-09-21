@@ -3596,6 +3596,42 @@
                 }
             });
         }
+        
+        // Global claim reward function
+        function claimReward(milestone) {
+            const rewards = {
+                4: '£10 Amazon giftcard',
+                10: '£20 Amazon giftcard',
+                20: '£50 Amazon giftcard',
+                50: '£100 Amazon giftcard'
+            };
+            
+            const reward = rewards[milestone];
+            const emailSubject = `Claim Reward - ${reward} (${milestone} referrals)`;
+            const emailBody = `Hi Raihan,
+
+I have reached the milestone of ${milestone} referrals and would like to claim my reward of ${reward}.
+
+Please find proof of my referrals below:
+[Please attach screenshots or provide details of your referrals]
+
+Thank you for your time.
+
+Best regards,
+[Your name]`;
+
+            const mailtoLink = `mailto:raihanpetkar123@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            
+            // Show confirmation modal
+            showCustomConfirmation(
+                `To claim your ${reward}, you'll need to email raihanpetkar123@gmail.com with proof of your ${milestone} referrals. You'll receive a response within 48 hours.`,
+                () => {
+                    window.open(mailtoLink, '_blank');
+                },
+                null,
+                'Open Email'
+            );
+        }
 
         function showReferralStatus(message, type) {
             console.log('showReferralStatus called:', message, type);
@@ -3885,41 +3921,6 @@
                 // Count achieved milestones
                 const achievedMilestones = Object.values(stats.milestones).filter(m => m.reached).length;
                 document.getElementById('milestones-reached').textContent = `${achievedMilestones}/4`;
-            }
-            
-            function claimReward(milestone) {
-                const rewards = {
-                    4: '£10 Amazon giftcard',
-                    10: '£20 Amazon giftcard',
-                    20: '£50 Amazon giftcard',
-                    50: '£100 Amazon giftcard'
-                };
-                
-                const reward = rewards[milestone];
-                const emailSubject = `Claim Reward - ${reward} (${milestone} referrals)`;
-                const emailBody = `Hi Raihan,
-
-I have reached the milestone of ${milestone} referrals and would like to claim my reward of ${reward}.
-
-Please find proof of my referrals below:
-[Please attach screenshots or provide details of your referrals]
-
-Thank you for your time.
-
-Best regards,
-[Your name]`;
-
-                const mailtoLink = `mailto:raihanpetkar123@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-                
-                // Show confirmation modal
-                showCustomConfirmation(
-                    `To claim your ${reward}, you'll need to email raihanpetkar123@gmail.com with proof of your ${milestone} referrals. You'll receive a response within 48 hours.`,
-                    () => {
-                        window.open(mailtoLink, '_blank');
-                    },
-                    null,
-                    'Open Email'
-                );
             }
             
             function updateLeaderboard(leaderboard) {
