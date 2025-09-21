@@ -271,16 +271,11 @@ def process_referral_rewards(user_id):
             
             # Process milestone rewards
             reward_processed = False
-            if new_count == 3:
-                # Give 1 month Pro for free
-                referrer_ref.update({
-                    'subscription_tier': 'pro',
-                    'subscription_active': True
-                })
-                referral.reward_type = 'pro_month'
-                referral.reward_amount = 9.99  # Approximate Pro monthly value
+            if new_count == 4:
+                # Give £10 Amazon giftcard (milestone reached)
+                # Note: Actual giftcard will be sent via email claim process
                 reward_processed = True
-                print(f"🎉 {referrer_data.get('email', 'Unknown')} reached 3 referrals! Reward: 1 month Pro free")
+                print(f"🎉 {referrer_data.get('email', 'Unknown')} reached 4 referrals! Reward: £10 Amazon giftcard")
                 
             elif new_count in [10, 20, 50]:
                 # Mark for gift card reward (manual processing needed)
@@ -6965,7 +6960,7 @@ def get_user_referral_stats():
             "referral_code": getattr(current_user, 'referral_code', None) or user_data.get('referral_code', 'Generating...'),
             "referred_by": getattr(current_user, 'referred_by', None),
             "milestones": {
-                "3": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 3, "reward": "One month Pro for free"},
+                "4": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 4, "reward": "£10 Amazon giftcard"},
                 "10": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 10, "reward": "£20 Amazon giftcard"},
                 "20": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 20, "reward": "£50 Amazon giftcard"},
                 "50": {"reached": getattr(current_user, 'pro_referral_count', 0) >= 50, "reward": "£100 Amazon giftcard"}
