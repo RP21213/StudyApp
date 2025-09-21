@@ -3731,6 +3731,8 @@
                     const response = await fetch('/api/referrals/user-stats');
                     const data = await response.json();
                     
+                    console.log('Fetched referral stats:', data);
+                    
                     if (data.success) {
                         updateReferralDisplay(data.stats);
                         updateMilestones(data.stats.milestones);
@@ -3845,12 +3847,16 @@
             }
             
             function updateMilestones(milestones) {
+                console.log('Updating milestones with data:', milestones);
                 Object.keys(milestones).forEach(milestone => {
                     const statusElement = document.getElementById(`milestone-${milestone}-status`);
                     const claimButton = document.getElementById(`claim-${milestone}-button`);
                     
+                    console.log(`Milestone ${milestone}:`, milestones[milestone]);
+                    
                     if (statusElement) {
                         if (milestones[milestone].reached) {
+                            console.log(`Milestone ${milestone} is reached - showing claim button`);
                             statusElement.textContent = '✅';
                             statusElement.classList.add('achieved');
                             
@@ -3859,6 +3865,7 @@
                                 claimButton.style.display = 'block';
                             }
                         } else {
+                            console.log(`Milestone ${milestone} is not reached`);
                             statusElement.textContent = '❌';
                             statusElement.classList.remove('achieved');
                             
