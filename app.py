@@ -346,6 +346,28 @@ def create_realtime_transcriber():
         print("Using fallback mode")
         return "fallback"
 
+def create_streaming_client_for_session(session_id):
+    """Create a new StreamingClient for a specific session."""
+    try:
+        if not aai.settings.api_key:
+            return "fallback"
+        
+        # Create a new client for this session
+        client = StreamingClient(
+            StreamingClientOptions(
+                api_key=aai.settings.api_key,
+                api_host="streaming.assemblyai.com",
+            )
+        )
+        
+        # Set up event handlers
+        setup_streaming_events(client, session_id)
+        
+        return client
+    except Exception as e:
+        print(f"Error creating streaming client for session: {e}")
+        return "fallback"
+
 def setup_streaming_events(client, session_id):
     """Set up event handlers for the streaming client."""
     def on_begin(event: BeginEvent):
@@ -788,17 +810,17 @@ def handle_start_live_lecture(data):
         emit('error', {'message': 'Hub not found or access denied'})
         return
     
-    # Create realtime transcriber
-    print("Creating realtime transcriber...")
-    transcriber = create_realtime_transcriber()
-    if not transcriber:
-        print("Failed to create transcriber")
+    # Create session-specific streaming client
+    print("Creating streaming client for session...")
+    streaming_client = create_streaming_client_for_session(session_id)
+    if not streaming_client:
+        print("Failed to create streaming client")
         emit('error', {'message': 'Failed to initialize transcription service. Please check your AssemblyAI API key.'})
         return
-    print("Transcriber created successfully")
+    print("Streaming client created successfully")
     
     # Initialize session data
-    is_fallback = (transcriber == "fallback")
+    is_fallback = (streaming_client == "fallback")
     session_data = {
         'hub_id': hub_id,
         'title': lecture_title,
@@ -806,7 +828,7 @@ def handle_start_live_lecture(data):
         'current_notes': generate_initial_notes_structure(lecture_title, is_fallback),
         'transcript_buffer': '',
         'is_active': True,
-        'streaming_client': transcriber,
+        'streaming_client': streaming_client,
         'client_connected': False
     }
     
@@ -902,18 +924,20 @@ def handle_audio_chunk(data):
         
         # Connect streaming client if not already connected
         if not session_data.get('client_connected'):
-            # Set up event handlers
-            setup_streaming_events(streaming_client, session_id)
-            
-            # Connect to streaming service
-            streaming_client.connect(
-                StreamingParameters(
-                    sample_rate=REALTIME_TRANSCRIPTION_CONFIG["sample_rate"],
-                    format_turns=REALTIME_TRANSCRIPTION_CONFIG["format_turns"],
+            try:
+                # Connect to streaming service
+                streaming_client.connect(
+                    StreamingParameters(
+                        sample_rate=REALTIME_TRANSCRIPTION_CONFIG["sample_rate"],
+                        format_turns=REALTIME_TRANSCRIPTION_CONFIG["format_turns"],
+                    )
                 )
-            )
-            session_data['client_connected'] = True
-            print("Connected to AssemblyAI v3 streaming service")
+                session_data['client_connected'] = True
+                print("Connected to AssemblyAI v3 streaming service")
+            except Exception as e:
+                print(f"Error connecting to AssemblyAI: {e}")
+                emit('error', {'message': f'Failed to connect to transcription service: {str(e)}'})
+                return
         
         # Convert base64 audio data to bytes
         import base64
