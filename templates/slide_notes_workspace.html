@@ -273,6 +273,21 @@
             </div>
             <div class="modal-body">
                 <p id="confirmation-message">Are you sure you want to proceed?</p>
+                <div id="flashcard-count-selector" style="display: none; margin-top: 1rem;">
+                    <label for="flashcard-count" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">Number of flashcards to generate:</label>
+                    <select id="flashcard-count" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        <option value="5">5 flashcards</option>
+                        <option value="10" selected>10 flashcards</option>
+                        <option value="15">15 flashcards</option>
+                        <option value="20">20 flashcards</option>
+                        <option value="25">25 flashcards</option>
+                        <option value="30">30 flashcards</option>
+                        <option value="35">35 flashcards</option>
+                        <option value="40">40 flashcards</option>
+                        <option value="45">45 flashcards</option>
+                        <option value="50">50 flashcards</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="button button-secondary" onclick="closeCustomModal()">Cancel</button>
@@ -431,14 +446,21 @@ async function saveNotes() {
         let currentCallback = null;
 
         // Custom modal functions
-        function showCustomConfirmation(message, callback, title = 'Confirm Action') {
+        function showCustomConfirmation(message, callback, title = 'Confirm Action', showFlashcardCount = false) {
             const modal = document.getElementById('custom-confirmation-modal');
             const titleEl = document.getElementById('confirmation-title');
             const messageEl = document.getElementById('confirmation-message');
+            const countSelector = document.getElementById('flashcard-count-selector');
             
             titleEl.textContent = title;
             messageEl.textContent = message;
             currentCallback = callback;
+            
+            if (showFlashcardCount) {
+                countSelector.style.display = 'block';
+            } else {
+                countSelector.style.display = 'none';
+            }
             
             modal.style.display = 'flex';
         }
@@ -537,7 +559,8 @@ async function saveNotes() {
                 showCustomConfirmation(
                     'Would you like to create flashcards for the full lecture? This will generate flashcards from all slides while you continue taking notes.',
                     () => generateFullLectureFlashcards(),
-                    'Generate Full Lecture Flashcards'
+                    'Generate Full Lecture Flashcards',
+                    true // Show flashcard count selector
                 );
                 return;
             }
@@ -591,12 +614,14 @@ async function saveNotes() {
         }
 
         async function generateFullLectureFlashcards() {
-            saveStatus.textContent = 'Generating flashcards for full lecture...';
+            const flashcardCount = document.getElementById('flashcard-count').value;
+            saveStatus.textContent = `Generating ${flashcardCount} flashcards for full lecture...`;
             
             try {
                 const response = await fetch(`{{ url_for('generate_full_lecture_flashcards', session_id=session.id) }}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ flashcard_count: parseInt(flashcardCount) })
                 });
                 
                 const result = await response.json();
@@ -662,6 +687,13 @@ async function saveNotes() {
                         closeCustomModal();
                     } else if (e.target === alertModal) {
                         closeCustomAlert();
+                    }
+                });
+
+                // Prevent modal content clicks from closing the modal
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.modal-content')) {
+                        e.stopPropagation();
                     }
                 });
 

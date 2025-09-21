@@ -591,10 +591,10 @@ def generate_summary_from_slide_text(text):
     )
     return response.choices[0].message.content
 
-def generate_flashcards_from_slide_text(text):
-    """Generates 2-3 flashcards from the text content of a single slide."""
+def generate_flashcards_from_slide_text(text, count=3):
+    """Generates flashcards from the text content with specified count."""
     prompt = f"""
-    Based on the following slide content, create 2-3 key flashcards.
+    Based on the following slide content, create exactly {count} key flashcards.
     Follow this format strictly for each card:
     Front: [Question or Term]
     Back: [Answer or Definition]
@@ -2848,24 +2848,32 @@ def generate_full_lecture_flashcards(session_id):
         if session_data.get('flashcards_status') in ['generating', 'completed']:
             return jsonify({"success": False, "message": "Flashcards are already being generated or completed"}), 400
         
+        # Get flashcard count from request
+        data = request.get_json() or {}
+        flashcard_count = data.get('flashcard_count', 10)  # Default to 10
+        
+        # Validate flashcard count
+        if not isinstance(flashcard_count, int) or flashcard_count < 1 or flashcard_count > 50:
+            return jsonify({"success": False, "message": "Flashcard count must be between 1 and 50"}), 400
+        
         # Update status to generating
         session_ref = db.collection('annotated_slide_decks').document(session_id)
         session_ref.update({'flashcards_status': 'generating'})
         
-        # Start background task
+        # Start background task with flashcard count
         import threading
-        thread = threading.Thread(target=generate_lecture_flashcards_background, args=(session_id,))
+        thread = threading.Thread(target=generate_lecture_flashcards_background, args=(session_id, flashcard_count))
         thread.daemon = True
         thread.start()
         
-        return jsonify({"success": True, "message": "Flashcard generation started"})
+        return jsonify({"success": True, "message": f"Flashcard generation started for {flashcard_count} flashcards"})
         
     except Exception as e:
         print(f"Error starting flashcard generation: {e}")
         return jsonify({"success": False, "message": "Failed to start flashcard generation"}), 500
 
 
-def generate_lecture_flashcards_background(session_id):
+def generate_lecture_flashcards_background(session_id, flashcard_count=10):
     """Background function to generate flashcards for the entire lecture."""
     try:
         # Get the session
@@ -2902,13 +2910,17 @@ def generate_lecture_flashcards_background(session_id):
             session_ref.update({'flashcards_status': 'failed'})
             return
         
-        # Generate flashcards from all text
-        raw_flashcards = generate_flashcards_from_slide_text(all_text)
+        # Generate flashcards from all text with specified count
+        raw_flashcards = generate_flashcards_from_slide_text(all_text, count=flashcard_count)
         parsed_cards = parse_flashcards(raw_flashcards)
         
         if not parsed_cards:
             session_ref.update({'flashcards_status': 'failed'})
             return
+        
+        # Limit to requested count if more were generated
+        if len(parsed_cards) > flashcard_count:
+            parsed_cards = parsed_cards[:flashcard_count]
         
         # Save flashcards to the session
         session_ref.update({
