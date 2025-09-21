@@ -2365,20 +2365,51 @@
         }
 
         function showCustomConfirmation(message, callback, data = null, buttonText = 'Confirm') {
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => showCustomConfirmation(message, callback, data, buttonText));
+                return;
+            }
+            
             const emoji = getEmojiForMessage(message);
-            document.getElementById('confirmation-title').textContent = `${emoji} Are you sure?`;
-            document.getElementById('confirmation-message').textContent = message;
-            document.getElementById('confirm-action-btn').textContent = buttonText;
+            const confirmationModal = document.getElementById('custom-confirmation-modal');
+            const confirmationTitle = document.getElementById('confirmation-title');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const confirmActionBtn = document.getElementById('confirm-action-btn');
+            
+            if (!confirmationModal || !confirmationTitle || !confirmationMessage || !confirmActionBtn) {
+                console.error('Modal elements not found');
+                return;
+            }
+            
+            confirmationTitle.textContent = `${emoji} Are you sure?`;
+            confirmationMessage.textContent = message;
+            confirmActionBtn.textContent = buttonText;
             confirmationCallback = callback;
             confirmationData = data;
-            document.getElementById('custom-confirmation-modal').style.display = 'flex';
+            confirmationModal.style.display = 'flex';
         }
 
         function showCustomAlert(message, title = 'Information') {
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => showCustomAlert(message, title));
+                return;
+            }
+            
             const emoji = getEmojiForMessage(message);
-            document.getElementById('alert-title').textContent = `${emoji} ${title}`;
-            document.getElementById('alert-message').textContent = message;
-            document.getElementById('custom-alert-modal').style.display = 'flex';
+            const alertModal = document.getElementById('custom-alert-modal');
+            const alertTitle = document.getElementById('alert-title');
+            const alertMessage = document.getElementById('alert-message');
+            
+            if (!alertModal || !alertTitle || !alertMessage) {
+                console.error('Alert modal elements not found');
+                return;
+            }
+            
+            alertTitle.textContent = `${emoji} ${title}`;
+            alertMessage.textContent = message;
+            alertModal.style.display = 'flex';
         }
 
         function closeCustomModal() {
