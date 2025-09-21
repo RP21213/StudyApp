@@ -1968,7 +1968,7 @@ def dashboard():
             total_study_minutes += 30 
         
         # Aggregate quiz scores and topic performance
-        activities_query = db.collection('activities').where('hub_id', '==', hub.id).where('status', '==', 'graded').stream()
+        activities_query = db.collection('activities').where(filter=firestore.FieldFilter('hub_id', '==', hub.id)).where(filter=firestore.FieldFilter('status', '==', 'graded')).stream()
         for activity_doc in activities_query:
             activity = Activity.from_dict(activity_doc.to_dict())
             if 'Quiz' in activity.type or 'Exam' in activity.type:
@@ -2243,20 +2243,100 @@ def hub_page(hub_id):
         return redirect(url_for('dashboard'))
 
     activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
-    all_activities = [Activity.from_dict(doc.to_dict()) for doc in activities_query]
+    all_activities = []
+    for doc in activities_query:
+        try:
+            activity_data = doc.to_dict()
+            # Clean any Undefined values from the data
+            cleaned_data = {}
+            for key, value in activity_data.items():
+                if value is not None and str(value) != 'Undefined':
+                    cleaned_data[key] = value
+                else:
+                    cleaned_data[key] = None  # Replace Undefined with None
+            
+            activity = Activity.from_dict(cleaned_data)
+            all_activities.append(activity)
+        except Exception as e:
+            print(f"Error processing activity {doc.id}: {e}")
+            continue
     
     notes_query = db.collection('notes').where('hub_id', '==', hub_id).stream()
-    all_notes = [Note.from_dict(note.to_dict()) for note in notes_query]
+    all_notes = []
+    for note in notes_query:
+        try:
+            note_data = note.to_dict()
+            # Clean any Undefined values from the data
+            cleaned_data = {}
+            for key, value in note_data.items():
+                if value is not None and str(value) != 'Undefined':
+                    cleaned_data[key] = value
+                else:
+                    cleaned_data[key] = None  # Replace Undefined with None
+            
+            note_obj = Note.from_dict(cleaned_data)
+            all_notes.append(note_obj)
+        except Exception as e:
+            print(f"Error processing note {note.id}: {e}")
+            continue
     
     sessions_query = db.collection('sessions').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
-    all_sessions = [StudySession.from_dict(doc.to_dict()) for doc in sessions_query]
+    all_sessions = []
+    for doc in sessions_query:
+        try:
+            session_data = doc.to_dict()
+            # Clean any Undefined values from the data
+            cleaned_data = {}
+            for key, value in session_data.items():
+                if value is not None and str(value) != 'Undefined':
+                    cleaned_data[key] = value
+                else:
+                    cleaned_data[key] = None  # Replace Undefined with None
+            
+            session = StudySession.from_dict(cleaned_data)
+            all_sessions.append(session)
+        except Exception as e:
+            print(f"Error processing session {doc.id}: {e}")
+            continue
 
     folders_query = db.collection('folders').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
-    all_folders = [Folder.from_dict(doc.to_dict()) for doc in folders_query]
+    all_folders = []
+    for doc in folders_query:
+        try:
+            folder_data = doc.to_dict()
+            # Clean any Undefined values from the data
+            cleaned_data = {}
+            for key, value in folder_data.items():
+                if value is not None and str(value) != 'Undefined':
+                    cleaned_data[key] = value
+                else:
+                    cleaned_data[key] = None  # Replace Undefined with None
+            
+            folder = Folder.from_dict(cleaned_data)
+            all_folders.append(folder)
+        except Exception as e:
+            print(f"Error processing folder {doc.id}: {e}")
+            continue
 
     # --- NEW: Fetch Annotated Slide Decks ---
     slide_notes_query = db.collection('annotated_slide_decks').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
-    all_slide_notes = [AnnotatedSlideDeck.from_dict(doc.to_dict()) for doc in slide_notes_query]
+    all_slide_notes = []
+    for doc in slide_notes_query:
+        try:
+            slide_data = doc.to_dict()
+            # Clean any Undefined values from the data
+            cleaned_data = {}
+            for key, value in slide_data.items():
+                if value is not None and str(value) != 'Undefined':
+                    cleaned_data[key] = value
+                else:
+                    cleaned_data[key] = None  # Replace Undefined with None
+            
+            slide_note = AnnotatedSlideDeck.from_dict(cleaned_data)
+            all_slide_notes.append(slide_note)
+        except Exception as e:
+            print(f"Error processing slide note {doc.id}: {e}")
+            continue
 
     notes_map = {note.id: note for note in all_notes}
     activities_map = {activity.id: activity for activity in all_activities}
