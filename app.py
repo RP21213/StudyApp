@@ -4428,7 +4428,7 @@ def build_revision_pack(hub_id):
         for activity_ref, activity in activities_to_create:
             batch.set(activity_ref, activity.to_dict())
             # Map activity types to folder item types
-            item_type = 'note' if activity.type == 'Notes' else activity.type.lower()
+            item_type = 'notes' if activity.type == 'Notes' else activity.type.lower()
             folder_items.append({'id': activity_ref.id, 'type': item_type})
         
         # Create the folder
@@ -4880,7 +4880,7 @@ def build_exam_kit(hub_id):
         for activity_ref, activity in activities_to_create:
             batch.set(activity_ref, activity.to_dict())
             # Map activity types to folder item types
-            item_type = 'note' if activity.type == 'Notes' else activity.type.lower()
+            item_type = 'notes' if activity.type == 'Notes' else activity.type.lower()
             folder_items.append({'id': activity_ref.id, 'type': item_type})
         
         # Create the folder
