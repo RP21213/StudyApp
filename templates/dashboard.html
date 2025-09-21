@@ -479,6 +479,33 @@
             color: #10b981;
         }
         
+        .claim-button {
+            margin-top: 0.75rem;
+        }
+        
+        .claim-btn {
+            background: linear-gradient(45deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+        
+        .claim-btn:hover {
+            background: linear-gradient(45deg, #059669, #047857);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        }
+        
+        .claim-btn:active {
+            transform: translateY(0);
+        }
+        
         .loading-text {
             color: var(--text-secondary);
             font-style: italic;
@@ -2729,25 +2756,37 @@
                         <div class="milestones-section">
                             <h4>Referral Milestones</h4>
                             <div class="milestones-grid" id="milestones-grid">
-                                <div class="milestone-card" data-milestone="3">
-                                    <div class="milestone-number">3</div>
-                                    <div class="milestone-reward">One month Pro for free</div>
-                                    <div class="milestone-status" id="milestone-3-status">❌</div>
+                                <div class="milestone-card" data-milestone="4">
+                                    <div class="milestone-number">4</div>
+                                    <div class="milestone-reward">£10 Amazon giftcard</div>
+                                    <div class="milestone-status" id="milestone-4-status">❌</div>
+                                    <div class="claim-button" id="claim-4-button" style="display: none;">
+                                        <button class="claim-btn" onclick="claimReward(4)">Claim</button>
+                                    </div>
                              </div>
                                 <div class="milestone-card" data-milestone="10">
                                     <div class="milestone-number">10</div>
                                     <div class="milestone-reward">£20 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-10-status">❌</div>
+                                    <div class="claim-button" id="claim-10-button" style="display: none;">
+                                        <button class="claim-btn" onclick="claimReward(10)">Claim</button>
+                                    </div>
                              </div>
                                 <div class="milestone-card" data-milestone="20">
                                     <div class="milestone-number">20</div>
                                     <div class="milestone-reward">£50 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-20-status">❌</div>
+                                    <div class="claim-button" id="claim-20-button" style="display: none;">
+                                        <button class="claim-btn" onclick="claimReward(20)">Claim</button>
+                                    </div>
                         </div>
                                 <div class="milestone-card" data-milestone="50">
                                     <div class="milestone-number">50</div>
                                     <div class="milestone-reward">£100 Amazon giftcard</div>
                                     <div class="milestone-status" id="milestone-50-status">❌</div>
+                                    <div class="claim-button" id="claim-50-button" style="display: none;">
+                                        <button class="claim-btn" onclick="claimReward(50)">Claim</button>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -3683,13 +3722,25 @@
             function updateMilestones(milestones) {
                 Object.keys(milestones).forEach(milestone => {
                     const statusElement = document.getElementById(`milestone-${milestone}-status`);
+                    const claimButton = document.getElementById(`claim-${milestone}-button`);
+                    
                     if (statusElement) {
                         if (milestones[milestone].reached) {
                             statusElement.textContent = '✅';
                             statusElement.classList.add('achieved');
+                            
+                            // Show claim button for achieved milestones
+                            if (claimButton) {
+                                claimButton.style.display = 'block';
+                            }
                         } else {
                             statusElement.textContent = '❌';
                             statusElement.classList.remove('achieved');
+                            
+                            // Hide claim button for unachieved milestones
+                            if (claimButton) {
+                                claimButton.style.display = 'none';
+                            }
                         }
                     }
                 });
@@ -3702,6 +3753,41 @@
                 // Count achieved milestones
                 const achievedMilestones = Object.values(stats.milestones).filter(m => m.reached).length;
                 document.getElementById('milestones-reached').textContent = `${achievedMilestones}/4`;
+            }
+            
+            function claimReward(milestone) {
+                const rewards = {
+                    4: '£10 Amazon giftcard',
+                    10: '£20 Amazon giftcard',
+                    20: '£50 Amazon giftcard',
+                    50: '£100 Amazon giftcard'
+                };
+                
+                const reward = rewards[milestone];
+                const emailSubject = `Claim Reward - ${reward} (${milestone} referrals)`;
+                const emailBody = `Hi Raihan,
+
+I have reached the milestone of ${milestone} referrals and would like to claim my reward of ${reward}.
+
+Please find proof of my referrals below:
+[Please attach screenshots or provide details of your referrals]
+
+Thank you for your time.
+
+Best regards,
+[Your name]`;
+
+                const mailtoLink = `mailto:raihanpetkar123@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+                
+                // Show confirmation modal
+                showCustomConfirmation(
+                    `To claim your ${reward}, you'll need to email raihanpetkar123@gmail.com with proof of your ${milestone} referrals. You'll receive a response within 48 hours.`,
+                    () => {
+                        window.open(mailtoLink, '_blank');
+                    },
+                    null,
+                    'Open Email'
+                );
             }
             
             function updateLeaderboard(leaderboard) {
