@@ -4381,6 +4381,32 @@ def process_revision_pack_activities(activities_to_create, hub_text, first_file_
     except Exception as e:
         print(f"Error in background processing: {e}")
 
+@app.route("/hub/<hub_id>/get_activities_status")
+@login_required
+def get_activities_status(hub_id):
+    """Get status of all activities for task queue updates."""
+    try:
+        # Get all activities for this hub
+        activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
+        activities = []
+        
+        for doc in activities_query:
+            activity_data = doc.to_dict()
+            # Only include pending/processing activities
+            if activity_data.get('status') in ['pending', 'processing', 'completed']:
+                activities.append({
+                    'id': activity_data.get('id'),
+                    'status': activity_data.get('status'),
+                    'type': activity_data.get('type'),
+                    'title': activity_data.get('title')
+                })
+        
+        return jsonify({"success": True, "activities": activities})
+        
+    except Exception as e:
+        print(f"Error getting activities status: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route("/hub/<hub_id>/generate_individual_notes", methods=["POST"])
 @login_required
 def generate_individual_notes(hub_id):

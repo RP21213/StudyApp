@@ -2571,7 +2571,38 @@
                     const task = this.tasks.find(t => t.id === taskId);
                     if (!task || task.status !== 'completed') return;
                     
-                    if (task.type === 'revision_pack') {
+                    // Handle real activities from database
+                    if (task.activityId) {
+                        if (task.isPack) {
+                            // For pack-based tasks, go to folders tab
+                            const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
+                            if (foldersTab) foldersTab.click();
+                            
+                            // Only remove this task if it's the last completed task in the pack
+                            const packTasks = this.tasks.filter(t => t.folderName === task.folderName);
+                            const completedPackTasks = packTasks.filter(t => t.status === 'completed');
+                            
+                            if (completedPackTasks.length === packTasks.length) {
+                                // All tasks in pack are completed, remove all pack tasks
+                                packTasks.forEach(packTask => {
+                                    this.removeTask(packTask.id);
+                                });
+                            } else {
+                                // Some tasks still processing, just remove this completed task
+                                this.removeTask(taskId);
+                            }
+                        } else {
+                            // For individual tasks, redirect to the activity
+                            if (task.type === 'notes') {
+                                window.location.href = `/note/${task.activityId}`;
+                            } else if (task.type === 'quiz') {
+                                window.location.href = `/quiz/${task.activityId}`;
+                            } else if (task.type === 'flashcards') {
+                                window.location.href = `/flashcards/${task.activityId}`;
+                            }
+                            this.removeTask(taskId);
+                        }
+                    } else if (task.type === 'revision_pack') {
                         // For revision packs, go to folders tab
                         const foldersTab = document.querySelector('.nav-link[data-tab="folders"]');
                         if (foldersTab) foldersTab.click();
@@ -2584,8 +2615,110 @@
                 }
             };
             
-            // Initialize task queue
-            taskQueue.renderTasks();
+            // Function to initialize task queue with real activities from database
+            function initializeTaskQueueWithRealActivities() {
+                // Get activities from the template data
+                const activities = {{ all_activities | tojson }};
+                
+                // Filter for pending/processing activities
+                const pendingActivities = activities.filter(activity => 
+                    activity.status === 'pending' || activity.status === 'processing'
+                );
+                
+                // Group activities by folder (for pack-based tasks)
+                const activityGroups = {};
+                pendingActivities.forEach(activity => {
+                    // Find which folder this activity belongs to
+                    const folders = {{ all_folders | tojson }};
+                    let folderName = 'Individual Task';
+                    
+                    for (const folder of folders) {
+                        if (folder.items && folder.items.some(item => item.id === activity.id)) {
+                            folderName = folder.name;
+                            break;
+                        }
+                    }
+                    
+                    if (!activityGroups[folderName]) {
+                        activityGroups[folderName] = [];
+                    }
+                    activityGroups[folderName].push(activity);
+                });
+                
+                // Add grouped activities to task queue
+                Object.keys(activityGroups).forEach(folderName => {
+                    const groupActivities = activityGroups[folderName];
+                    const isPack = groupActivities.length > 1;
+                    
+                    groupActivities.forEach(activity => {
+                        const taskId = 'real_' + activity.id;
+                        const task = {
+                            id: taskId,
+                            type: activity.type.toLowerCase(),
+                            title: activity.title,
+                            status: activity.status,
+                            progress: activity.status === 'processing' ? 50 : 0,
+                            result: null,
+                            createdAt: new Date(activity.created_at),
+                            activityId: activity.id,
+                            folderName: folderName,
+                            isPack: isPack,
+                            groupSize: groupActivities.length
+                        };
+                        
+                        taskQueue.tasks.push(task);
+                    });
+                });
+                
+                taskQueue.renderTasks();
+            }
+            
+            // Initialize task queue with real activities from database
+            initializeTaskQueueWithRealActivities();
+            
+            // Refresh task queue every 5 seconds to check for status updates
+            setInterval(refreshTaskQueue, 5000);
+            
+            function refreshTaskQueue() {
+                // Only refresh if there are pending/processing tasks
+                const hasActiveTasks = taskQueue.tasks.some(task => 
+                    task.status === 'pending' || task.status === 'processing'
+                );
+                
+                if (hasActiveTasks) {
+                    // Fetch updated activities via AJAX
+                    fetch(`/hub/{{ hub.id }}/get_activities_status`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateTaskQueueWithNewStatuses(data.activities);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error refreshing task queue:', error);
+                        });
+                }
+            }
+            
+            function updateTaskQueueWithNewStatuses(activities) {
+                // Update existing tasks with new statuses
+                taskQueue.tasks.forEach(task => {
+                    if (task.activityId) {
+                        const activity = activities.find(a => a.id === task.activityId);
+                        if (activity) {
+                            const oldStatus = task.status;
+                            task.status = activity.status;
+                            task.progress = activity.status === 'processing' ? 50 : 
+                                           activity.status === 'completed' ? 100 : 0;
+                            
+                            // If status changed, re-render
+                            if (oldStatus !== activity.status) {
+                                taskQueue.renderTasks();
+                            }
+                        }
+                    }
+                });
+            }
             
             // --- UI Elements ---
             const allModals = document.querySelectorAll('.modal-overlay');
