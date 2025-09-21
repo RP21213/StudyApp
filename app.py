@@ -208,7 +208,7 @@ def generate_referral_code():
     while True:
         code = str(random.randint(100000, 999999))
         # Check if code already exists
-        existing_user = db.collection('users').where('referral_code', '==', code).limit(1).stream()
+        existing_user = db.collection('users').where(filter=firestore.FieldFilter('referral_code', '==', code)).limit(1).stream()
         if not list(existing_user):
             return code
 
@@ -217,7 +217,7 @@ def validate_referral_code(code):
     if not code or len(code) != 6 or not code.isdigit():
         return None
     
-    users = db.collection('users').where('referral_code', '==', code).limit(1).stream()
+    users = db.collection('users').where(filter=firestore.FieldFilter('referral_code', '==', code)).limit(1).stream()
     for user_doc in users:
         user_data = user_doc.to_dict()
         return User.from_dict(user_data)
@@ -2263,7 +2263,7 @@ def hub_page(hub_id):
         else:
             return obj
 
-    activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
+    activities_query = db.collection('activities').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).stream()
     all_activities = []
     for doc in activities_query:
         try:
@@ -2277,7 +2277,7 @@ def hub_page(hub_id):
             print(f"Error processing activity {doc.id}: {e}")
             continue
     
-    notes_query = db.collection('notes').where('hub_id', '==', hub_id).stream()
+    notes_query = db.collection('notes').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).stream()
     all_notes = []
     for note in notes_query:
         try:
@@ -2291,7 +2291,7 @@ def hub_page(hub_id):
             print(f"Error processing note {note.id}: {e}")
             continue
     
-    sessions_query = db.collection('sessions').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    sessions_query = db.collection('sessions').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     all_sessions = []
     for doc in sessions_query:
         try:
@@ -2305,7 +2305,7 @@ def hub_page(hub_id):
             print(f"Error processing session {doc.id}: {e}")
             continue
 
-    folders_query = db.collection('folders').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    folders_query = db.collection('folders').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     all_folders = []
     for doc in folders_query:
         try:
@@ -2320,7 +2320,7 @@ def hub_page(hub_id):
             continue
 
     # --- NEW: Fetch Annotated Slide Decks ---
-    slide_notes_query = db.collection('annotated_slide_decks').where('hub_id', '==', hub_id).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    slide_notes_query = db.collection('annotated_slide_decks').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     all_slide_notes = []
     for doc in slide_notes_query:
         try:
@@ -4496,7 +4496,7 @@ def get_activities_status(hub_id):
     """Get status of all activities for task queue updates."""
     try:
         # Get all activities for this hub
-        activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
+        activities_query = db.collection('activities').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).stream()
         activities = []
         
         for doc in activities_query:
