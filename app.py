@@ -4228,134 +4228,158 @@ def build_revision_pack(hub_id):
         return jsonify({"success": False, "message": "Could not extract text from files."}), 500
 
     try:
-        batch = db.batch()
-        folder_items = []
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         folder_name = f"Revision Pack for {first_file_name}"
-
-        # Limit text length to prevent timeouts (first 8000 chars for better content)
-        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
-        print(f"Processing revision pack with {len(limited_text)} characters of text")
-
-        if include_notes:
-            try:
-                print("Generating notes...")
-                interactive_html = generate_interactive_notes_html(limited_text)
-                note_ref = db.collection('notes').document()
-                new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Revision Notes for {first_file_name}", content_html=interactive_html)
-                batch.set(note_ref, new_note.to_dict())
-                folder_items.append({'id': note_ref.id, 'type': 'note'})
-                print("Notes generated successfully")
-            except Exception as e:
-                print(f"Error generating notes: {e}")
-                # Continue without notes if generation fails
-
-        if num_flashcards > 0:
-            try:
-                print("Generating flashcards...")
-                # Create simple flashcards as fallback if AI generation fails
-                simple_cards = [
-                    {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
-                    {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
-                    {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
-                ]
-                
-                try:
-                    flashcards_raw = generate_flashcards_from_text(limited_text, num_flashcards)
-                    flashcards_parsed = parse_flashcards(flashcards_raw)
-                    if not flashcards_parsed:
-                        flashcards_parsed = simple_cards
-                except:
-                    flashcards_parsed = simple_cards
-                
-                if flashcards_parsed:
-                    fc_ref = db.collection('activities').document()
-                    new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards for {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
-                    batch.set(fc_ref, new_fc.to_dict())
-                    folder_items.append({'id': fc_ref.id, 'type': 'flashcards'})
-                    print("Flashcards generated successfully")
-            except Exception as e:
-                print(f"Error generating flashcards: {e}")
-                # Continue without flashcards if generation fails
-
-        if num_quiz_questions > 0:
-            try:
-                print("Generating quiz...")
-                # Create simple quiz as fallback if AI generation fails
-                simple_quiz = {
-                    "questions": [
-                        {
-                            "question": f"What is the main topic covered in {first_file_name}?",
-                            "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
-                            "correct_answer": "D",
-                            "explanation": "The document covers all aspects from introduction to conclusion."
-                        },
-                        {
-                            "question": f"How would you best study {first_file_name}?",
-                            "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
-                            "correct_answer": "B",
-                            "explanation": "Taking notes and reviewing helps with retention and understanding."
-                        }
-                    ]
-                }
-                
-                try:
-                    quiz_json = generate_quiz_from_text(limited_text, num_quiz_questions)
-                    quiz_data = safe_load_json(quiz_json)
-                    if not quiz_data.get('questions'):
-                        quiz_data = simple_quiz
-                except:
-                    quiz_data = simple_quiz
-                
-                if quiz_data.get('questions'):
-                    quiz_ref = db.collection('activities').document()
-                    new_quiz = Activity(id=quiz_ref.id, hub_id=hub_id, type='Quiz', title=f"Practice Quiz for {first_file_name}", data=quiz_data)
-                    batch.set(quiz_ref, new_quiz.to_dict())
-                    folder_items.append({'id': quiz_ref.id, 'type': 'quiz'})
-                    print("Quiz generated successfully")
-            except Exception as e:
-                print(f"Error generating quiz: {e}")
-                # Continue without quiz if generation fails
         
-        # If no items were generated, create a basic note explaining what happened
-        if len(folder_items) == 0:
-            print("No items generated, creating fallback note")
-            fallback_note_ref = db.collection('notes').document()
-            from datetime import datetime
-            fallback_content = f"""
-            <h2>Revision Pack for {first_file_name}</h2>
-            <p>Your revision pack is being prepared. The AI generation may take a moment to complete.</p>
-            <p>You can try generating individual items using the tools in the Study Tools section.</p>
-            <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
-            """
-            fallback_note = Note(id=fallback_note_ref.id, hub_id=hub_id, title=f"Revision Pack for {first_file_name}", content_html=fallback_content)
-            batch.set(fallback_note_ref, fallback_note.to_dict())
-            folder_items.append({'id': fallback_note_ref.id, 'type': 'note'})
-
-        # Always create the folder, even if some items failed to generate
+        # Create activities with pending status for task queue
+        activities_to_create = []
+        
+        if include_notes:
+            note_ref = db.collection('activities').document()
+            new_note_activity = Activity(
+                id=note_ref.id, 
+                hub_id=hub_id, 
+                type='Notes', 
+                title=f"Revision Notes for {first_file_name}", 
+                status='pending',
+                data={'selected_files': selected_files, 'text_length': len(hub_text)}
+            )
+            activities_to_create.append((note_ref, new_note_activity))
+        
+        if num_flashcards > 0:
+            fc_ref = db.collection('activities').document()
+            new_fc_activity = Activity(
+                id=fc_ref.id, 
+                hub_id=hub_id, 
+                type='Flashcards', 
+                title=f"Flashcards for {first_file_name}", 
+                status='pending',
+                data={'selected_files': selected_files, 'num_cards': num_flashcards, 'text_length': len(hub_text)}
+            )
+            activities_to_create.append((fc_ref, new_fc_activity))
+        
+        if num_quiz_questions > 0:
+            quiz_ref = db.collection('activities').document()
+            new_quiz_activity = Activity(
+                id=quiz_ref.id, 
+                hub_id=hub_id, 
+                type='Quiz', 
+                title=f"Practice Quiz for {first_file_name}", 
+                status='pending',
+                data={'selected_files': selected_files, 'num_questions': num_quiz_questions, 'text_length': len(hub_text)}
+            )
+            activities_to_create.append((quiz_ref, new_quiz_activity))
+        
+        # Create all activities with pending status
+        batch = db.batch()
+        folder_items = []
+        
+        for activity_ref, activity in activities_to_create:
+            batch.set(activity_ref, activity.to_dict())
+            folder_items.append({'id': activity_ref.id, 'type': activity.type.lower()})
+        
+        # Create the folder
         folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
         batch.set(folder_ref, new_folder.to_dict())
         
-        notification_ref = db.collection('notifications').document()
-        message = f"Your new '{folder_name}' is ready."
-        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        batch.set(notification_ref, new_notification.to_dict())
-
         batch.commit()
-        print(f"Folder created with {len(folder_items)} items")
         
-        # Return success even if some items failed (folder was created)
-        success_message = "Revision Pack created successfully!"
-        if len(folder_items) == 1 and folder_items[0]['type'] == 'note' and 'fallback' in str(folder_items[0].get('id', '')):
-            success_message += " (Basic folder created - AI generation may be processing)"
+        # Start background processing
+        import threading
+        threading.Thread(target=process_revision_pack_activities, args=(activities_to_create, hub_text, first_file_name)).start()
         
-        return jsonify({"success": True, "message": success_message})
+        return jsonify({"success": True, "message": f"Revision Pack '{folder_name}' is being generated. Check the task queue for progress."})
 
     except Exception as e:
         print(f"Error in build_revision_pack: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+def process_revision_pack_activities(activities_to_create, hub_text, first_file_name):
+    """Background processing function for revision pack activities."""
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        
+        for activity_ref, activity in activities_to_create:
+            try:
+                print(f"Processing {activity.type} activity: {activity.title}")
+                
+                # Update status to processing
+                activity_ref.update({'status': 'processing'})
+                
+                if activity.type == 'Notes':
+                    # Generate notes
+                    interactive_html = generate_interactive_notes_html(limited_text)
+                    note_ref = db.collection('notes').document()
+                    new_note = Note(id=note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=interactive_html)
+                    note_ref.set(new_note.to_dict())
+                    
+                    # Update activity with note reference
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': {'note_id': note_ref.id, 'type': 'note'}
+                    })
+                    
+                elif activity.type == 'Flashcards':
+                    # Generate flashcards
+                    num_cards = activity.data.get('num_cards', 20)
+                    flashcards_raw = generate_flashcards_from_text(limited_text, num_cards)
+                    flashcards_parsed = parse_flashcards(flashcards_raw)
+                    
+                    if not flashcards_parsed:
+                        # Fallback flashcards
+                        flashcards_parsed = [
+                            {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
+                            {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
+                            {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
+                        ]
+                    
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': {'cards': flashcards_parsed}
+                    })
+                    
+                elif activity.type == 'Quiz':
+                    # Generate quiz
+                    num_questions = activity.data.get('num_questions', 10)
+                    quiz_json = generate_quiz_from_text(limited_text, num_questions)
+                    quiz_data = safe_load_json(quiz_json)
+                    
+                    if not quiz_data.get('questions'):
+                        # Fallback quiz
+                        quiz_data = {
+                            "questions": [
+                                {
+                                    "question": f"What is the main topic covered in {first_file_name}?",
+                                    "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
+                                    "correct_answer": "D",
+                                    "explanation": "The document covers all aspects from introduction to conclusion."
+                                },
+                                {
+                                    "question": f"How would you best study {first_file_name}?",
+                                    "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
+                                    "correct_answer": "B",
+                                    "explanation": "Taking notes and reviewing helps with retention and understanding."
+                                }
+                            ]
+                        }
+                    
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': quiz_data
+                    })
+                
+                print(f"Completed {activity.type} activity: {activity.title}")
+                
+            except Exception as e:
+                print(f"Error processing {activity.type} activity: {e}")
+                activity_ref.update({'status': 'failed', 'error': str(e)})
+        
+        print(f"Completed processing revision pack for {first_file_name}")
+        
+    except Exception as e:
+        print(f"Error in background processing: {e}")
 
 @app.route("/hub/<hub_id>/generate_individual_notes", methods=["POST"])
 @login_required
@@ -4574,52 +4598,156 @@ def build_exam_kit(hub_id):
     past_papers_text = get_text_from_hub_files(past_paper_files) if past_paper_files else None
 
     try:
-        batch = db.batch()
-        folder_items = []
         first_file_name = os.path.basename(lecture_files[0]).replace('.pdf', '')
         folder_name = f"Exam Kit for {first_file_name}"
         
-        # 1. Generate Cheatsheet
-        cheat_sheet_json_str = generate_cheat_sheet_json(hub_text)
-        cs_note_ref = db.collection('notes').document()
-        new_cs_note = Note(id=cs_note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json_str)
-        batch.set(cs_note_ref, new_cs_note.to_dict())
-        folder_items.append({'id': cs_note_ref.id, 'type': 'note'})
+        # Create activities with pending status for task queue
+        activities_to_create = []
         
-        # 2. Generate Mock Exam
-        mock_exam_json = generate_quiz_from_text(hub_text, 15) # 15 questions for a mock
-        mock_exam_data = safe_load_json(mock_exam_json)
-        if mock_exam_data.get('questions'):
-            exam_ref = db.collection('activities').document()
-            new_exam = Activity(id=exam_ref.id, hub_id=hub_id, type='Quiz', title=f"Mock Exam for {first_file_name}", data=mock_exam_data)
-            batch.set(exam_ref, new_exam.to_dict())
-            folder_items.append({'id': exam_ref.id, 'type': 'quiz'})
-
-        # 3. Generate Exam Analysis if past papers are provided
+        # 1. Cheat Sheet
+        cheat_sheet_ref = db.collection('activities').document()
+        new_cheat_sheet_activity = Activity(
+            id=cheat_sheet_ref.id, 
+            hub_id=hub_id, 
+            type='Notes', 
+            title=f"Cheat Sheet for {first_file_name}", 
+            status='pending',
+            data={'lecture_files': lecture_files, 'text_length': len(hub_text), 'type': 'cheat_sheet'}
+        )
+        activities_to_create.append((cheat_sheet_ref, new_cheat_sheet_activity))
+        
+        # 2. Mock Exam
+        mock_exam_ref = db.collection('activities').document()
+        new_mock_exam_activity = Activity(
+            id=mock_exam_ref.id, 
+            hub_id=hub_id, 
+            type='Quiz', 
+            title=f"Mock Exam for {first_file_name}", 
+            status='pending',
+            data={'lecture_files': lecture_files, 'text_length': len(hub_text), 'num_questions': 15, 'type': 'mock_exam'}
+        )
+        activities_to_create.append((mock_exam_ref, new_mock_exam_activity))
+        
+        # 3. Exam Analysis (if past papers provided)
         if past_papers_text:
-            analysis_markdown = analyse_papers_with_ai(past_papers_text)
-            analysis_html = markdown.markdown(analysis_markdown)
-            analysis_note_ref = db.collection('notes').document()
-            new_analysis_note = Note(id=analysis_note_ref.id, hub_id=hub_id, title=f"Exam Analysis for {first_file_name}", content_html=analysis_html)
-            batch.set(analysis_note_ref, new_analysis_note.to_dict())
-            folder_items.append({'id': analysis_note_ref.id, 'type': 'note'})
-
+            analysis_ref = db.collection('activities').document()
+            new_analysis_activity = Activity(
+                id=analysis_ref.id, 
+                hub_id=hub_id, 
+                type='Notes', 
+                title=f"Exam Analysis for {first_file_name}", 
+                status='pending',
+                data={'past_paper_files': past_paper_files, 'text_length': len(past_papers_text), 'type': 'exam_analysis'}
+            )
+            activities_to_create.append((analysis_ref, new_analysis_activity))
+        
+        # Create all activities with pending status
+        batch = db.batch()
+        folder_items = []
+        
+        for activity_ref, activity in activities_to_create:
+            batch.set(activity_ref, activity.to_dict())
+            folder_items.append({'id': activity_ref.id, 'type': activity.type.lower()})
+        
+        # Create the folder
         folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
         batch.set(folder_ref, new_folder.to_dict())
         
-        notification_ref = db.collection('notifications').document()
-        message = f"Your new '{folder_name}' is ready for review."
-        link = url_for('hub_page', hub_id=hub_id, _anchor='folders')
-        new_notification = Notification(id=notification_ref.id, hub_id=hub_id, message=message, link=link)
-        batch.set(notification_ref, new_notification.to_dict())
-
         batch.commit()
-        return jsonify({"success": True, "message": "Exam Kit created successfully!"})
+        
+        # Start background processing
+        import threading
+        threading.Thread(target=process_exam_kit_activities, args=(activities_to_create, hub_text, past_papers_text, first_file_name)).start()
+        
+        return jsonify({"success": True, "message": f"Exam Kit '{folder_name}' is being generated. Check the task queue for progress."})
 
     except Exception as e:
         print(f"Error in build_exam_kit: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
+
+def process_exam_kit_activities(activities_to_create, hub_text, past_papers_text, first_file_name):
+    """Background processing function for exam kit activities."""
+    try:
+        # Limit text length to prevent timeouts
+        limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
+        
+        for activity_ref, activity in activities_to_create:
+            try:
+                print(f"Processing {activity.type} activity: {activity.title}")
+                
+                # Update status to processing
+                activity_ref.update({'status': 'processing'})
+                
+                activity_type = activity.data.get('type')
+                
+                if activity_type == 'cheat_sheet':
+                    # Generate cheat sheet
+                    cheat_sheet_json_str = generate_cheat_sheet_json(limited_text)
+                    note_ref = db.collection('notes').document()
+                    new_cs_note = Note(id=note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=cheat_sheet_json_str)
+                    note_ref.set(new_cs_note.to_dict())
+                    
+                    # Update activity with note reference
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': {'note_id': note_ref.id, 'type': 'note'}
+                    })
+                    
+                elif activity_type == 'mock_exam':
+                    # Generate mock exam
+                    num_questions = activity.data.get('num_questions', 15)
+                    mock_exam_json = generate_quiz_from_text(limited_text, num_questions)
+                    mock_exam_data = safe_load_json(mock_exam_json)
+                    
+                    if not mock_exam_data.get('questions'):
+                        # Fallback mock exam
+                        mock_exam_data = {
+                            "questions": [
+                                {
+                                    "question": f"What is the main topic covered in {first_file_name}?",
+                                    "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
+                                    "correct_answer": "D",
+                                    "explanation": "The document covers all aspects from introduction to conclusion."
+                                },
+                                {
+                                    "question": f"How would you best prepare for an exam on {first_file_name}?",
+                                    "options": ["A) Cram the night before", "B) Study regularly and practice", "C) Skip difficult topics", "D) Only read summaries"],
+                                    "correct_answer": "B",
+                                    "explanation": "Regular study and practice leads to better retention and understanding."
+                                }
+                            ]
+                        }
+                    
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': mock_exam_data
+                    })
+                    
+                elif activity_type == 'exam_analysis':
+                    # Generate exam analysis
+                    analysis_markdown = analyse_papers_with_ai(past_papers_text)
+                    analysis_html = markdown.markdown(analysis_markdown)
+                    analysis_note_ref = db.collection('notes').document()
+                    new_analysis_note = Note(id=analysis_note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=analysis_html)
+                    analysis_note_ref.set(new_analysis_note.to_dict())
+                    
+                    # Update activity with note reference
+                    activity_ref.update({
+                        'status': 'completed',
+                        'data': {'note_id': analysis_note_ref.id, 'type': 'note'}
+                    })
+                
+                print(f"Completed {activity.type} activity: {activity.title}")
+                
+            except Exception as e:
+                print(f"Error processing {activity.type} activity: {e}")
+                activity_ref.update({'status': 'failed', 'error': str(e)})
+        
+        print(f"Completed processing exam kit for {first_file_name}")
+        
+    except Exception as e:
+        print(f"Error in background processing: {e}")
 
 @app.route("/hub/<hub_id>/create_study_plan", methods=["POST"])
 @login_required
