@@ -1656,7 +1656,7 @@
                             </div>
                             <div class="file-actions">
                                 <span class="file-size">{{ (file.size / 1024)|round(1) }} KB</span>
-                                <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="event.preventDefault(); showCustomConfirmation('Are you sure you want to delete this file?', () => window.location.href = this.href, null, 'Delete File'); return false;">
+                                <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn" title="Delete file" onclick="event.preventDefault(); const deleteUrl = this.href; showCustomConfirmation('Are you sure you want to delete this file?', () => window.location.href = deleteUrl, null, 'Delete File'); return false;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </a>
                             </div>
@@ -2907,7 +2907,7 @@
                         </div>
                         <div class="file-actions">
                             <span class="file-size">${(fileInfo.size / 1024).toFixed(1)} KB</span>
-                            <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="event.preventDefault(); showCustomConfirmation('Are you sure you want to delete this file?', () => window.location.href = this.href, null, 'Delete File'); return false;">
+                            <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn" title="Delete file" onclick="event.preventDefault(); const deleteUrl = this.href; showCustomConfirmation('Are you sure you want to delete this file?', () => window.location.href = deleteUrl, null, 'Delete File'); return false;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </a>
                         </div>
