@@ -316,6 +316,59 @@
     <script src="https://mozilla.github.io/pdf.js/build/pdf.mjs" type="module"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
+    <!-- Global Modal Functions -->
+    <script>
+        // Global variables for modal functionality
+        let currentCallback = null;
+
+        // Custom modal functions - must be global for onclick handlers
+        function showCustomConfirmation(message, callback, title = 'Confirm Action', showFlashcardCount = false) {
+            const modal = document.getElementById('custom-confirmation-modal');
+            const titleEl = document.getElementById('confirmation-title');
+            const messageEl = document.getElementById('confirmation-message');
+            const countSelector = document.getElementById('flashcard-count-selector');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            currentCallback = callback;
+            
+            if (showFlashcardCount) {
+                countSelector.style.display = 'block';
+            } else {
+                countSelector.style.display = 'none';
+            }
+            
+            modal.style.display = 'flex';
+        }
+
+        function showCustomAlert(message, title = 'Information') {
+            const modal = document.getElementById('custom-alert-modal');
+            const titleEl = document.getElementById('alert-title');
+            const messageEl = document.getElementById('alert-message');
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-confirmation-modal').style.display = 'none';
+            currentCallback = null;
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').style.display = 'none';
+        }
+
+        function confirmAction() {
+            if (currentCallback) {
+                currentCallback();
+            }
+            closeCustomModal();
+        }
+    </script>
+
     <script type="module">
         // --- Setup PDF.js ---
         const { pdfjsLib } = globalThis;
@@ -442,55 +495,6 @@ async function saveNotes() {
 }
 
 
-        // Global variables for modal functionality
-        let currentCallback = null;
-
-        // Custom modal functions
-        function showCustomConfirmation(message, callback, title = 'Confirm Action', showFlashcardCount = false) {
-            const modal = document.getElementById('custom-confirmation-modal');
-            const titleEl = document.getElementById('confirmation-title');
-            const messageEl = document.getElementById('confirmation-message');
-            const countSelector = document.getElementById('flashcard-count-selector');
-            
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            currentCallback = callback;
-            
-            if (showFlashcardCount) {
-                countSelector.style.display = 'block';
-            } else {
-                countSelector.style.display = 'none';
-            }
-            
-            modal.style.display = 'flex';
-        }
-
-        function showCustomAlert(message, title = 'Information') {
-            const modal = document.getElementById('custom-alert-modal');
-            const titleEl = document.getElementById('alert-title');
-            const messageEl = document.getElementById('alert-message');
-            
-            titleEl.textContent = title;
-            messageEl.textContent = message;
-            
-            modal.style.display = 'flex';
-        }
-
-        function closeCustomModal() {
-            document.getElementById('custom-confirmation-modal').style.display = 'none';
-            currentCallback = null;
-        }
-
-        function closeCustomAlert() {
-            document.getElementById('custom-alert-modal').style.display = 'none';
-        }
-
-        function confirmAction() {
-            if (currentCallback) {
-                currentCallback();
-            }
-            closeCustomModal();
-        }
 
         // Check flashcards status on page load
         async function checkFlashcardsStatus() {
@@ -527,7 +531,7 @@ async function saveNotes() {
                             const openBtn = document.getElementById('open-flashcards-btn');
                             openBtn.style.display = 'inline-block';
                             
-                            showCustomAlert(
+                            window.showCustomAlert(
                                 `Flashcards created! ${result.flashcards_count} flashcards have been generated for this lecture.`,
                                 'Flashcards Ready!'
                             );
@@ -537,7 +541,7 @@ async function saveNotes() {
                             clearInterval(statusPollInterval);
                             statusPollInterval = null;
                             
-                            showCustomAlert(
+                            window.showCustomAlert(
                                 'Failed to generate flashcards. Please try again.',
                                 'Generation Failed'
                             );
@@ -556,7 +560,7 @@ async function saveNotes() {
             
             if (action === 'flashcards') {
                 // Show confirmation for full lecture flashcards
-                showCustomConfirmation(
+                window.showCustomConfirmation(
                     'Would you like to create flashcards for the full lecture? This will generate flashcards from all slides while you continue taking notes.',
                     () => generateFullLectureFlashcards(),
                     'Generate Full Lecture Flashcards',
@@ -573,7 +577,7 @@ async function saveNotes() {
                 const slideText = textContent.items.map(item => item.str).join(' ');
 
                 if (slideText.trim().length < 10) {
-                    showCustomAlert("Not enough text on this slide for the AI to work with.");
+                    window.showCustomAlert("Not enough text on this slide for the AI to work with.");
                     return;
                 }
 
@@ -595,10 +599,10 @@ async function saveNotes() {
                     quill.clipboard.dangerouslyPasteHTML(quill.getLength(), '<hr>' + result.html_content);
                 }
                 if (result.message) {
-                    showCustomAlert(result.message);
+                    window.showCustomAlert(result.message);
                 }
                 if(result.redirect_url) {
-                    showCustomConfirmation(
+                    window.showCustomConfirmation(
                         "AI created your flashcards. Open them in a new tab now?",
                         () => window.open(result.redirect_url, '_blank'),
                         'Open Flashcards'
@@ -607,7 +611,7 @@ async function saveNotes() {
 
             } catch (error) {
                 console.error(`AI Assist error (${action}):`, error);
-                showCustomAlert(`Error with AI Assist: ${error.message}`);
+                window.showCustomAlert(`Error with AI Assist: ${error.message}`);
             } finally {
                 saveStatus.textContent = "";
             }
@@ -632,7 +636,7 @@ async function saveNotes() {
                 
             } catch (error) {
                 console.error('Error generating full lecture flashcards:', error);
-                showCustomAlert(`Error generating flashcards: ${error.message}`);
+                window.showCustomAlert(`Error generating flashcards: ${error.message}`);
                 saveStatus.textContent = '';
             }
         }
@@ -676,7 +680,7 @@ async function saveNotes() {
                 document.getElementById('open-flashcards-btn').addEventListener('click', openFlashcards);
 
                 // Add event listeners for modal functionality
-                document.getElementById('confirm-action-btn').addEventListener('click', confirmAction);
+                document.getElementById('confirm-action-btn').addEventListener('click', window.confirmAction);
                 
                 // Close modals when clicking outside
                 document.addEventListener('click', function(e) {
@@ -684,9 +688,9 @@ async function saveNotes() {
                     const alertModal = document.getElementById('custom-alert-modal');
                     
                     if (e.target === confirmationModal) {
-                        closeCustomModal();
+                        window.closeCustomModal();
                     } else if (e.target === alertModal) {
-                        closeCustomAlert();
+                        window.closeCustomAlert();
                     }
                 });
 
@@ -700,8 +704,8 @@ async function saveNotes() {
                 // Close modals with Escape key
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape') {
-                        closeCustomModal();
-                        closeCustomAlert();
+                        window.closeCustomModal();
+                        window.closeCustomAlert();
                     }
                 });
 
