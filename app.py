@@ -2339,29 +2339,20 @@ def hub_page(hub_id):
 
     for folder in all_folders:
         hydrated_items = []
-        print(f"DEBUG: Processing folder '{folder.name}' with {len(folder.items)} items")
         for item_ref in folder.items:
             doc_id = item_ref.get('id')
             doc_type = item_ref.get('type')
-            print(f"DEBUG: Looking for item {doc_id} of type {doc_type}")
             
             item = None
             if doc_type == 'note' and doc_id in notes_map:
                 item = notes_map[doc_id]
-                print(f"DEBUG: Found note {doc_id} in notes_map")
             elif doc_type in ['quiz', 'flashcards', 'notes'] and doc_id in activities_map:
                 item = activities_map[doc_id]
-                print(f"DEBUG: Found activity {doc_id} in activities_map")
-            else:
-                print(f"DEBUG: Item {doc_id} not found in any map")
-                print(f"DEBUG: Available in notes_map: {list(notes_map.keys())}")
-                print(f"DEBUG: Available in activities_map: {list(activities_map.keys())}")
             
             if item:
                 hydrated_items.append(item)
         
         folder.hydrated_items = hydrated_items
-        print(f"DEBUG: Folder '{folder.name}' hydrated with {len(hydrated_items)} items")
 
     # Get all activity IDs that are part of folders (packs)
     pack_activity_ids = set()
@@ -2506,7 +2497,11 @@ def hub_page(hub_id):
     def obj_to_dict(obj):
         """Convert object to dictionary, handling Undefined values."""
         if hasattr(obj, 'to_dict'):
-            return clean_undefined_values(obj.to_dict())
+            result = clean_undefined_values(obj.to_dict())
+            # For folders, preserve the hydrated_items attribute
+            if hasattr(obj, 'hydrated_items'):
+                result['hydrated_items'] = [obj_to_dict(item) for item in obj.hydrated_items]
+            return result
         elif isinstance(obj, list):
             return [obj_to_dict(item) for item in obj]
         elif isinstance(obj, dict):
