@@ -4827,6 +4827,41 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('custom-alert-modal').style.display = 'none';
         }
 
+        // Close modal when clicking outside of it
+        document.addEventListener('click', function(e) {
+            const confirmationModal = document.getElementById('custom-confirmation-modal');
+            const alertModal = document.getElementById('custom-alert-modal');
+            
+            if (e.target === confirmationModal) {
+                closeCustomModal();
+            }
+            if (e.target === alertModal) {
+                closeCustomAlert();
+            }
+        });
+
+        // Prevent modal content clicks from closing the modal
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.modal-content')) {
+                e.stopPropagation();
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const confirmationModal = document.getElementById('custom-confirmation-modal');
+                const alertModal = document.getElementById('custom-alert-modal');
+                
+                if (confirmationModal.style.display === 'flex') {
+                    closeCustomModal();
+                }
+                if (alertModal.style.display === 'flex') {
+                    closeCustomAlert();
+                }
+            }
+        });
+
         function confirmAction() {
             if (confirmationCallback) {
                 confirmationCallback(confirmationData);
