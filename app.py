@@ -2354,14 +2354,34 @@ def hub_page(hub_id):
         
         folder.hydrated_items = hydrated_items
 
-    all_flashcards = [activity for activity in all_activities if activity.type == 'Flashcards']
+    # Get all activity IDs that are part of folders (packs)
+    pack_activity_ids = set()
+    for folder in all_folders:
+        for item in folder.items:
+            pack_activity_ids.add(item.get('id'))
+    
+    # Filter out pack activities from individual collections
+    all_flashcards = [
+        activity for activity in all_activities 
+        if activity.type == 'Flashcards' and activity.id not in pack_activity_ids
+    ]
     graded_activities = [activity for activity in all_activities if activity.status == 'graded']
     
     # --- FIX: Create a list of all quizzes/exams, not just graded ones ---
     all_quizzes_and_exams = [
         activity for activity in all_activities 
-        if 'Quiz' in activity.type or 'Exam' in activity.type
+        if ('Quiz' in activity.type or 'Exam' in activity.type) and activity.id not in pack_activity_ids
     ]
+    
+    # Filter out pack notes from individual notes collection
+    # Pack notes are stored as activities with note content, so we need to exclude them from all_notes
+    pack_note_activity_ids = set()
+    for activity in all_activities:
+        if activity.id in pack_activity_ids and activity.data and activity.data.get('type') == 'note':
+            pack_note_activity_ids.add(activity.id)
+    
+    # Filter out notes that are part of packs
+    all_notes = [note for note in all_notes if note.id not in pack_note_activity_ids]
     
     # ADD THIS NEW CODE BLOCK
     recent_quiz_scores = []
