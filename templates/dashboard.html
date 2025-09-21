@@ -1236,6 +1236,64 @@
         input:checked + .toggle-slider:before {
             transform: translateX(22px);
         }
+
+        /* Background Image Selection Styles */
+        .background-image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .background-image-option {
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .background-image-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .background-image-option.selected {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .background-image-preview {
+            height: 80px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .background-image-name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        .background-image-label {
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background-color: var(--background-white);
+        }
+        
+        /* Default background preview */
+        .default-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
         
         /* --- NEW/UPDATED Community Styles --- */
         .community-toolbar {
@@ -3214,6 +3272,52 @@
                                 </label>
                             </div>
                         </div>
+                        
+                        <!-- Background Images Section -->
+                        <div class="setting-item" style="flex-direction: column; align-items: stretch;">
+                            <div class="setting-item-content" style="margin-bottom: 1rem;">
+                                <h3>Background Themes</h3>
+                                <p>Choose from beautiful background images to personalize your study experience.</p>
+                            </div>
+                            <div class="background-image-grid" style="width: 100%;">
+                                <div class="background-image-option" data-background="default">
+                                    <div class="background-image-preview default-bg">
+                                        <div class="background-image-name">Default</div>
+                                    </div>
+                                    <div class="background-image-label">Clean & Simple</div>
+                                </div>
+                                <div class="background-image-option" data-background="citynight">
+                                    <div class="background-image-preview" style="background-image: url('/static/background-images/citynight.jpg');">
+                                        <div class="background-image-name">City Night</div>
+                                    </div>
+                                    <div class="background-image-label">Urban Skyline</div>
+                                </div>
+                                <div class="background-image-option" data-background="forest">
+                                    <div class="background-image-preview" style="background-image: url('/static/background-images/forest.jpg');">
+                                        <div class="background-image-name">Forest</div>
+                                    </div>
+                                    <div class="background-image-label">Nature Green</div>
+                                </div>
+                                <div class="background-image-option" data-background="mountains">
+                                    <div class="background-image-preview" style="background-image: url('/static/background-images/mountains.png');">
+                                        <div class="background-image-name">Mountains</div>
+                                    </div>
+                                    <div class="background-image-label">Mountain Peaks</div>
+                                </div>
+                                <div class="background-image-option" data-background="nature">
+                                    <div class="background-image-preview" style="background-image: url('/static/background-images/nature.png');">
+                                        <div class="background-image-name">Nature</div>
+                                    </div>
+                                    <div class="background-image-label">Natural Beauty</div>
+                                </div>
+                                <div class="background-image-option" data-background="sea">
+                                    <div class="background-image-preview" style="background-image: url('/static/background-images/sea.png');">
+                                        <div class="background-image-name">Sea</div>
+                                    </div>
+                                    <div class="background-image-label">Ocean Waves</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -4371,6 +4475,63 @@ Best regards,
                     localStorage.setItem('highContrast', isEnabled);
                     updateSetting('high_contrast_mode', isEnabled);
                 });
+
+                // --- Background Image Selection ---
+                const backgroundImageOptions = document.querySelectorAll('.background-image-option');
+                let currentBackgroundImage = '{{ current_user.background_preference or "default" }}';
+                
+                console.log('Background images loaded:', backgroundImageOptions.length);
+                console.log('Current background:', currentBackgroundImage);
+                
+                // Initialize background image selection
+                function initializeBackgroundImageSelection() {
+                    backgroundImageOptions.forEach(option => {
+                        const backgroundName = option.dataset.background;
+                        if (backgroundName === currentBackgroundImage) {
+                            option.classList.add('selected');
+                        }
+                        
+                        option.addEventListener('click', () => {
+                            // Remove selected class from all options
+                            backgroundImageOptions.forEach(opt => opt.classList.remove('selected'));
+                            // Add selected class to clicked option
+                            option.classList.add('selected');
+                            
+                            // Update background preference
+                            currentBackgroundImage = backgroundName;
+                            updateSetting('background_preference', backgroundName);
+                            
+                            // Apply the background immediately
+                            applyBackgroundImage(backgroundName);
+                        });
+                    });
+                }
+                
+                // Apply background image
+                function applyBackgroundImage(backgroundName) {
+                    if (backgroundName === 'default') {
+                        // Remove any background styling
+                        document.body.style.backgroundImage = '';
+                        document.body.style.backgroundAttachment = '';
+                        document.body.style.backgroundSize = '';
+                        document.body.style.backgroundPosition = '';
+                        document.body.style.backgroundRepeat = '';
+                        return;
+                    }
+                    
+                    // Apply background image
+                    document.body.style.backgroundImage = `url('/static/background-images/${backgroundName}')`;
+                    document.body.style.backgroundAttachment = 'fixed';
+                    document.body.style.backgroundSize = 'cover';
+                    document.body.style.backgroundPosition = 'center';
+                    document.body.style.backgroundRepeat = 'no-repeat';
+                }
+                
+                // Initialize on page load
+                initializeBackgroundImageSelection();
+                
+                // Apply current background on page load
+                applyBackgroundImage(currentBackgroundImage);
 
                 // --- 4. Account Management ---
                 const requestDataBtn = document.getElementById('request-data-btn');

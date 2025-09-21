@@ -4105,6 +4105,35 @@
             }
             // Initialize theme based on localStorage on page load
             applyTheme(localStorage.getItem('theme') || 'light');
+
+            // Initialize background image
+            function initializeBackgroundImage() {
+                const currentBackground = '{{ current_user.background_preference or "default" }}';
+                applyBackgroundImage(currentBackground);
+            }
+            
+            // Apply background image
+            function applyBackgroundImage(backgroundName) {
+                if (backgroundName === 'default') {
+                    // Remove any background styling
+                    document.body.style.backgroundImage = '';
+                    document.body.style.backgroundAttachment = '';
+                    document.body.style.backgroundSize = '';
+                    document.body.style.backgroundPosition = '';
+                    document.body.style.backgroundRepeat = '';
+                    return;
+                }
+                
+                // Apply background image
+                document.body.style.backgroundImage = `url('/static/background-images/${backgroundName}')`;
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            }
+            
+            // Initialize background on page load
+            initializeBackgroundImage();
     </script>
 
     {% if spotify_connected %}
