@@ -176,7 +176,7 @@ class User(UserMixin):
     
 # --- NEW: Model for Note-Taking with Slides ---
 class AnnotatedSlideDeck:
-    def __init__(self, id, hub_id, user_id, title, source_file_path, slides_data=None, created_at=None, **kwargs):
+    def __init__(self, id, hub_id, user_id, title, source_file_path, slides_data=None, created_at=None, flashcards_data=None, flashcards_status=None, **kwargs):
         self.id = id
         self.hub_id = hub_id
         self.user_id = user_id
@@ -185,6 +185,10 @@ class AnnotatedSlideDeck:
         # slides_data is a list of dicts: [{'slide_number': 0, 'notes_html': '<p>...</p>'}]
         self.slides_data = slides_data if slides_data is not None else []
         self.created_at = created_at or datetime.now(timezone.utc)
+        # flashcards_data contains the generated flashcards for the full lecture
+        self.flashcards_data = flashcards_data if flashcards_data is not None else []
+        # flashcards_status: 'none', 'generating', 'completed', 'failed'
+        self.flashcards_status = flashcards_status if flashcards_status is not None else 'none'
 
     def to_dict(self):
         return {
@@ -195,6 +199,8 @@ class AnnotatedSlideDeck:
             'source_file_path': self.source_file_path,
             'slides_data': self.slides_data,
             'created_at': self.created_at,
+            'flashcards_data': self.flashcards_data,
+            'flashcards_status': self.flashcards_status,
         }
 
     @staticmethod

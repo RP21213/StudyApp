@@ -2830,6 +2830,166 @@ def slide_notes_ai_assist():
         return jsonify({"success": False, "message": "AI assistant failed to generate a response."}), 500
 
 
+@app.route("/slide_notes/<session_id>/generate_full_lecture_flashcards", methods=["POST"])
+@login_required
+def generate_full_lecture_flashcards(session_id):
+    """Generate flashcards for the entire lecture in the background."""
+    try:
+        # Get the session and verify ownership
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        # Check if flashcards are already being generated or completed
+        if session_data.get('flashcards_status') in ['generating', 'completed']:
+            return jsonify({"success": False, "message": "Flashcards are already being generated or completed"}), 400
+        
+        # Update status to generating
+        session_ref = db.collection('annotated_slide_decks').document(session_id)
+        session_ref.update({'flashcards_status': 'generating'})
+        
+        # Start background task
+        import threading
+        thread = threading.Thread(target=generate_lecture_flashcards_background, args=(session_id,))
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({"success": True, "message": "Flashcard generation started"})
+        
+    except Exception as e:
+        print(f"Error starting flashcard generation: {e}")
+        return jsonify({"success": False, "message": "Failed to start flashcard generation"}), 500
+
+
+def generate_lecture_flashcards_background(session_id):
+    """Background function to generate flashcards for the entire lecture."""
+    try:
+        # Get the session
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return
+        
+        session_data = session_doc.to_dict()
+        session_ref = db.collection('annotated_slide_decks').document(session_id)
+        
+        # Get the PDF file
+        source_file_path = session_data.get('source_file_path')
+        if not source_file_path:
+            session_ref.update({'flashcards_status': 'failed'})
+            return
+        
+        # Download PDF from Cloud Storage
+        blob = bucket.blob(source_file_path)
+        pdf_content = blob.download_as_bytes()
+        
+        # Extract text from all pages
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        all_text = ""
+        
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            page_text = page.extract_text()
+            all_text += f"\n--- Slide {page_num + 1} ---\n{page_text}\n"
+        
+        if len(all_text.strip()) < 50:
+            session_ref.update({'flashcards_status': 'failed'})
+            return
+        
+        # Generate flashcards from all text
+        raw_flashcards = generate_flashcards_from_slide_text(all_text)
+        parsed_cards = parse_flashcards(raw_flashcards)
+        
+        if not parsed_cards:
+            session_ref.update({'flashcards_status': 'failed'})
+            return
+        
+        # Save flashcards to the session
+        session_ref.update({
+            'flashcards_data': parsed_cards,
+            'flashcards_status': 'completed'
+        })
+        
+        print(f"Successfully generated {len(parsed_cards)} flashcards for session {session_id}")
+        
+    except Exception as e:
+        print(f"Error generating flashcards in background: {e}")
+        # Update status to failed
+        try:
+            session_ref = db.collection('annotated_slide_decks').document(session_id)
+            session_ref.update({'flashcards_status': 'failed'})
+        except:
+            pass
+
+
+@app.route("/slide_notes/<session_id>/flashcards_status", methods=["GET"])
+@login_required
+def get_flashcards_status(session_id):
+    """Get the current status of flashcard generation."""
+    try:
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        return jsonify({
+            "success": True,
+            "status": session_data.get('flashcards_status', 'none'),
+            "flashcards_count": len(session_data.get('flashcards_data', []))
+        })
+        
+    except Exception as e:
+        print(f"Error getting flashcard status: {e}")
+        return jsonify({"success": False, "message": "Failed to get status"}), 500
+
+
+@app.route("/slide_notes/<session_id>/view_flashcards")
+@login_required
+def view_lecture_flashcards(session_id):
+    """View flashcards for a specific lecture session."""
+    try:
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            flash("Session not found", "error")
+            return redirect(url_for("dashboard"))
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            flash("You do not have permission to view this.", "error")
+            return redirect(url_for('dashboard'))
+        
+        flashcards_data = session_data.get('flashcards_data', [])
+        if not flashcards_data:
+            flash("No flashcards available for this lecture.", "error")
+            return redirect(url_for('slide_notes_workspace', session_id=session_id))
+        
+        # Create a temporary activity for the flashcard viewer
+        temp_activity = Activity(
+            id=f"temp_{session_id}",
+            hub_id=session_data.get('hub_id'),
+            type='Flashcards',
+            title=f"Flashcards - {session_data.get('title', 'Untitled')}",
+            data={'cards': flashcards_data},
+            status='completed'
+        )
+        
+        return render_template('edit_flashcards.html', activity=temp_activity, is_lecture_flashcards=True, session_id=session_id)
+        
+    except Exception as e:
+        print(f"Error viewing lecture flashcards: {e}")
+        flash("An error occurred while loading flashcards.", "error")
+        return redirect(url_for("dashboard"))
+
+
 # ==============================================================================
 # 5. STRIPE & SUBSCRIPTION ROUTES
 # ==============================================================================
