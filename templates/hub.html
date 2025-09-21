@@ -4827,7 +4827,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             function deleteFolder(folderId, folderElement) {
-                fetch(`/hub/${hubId}/delete_folder/${folderId}`, {
+                fetch(`/folder/${folderId}/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

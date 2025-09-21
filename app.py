@@ -4557,51 +4557,6 @@ def get_activities_status(hub_id):
         print(f"Error getting activities status: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/hub/<hub_id>/delete_folder/<folder_id>", methods=["POST"])
-@login_required
-def delete_folder(hub_id, folder_id):
-    """Delete a folder and all its contents."""
-    try:
-        # Verify hub ownership
-        hub_doc = db.collection('hubs').document(hub_id).get()
-        if not hub_doc.exists:
-            return jsonify({"success": False, "message": "Hub not found"}), 404
-        
-        hub = Hub.from_dict(hub_doc.to_dict())
-        if hub.user_id != current_user.id:
-            return jsonify({"success": False, "message": "Permission denied"}), 403
-        
-        # Get folder to find its items
-        folder_doc = db.collection('folders').document(folder_id).get()
-        if not folder_doc.exists:
-            return jsonify({"success": False, "message": "Folder not found"}), 404
-        
-        folder = Folder.from_dict(folder_doc.to_dict())
-        
-        # Delete all items in the folder
-        for item in folder.items:
-            item_id = item.get('id')
-            item_type = item.get('type')
-            
-            if item_type == 'note':
-                # Delete from notes collection
-                note_doc = db.collection('notes').document(item_id).get()
-                if note_doc.exists:
-                    note_doc.reference.delete()
-            elif item_type in ['quiz', 'flashcards', 'notes']:
-                # Delete from activities collection
-                activity_doc = db.collection('activities').document(item_id).get()
-                if activity_doc.exists:
-                    activity_doc.reference.delete()
-        
-        # Delete the folder itself
-        db.collection('folders').document(folder_id).delete()
-        
-        return jsonify({"success": True, "message": "Folder deleted successfully"})
-    
-    except Exception as e:
-        print(f"Error deleting folder: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
 
 
 @app.route("/hub/<hub_id>/delete_activity/<activity_id>", methods=["POST"])
@@ -5459,9 +5414,44 @@ def update_folder_name(folder_id):
 @login_required
 def delete_folder(folder_id):
     try:
+        # Get folder to verify ownership and find its items
+        folder_doc = db.collection('folders').document(folder_id).get()
+        if not folder_doc.exists:
+            return jsonify({"success": False, "message": "Folder not found"}), 404
+        
+        folder = Folder.from_dict(folder_doc.to_dict())
+        
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(folder.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Delete all items in the folder
+        for item in folder.items:
+            item_id = item.get('id')
+            item_type = item.get('type')
+            
+            if item_type == 'note':
+                # Delete from notes collection
+                note_doc = db.collection('notes').document(item_id).get()
+                if note_doc.exists:
+                    note_doc.reference.delete()
+            elif item_type in ['quiz', 'flashcards', 'notes']:
+                # Delete from activities collection
+                activity_doc = db.collection('activities').document(item_id).get()
+                if activity_doc.exists:
+                    activity_doc.reference.delete()
+        
+        # Delete the folder itself
         db.collection('folders').document(folder_id).delete()
-        return jsonify({"success": True})
+        
+        return jsonify({"success": True, "message": "Folder deleted successfully"})
     except Exception as e:
+        print(f"Error deleting folder: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/folder/<folder_id>/add_items", methods=["POST"])
