@@ -2339,6 +2339,65 @@
             }
         })();
     </script>
+
+    <!-- Custom Modal Functions -->
+    <script>
+        // Custom confirmation and alert modals
+        let confirmationCallback = null;
+        let confirmationData = null;
+
+        function getEmojiForMessage(message) {
+            const msg = message.toLowerCase();
+            if (msg.includes('delete') || msg.includes('remove')) return '🗑️';
+            if (msg.includes('upload') || msg.includes('ready')) return '✅';
+            if (msg.includes('error') || msg.includes('failed')) return '❌';
+            if (msg.includes('warning') || msg.includes('careful')) return '⚠️';
+            if (msg.includes('success') || msg.includes('complete')) return '🎉';
+            if (msg.includes('info') || msg.includes('information')) return 'ℹ️';
+            if (msg.includes('question') || msg.includes('ask')) return '❓';
+            if (msg.includes('pro') || msg.includes('upgrade')) return '⭐';
+            if (msg.includes('password') || msg.includes('security')) return '🔒';
+            if (msg.includes('calendar') || msg.includes('schedule')) return '📅';
+            if (msg.includes('study') || msg.includes('learn')) return '📚';
+            if (msg.includes('file') || msg.includes('document')) return '📄';
+            if (msg.includes('flashcard') || msg.includes('quiz')) return '🃏';
+            return '⚠️'; // Default
+        }
+
+        function showCustomConfirmation(message, callback, data = null, buttonText = 'Confirm') {
+            const emoji = getEmojiForMessage(message);
+            document.getElementById('confirmation-title').textContent = `${emoji} Are you sure?`;
+            document.getElementById('confirmation-message').textContent = message;
+            document.getElementById('confirm-action-btn').textContent = buttonText;
+            confirmationCallback = callback;
+            confirmationData = data;
+            document.getElementById('custom-confirmation-modal').style.display = 'flex';
+        }
+
+        function showCustomAlert(message, title = 'Information') {
+            const emoji = getEmojiForMessage(message);
+            document.getElementById('alert-title').textContent = `${emoji} ${title}`;
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('custom-alert-modal').style.display = 'flex';
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-confirmation-modal').style.display = 'none';
+            confirmationCallback = null;
+            confirmationData = null;
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').style.display = 'none';
+        }
+
+        function confirmAction() {
+            if (confirmationCallback) {
+                confirmationCallback(confirmationData);
+            }
+            closeCustomModal();
+        }
+    </script>
 </head>
 <body>
     
@@ -5591,55 +5650,6 @@
     </div>
 
     <script>
-        // Custom confirmation and alert modals
-        let confirmationCallback = null;
-        let confirmationData = null;
-
-        function getEmojiForMessage(message) {
-            const msg = message.toLowerCase();
-            if (msg.includes('delete') || msg.includes('remove')) return '🗑️';
-            if (msg.includes('upload') || msg.includes('ready')) return '✅';
-            if (msg.includes('error') || msg.includes('failed')) return '❌';
-            if (msg.includes('warning') || msg.includes('careful')) return '⚠️';
-            if (msg.includes('success') || msg.includes('complete')) return '🎉';
-            if (msg.includes('info') || msg.includes('information')) return 'ℹ️';
-            if (msg.includes('question') || msg.includes('ask')) return '❓';
-            if (msg.includes('pro') || msg.includes('upgrade')) return '⭐';
-            if (msg.includes('password') || msg.includes('security')) return '🔒';
-            if (msg.includes('calendar') || msg.includes('schedule')) return '📅';
-            if (msg.includes('study') || msg.includes('learn')) return '📚';
-            if (msg.includes('file') || msg.includes('document')) return '📄';
-            if (msg.includes('flashcard') || msg.includes('quiz')) return '🃏';
-            return '⚠️'; // Default
-        }
-
-        function showCustomConfirmation(message, callback, data = null, buttonText = 'Confirm') {
-            const emoji = getEmojiForMessage(message);
-            document.getElementById('confirmation-title').textContent = `${emoji} Are you sure?`;
-            document.getElementById('confirmation-message').textContent = message;
-            document.getElementById('confirm-action-btn').textContent = buttonText;
-            confirmationCallback = callback;
-            confirmationData = data;
-            document.getElementById('custom-confirmation-modal').style.display = 'flex';
-        }
-
-        function showCustomAlert(message, title = 'Information') {
-            const emoji = getEmojiForMessage(message);
-            document.getElementById('alert-title').textContent = `${emoji} ${title}`;
-            document.getElementById('alert-message').textContent = message;
-            document.getElementById('custom-alert-modal').style.display = 'flex';
-        }
-
-        function closeCustomModal() {
-            document.getElementById('custom-confirmation-modal').style.display = 'none';
-            confirmationCallback = null;
-            confirmationData = null;
-        }
-
-        function closeCustomAlert() {
-            document.getElementById('custom-alert-modal').style.display = 'none';
-        }
-
         // Close modal when clicking outside of it
         document.addEventListener('click', function(e) {
             const confirmationModal = document.getElementById('custom-confirmation-modal');
@@ -5674,13 +5684,6 @@
                 }
             }
         });
-
-        function confirmAction() {
-            if (confirmationCallback) {
-                confirmationCallback(confirmationData);
-            }
-            closeCustomModal();
-        }
 
         // Set up the confirm action button
         document.addEventListener('DOMContentLoaded', function() {
