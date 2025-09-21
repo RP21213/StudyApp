@@ -4849,7 +4849,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             function deleteNote(noteId, noteElement) {
-                fetch(`/hub/${hubId}/delete_note/${noteId}`, {
+                fetch(`/note/${noteId}/delete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

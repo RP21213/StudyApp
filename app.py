@@ -4227,6 +4227,23 @@ def mark_notifications_read():
 @login_required
 def delete_note(note_id):
     try:
+        # Get the note to verify ownership
+        note_doc = db.collection('notes').document(note_id).get()
+        if not note_doc.exists:
+            return jsonify({"success": False, "message": "Note not found"}), 404
+        
+        note = Note.from_dict(note_doc.to_dict())
+        
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(note.hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Delete the note
         db.collection('notes').document(note_id).delete()
         return jsonify({"success": True, "message": "Note deleted successfully."})
     except Exception as e:
@@ -4586,32 +4603,6 @@ def delete_folder(hub_id, folder_id):
         print(f"Error deleting folder: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route("/hub/<hub_id>/delete_note/<note_id>", methods=["POST"])
-@login_required
-def delete_note(hub_id, note_id):
-    """Delete a note."""
-    try:
-        # Verify hub ownership
-        hub_doc = db.collection('hubs').document(hub_id).get()
-        if not hub_doc.exists:
-            return jsonify({"success": False, "message": "Hub not found"}), 404
-        
-        hub = Hub.from_dict(hub_doc.to_dict())
-        if hub.user_id != current_user.id:
-            return jsonify({"success": False, "message": "Permission denied"}), 403
-        
-        # Delete the note
-        note_doc = db.collection('notes').document(note_id).get()
-        if not note_doc.exists:
-            return jsonify({"success": False, "message": "Note not found"}), 404
-        
-        note_doc.reference.delete()
-        
-        return jsonify({"success": True, "message": "Note deleted successfully"})
-    
-    except Exception as e:
-        print(f"Error deleting note: {e}")
-        return jsonify({"success": False, "message": str(e)}), 500
 
 @app.route("/hub/<hub_id>/delete_activity/<activity_id>", methods=["POST"])
 @login_required
