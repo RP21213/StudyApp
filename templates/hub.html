@@ -1906,8 +1906,8 @@
                     </div>
                     <div id="folder-accordion-container">
                         {% for folder in all_folders %}
-                        <div class="folder-accordion-item">
-                            <div class="folder-header" data-folder-id="{{ folder.id }}">
+                        <div class="folder-accordion-item" data-folder-id="{{ folder.id }}">
+                            <div class="folder-header">
                                 <div class="folder-header-title">
                                     <div class="asset-icon" style="background-color: #fefce8; color: #a16207;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg></div>
                                     <div>
@@ -1951,7 +1951,9 @@
                                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Flashcards</span></div>
                                         </a>
                                         {% endif %}
-                                        <button class="button button-danger remove-item-btn">Remove</button>
+                                        <button class="delete-btn delete-folder-item-btn" data-id="{{ item.id }}" data-type="{{ item_type }}" title="Delete item">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                        </button>
                                     </li>
                                     {% endfor %}
                                 </ul>
@@ -2012,6 +2014,9 @@
                                     <span>Created {{ note.created_at|timesince }} ago</span>
                                 </div>
                             </a>
+                            <button class="delete-btn delete-note-btn" data-id="{{ note.id }}" title="Delete note">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't generated any notes yet.</p></li>
@@ -2042,6 +2047,9 @@
                                     <span>Created {{ fc_set.created_at|timesince }} ago</span>
                                 </div>
                             </a>
+                            <button class="delete-btn delete-activity-btn" data-id="{{ fc_set.id }}" title="Delete flashcards">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't generated any flashcards yet.</p></li>
@@ -2087,6 +2095,9 @@
                                 </a>
                                 <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="button button-primary" style="padding: 0.5rem 1rem;">Take Quiz</a>
                             {% endif %}
+                            <button class="delete-btn delete-activity-btn" data-id="{{ quiz.id }}" title="Delete quiz">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </li>
                         {% else %}
                         <li class="empty-state-text"><p>You haven't completed any quizzes yet.</p></li>
@@ -4766,6 +4777,130 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.remove();
             }, 300);
         }
+
+        // Delete functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hubId = '{{ hub.id }}';
+            
+            // Delete folder button
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.delete-folder-btn')) {
+                    const button = e.target.closest('.delete-folder-btn');
+                    const folderElement = button.closest('.folder-accordion-item');
+                    const folderId = folderElement.dataset.folderId;
+                    
+                    if (confirm('Are you sure you want to delete this folder and all its contents? This action cannot be undone.')) {
+                        deleteFolder(folderId, folderElement);
+                    }
+                }
+                
+                // Delete note button
+                if (e.target.closest('.delete-note-btn')) {
+                    const button = e.target.closest('.delete-note-btn');
+                    const noteId = button.dataset.id;
+                    
+                    if (confirm('Are you sure you want to delete this note? This action cannot be undone.')) {
+                        deleteNote(noteId, button.closest('.asset-item'));
+                    }
+                }
+                
+                // Delete activity button (flashcards, quizzes)
+                if (e.target.closest('.delete-activity-btn')) {
+                    const button = e.target.closest('.delete-activity-btn');
+                    const activityId = button.dataset.id;
+                    
+                    if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                        deleteActivity(activityId, button.closest('.asset-item'));
+                    }
+                }
+                
+                // Delete folder item button
+                if (e.target.closest('.delete-folder-item-btn')) {
+                    const button = e.target.closest('.delete-folder-item-btn');
+                    const itemId = button.dataset.id;
+                    const itemType = button.dataset.type;
+                    
+                    if (confirm('Are you sure you want to delete this item from the folder? This action cannot be undone.')) {
+                        deleteFolderItem(itemId, itemType, button.closest('.asset-item'));
+                    }
+                }
+            });
+            
+            function deleteFolder(folderId, folderElement) {
+                fetch(`/hub/${hubId}/delete_folder/${folderId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        folderElement.remove();
+                        showMessage('success', 'Folder deleted successfully');
+                    } else {
+                        showMessage('error', data.message || 'Failed to delete folder');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Failed to delete folder');
+                });
+            }
+            
+            function deleteNote(noteId, noteElement) {
+                fetch(`/hub/${hubId}/delete_note/${noteId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        noteElement.remove();
+                        showMessage('success', 'Note deleted successfully');
+                    } else {
+                        showMessage('error', data.message || 'Failed to delete note');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Failed to delete note');
+                });
+            }
+            
+            function deleteActivity(activityId, activityElement) {
+                fetch(`/hub/${hubId}/delete_activity/${activityId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        activityElement.remove();
+                        showMessage('success', 'Item deleted successfully');
+                    } else {
+                        showMessage('error', data.message || 'Failed to delete item');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('error', 'Failed to delete item');
+                });
+            }
+            
+            function deleteFolderItem(itemId, itemType, itemElement) {
+                // For folder items, we need to determine if it's a note or activity
+                if (itemType === 'note') {
+                    deleteNote(itemId, itemElement);
+                } else {
+                    deleteActivity(itemId, itemElement);
+                }
+            }
+        });
     </script>
 
     <!-- Success Modal -->

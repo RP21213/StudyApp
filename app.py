@@ -4540,6 +4540,133 @@ def get_activities_status(hub_id):
         print(f"Error getting activities status: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
 
+@app.route("/hub/<hub_id>/delete_folder/<folder_id>", methods=["POST"])
+@login_required
+def delete_folder(hub_id, folder_id):
+    """Delete a folder and all its contents."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Get folder to find its items
+        folder_doc = db.collection('folders').document(folder_id).get()
+        if not folder_doc.exists:
+            return jsonify({"success": False, "message": "Folder not found"}), 404
+        
+        folder = Folder.from_dict(folder_doc.to_dict())
+        
+        # Delete all items in the folder
+        for item in folder.items:
+            item_id = item.get('id')
+            item_type = item.get('type')
+            
+            if item_type == 'note':
+                # Delete from notes collection
+                note_doc = db.collection('notes').document(item_id).get()
+                if note_doc.exists:
+                    note_doc.reference.delete()
+            elif item_type in ['quiz', 'flashcards', 'notes']:
+                # Delete from activities collection
+                activity_doc = db.collection('activities').document(item_id).get()
+                if activity_doc.exists:
+                    activity_doc.reference.delete()
+        
+        # Delete the folder itself
+        db.collection('folders').document(folder_id).delete()
+        
+        return jsonify({"success": True, "message": "Folder deleted successfully"})
+    
+    except Exception as e:
+        print(f"Error deleting folder: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/delete_note/<note_id>", methods=["POST"])
+@login_required
+def delete_note(hub_id, note_id):
+    """Delete a note."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Delete the note
+        note_doc = db.collection('notes').document(note_id).get()
+        if not note_doc.exists:
+            return jsonify({"success": False, "message": "Note not found"}), 404
+        
+        note_doc.reference.delete()
+        
+        return jsonify({"success": True, "message": "Note deleted successfully"})
+    
+    except Exception as e:
+        print(f"Error deleting note: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/delete_activity/<activity_id>", methods=["POST"])
+@login_required
+def delete_activity(hub_id, activity_id):
+    """Delete an activity (flashcards, quiz, etc.)."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Delete the activity
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            return jsonify({"success": False, "message": "Activity not found"}), 404
+        
+        activity_doc.reference.delete()
+        
+        return jsonify({"success": True, "message": "Activity deleted successfully"})
+    
+    except Exception as e:
+        print(f"Error deleting activity: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route("/hub/<hub_id>/delete_slide_note/<slide_id>", methods=["POST"])
+@login_required
+def delete_slide_note(hub_id, slide_id):
+    """Delete a slide note (lecture notes)."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub = Hub.from_dict(hub_doc.to_dict())
+        if hub.user_id != current_user.id:
+            return jsonify({"success": False, "message": "Permission denied"}), 403
+        
+        # Delete the slide note
+        slide_doc = db.collection('annotated_slide_decks').document(slide_id).get()
+        if not slide_doc.exists:
+            return jsonify({"success": False, "message": "Slide note not found"}), 404
+        
+        slide_doc.reference.delete()
+        
+        return jsonify({"success": True, "message": "Slide note deleted successfully"})
+    
+    except Exception as e:
+        print(f"Error deleting slide note: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
 @app.route("/hub/<hub_id>/generate_individual_notes", methods=["POST"])
 @login_required
 def generate_individual_notes(hub_id):
