@@ -1295,6 +1295,14 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         
+        /* Clean sidebar styling */
+        .side-panel {
+            background-color: var(--background-dark) !important;
+            background-image: none !important;
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
         /* --- NEW/UPDATED Community Styles --- */
         .community-toolbar {
             display: flex;
@@ -4517,16 +4525,7 @@ Best regards,
                         document.body.style.backgroundPosition = '';
                         document.body.style.backgroundRepeat = '';
                         
-                        const sidebar = document.querySelector('.side-panel');
                         const mainContent = document.querySelector('.main-content');
-                        
-                        if (sidebar) {
-                            sidebar.style.backgroundImage = '';
-                            sidebar.style.backgroundAttachment = '';
-                            sidebar.style.backgroundSize = '';
-                            sidebar.style.backgroundPosition = '';
-                            sidebar.style.backgroundRepeat = '';
-                        }
                         
                         if (mainContent) {
                             mainContent.style.backgroundImage = '';
@@ -4556,17 +4555,8 @@ Best regards,
                     document.body.style.backgroundPosition = 'center';
                     document.body.style.backgroundRepeat = 'no-repeat';
                     
-                    // Also apply to sidebar and main content areas
-                    const sidebar = document.querySelector('.side-panel');
+                    // Apply to main content area only (keep sidebar clean)
                     const mainContent = document.querySelector('.main-content');
-                    
-                    if (sidebar) {
-                        sidebar.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
-                        sidebar.style.backgroundAttachment = 'fixed';
-                        sidebar.style.backgroundSize = 'cover';
-                        sidebar.style.backgroundPosition = 'center';
-                        sidebar.style.backgroundRepeat = 'no-repeat';
-                    }
                     
                     if (mainContent) {
                         mainContent.style.backgroundImage = `url('/static/background-images/${imageFile}')`;
