@@ -2262,7 +2262,7 @@ def hub_page(hub_id):
             return None
         else:
             return obj
-    
+
     activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
     all_activities = []
     for doc in activities_query:
@@ -2346,7 +2346,7 @@ def hub_page(hub_id):
             item = None
             if doc_type == 'note' and doc_id in notes_map:
                 item = notes_map[doc_id]
-            elif doc_type in ['quiz', 'flashcards'] and doc_id in activities_map:
+            elif doc_type in ['quiz', 'flashcards', 'notes'] and doc_id in activities_map:
                 item = activities_map[doc_id]
             
             if item:
@@ -2484,7 +2484,7 @@ def hub_page(hub_id):
             return clean_undefined_values(obj)
         else:
             return clean_undefined_values(obj)
-    
+
     return render_template(
         "hub.html", 
         hub=hub,
@@ -3052,12 +3052,33 @@ def export_flashcards(activity_id):
 @app.route("/note/<note_id>")
 @login_required
 def view_note(note_id):
+    # First try to find it as a regular note
     note_doc = db.collection('notes').document(note_id).get()
-    if not note_doc.exists:
-        return "Note not found", 404
-    note = Note.from_dict(note_doc.to_dict())
-    hub_doc = db.collection('hubs').document(note.hub_id).get()
-    hub_name = hub_doc.to_dict().get('name') if hub_doc.exists else "Hub"
+    if note_doc.exists:
+        note = Note.from_dict(note_doc.to_dict())
+        hub_doc = db.collection('hubs').document(note.hub_id).get()
+        hub_name = hub_doc.to_dict().get('name') if hub_doc.exists else "Hub"
+    else:
+        # If not found as a note, try to find it as an activity with note content
+        activity_doc = db.collection('activities').document(note_id).get()
+        if not activity_doc.exists:
+            return "Note not found", 404
+        
+        activity = Activity.from_dict(activity_doc.to_dict())
+        hub_doc = db.collection('hubs').document(activity.hub_id).get()
+        hub_name = hub_doc.to_dict().get('name') if hub_doc.exists else "Hub"
+        
+        # Check if this activity contains note content
+        if activity.data and activity.data.get('type') == 'note' and activity.data.get('content_html'):
+            # Create a temporary note object for the template
+            note = Note(
+                id=activity.id,
+                hub_id=activity.hub_id,
+                title=activity.title,
+                content_html=activity.data['content_html']
+            )
+        else:
+            return "Note not found", 404
 
     # Check for special note types based on title
     if "Mind Map for" in note.title:
@@ -4319,10 +4340,10 @@ def build_revision_pack(hub_id):
     try:
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         folder_name = f"Revision Pack for {first_file_name}"
-        
+
         # Create activities with pending status for task queue
         activities_to_create = []
-        
+
         if include_notes:
             note_ref = db.collection('activities').document()
             new_note_activity = Activity(
@@ -4334,7 +4355,7 @@ def build_revision_pack(hub_id):
                 data={'selected_files': selected_files, 'text_length': len(hub_text)}
             )
             activities_to_create.append((note_ref, new_note_activity))
-        
+
         if num_flashcards > 0:
             fc_ref = db.collection('activities').document()
             new_fc_activity = Activity(
@@ -4365,7 +4386,9 @@ def build_revision_pack(hub_id):
         
         for activity_ref, activity in activities_to_create:
             batch.set(activity_ref, activity.to_dict())
-            folder_items.append({'id': activity_ref.id, 'type': activity.type.lower()})
+            # Map activity types to folder item types
+            item_type = 'note' if activity.type == 'Notes' else activity.type.lower()
+            folder_items.append({'id': activity_ref.id, 'type': item_type})
         
         # Create the folder
         folder_ref = db.collection('folders').document()
@@ -4400,14 +4423,11 @@ def process_revision_pack_activities(activities_to_create, hub_text, first_file_
                 if activity.type == 'Notes':
                     # Generate notes
                     interactive_html = generate_interactive_notes_html(limited_text)
-                    note_ref = db.collection('notes').document()
-                    new_note = Note(id=note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=interactive_html)
-                    note_ref.set(new_note.to_dict())
                     
-                    # Update activity with note reference
+                    # Update activity with the generated notes content
                     activity_ref.update({
                         'status': 'completed',
-                        'data': {'note_id': note_ref.id, 'type': 'note'}
+                        'data': {'content_html': interactive_html, 'type': 'note'}
                     })
                     
                 elif activity.type == 'Flashcards':
@@ -4419,11 +4439,11 @@ def process_revision_pack_activities(activities_to_create, hub_text, first_file_
                     if not flashcards_parsed:
                         # Fallback flashcards
                         flashcards_parsed = [
-                            {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
-                            {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
-                            {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
-                        ]
-                    
+                    {"front": f"What is the main topic of {first_file_name}?", "back": "Review the document to understand the key concepts."},
+                    {"front": f"List 3 key points from {first_file_name}", "back": "Identify the most important information from the document."},
+                    {"front": f"How would you summarize {first_file_name}?", "back": "Create a brief overview of the main ideas and concepts."}
+                ]
+                
                     activity_ref.update({
                         'status': 'completed',
                         'data': {'cards': flashcards_parsed}
@@ -4438,22 +4458,22 @@ def process_revision_pack_activities(activities_to_create, hub_text, first_file_
                     if not quiz_data.get('questions'):
                         # Fallback quiz
                         quiz_data = {
-                            "questions": [
-                                {
-                                    "question": f"What is the main topic covered in {first_file_name}?",
-                                    "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
-                                    "correct_answer": "D",
-                                    "explanation": "The document covers all aspects from introduction to conclusion."
-                                },
-                                {
-                                    "question": f"How would you best study {first_file_name}?",
-                                    "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
-                                    "correct_answer": "B",
-                                    "explanation": "Taking notes and reviewing helps with retention and understanding."
-                                }
-                            ]
+                    "questions": [
+                        {
+                            "question": f"What is the main topic covered in {first_file_name}?",
+                            "options": ["A) Introduction", "B) Main concepts", "C) Conclusion", "D) All of the above"],
+                            "correct_answer": "D",
+                            "explanation": "The document covers all aspects from introduction to conclusion."
+                        },
+                        {
+                            "question": f"How would you best study {first_file_name}?",
+                            "options": ["A) Read once", "B) Take notes and review", "C) Skip difficult parts", "D) Only read the summary"],
+                            "correct_answer": "B",
+                            "explanation": "Taking notes and reviewing helps with retention and understanding."
                         }
-                    
+                    ]
+                }
+                
                     activity_ref.update({
                         'status': 'completed',
                         'data': quiz_data
@@ -4491,7 +4511,7 @@ def get_activities_status(hub_id):
                 })
         
         return jsonify({"success": True, "activities": activities})
-        
+
     except Exception as e:
         print(f"Error getting activities status: {e}")
         return jsonify({"success": False, "message": str(e)}), 500
@@ -4762,13 +4782,15 @@ def build_exam_kit(hub_id):
         
         for activity_ref, activity in activities_to_create:
             batch.set(activity_ref, activity.to_dict())
-            folder_items.append({'id': activity_ref.id, 'type': activity.type.lower()})
+            # Map activity types to folder item types
+            item_type = 'note' if activity.type == 'Notes' else activity.type.lower()
+            folder_items.append({'id': activity_ref.id, 'type': item_type})
         
         # Create the folder
         folder_ref = db.collection('folders').document()
         new_folder = Folder(id=folder_ref.id, hub_id=hub_id, name=folder_name, items=folder_items)
         batch.set(folder_ref, new_folder.to_dict())
-        
+
         batch.commit()
         
         # Start background processing
@@ -4799,14 +4821,11 @@ def process_exam_kit_activities(activities_to_create, hub_text, past_papers_text
                 if activity_type == 'cheat_sheet':
                     # Generate cheat sheet
                     cheat_sheet_json_str = generate_cheat_sheet_json(limited_text)
-                    note_ref = db.collection('notes').document()
-                    new_cs_note = Note(id=note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=cheat_sheet_json_str)
-                    note_ref.set(new_cs_note.to_dict())
                     
-                    # Update activity with note reference
+                    # Update activity with the generated cheat sheet content
                     activity_ref.update({
                         'status': 'completed',
-                        'data': {'note_id': note_ref.id, 'type': 'note'}
+                        'data': {'content_html': cheat_sheet_json_str, 'type': 'note'}
                     })
                     
                 elif activity_type == 'mock_exam':
@@ -4843,14 +4862,11 @@ def process_exam_kit_activities(activities_to_create, hub_text, past_papers_text
                     # Generate exam analysis
                     analysis_markdown = analyse_papers_with_ai(past_papers_text)
                     analysis_html = markdown.markdown(analysis_markdown)
-                    analysis_note_ref = db.collection('notes').document()
-                    new_analysis_note = Note(id=analysis_note_ref.id, hub_id=activity.hub_id, title=activity.title, content_html=analysis_html)
-                    analysis_note_ref.set(new_analysis_note.to_dict())
                     
-                    # Update activity with note reference
+                    # Update activity with the generated analysis content
                     activity_ref.update({
                         'status': 'completed',
-                        'data': {'note_id': analysis_note_ref.id, 'type': 'note'}
+                        'data': {'content_html': analysis_html, 'type': 'note'}
                     })
                 
                 print(f"Completed {activity.type} activity: {activity.title}")

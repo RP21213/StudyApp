@@ -1928,7 +1928,7 @@
                                     {% for item in folder.hydrated_items %}
                                     <li class="asset-item" data-id="{{ item.id }}" data-type="{{ item.type.lower() if item.type else 'note' }}">
                                         {% set item_type = item.type.lower() if item.type else 'note' %}
-                                        {% if item_type == 'note' %}
+                                        {% if item_type == 'note' or (item.data and item.data.type == 'note') %}
                                         <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link">
                                             <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                                             <div class="asset-details"><h5>{{ item.title }}</h5><span>Note</span></div>
