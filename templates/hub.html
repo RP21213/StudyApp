@@ -1421,28 +1421,12 @@
             border-top: 1px solid var(--border-color);
         }
 
-        .favourites-add-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            width: 100%;
+        .favourites-help-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
             padding: 0.5rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .favourites-add-btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .favourites-add-btn svg {
-            width: 16px;
-            height: 16px;
+            line-height: 1.3;
         }
 
         .favourites-empty {
@@ -1474,126 +1458,53 @@
             display: none;
         }
 
-        /* Tool Selection Modal Styles */
-        #tool-selection-modal {
-            display: none !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            z-index: 9999 !important;
-            background-color: rgba(0, 0, 0, 0.5) !important;
-            backdrop-filter: blur(4px) !important;
-        }
-
-        #tool-selection-modal.show {
-            display: flex !important;
-        }
-
-        #tool-selection-modal .modal-content {
-            max-width: 600px !important;
-            width: 90% !important;
-            max-height: 80vh !important;
-            overflow-y: auto !important;
-            margin: auto !important;
-            position: relative !important;
-        }
-
-        .tool-selection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 0.5rem;
-        }
-
-        .tool-option {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1.25rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: var(--background-card);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .tool-option:hover {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
-        }
-
-        .tool-option.selected {
-            border-color: var(--primary-color);
-            background-color: var(--primary-light);
-            color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-        }
-
-        .tool-option .tool-checkbox {
+        /* Hover Star Styles */
+        .tool-favourite-star {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
             width: 24px;
             height: 24px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .tool-option.selected .tool-checkbox {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-
-        .tool-option .tool-checkbox svg {
-            width: 14px;
-            height: 14px;
-            color: white;
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .tool-option.selected .tool-checkbox svg {
+        .feature-card {
+            position: relative;
+        }
+
+        .feature-card:hover .tool-favourite-star {
             opacity: 1;
         }
 
-        .tool-option .tool-info {
-            flex-grow: 1;
+        .tool-favourite-star:hover {
+            transform: scale(1.1);
+            background-color: #ffd700;
         }
 
-        .tool-option .tool-name {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            font-size: 1rem;
-            color: var(--text-main);
+        .tool-favourite-star.favourited {
+            opacity: 1;
+            background-color: #ffd700;
         }
 
-        .tool-option .tool-description {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
+        .tool-favourite-star svg {
+            width: 14px;
+            height: 14px;
+            color: #666;
+            transition: color 0.2s ease;
         }
 
-        .selected-tools-info {
-            text-align: center;
-            padding: 1rem;
-            background-color: var(--background-interactive);
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            font-weight: 500;
-            border: 1px solid var(--border-color);
+        .tool-favourite-star:hover svg,
+        .tool-favourite-star.favourited svg {
+            color: #ff6b35;
         }
 
         .selected-tools-info .selected-count {
@@ -2138,10 +2049,9 @@
                                 <!-- Favourites will be loaded here -->
                             </div>
                             <div class="favourites-actions">
-                                <button class="favourites-add-btn" id="add-favourite-btn">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                    Add Tool
-                                </button>
+                                <div class="favourites-help-text">
+                                    Hover over any tool and click the star to add it to favourites
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -2366,6 +2276,9 @@
                         </button>
                         <div class="feature-grid">
                             <a href="{{ url_for('live_lecture_page', hub_id=hub.id) }}" class="feature-card" id="pipeline-live-lecture">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-live-lecture">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #fee2e2; color: #991b1b;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Live Lecture Capture<span class="pro-label">PRO</span></h4>
@@ -2374,6 +2287,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </a>
                             <button type="button" class="feature-card" id="pipeline-slide-notes">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-slide-notes">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Take Notes with Slides<span class="new-label">NEW</span></h4>
@@ -2393,6 +2309,9 @@
                         <div class="feature-grid">
                             <!-- FREE FEATURES FIRST -->
                             <button type="button" class="feature-card" id="individual-notes-generator">
+                                <div class="tool-favourite-star" data-tool-id="individual-notes-generator">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #dbeafe; color: #1e40af;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Interactive Notes</h4>
@@ -2401,6 +2320,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <button type="button" class="feature-card" id="individual-flashcards-generator">
+                                <div class="tool-favourite-star" data-tool-id="individual-flashcards-generator">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Flashcards</h4>
@@ -2409,6 +2331,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <button type="button" class="feature-card" id="individual-quiz-generator">
+                                <div class="tool-favourite-star" data-tool-id="individual-quiz-generator">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Practice Quiz</h4>
@@ -2417,6 +2342,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <button type="button" class="feature-card" id="individual-cheatsheet-generator">
+                                <div class="tool-favourite-star" data-tool-id="individual-cheatsheet-generator">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #fce7f3; color: #be185d;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Cheat Sheet</h4>
@@ -2425,6 +2353,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <button type="button" class="feature-card" id="pipeline-revision-pack">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-revision-pack">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Revision Pack Builder</h4>
@@ -2435,6 +2366,9 @@
                             
                             <!-- PRO FEATURES AFTER -->
                             <button type="button" class="feature-card" id="pipeline-stuck-question">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-stuck-question">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #f3e8ff; color: #7e22ce;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Stuck on a Question?<span class="pro-label">PRO</span></h4>
@@ -2443,6 +2377,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <button type="button" class="feature-card" id="pipeline-exam-kit">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-exam-kit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Exam Builder<span class="pro-label">PRO</span></h4>
@@ -2451,6 +2388,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
                             <a href="{{ url_for('start_assignment', hub_id=hub.id) }}" class="feature-card" id="pipeline-assignment-assistant">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-assignment-assistant">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #e0f2fe; color: #0369a1;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Assignment Assistant<span class="pro-label">PRO</span></h4>
@@ -2459,6 +2399,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </a>
                             <button type="button" class="feature-card" id="pipeline-study-planner">
+                                <div class="tool-favourite-star" data-tool-id="pipeline-study-planner">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
+                                </div>
                                 <div class="feature-icon-wrapper" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Smart Study Planner<span class="pro-label">PRO</span></h4>
@@ -4607,11 +4550,7 @@
                 init: function() {
                     this.loadFavourites();
                     this.setupEventListeners();
-                    // Ensure modal is hidden on init
-                    const modal = document.getElementById('tool-selection-modal');
-                    if (modal) {
-                        modal.classList.remove('show');
-                    }
+                    this.setupStarClickListeners();
                 },
 
                 loadFavourites: async function() {
@@ -4619,8 +4558,9 @@
                         const response = await fetch('/api/favourites');
                         const data = await response.json();
                         if (data.success) {
-                            this.favourites = data.favourites;
+                            this.favourites = data.favourites || [];
                             this.renderFavourites();
+                            this.updateStarStates();
                         }
                     } catch (error) {
                         console.error('Error loading favourites:', error);
@@ -4636,56 +4576,18 @@
                             this.toggleFavourites();
                         });
                     }
+                },
 
-                    // Add favourite button
-                    const addFavouriteBtn = document.getElementById('add-favourite-btn');
-                    if (addFavouriteBtn) {
-                        addFavouriteBtn.addEventListener('click', (e) => {
+                setupStarClickListeners: function() {
+                    // Add click listeners to all star elements
+                    document.querySelectorAll('.tool-favourite-star').forEach(star => {
+                        star.addEventListener('click', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            console.log('Add Tool button clicked');
-                            this.showToolSelectionModal();
+                            const toolId = star.dataset.toolId;
+                            this.toggleFavourite(toolId);
                         });
-                    } else {
-                        console.error('Add Tool button not found');
-                    }
-
-                    // Modal close button
-                    const modalCloseBtn = document.getElementById('modal-close-btn');
-                    if (modalCloseBtn) {
-                        modalCloseBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            this.closeToolSelectionModal();
-                        });
-                    }
-
-                    // Modal cancel button
-                    const modalCancelBtn = document.getElementById('modal-cancel-btn');
-                    if (modalCancelBtn) {
-                        modalCancelBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            this.closeToolSelectionModal();
-                        });
-                    }
-
-                    // Modal save button
-                    const modalSaveBtn = document.getElementById('modal-save-btn');
-                    if (modalSaveBtn) {
-                        modalSaveBtn.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            this.saveFavourites();
-                        });
-                    }
-
-                    // Tool selection modal close on overlay click
-                    const toolModal = document.getElementById('tool-selection-modal');
-                    if (toolModal) {
-                        toolModal.addEventListener('click', (e) => {
-                            if (e.target === toolModal) {
-                                this.closeToolSelectionModal();
-                            }
-                        });
-                    }
+                    });
                 },
 
                 toggleFavourites: function() {
@@ -4700,20 +4602,21 @@
                     if (!favouritesContent) return;
 
                     if (this.favourites.length === 0) {
-                        favouritesContent.innerHTML = '<div class="favourites-empty">Click "Add Tool" to add your favourite tools</div>';
+                        favouritesContent.innerHTML = '<div class="favourites-empty">Click to add tool</div>';
                         return;
                     }
 
                     const favouritesHTML = this.favourites.map(fav => `
                         <div class="favourite-item" data-tool-id="${fav.tool_id}">
-                            <svg class="favourite-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="${this.getToolIcon(fav.tool_id)}"></path>
-                            </svg>
-                            <span class="favourite-name">${fav.tool_name}</span>
-                            <svg class="favourite-remove" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" onclick="favouritesSystem.removeFavourite('${fav.tool_id}')">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
+                            <div class="favourite-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path d="${this.getToolIcon(fav.tool_id)}"></path>
+                                </svg>
+                            </div>
+                            <span class="favourite-name">${fav.name}</span>
+                            <button class="favourite-remove" data-tool-id="${fav.tool_id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
                         </div>
                     `).join('');
 
@@ -4752,136 +4655,50 @@
                     }
                 },
 
-                showToolSelectionModal: function() {
-                    console.log('showToolSelectionModal called');
-                    const modal = document.getElementById('tool-selection-modal');
-                    const grid = document.getElementById('tool-selection-grid');
+                toggleFavourite: async function(toolId) {
+                    const isFavourited = this.favourites.some(fav => fav.tool_id === toolId);
                     
-                    if (!modal || !grid) {
-                        console.error('Modal elements not found', { modal: !!modal, grid: !!grid });
-                        return;
-                    }
-
-                    // Filter out already selected tools
-                    const availableTools = this.availableTools.filter(tool => 
-                        !this.favourites.some(fav => fav.tool_id === tool.id)
-                    );
-
-                    if (availableTools.length === 0) {
-                        grid.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">All tools are already in your favourites!</div>';
+                    if (isFavourited) {
+                        // Remove from favourites
+                        await this.removeFavourite(toolId);
                     } else {
-                        const toolsHTML = availableTools.map(tool => `
-                            <div class="tool-option" data-tool-id="${tool.id}">
-                                <div class="tool-checkbox">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="20,6 9,17 4,12"></polyline>
-                                    </svg>
-                                </div>
-                                <div class="tool-info">
-                                    <div class="tool-name">${tool.name}</div>
-                                    <div class="tool-description">${tool.description}</div>
-                                </div>
-                            </div>
-                        `).join('');
-
-                        grid.innerHTML = toolsHTML;
-
-                        // Add click handlers
-                        grid.querySelectorAll('.tool-option').forEach(option => {
-                            option.addEventListener('click', () => {
-                                this.toggleToolSelection(option);
-                            });
-                        });
-                    }
-
-                    console.log('Adding show class to modal');
-                    modal.classList.add('show');
-                    console.log('Modal classes after adding show:', modal.className);
-                    console.log('Modal computed style:', window.getComputedStyle(modal).display);
-                    this.updateSelectedCount();
-                },
-
-                toggleToolSelection: function(option) {
-                    const toolId = option.dataset.toolId;
-                    const isSelected = option.classList.contains('selected');
-                    
-                    if (isSelected) {
-                        option.classList.remove('selected');
-                    } else {
-                        // Check if we can add more tools
-                        const selectedCount = document.querySelectorAll('.tool-option.selected').length;
-                        if (selectedCount >= 5) {
-                            showCustomAlert('You can only select up to 5 tools', 'Selection Limit');
+                        // Add to favourites (check limit)
+                        if (this.favourites.length >= 5) {
+                            alert('You can only have up to 5 favourite tools!');
                             return;
                         }
-                        option.classList.add('selected');
-                    }
-                    
-                    this.updateSelectedCount();
-                },
-
-                updateSelectedCount: function() {
-                    const selectedCount = document.querySelectorAll('.tool-option.selected').length;
-                    const countElement = document.getElementById('selected-count');
-                    if (countElement) {
-                        countElement.textContent = selectedCount;
+                        await this.addFavourite(toolId);
                     }
                 },
 
-                closeToolSelectionModal: function() {
-                    const modal = document.getElementById('tool-selection-modal');
-                    if (modal) {
-                        modal.classList.remove('show');
-                        // Clear any selected tools when closing
-                        modal.querySelectorAll('.tool-option.selected').forEach(option => {
-                            option.classList.remove('selected');
-                        });
-                        this.updateSelectedCount();
-                    }
-                },
+                addFavourite: async function(toolId) {
+                    const tool = this.availableTools.find(t => t.id === toolId);
+                    if (!tool) return;
 
-                saveFavourites: async function() {
-                    const selectedTools = Array.from(document.querySelectorAll('.tool-option.selected'));
-                    
-                    if (selectedTools.length === 0) {
-                        showCustomAlert('Please select at least one tool', 'No Selection');
-                        return;
-                    }
+                    const toolData = {
+                        tool_id: toolId,
+                        name: tool.name,
+                        description: tool.description
+                    };
 
                     try {
-                        // Add each selected tool
-                        for (const toolElement of selectedTools) {
-                            const toolId = toolElement.dataset.toolId;
-                            const tool = this.availableTools.find(t => t.id === toolId);
-                            
-                            if (tool) {
-                                const response = await fetch('/api/favourites/add', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        tool_id: tool.id,
-                                        tool_name: tool.name,
-                                        tool_url: tool.url
-                                    })
-                                });
+                        const response = await fetch('/api/favourites/add', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ tools: [toolData] })
+                        });
 
-                                const data = await response.json();
-                                if (!data.success) {
-                                    console.error('Error adding favourite:', data.message);
-                                }
-                            }
+                        const data = await response.json();
+                        if (data.success) {
+                            this.loadFavourites(); // Reload favourites
+                        } else {
+                            alert('Error adding favourite: ' + (data.message || 'Unknown error'));
                         }
-
-                        // Reload favourites
-                        await this.loadFavourites();
-                        this.closeToolSelectionModal();
-                        showCustomAlert('Favourites updated successfully!', 'Success');
-
                     } catch (error) {
-                        console.error('Error saving favourites:', error);
-                        showCustomAlert('Error saving favourites', 'Error');
+                        console.error('Error adding favourite:', error);
+                        alert('Error adding favourite. Please try again.');
                     }
                 },
 
@@ -4897,14 +4714,28 @@
 
                         const data = await response.json();
                         if (data.success) {
-                            this.favourites = data.favourites;
-                            this.renderFavourites();
+                            this.loadFavourites(); // Reload favourites
                         } else {
-                            console.error('Error removing favourite:', data.message);
+                            alert('Error removing favourite: ' + (data.message || 'Unknown error'));
                         }
                     } catch (error) {
                         console.error('Error removing favourite:', error);
+                        alert('Error removing favourite. Please try again.');
                     }
+                },
+
+                updateStarStates: function() {
+                    // Update star visual states based on favourites
+                    document.querySelectorAll('.tool-favourite-star').forEach(star => {
+                        const toolId = star.dataset.toolId;
+                        const isFavourited = this.favourites.some(fav => fav.tool_id === toolId);
+                        
+                        if (isFavourited) {
+                            star.classList.add('favourited');
+                        } else {
+                            star.classList.remove('favourited');
+                        }
+                    });
                 }
             };
 
@@ -6109,27 +5940,5 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
-    <!-- Tool Selection Modal -->
-    <div id="tool-selection-modal" class="modal" style="display: none !important;">
-        <div class="modal-content" style="max-width: 600px; width: 90%;">
-            <div class="modal-header">
-                <h3>Add to Favourites</h3>
-                <button class="close-btn" id="modal-close-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Select up to 5 tools to add to your favourites:</p>
-                <div class="tool-selection-grid" id="tool-selection-grid">
-                    <!-- Tools will be loaded here -->
-                </div>
-                <div class="selected-tools-info">
-                    <span id="selected-count">0</span> / 5 tools selected
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="button button-secondary" id="modal-cancel-btn">Cancel</button>
-                <button class="button button-primary" id="modal-save-btn">Save Favourites</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
