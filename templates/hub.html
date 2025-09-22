@@ -4127,6 +4127,9 @@
             
             // Apply background image
             function applyBackgroundImage(backgroundName) {
+                // Set data attribute for CSS targeting
+                document.body.setAttribute('data-background', backgroundName);
+                
                 if (backgroundName === 'default') {
                     // Remove any background styling from all elements
                     document.body.style.backgroundImage = '';

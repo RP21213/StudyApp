@@ -1303,6 +1303,25 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        /* Make all sidebar tabs visible when background theme is applied */
+        body:not([data-background="default"]) .side-panel .nav-tab {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        body:not([data-background="default"]) .side-panel .nav-tab:hover {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            transform: translateY(-1px);
+        }
+        
+        body:not([data-background="default"]) .side-panel .nav-tab.active {
+            background-color: rgba(255, 255, 255, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
         /* --- NEW/UPDATED Community Styles --- */
         .community-toolbar {
             display: flex;
@@ -4528,27 +4547,30 @@ Best regards,
                     });
                 }
                 
-                // Apply background image
-                function applyBackgroundImage(backgroundName) {
-                    if (backgroundName === 'default') {
-                        // Remove any background styling from all elements
-                        document.body.style.backgroundImage = '';
-                        document.body.style.backgroundAttachment = '';
-                        document.body.style.backgroundSize = '';
-                        document.body.style.backgroundPosition = '';
-                        document.body.style.backgroundRepeat = '';
-                        
-                        const mainContent = document.querySelector('.main-content');
-                        
-                        if (mainContent) {
-                            mainContent.style.backgroundImage = '';
-                            mainContent.style.backgroundAttachment = '';
-                            mainContent.style.backgroundSize = '';
-                            mainContent.style.backgroundPosition = '';
-                            mainContent.style.backgroundRepeat = '';
-                        }
-                        return;
+            // Apply background image
+            function applyBackgroundImage(backgroundName) {
+                // Set data attribute for CSS targeting
+                document.body.setAttribute('data-background', backgroundName);
+                
+                if (backgroundName === 'default') {
+                    // Remove any background styling from all elements
+                    document.body.style.backgroundImage = '';
+                    document.body.style.backgroundAttachment = '';
+                    document.body.style.backgroundSize = '';
+                    document.body.style.backgroundPosition = '';
+                    document.body.style.backgroundRepeat = '';
+                    
+                    const mainContent = document.querySelector('.main-content');
+                    
+                    if (mainContent) {
+                        mainContent.style.backgroundImage = '';
+                        mainContent.style.backgroundAttachment = '';
+                        mainContent.style.backgroundSize = '';
+                        mainContent.style.backgroundPosition = '';
+                        mainContent.style.backgroundRepeat = '';
                     }
+                    return;
+                }
                     
                     // Apply background image with proper file extension
                     const imageExtensions = {
