@@ -1313,7 +1313,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 1rem 0.75rem 1rem;
             text-decoration: none;
             color: var(--text-secondary);
             font-weight: 500;
@@ -1326,6 +1326,7 @@
             border: none;
             width: 100%;
             position: relative;
+            box-sizing: border-box;
         }
 
         .favourites-toggle:hover {
@@ -1345,6 +1346,7 @@
 
         .favourites-toggle .favourites-arrow {
             margin-left: auto;
+            margin-right: 0.5rem;
             width: 18px;
             height: 18px;
             transition: all 0.2s ease;
