@@ -1191,15 +1191,21 @@ async function saveNotes() {
             addLoadingMessage();
             
             try {
+                // Create AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                
                 const response = await fetch(`{{ url_for('ask_ai_tutor', session_id=session.id) }}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         question: question,
                         current_slide: pageNum 
-                    })
+                    }),
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
                 const result = await response.json();
                 
                 // Remove loading message
@@ -1214,7 +1220,12 @@ async function saveNotes() {
             } catch (error) {
                 console.error('Error asking AI tutor:', error);
                 removeLoadingMessage();
-                addMessageToChat('Sorry, I encountered an error. Please try again.', false);
+                
+                if (error.name === 'AbortError') {
+                    addMessageToChat('The AI tutor is taking too long to respond. Please try asking a more specific question.', false);
+                } else {
+                    addMessageToChat('Sorry, I encountered an error. Please try again.', false);
+                }
             }
         }
 

@@ -3234,17 +3234,20 @@ def process_lecture_for_ai_tutor(session_data):
 def generate_page_summary(page_text):
     """Generate a brief summary of a page for AI tutor context."""
     try:
-        prompt = f"""
-        Provide a brief, concise summary of the following page content. Focus on the main concepts, key terms, and important information. Keep it under 100 words.
+        # Truncate page text to avoid token limits
+        truncated_text = page_text[:1000] if len(page_text) > 1000 else page_text
+        
+        prompt = f"""Summarize this slide content in 1-2 sentences focusing on key concepts:
 
-        Page content:
-        {page_text}
-        """
+{truncated_text}
+
+SUMMARY:"""
         
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4",  # Changed to GPT-4 for consistency
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=150
+            max_tokens=80,  # Reduced for faster processing
+            temperature=0.2  # Lower temperature for more focused summaries
         )
         
         return response.choices[0].message.content.strip()
@@ -3257,49 +3260,60 @@ def generate_page_summary(page_text):
 def generate_ai_tutor_response(question, lecture_content, current_slide):
     """Generate AI tutor response based on question and lecture content."""
     try:
-        # Build context from lecture content - limit to avoid token limits
+        # Build focused context - prioritize current slide and relevant slides
         context_pages = []
-        for page in lecture_content['pages'][:10]:  # Limit to first 10 pages to avoid token limits
-            context_pages.append(f"Slide {page['page_number']}: {page['summary']}")
+        
+        # Always include current slide first
+        current_page = None
+        for page in lecture_content['pages']:
+            if page['page_number'] == current_slide:
+                current_page = page
+                break
+        
+        if current_page:
+            context_pages.append(f"Current Slide {current_page['page_number']}: {current_page['text'][:500]}...")
+        
+        # Add summaries of other slides (limit to 5 most relevant)
+        for page in lecture_content['pages'][:5]:
+            if page['page_number'] != current_slide:
+                context_pages.append(f"Slide {page['page_number']}: {page['summary']}")
         
         context = "\n".join(context_pages)
         
-        # Create comprehensive prompt
-        prompt = f"""You are an expert AI tutor helping a student understand their lecture material. You have access to the complete lecture content and can reference specific slides.
+        # Create optimized prompt for speed and accuracy
+        prompt = f"""You are an expert tutor. Answer this question about the lecture content BRIEFLY and ACCURATELY.
 
-LECTURE CONTEXT:
+LECTURE CONTENT:
 {context}
 
-STUDENT QUESTION: {question}
+QUESTION: {question}
 
-INSTRUCTIONS:
-1. Provide a clear, helpful, and accurate answer based on the lecture content
-2. If the question mentions a specific slide number, reference that slide specifically
-3. If the question is about concepts not clearly covered, explain what you can from the available content
-4. Keep your response concise but comprehensive (2-3 paragraphs max)
-5. Use a friendly, encouraging tone
-6. If you need to reference multiple slides, mention the slide numbers
-7. If the question is unclear, ask for clarification while providing what help you can
+RULES:
+- Answer in 1-2 sentences maximum
+- Be direct and precise
+- Reference specific slide numbers when relevant
+- If asking about a specific slide, focus on that slide's content
+- If unclear, ask for clarification in one sentence
 
-Respond as a knowledgeable tutor who wants to help the student succeed."""
+ANSWER:"""
         
-        print(f"Sending prompt to AI with {len(prompt)} characters")
+        print(f"Sending optimized prompt to GPT-4 with {len(prompt)} characters")
         
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4",  # Changed to GPT-4 for better speed/accuracy balance
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=400,
-            temperature=0.7
+            max_tokens=150,  # Reduced for faster responses
+            temperature=0.3  # Lower temperature for more focused answers
         )
         
         answer = response.choices[0].message.content.strip()
-        print(f"Received AI response with {len(answer)} characters")
+        print(f"Received GPT-4 response with {len(answer)} characters")
         
         return answer
         
     except Exception as e:
         print(f"Error generating AI tutor response: {e}")
-        return "I apologize, but I'm having trouble processing your question right now. Please try rephrasing your question or try again later."
+        return "Sorry, I'm having trouble right now. Please try rephrasing your question."
 
 
 @app.route("/slide_notes/<session_id>/view_flashcards")
