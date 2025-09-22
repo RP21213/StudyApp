@@ -3195,7 +3195,7 @@ def ask_ai_tutor(session_id):
 
 
 def process_lecture_for_ai_tutor(session_data):
-    """Process lecture content for AI tutor analysis."""
+    """Process lecture content for AI tutor analysis - FAST VERSION."""
     try:
         # Get the PDF file
         source_file_path = session_data.get('source_file_path')
@@ -3203,14 +3203,14 @@ def process_lecture_for_ai_tutor(session_data):
             print("No source_file_path found in session data")
             return None
         
-        print(f"Processing PDF from path: {source_file_path}")
+        print(f"Fast processing PDF from path: {source_file_path}")
         
         # Download PDF from Cloud Storage
         blob = bucket.blob(source_file_path)
         pdf_content = blob.download_as_bytes()
         print(f"Downloaded PDF with {len(pdf_content)} bytes")
         
-        # Extract text from all pages
+        # Extract text from all pages - NO AI CALLS
         import PyPDF2
         import io
         
@@ -3223,24 +3223,26 @@ def process_lecture_for_ai_tutor(session_data):
             'pages': []
         }
         
+        # Process all pages quickly without AI summaries
         for page_num in range(total_pages):
             try:
                 page = pdf_reader.pages[page_num]
                 text = page.extract_text()
                 if text.strip():
-                    print(f"Processing page {page_num + 1} with {len(text)} characters")
-                    summary = generate_page_summary(text.strip())
+                    # Create simple summary by taking first 200 characters
+                    simple_summary = text.strip()[:200] + "..." if len(text.strip()) > 200 else text.strip()
+                    
                     processed_content['pages'].append({
                         'page_number': page_num + 1,
                         'text': text.strip(),
-                        'summary': summary
+                        'summary': simple_summary  # No AI call - just truncate
                     })
-                    print(f"Generated summary for page {page_num + 1}: {summary[:50]}...")
+                    print(f"Processed page {page_num + 1} with {len(text)} characters")
             except Exception as page_error:
                 print(f"Error processing page {page_num + 1}: {page_error}")
                 continue
         
-        print(f"Successfully processed {len(processed_content['pages'])} pages")
+        print(f"Successfully processed {len(processed_content['pages'])} pages in FAST mode")
         return processed_content
         
     except Exception as e:
@@ -3277,12 +3279,12 @@ SUMMARY:"""
 
 
 def generate_ai_tutor_response(question, lecture_content, current_slide):
-    """Generate AI tutor response based on question and lecture content."""
+    """Generate AI tutor response based on question and lecture content - ULTRA FAST."""
     try:
-        # Build focused context - prioritize current slide and relevant slides
+        # Build minimal context - only what's needed
         context_pages = []
         
-        # Always include current slide first
+        # Always include current slide first with more text
         current_page = None
         for page in lecture_content['pages']:
             if page['page_number'] == current_slide:
@@ -3290,43 +3292,36 @@ def generate_ai_tutor_response(question, lecture_content, current_slide):
                 break
         
         if current_page:
-            context_pages.append(f"Current Slide {current_page['page_number']}: {current_page['text'][:500]}...")
+            context_pages.append(f"Slide {current_page['page_number']}: {current_page['text'][:800]}")
         
-        # Add summaries of other slides (limit to 5 most relevant)
-        for page in lecture_content['pages'][:5]:
-            if page['page_number'] != current_slide:
-                context_pages.append(f"Slide {page['page_number']}: {page['summary']}")
+        # Add only 3 other slides with minimal text
+        other_pages = [p for p in lecture_content['pages'][:6] if p['page_number'] != current_slide]
+        for page in other_pages[:3]:
+            context_pages.append(f"Slide {page['page_number']}: {page['text'][:300]}")
         
         context = "\n".join(context_pages)
         
-        # Create optimized prompt for speed and accuracy
-        prompt = f"""You are an expert tutor. Answer this question about the lecture content BRIEFLY and ACCURATELY.
+        # Ultra-minimal prompt for maximum speed
+        prompt = f"""Answer this question about the lecture content in 1-2 sentences:
 
-LECTURE CONTENT:
+CONTENT:
 {context}
 
 QUESTION: {question}
 
-RULES:
-- Answer in 1-2 sentences maximum
-- Be direct and precise
-- Reference specific slide numbers when relevant
-- If asking about a specific slide, focus on that slide's content
-- If unclear, ask for clarification in one sentence
-
 ANSWER:"""
         
-        print(f"Sending optimized prompt to GPT-4 with {len(prompt)} characters")
+        print(f"Sending ultra-fast prompt to GPT-4 with {len(prompt)} characters")
         
         response = client.chat.completions.create(
-            model="gpt-4",  # Changed to GPT-4 for better speed/accuracy balance
+            model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,  # Reduced for faster responses
-            temperature=0.3  # Lower temperature for more focused answers
+            max_tokens=100,  # Even more reduced for speed
+            temperature=0.2  # Lower temperature for consistency
         )
         
         answer = response.choices[0].message.content.strip()
-        print(f"Received GPT-4 response with {len(answer)} characters")
+        print(f"Received ultra-fast GPT-4 response: {answer}")
         
         return answer
         

@@ -1193,7 +1193,7 @@ async function saveNotes() {
             try {
                 // Create AbortController for timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
                 
                 const response = await fetch(`{{ url_for('ask_ai_tutor', session_id=session.id) }}`, {
                     method: 'POST',
