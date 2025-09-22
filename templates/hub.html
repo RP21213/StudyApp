@@ -1476,7 +1476,7 @@
 
         /* Tool Selection Modal Styles */
         #tool-selection-modal {
-            display: flex !important;
+            display: none !important;
             align-items: center !important;
             justify-content: center !important;
             position: fixed !important;
@@ -1487,6 +1487,10 @@
             z-index: 9999 !important;
             background-color: rgba(0, 0, 0, 0.5) !important;
             backdrop-filter: blur(4px) !important;
+        }
+
+        #tool-selection-modal.show {
+            display: flex !important;
         }
 
         #tool-selection-modal .modal-content {
@@ -4606,7 +4610,7 @@
                     // Ensure modal is hidden on init
                     const modal = document.getElementById('tool-selection-modal');
                     if (modal) {
-                        modal.style.display = 'none !important';
+                        modal.classList.remove('show');
                     }
                 },
 
@@ -4790,7 +4794,10 @@
                         });
                     }
 
-                    modal.style.display = 'flex !important';
+                    console.log('Adding show class to modal');
+                    modal.classList.add('show');
+                    console.log('Modal classes after adding show:', modal.className);
+                    console.log('Modal computed style:', window.getComputedStyle(modal).display);
                     this.updateSelectedCount();
                 },
 
@@ -4824,7 +4831,7 @@
                 closeToolSelectionModal: function() {
                     const modal = document.getElementById('tool-selection-modal');
                     if (modal) {
-                        modal.style.display = 'none !important';
+                        modal.classList.remove('show');
                         // Clear any selected tools when closing
                         modal.querySelectorAll('.tool-option.selected').forEach(option => {
                             option.classList.remove('selected');
