@@ -3319,12 +3319,30 @@
                                     </div>
                                     <div class="background-image-label">Urban Skyline</div>
                                 </div>
-                                <div class="background-image-option" data-background="forest">
-                                    <div class="background-image-preview" style="background-image: url('/static/background-images/forest.jpg');">
-                                        <div class="background-image-name">Forest</div>
-                                    </div>
-                                    <div class="background-image-label">Nature Green</div>
-                                </div>
+                <div class="background-image-option" data-background="darkcity">
+                    <div class="background-image-preview" style="background-image: url('/static/background-images/darkcity.jpg');">
+                        <div class="background-image-name">Dark City</div>
+                    </div>
+                    <div class="background-image-label">Urban Night</div>
+                </div>
+                <div class="background-image-option" data-background="sky">
+                    <div class="background-image-preview" style="background-image: url('/static/background-images/sky.jpg');">
+                        <div class="background-image-name">Sky</div>
+                    </div>
+                    <div class="background-image-label">Cloudy Skies</div>
+                </div>
+                <div class="background-image-option" data-background="space">
+                    <div class="background-image-preview" style="background-image: url('/static/background-images/space.jpg');">
+                        <div class="background-image-name">Space</div>
+                    </div>
+                    <div class="background-image-label">Cosmic View</div>
+                </div>
+                <div class="background-image-option" data-background="sunset">
+                    <div class="background-image-preview" style="background-image: url('/static/background-images/sunset.jpg');">
+                        <div class="background-image-name">Sunset</div>
+                    </div>
+                    <div class="background-image-label">Golden Hour</div>
+                </div>
                                 <div class="background-image-option" data-background="mountains">
                                     <div class="background-image-preview" style="background-image: url('/static/background-images/mountains.png');">
                                         <div class="background-image-name">Mountains</div>
@@ -4572,14 +4590,17 @@ Best regards,
                     return;
                 }
                     
-                    // Apply background image with proper file extension
-                    const imageExtensions = {
-                        'citynight': 'citynight.jpg',
-                        'forest': 'forest.jpg', 
-                        'mountains': 'mountains.png',
-                        'nature': 'nature.png',
-                        'sea': 'sea.png'
-                    };
+                // Apply background image with proper file extension
+                const imageExtensions = {
+                    'citynight': 'citynight.jpg',
+                    'darkcity': 'darkcity.jpg',
+                    'sky': 'sky.jpg',
+                    'space': 'space.jpg',
+                    'sunset': 'sunset.jpg',
+                    'mountains': 'mountains.png',
+                    'nature': 'nature.png',
+                    'sea': 'sea.png'
+                };
                     
                     const imageFile = imageExtensions[backgroundName] || backgroundName;
                     
