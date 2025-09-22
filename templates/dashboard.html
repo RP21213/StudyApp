@@ -5354,7 +5354,7 @@ Best regards,
                                         <i data-lucide="download"></i> Import
                                     </button>
                                     <button class="like-btn" data-resource-id="${resource.id}">
-                                        <i data-lucide="heart"></i> ${resource.likes}
+                                        <i data-lucide="heart"></i> ${resource.likes} 👍
                                     </button>
                                     ${resource.owner_id === '{{ current_user.id }}' ? `<button class="delete-btn" onclick="deleteResource('${resource.id}')" title="Delete resource">❌</button>` : ''}
                                 </div>
@@ -5454,7 +5454,7 @@ Best regards,
                                             <i data-lucide="download"></i> Import
                                         </button>
                                         <button class="like-btn" data-resource-id="${resource.id}">
-                                            <i data-lucide="heart"></i> ${resource.likes}
+                                            <i data-lucide="heart"></i> ${resource.likes} 👍
                                         </button>
                                         ${resource.owner_id === '{{ current_user.id }}' ? `<button class="delete-btn" onclick="deleteResource('${resource.id}')" title="Delete resource">❌</button>` : ''}
                                     </div>
