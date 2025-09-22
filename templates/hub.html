@@ -1310,7 +1310,27 @@
         }
 
         .favourites-toggle {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            width: 100%;
             position: relative;
+        }
+
+        .favourites-toggle:hover {
+            background-color: var(--background-interactive-hover);
+            color: var(--text-main);
         }
 
         .favourites-toggle .favourites-arrow {
@@ -1424,6 +1444,18 @@
         }
 
         /* Collapsed state for favourites */
+        .sidebar.collapsed .favourites-toggle {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar.collapsed .favourites-toggle .nav-text {
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            overflow: hidden;
+        }
+
         .sidebar.collapsed .favourites-toggle .favourites-arrow {
             display: none;
         }
@@ -2066,11 +2098,11 @@
                     
                     <!-- Favourites Section -->
                     <li class="favourites-section">
-                        <a href="#" class="nav-link favourites-toggle" id="favourites-toggle">
+                        <div class="favourites-toggle" id="favourites-toggle">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                             <span class="nav-text">Favourites</span>
                             <svg class="favourites-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>
-                        </a>
+                        </div>
                         <div class="favourites-dropdown" id="favourites-dropdown">
                             <div class="favourites-content" id="favourites-content">
                                 <!-- Favourites will be loaded here -->
@@ -4564,7 +4596,7 @@
                     const favouritesToggle = document.getElementById('favourites-toggle');
                     if (favouritesToggle) {
                         favouritesToggle.addEventListener('click', (e) => {
-                            e.preventDefault();
+                            e.stopPropagation();
                             this.toggleFavourites();
                         });
                     }
