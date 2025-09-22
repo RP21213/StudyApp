@@ -3301,13 +3301,23 @@ def generate_ai_tutor_response(question, lecture_content, current_slide):
         
         context = "\n".join(context_pages)
         
-        # Ultra-minimal prompt for maximum speed
-        prompt = f"""Answer this question about the lecture content in 1-2 sentences:
+        # Detailed prompt similar to study hub tutor but optimized for brief responses
+        prompt = f"""You are an expert AI tutor helping a student understand their lecture material. Answer the user's question based on the provided lecture content. Be concise, helpful, and accurate.
 
-CONTENT:
+LECTURE CONTENT:
 {context}
 
-QUESTION: {question}
+STUDENT QUESTION: {question}
+
+INSTRUCTIONS:
+- Provide a clear, helpful answer based on the lecture content
+- Keep your response to 1-2 sentences maximum
+- Be direct and precise in your explanation
+- If the question mentions a specific slide number, reference that slide specifically
+- If asking about a specific slide, focus on that slide's content
+- If the information isn't clearly available in the content, say so politely
+- Use a friendly, encouraging tone
+- Reference slide numbers when relevant
 
 ANSWER:"""
         
@@ -3316,8 +3326,8 @@ ANSWER:"""
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=100,  # Even more reduced for speed
-            temperature=0.2  # Lower temperature for consistency
+            max_tokens=150,  # Increased for more detailed brief responses
+            temperature=0.3  # Slightly higher for more natural responses
         )
         
         answer = response.choices[0].message.content.strip()
