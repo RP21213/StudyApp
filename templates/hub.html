@@ -4630,12 +4630,41 @@
                     // Add favourite button
                     const addFavouriteBtn = document.getElementById('add-favourite-btn');
                     if (addFavouriteBtn) {
-                        addFavouriteBtn.addEventListener('click', () => {
+                        addFavouriteBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             this.showToolSelectionModal();
                         });
                     }
 
-                    // Tool selection modal close
+                    // Modal close button
+                    const modalCloseBtn = document.getElementById('modal-close-btn');
+                    if (modalCloseBtn) {
+                        modalCloseBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.closeToolSelectionModal();
+                        });
+                    }
+
+                    // Modal cancel button
+                    const modalCancelBtn = document.getElementById('modal-cancel-btn');
+                    if (modalCancelBtn) {
+                        modalCancelBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.closeToolSelectionModal();
+                        });
+                    }
+
+                    // Modal save button
+                    const modalSaveBtn = document.getElementById('modal-save-btn');
+                    if (modalSaveBtn) {
+                        modalSaveBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.saveFavourites();
+                        });
+                    }
+
+                    // Tool selection modal close on overlay click
                     const toolModal = document.getElementById('tool-selection-modal');
                     if (toolModal) {
                         toolModal.addEventListener('click', (e) => {
@@ -4776,7 +4805,7 @@
                 closeToolSelectionModal: function() {
                     const modal = document.getElementById('tool-selection-modal');
                     if (modal) {
-                        modal.style.display = 'none';
+                        modal.style.display = 'none !important';
                         // Clear any selected tools when closing
                         modal.querySelectorAll('.tool-option.selected').forEach(option => {
                             option.classList.remove('selected');
@@ -4855,10 +4884,6 @@
 
             // Initialize favourites system
             favouritesSystem.init();
-
-            // Global functions for modal
-            window.closeToolSelectionModal = () => favouritesSystem.closeToolSelectionModal();
-            window.saveFavourites = () => favouritesSystem.saveFavourites();
     </script>
 
     {% if spotify_connected %}
@@ -6059,11 +6084,11 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <!-- Tool Selection Modal -->
-    <div id="tool-selection-modal" class="modal" style="display: none;">
+    <div id="tool-selection-modal" class="modal" style="display: none !important;">
         <div class="modal-content" style="max-width: 600px; width: 90%;">
             <div class="modal-header">
                 <h3>Add to Favourites</h3>
-                <button class="close-btn" onclick="closeToolSelectionModal()">&times;</button>
+                <button class="close-btn" id="modal-close-btn">&times;</button>
             </div>
             <div class="modal-body">
                 <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Select up to 5 tools to add to your favourites:</p>
@@ -6075,8 +6100,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="button button-secondary" onclick="closeToolSelectionModal()">Cancel</button>
-                <button class="button button-primary" id="save-favourites-btn" onclick="saveFavourites()">Save Favourites</button>
+                <button class="button button-secondary" id="modal-cancel-btn">Cancel</button>
+                <button class="button button-primary" id="modal-save-btn">Save Favourites</button>
             </div>
         </div>
     </div>
