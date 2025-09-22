@@ -4489,7 +4489,17 @@ Best regards,
                 let currentBackgroundImage = '{{ current_user.background_preference or "default" }}';
                 
                 console.log('Background images loaded:', backgroundImageOptions.length);
-                console.log('Current background:', currentBackgroundImage);
+                console.log('Current background from template:', currentBackgroundImage);
+                console.log('User background preference:', '{{ current_user.background_preference }}');
+                
+                // Fallback to localStorage if template value is not working
+                if (currentBackgroundImage === 'default' || !currentBackgroundImage) {
+                    const savedBackground = localStorage.getItem('background_preference');
+                    if (savedBackground) {
+                        currentBackgroundImage = savedBackground;
+                        console.log('Using saved background from localStorage:', currentBackgroundImage);
+                    }
+                }
                 
                 // Initialize background image selection
                 function initializeBackgroundImageSelection() {
@@ -4508,6 +4518,9 @@ Best regards,
                             // Update background preference
                             currentBackgroundImage = backgroundName;
                             updateSetting('background_preference', backgroundName);
+                            
+                            // Save to localStorage for immediate persistence
+                            localStorage.setItem('background_preference', backgroundName);
                             
                             // Apply the background immediately
                             applyBackgroundImage(backgroundName);

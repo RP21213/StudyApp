@@ -50,7 +50,20 @@
     <script>
         // Initialize background image on all pages
         function initializeGlobalBackground() {
-            const currentBackground = '{{ current_user.background_preference or "default" }}';
+            let currentBackground = '{{ current_user.background_preference or "default" }}';
+            
+            console.log('Base - Current background from template:', currentBackground);
+            console.log('Base - User background preference:', '{{ current_user.background_preference }}');
+            
+            // Fallback to localStorage if template value is not working
+            if (currentBackground === 'default' || !currentBackground) {
+                const savedBackground = localStorage.getItem('background_preference');
+                if (savedBackground) {
+                    currentBackground = savedBackground;
+                    console.log('Base - Using saved background from localStorage:', currentBackground);
+                }
+            }
+            
             applyGlobalBackground(currentBackground);
         }
         

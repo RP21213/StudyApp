@@ -154,6 +154,7 @@ class User(UserMixin):
             font_size_preference=source.get('font_size_preference', 'default'),
             high_contrast_mode=source.get('high_contrast_mode', False),
             language=source.get('language', 'en-US'),
+            background_preference=source.get('background_preference', 'default'),
             # --- NEW: Retrieve Spotify from dict ---
             spotify_access_token=source.get('spotify_access_token'),
             spotify_refresh_token=source.get('spotify_refresh_token'),

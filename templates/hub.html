@@ -4108,7 +4108,20 @@
 
             // Initialize background image
             function initializeBackgroundImage() {
-                const currentBackground = '{{ current_user.background_preference or "default" }}';
+                let currentBackground = '{{ current_user.background_preference or "default" }}';
+                
+                console.log('Hub - Current background from template:', currentBackground);
+                console.log('Hub - User background preference:', '{{ current_user.background_preference }}');
+                
+                // Fallback to localStorage if template value is not working
+                if (currentBackground === 'default' || !currentBackground) {
+                    const savedBackground = localStorage.getItem('background_preference');
+                    if (savedBackground) {
+                        currentBackground = savedBackground;
+                        console.log('Hub - Using saved background from localStorage:', currentBackground);
+                    }
+                }
+                
                 applyBackgroundImage(currentBackground);
             }
             
