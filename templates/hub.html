@@ -1302,7 +1302,246 @@
         /* Collapsed state for task queue */
         .sidebar.collapsed .task-queue-section {
             padding: 0.5rem;
-            margin: 0.5rem 0;
+        }
+
+        /* --- Favourites Section Styles --- */
+        .favourites-section {
+            margin-bottom: 0.5rem;
+        }
+
+        .favourites-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-radius: 8px;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            width: 100%;
+        }
+
+        .favourites-header:hover {
+            background-color: var(--background-interactive-hover);
+            color: var(--text-main);
+        }
+
+        .favourites-arrow {
+            margin-left: auto;
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .favourites-section.expanded .favourites-arrow {
+            transform: rotate(180deg);
+        }
+
+        .favourites-dropdown {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background-color: var(--background-interactive);
+            border-radius: 8px;
+            margin-top: 0.25rem;
+        }
+
+        .favourites-section.expanded .favourites-dropdown {
+            max-height: 400px;
+        }
+
+        .favourites-content {
+            padding: 0.5rem;
+        }
+
+        .favourite-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            margin-bottom: 0.25rem;
+            background-color: var(--background-card);
+            border-radius: 6px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .favourite-item:hover {
+            background-color: var(--background-interactive-hover);
+        }
+
+        .favourite-item .favourite-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .favourite-item .favourite-name {
+            flex-grow: 1;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .favourite-item .favourite-remove {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .favourite-item .favourite-remove:hover {
+            color: var(--red);
+        }
+
+        .favourites-actions {
+            padding: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .favourites-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .favourites-add-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .favourites-add-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .favourites-empty {
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Collapsed state for favourites */
+        .sidebar.collapsed .favourites-header {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar.collapsed .favourites-header .nav-text {
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .favourites-header .favourites-arrow {
+            display: none;
+        }
+
+        .sidebar.collapsed .favourites-dropdown {
+            display: none;
+        }
+
+        /* Tool Selection Modal Styles */
+        .tool-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tool-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--background-card);
+        }
+
+        .tool-option:hover {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+        }
+
+        .tool-option.selected {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .tool-option .tool-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .tool-option.selected .tool-checkbox {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .tool-option .tool-checkbox svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tool-option.selected .tool-checkbox svg {
+            opacity: 1;
+        }
+
+        .tool-option .tool-info {
+            flex-grow: 1;
+        }
+
+        .tool-option .tool-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .tool-option .tool-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .selected-tools-info {
+            text-align: center;
+            padding: 0.75rem;
+            background-color: var(--background-interactive);
+            border-radius: 6px;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
+        .selected-tools-info .selected-count {
+            color: var(--primary-color);
+            font-weight: 600;
         }
         .sidebar.collapsed .task-queue-header {
             flex-direction: column;
@@ -1829,6 +2068,26 @@
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                         <span class="nav-text">Study Tools</span>
                     </a></li>
+                    
+                    <!-- Favourites Section -->
+                    <li class="favourites-section">
+                        <div class="favourites-header" id="favourites-toggle">
+                            <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                            <span class="nav-text">Favourites</span>
+                            <svg class="favourites-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>
+                        </div>
+                        <div class="favourites-dropdown" id="favourites-dropdown">
+                            <div class="favourites-content" id="favourites-content">
+                                <!-- Favourites will be loaded here -->
+                            </div>
+                            <div class="favourites-actions">
+                                <button class="favourites-add-btn" id="add-favourite-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    Add Tool
+                                </button>
+                            </div>
+                        </div>
+                    </li>
                     <li><a href="#progress" class="nav-link" data-tab="progress">
                         <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M18 20V4M6 20V16"></path></svg>
                         <span class="nav-text">Progress</span>
@@ -4267,6 +4526,268 @@
             
             // Initialize background on page load
             initializeBackgroundImage();
+
+            // --- Favourites System ---
+            const favouritesSystem = {
+                favourites: [],
+                availableTools: [
+                    { id: 'notes', name: 'My Notes', description: 'Create and manage study notes', url: '#notes', icon: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M13 2v7h7' },
+                    { id: 'flashcards', name: 'My Flashcards', description: 'Study with flashcards', url: '#flashcards', icon: 'M2 7h20v15H2z M17 2v5 M7 2v5' },
+                    { id: 'quizzes', name: 'My Quizzes', description: 'Take practice quizzes', url: '#quizzes', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9 12l2 2 4-4' },
+                    { id: 'lecture_notes', name: 'Lecture Notes', description: 'Take notes during lectures', url: '#lecture_notes', icon: 'M2 3h20v18H2z M2 8h20 M7 13h6 M7 18h6' },
+                    { id: 'folders', name: 'My Folders', description: 'Organize your study materials', url: '#folders', icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' },
+                    { id: 'calendar', name: 'Calendar', description: 'Schedule study sessions', url: '#calendar', icon: 'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18' },
+                    { id: 'tutor', name: 'AI Tutor', description: 'Get help from AI tutor', url: '#tutor', icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' },
+                    { id: 'documents', name: 'Documents', description: 'Manage your documents', url: '#documents', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8' }
+                ],
+
+                init: function() {
+                    this.loadFavourites();
+                    this.setupEventListeners();
+                },
+
+                loadFavourites: async function() {
+                    try {
+                        const response = await fetch('/api/favourites');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.favourites = data.favourites;
+                            this.renderFavourites();
+                        }
+                    } catch (error) {
+                        console.error('Error loading favourites:', error);
+                    }
+                },
+
+                setupEventListeners: function() {
+                    // Favourites toggle
+                    const favouritesToggle = document.getElementById('favourites-toggle');
+                    if (favouritesToggle) {
+                        favouritesToggle.addEventListener('click', () => {
+                            this.toggleFavourites();
+                        });
+                    }
+
+                    // Add favourite button
+                    const addFavouriteBtn = document.getElementById('add-favourite-btn');
+                    if (addFavouriteBtn) {
+                        addFavouriteBtn.addEventListener('click', () => {
+                            this.showToolSelectionModal();
+                        });
+                    }
+
+                    // Tool selection modal close
+                    const toolModal = document.getElementById('tool-selection-modal');
+                    if (toolModal) {
+                        toolModal.addEventListener('click', (e) => {
+                            if (e.target === toolModal) {
+                                this.closeToolSelectionModal();
+                            }
+                        });
+                    }
+                },
+
+                toggleFavourites: function() {
+                    const favouritesSection = document.querySelector('.favourites-section');
+                    if (favouritesSection) {
+                        favouritesSection.classList.toggle('expanded');
+                    }
+                },
+
+                renderFavourites: function() {
+                    const favouritesContent = document.getElementById('favourites-content');
+                    if (!favouritesContent) return;
+
+                    if (this.favourites.length === 0) {
+                        favouritesContent.innerHTML = '<div class="favourites-empty">Click "Add Tool" to add your favourite tools</div>';
+                        return;
+                    }
+
+                    const favouritesHTML = this.favourites.map(fav => `
+                        <div class="favourite-item" data-tool-id="${fav.tool_id}">
+                            <svg class="favourite-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="${this.getToolIcon(fav.tool_id)}"></path>
+                            </svg>
+                            <span class="favourite-name">${fav.tool_name}</span>
+                            <svg class="favourite-remove" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" onclick="favouritesSystem.removeFavourite('${fav.tool_id}')">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </div>
+                    `).join('');
+
+                    favouritesContent.innerHTML = favouritesHTML;
+
+                    // Add click handlers for favourite items
+                    favouritesContent.querySelectorAll('.favourite-item').forEach(item => {
+                        item.addEventListener('click', (e) => {
+                            if (!e.target.closest('.favourite-remove')) {
+                                const toolId = item.dataset.toolId;
+                                this.navigateToTool(toolId);
+                            }
+                        });
+                    });
+                },
+
+                getToolIcon: function(toolId) {
+                    const tool = this.availableTools.find(t => t.id === toolId);
+                    return tool ? tool.icon : 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z';
+                },
+
+                navigateToTool: function(toolId) {
+                    // Switch to the tool tab
+                    const toolLink = document.querySelector(`[data-tab="${toolId}"]`);
+                    if (toolLink) {
+                        toolLink.click();
+                    }
+                },
+
+                showToolSelectionModal: function() {
+                    const modal = document.getElementById('tool-selection-modal');
+                    const grid = document.getElementById('tool-selection-grid');
+                    
+                    if (!modal || !grid) return;
+
+                    // Filter out already selected tools
+                    const availableTools = this.availableTools.filter(tool => 
+                        !this.favourites.some(fav => fav.tool_id === tool.id)
+                    );
+
+                    const toolsHTML = availableTools.map(tool => `
+                        <div class="tool-option" data-tool-id="${tool.id}">
+                            <div class="tool-checkbox">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20,6 9,17 4,12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="tool-info">
+                                <div class="tool-name">${tool.name}</div>
+                                <div class="tool-description">${tool.description}</div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    grid.innerHTML = toolsHTML;
+
+                    // Add click handlers
+                    grid.querySelectorAll('.tool-option').forEach(option => {
+                        option.addEventListener('click', () => {
+                            this.toggleToolSelection(option);
+                        });
+                    });
+
+                    modal.style.display = 'flex';
+                    this.updateSelectedCount();
+                },
+
+                toggleToolSelection: function(option) {
+                    const toolId = option.dataset.toolId;
+                    const isSelected = option.classList.contains('selected');
+                    
+                    if (isSelected) {
+                        option.classList.remove('selected');
+                    } else {
+                        // Check if we can add more tools
+                        const selectedCount = document.querySelectorAll('.tool-option.selected').length;
+                        if (selectedCount >= 5) {
+                            showCustomAlert('You can only select up to 5 tools', 'Selection Limit');
+                            return;
+                        }
+                        option.classList.add('selected');
+                    }
+                    
+                    this.updateSelectedCount();
+                },
+
+                updateSelectedCount: function() {
+                    const selectedCount = document.querySelectorAll('.tool-option.selected').length;
+                    const countElement = document.getElementById('selected-count');
+                    if (countElement) {
+                        countElement.textContent = selectedCount;
+                    }
+                },
+
+                closeToolSelectionModal: function() {
+                    const modal = document.getElementById('tool-selection-modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
+                },
+
+                saveFavourites: async function() {
+                    const selectedTools = Array.from(document.querySelectorAll('.tool-option.selected'));
+                    
+                    if (selectedTools.length === 0) {
+                        showCustomAlert('Please select at least one tool', 'No Selection');
+                        return;
+                    }
+
+                    try {
+                        // Add each selected tool
+                        for (const toolElement of selectedTools) {
+                            const toolId = toolElement.dataset.toolId;
+                            const tool = this.availableTools.find(t => t.id === toolId);
+                            
+                            if (tool) {
+                                const response = await fetch('/api/favourites/add', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        tool_id: tool.id,
+                                        tool_name: tool.name,
+                                        tool_url: tool.url
+                                    })
+                                });
+
+                                const data = await response.json();
+                                if (!data.success) {
+                                    console.error('Error adding favourite:', data.message);
+                                }
+                            }
+                        }
+
+                        // Reload favourites
+                        await this.loadFavourites();
+                        this.closeToolSelectionModal();
+                        showCustomAlert('Favourites updated successfully!', 'Success');
+
+                    } catch (error) {
+                        console.error('Error saving favourites:', error);
+                        showCustomAlert('Error saving favourites', 'Error');
+                    }
+                },
+
+                removeFavourite: async function(toolId) {
+                    try {
+                        const response = await fetch('/api/favourites/remove', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ tool_id: toolId })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            this.favourites = data.favourites;
+                            this.renderFavourites();
+                        } else {
+                            console.error('Error removing favourite:', data.message);
+                        }
+                    } catch (error) {
+                        console.error('Error removing favourite:', error);
+                    }
+                }
+            };
+
+            // Initialize favourites system
+            favouritesSystem.init();
+
+            // Global functions for modal
+            window.closeToolSelectionModal = () => favouritesSystem.closeToolSelectionModal();
+            window.saveFavourites = () => favouritesSystem.saveFavourites();
     </script>
 
     {% if spotify_connected %}
@@ -5462,6 +5983,29 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="modal-footer">
                 <button class="button button-primary" onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tool Selection Modal -->
+    <div id="tool-selection-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add to Favourites</h3>
+                <button class="close-btn" onclick="closeToolSelectionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select up to 5 tools to add to your favourites:</p>
+                <div class="tool-selection-grid" id="tool-selection-grid">
+                    <!-- Tools will be loaded here -->
+                </div>
+                <div class="selected-tools-info">
+                    <span id="selected-count">0</span> / 5 tools selected
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary" onclick="closeToolSelectionModal()">Cancel</button>
+                <button class="button button-primary" id="save-favourites-btn" onclick="saveFavourites()">Save Favourites</button>
             </div>
         </div>
     </div>
