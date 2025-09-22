@@ -1345,14 +1345,24 @@
 
         .favourites-toggle .favourites-arrow {
             margin-left: auto;
-            width: 16px;
-            height: 16px;
-            transition: transform 0.2s ease;
+            width: 18px;
+            height: 18px;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .favourites-toggle:hover .favourites-arrow {
+            opacity: 1;
+            color: var(--text-main);
         }
 
 
         .favourites-section.expanded .favourites-toggle .favourites-arrow {
             transform: rotate(180deg);
+            opacity: 1;
+            color: var(--primary-color);
         }
 
         .favourites-dropdown {
