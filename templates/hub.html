@@ -1433,6 +1433,13 @@
         }
 
         /* Tool Selection Modal Styles */
+        #tool-selection-modal .modal-content {
+            max-width: 600px !important;
+            width: 90% !important;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         .tool-selection-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1440,6 +1447,7 @@
             margin: 1rem 0;
             max-height: 400px;
             overflow-y: auto;
+            padding: 0.5rem;
         }
 
         .tool-option {
@@ -4531,6 +4539,11 @@
                 init: function() {
                     this.loadFavourites();
                     this.setupEventListeners();
+                    // Ensure modal is hidden on init
+                    const modal = document.getElementById('tool-selection-modal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
                 },
 
                 loadFavourites: async function() {
@@ -4634,35 +4647,42 @@
                     const modal = document.getElementById('tool-selection-modal');
                     const grid = document.getElementById('tool-selection-grid');
                     
-                    if (!modal || !grid) return;
+                    if (!modal || !grid) {
+                        console.error('Modal elements not found');
+                        return;
+                    }
 
                     // Filter out already selected tools
                     const availableTools = this.availableTools.filter(tool => 
                         !this.favourites.some(fav => fav.tool_id === tool.id)
                     );
 
-                    const toolsHTML = availableTools.map(tool => `
-                        <div class="tool-option" data-tool-id="${tool.id}">
-                            <div class="tool-checkbox">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20,6 9,17 4,12"></polyline>
-                                </svg>
+                    if (availableTools.length === 0) {
+                        grid.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">All tools are already in your favourites!</div>';
+                    } else {
+                        const toolsHTML = availableTools.map(tool => `
+                            <div class="tool-option" data-tool-id="${tool.id}">
+                                <div class="tool-checkbox">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20,6 9,17 4,12"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="tool-info">
+                                    <div class="tool-name">${tool.name}</div>
+                                    <div class="tool-description">${tool.description}</div>
+                                </div>
                             </div>
-                            <div class="tool-info">
-                                <div class="tool-name">${tool.name}</div>
-                                <div class="tool-description">${tool.description}</div>
-                            </div>
-                        </div>
-                    `).join('');
+                        `).join('');
 
-                    grid.innerHTML = toolsHTML;
+                        grid.innerHTML = toolsHTML;
 
-                    // Add click handlers
-                    grid.querySelectorAll('.tool-option').forEach(option => {
-                        option.addEventListener('click', () => {
-                            this.toggleToolSelection(option);
+                        // Add click handlers
+                        grid.querySelectorAll('.tool-option').forEach(option => {
+                            option.addEventListener('click', () => {
+                                this.toggleToolSelection(option);
+                            });
                         });
-                    });
+                    }
 
                     modal.style.display = 'flex';
                     this.updateSelectedCount();
@@ -4699,6 +4719,11 @@
                     const modal = document.getElementById('tool-selection-modal');
                     if (modal) {
                         modal.style.display = 'none';
+                        // Clear any selected tools when closing
+                        modal.querySelectorAll('.tool-option.selected').forEach(option => {
+                            option.classList.remove('selected');
+                        });
+                        this.updateSelectedCount();
                     }
                 },
 
@@ -5976,14 +6001,14 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <!-- Tool Selection Modal -->
-    <div id="tool-selection-modal" class="modal">
-        <div class="modal-content">
+    <div id="tool-selection-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px; width: 90%;">
             <div class="modal-header">
                 <h3>Add to Favourites</h3>
                 <button class="close-btn" onclick="closeToolSelectionModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Select up to 5 tools to add to your favourites:</p>
+                <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">Select up to 5 tools to add to your favourites:</p>
                 <div class="tool-selection-grid" id="tool-selection-grid">
                     <!-- Tools will be loaded here -->
                 </div>
