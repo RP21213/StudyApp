@@ -102,6 +102,14 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        /* Enhanced top bar styling for background themes */
+        body:not([data-background="default"]) .top-bar {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            background-image: none !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
         /* Make all sidebar nav links visible when background theme is applied */
         body:not([data-background="default"]) .sidebar-nav a {
             background-color: rgba(255, 255, 255, 0.1) !important;
