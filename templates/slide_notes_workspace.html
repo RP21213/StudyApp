@@ -74,6 +74,8 @@
         .button-primary:hover { background-color: var(--primary-hover); }
         .button-secondary { background-color: var(--background-interactive-hover); border-color: var(--border-color); color: var(--text-main); }
         .button-secondary:hover { background-color: var(--border-color); }
+        .button-bronze { background-color: #cd7f32; color: white; }
+        .button-bronze:hover { background-color: #b87333; }
         .button:disabled { cursor: not-allowed; opacity: 0.6; }
 
         .split-container {
@@ -258,7 +260,9 @@
             <div class="ai-assist-bar">
                 <button class="button button-secondary" data-action="summarize">Summarize Slide</button>
                 <button class="button button-secondary" data-action="flashcards">Generate Flashcards</button>
+                <button class="button button-secondary" data-action="quiz">Generate Quiz</button>
                 <button class="button button-primary" id="open-flashcards-btn" style="display: none;">Open Flashcards</button>
+                <button class="button button-bronze" id="open-quiz-btn" style="display: none;">Open Quiz</button>
             </div>
             <div id="notes-editor-container"></div>
         </div>
@@ -286,6 +290,21 @@
                         <option value="40">40 flashcards</option>
                         <option value="45">45 flashcards</option>
                         <option value="50">50 flashcards</option>
+                    </select>
+                </div>
+                <div id="quiz-count-selector" style="display: none; margin-top: 1rem;">
+                    <label for="quiz-count" style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">Number of quiz questions to generate:</label>
+                    <select id="quiz-count" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;">
+                        <option value="5">5 questions</option>
+                        <option value="10" selected>10 questions</option>
+                        <option value="15">15 questions</option>
+                        <option value="20">20 questions</option>
+                        <option value="25">25 questions</option>
+                        <option value="30">30 questions</option>
+                        <option value="35">35 questions</option>
+                        <option value="40">40 questions</option>
+                        <option value="45">45 questions</option>
+                        <option value="50">50 questions</option>
                     </select>
                 </div>
             </div>
@@ -326,16 +345,24 @@
             const modal = document.getElementById('custom-confirmation-modal');
             const titleEl = document.getElementById('confirmation-title');
             const messageEl = document.getElementById('confirmation-message');
-            const countSelector = document.getElementById('flashcard-count-selector');
+            const flashcardCountSelector = document.getElementById('flashcard-count-selector');
+            const quizCountSelector = document.getElementById('quiz-count-selector');
             
             titleEl.textContent = title;
             messageEl.textContent = message;
             currentCallback = callback;
             
             if (showFlashcardCount) {
-                countSelector.style.display = 'block';
+                if (title.toLowerCase().includes('flashcard')) {
+                    flashcardCountSelector.style.display = 'block';
+                    quizCountSelector.style.display = 'none';
+                } else if (title.toLowerCase().includes('quiz')) {
+                    quizCountSelector.style.display = 'block';
+                    flashcardCountSelector.style.display = 'none';
+                }
             } else {
-                countSelector.style.display = 'none';
+                flashcardCountSelector.style.display = 'none';
+                quizCountSelector.style.display = 'none';
             }
             
             modal.style.display = 'flex';
@@ -515,6 +542,25 @@ async function saveNotes() {
             }
         }
 
+        // Check quiz status on page load
+        async function checkQuizStatus() {
+            try {
+                const response = await fetch(`{{ url_for('get_quiz_status', session_id=session.id) }}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const openBtn = document.getElementById('open-quiz-btn');
+                    if (result.status === 'completed' && result.quiz_id) {
+                        openBtn.style.display = 'inline-block';
+                    } else {
+                        openBtn.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking quiz status:', error);
+            }
+        }
+
         // Poll for flashcards status when generating
         let statusPollInterval = null;
         function startStatusPolling() {
@@ -555,6 +601,46 @@ async function saveNotes() {
             }, 2000); // Poll every 2 seconds
         }
 
+        // Poll for quiz status when generating
+        let quizStatusPollInterval = null;
+        function startQuizStatusPolling() {
+            quizStatusPollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`{{ url_for('get_quiz_status', session_id=session.id) }}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        if (result.status === 'completed') {
+                            clearInterval(quizStatusPollInterval);
+                            quizStatusPollInterval = null;
+                            
+                            const openBtn = document.getElementById('open-quiz-btn');
+                            openBtn.style.display = 'inline-block';
+                            
+                            window.showCustomAlert(
+                                `Quiz created! ${result.question_count} questions have been generated for this lecture.`,
+                                'Quiz Ready!'
+                            );
+                            
+                            saveStatus.textContent = '';
+                        } else if (result.status === 'failed') {
+                            clearInterval(quizStatusPollInterval);
+                            quizStatusPollInterval = null;
+                            
+                            window.showCustomAlert(
+                                'Failed to generate quiz. Please try again.',
+                                'Generation Failed'
+                            );
+                            
+                            saveStatus.textContent = '';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error polling quiz status:', error);
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
         async function handleAiAssist(action) {
             if (!pdfDoc) return;
             
@@ -565,6 +651,17 @@ async function saveNotes() {
                     () => generateFullLectureFlashcards(),
                     'Generate Full Lecture Flashcards',
                     true // Show flashcard count selector
+                );
+                return;
+            }
+            
+            if (action === 'quiz') {
+                // Show confirmation for full lecture quiz
+                window.showCustomConfirmation(
+                    'Would you like to create a quiz for the full lecture? This will generate quiz questions from all slides while you continue taking notes.',
+                    () => generateFullLectureQuiz(),
+                    'Generate Full Lecture Quiz',
+                    true // Show quiz count selector
                 );
                 return;
             }
@@ -641,8 +738,36 @@ async function saveNotes() {
             }
         }
 
+        async function generateFullLectureQuiz() {
+            const quizCount = document.getElementById('quiz-count').value;
+            saveStatus.textContent = `Generating ${quizCount} quiz questions for full lecture...`;
+            
+            try {
+                const response = await fetch(`{{ url_for('generate_full_lecture_quiz', session_id=session.id) }}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quiz_count: parseInt(quizCount) })
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message);
+                
+                // Start polling for quiz status updates
+                startQuizStatusPolling();
+                
+            } catch (error) {
+                console.error('Error generating full lecture quiz:', error);
+                window.showCustomAlert(`Error generating quiz: ${error.message}`);
+                saveStatus.textContent = '';
+            }
+        }
+
         function openFlashcards() {
             window.open(`{{ url_for('view_lecture_flashcards', session_id=session.id) }}`, '_blank');
+        }
+
+        function openQuiz() {
+            window.open(`{{ url_for('view_lecture_quiz', session_id=session.id) }}`, '_blank');
         }
         
         // --- Initialization ---
@@ -678,6 +803,9 @@ async function saveNotes() {
 
                 // Add event listener for Open Flashcards button
                 document.getElementById('open-flashcards-btn').addEventListener('click', openFlashcards);
+                
+                // Add event listener for Open Quiz button
+                document.getElementById('open-quiz-btn').addEventListener('click', openQuiz);
 
                 // Add event listeners for modal functionality
                 document.getElementById('confirm-action-btn').addEventListener('click', window.confirmAction);
@@ -711,6 +839,9 @@ async function saveNotes() {
 
                 // Check flashcards status on page load
                 checkFlashcardsStatus();
+                
+                // Check quiz status on page load
+                checkQuizStatus();
 
                 // Auto-save every 30 seconds
                 setInterval(saveNotes, 30000);

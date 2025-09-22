@@ -2965,6 +2965,182 @@ def get_flashcards_status(session_id):
         return jsonify({"success": False, "message": "Failed to get status"}), 500
 
 
+@app.route("/slide_notes/<session_id>/generate_full_lecture_quiz", methods=["POST"])
+@login_required
+def generate_full_lecture_quiz(session_id):
+    """Generate quiz for the entire lecture in the background."""
+    try:
+        # Get the session and verify ownership
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        # Check if quiz is already being generated or completed
+        if session_data.get('quiz_status') in ['generating', 'completed']:
+            return jsonify({"success": False, "message": "Quiz is already being generated or completed"}), 400
+        
+        # Get quiz count from request
+        data = request.get_json() or {}
+        quiz_count = data.get('quiz_count', 10)  # Default to 10
+        
+        # Validate quiz count
+        if not isinstance(quiz_count, int) or quiz_count < 5 or quiz_count > 50:
+            return jsonify({"success": False, "message": "Quiz count must be between 5 and 50"}), 400
+        
+        # Update status to generating
+        session_ref = db.collection('annotated_slide_decks').document(session_id)
+        session_ref.update({'quiz_status': 'generating'})
+        
+        # Start background task with quiz count
+        import threading
+        thread = threading.Thread(target=generate_lecture_quiz_background, args=(session_id, quiz_count))
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({"success": True, "message": f"Quiz generation started for {quiz_count} questions"})
+        
+    except Exception as e:
+        print(f"Error starting quiz generation: {e}")
+        return jsonify({"success": False, "message": "Failed to start quiz generation"}), 500
+
+
+def generate_lecture_quiz_background(session_id, quiz_count=10):
+    """Background function to generate quiz for the entire lecture."""
+    try:
+        # Get the session
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return
+        
+        session_data = session_doc.to_dict()
+        session_ref = db.collection('annotated_slide_decks').document(session_id)
+        
+        # Get the PDF file
+        source_file_path = session_data.get('source_file_path')
+        if not source_file_path:
+            session_ref.update({'quiz_status': 'failed'})
+            return
+        
+        # Download PDF from Cloud Storage
+        blob = bucket.blob(source_file_path)
+        pdf_content = blob.download_as_bytes()
+        
+        # Extract text from all pages
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        all_text = ""
+        
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            text = page.extract_text()
+            if text.strip():
+                all_text += f"Page {page_num + 1}:\n{text}\n\n"
+        
+        if not all_text.strip():
+            session_ref.update({'quiz_status': 'failed'})
+            return
+        
+        # Generate quiz using AI
+        quiz_json = generate_quiz_from_text(all_text, quiz_count)
+        quiz_data = safe_load_json(quiz_json)
+        
+        if not quiz_data.get('questions'):
+            session_ref.update({'quiz_status': 'failed'})
+            return
+        
+        # Create a new activity for the quiz
+        activity_ref = db.collection('activities').document()
+        quiz_title = f"Quiz for {session_data.get('title', 'Lecture')}"
+        new_quiz = Activity(
+            id=activity_ref.id,
+            hub_id=session_data.get('hub_id'),
+            type='Quiz',
+            title=quiz_title,
+            data={'questions': quiz_data['questions']}
+        )
+        
+        # Store the quiz activity
+        activity_ref.set(new_quiz.to_dict())
+        
+        # Update session with quiz info
+        session_ref.update({
+            'quiz_id': activity_ref.id,
+            'quiz_status': 'completed',
+            'question_count': len(quiz_data['questions'])
+        })
+        
+    except Exception as e:
+        print(f"Error generating quiz in background: {e}")
+        try:
+            session_ref = db.collection('annotated_slide_decks').document(session_id)
+            session_ref.update({'quiz_status': 'failed'})
+        except:
+            pass
+
+
+@app.route("/slide_notes/<session_id>/quiz_status", methods=["GET"])
+@login_required
+def get_quiz_status(session_id):
+    """Get the current status of quiz generation."""
+    try:
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        return jsonify({
+            "success": True,
+            "status": session_data.get('quiz_status', 'none'),
+            "quiz_id": session_data.get('quiz_id'),
+            "question_count": session_data.get('question_count', 0)
+        })
+        
+    except Exception as e:
+        print(f"Error getting quiz status: {e}")
+        return jsonify({"success": False, "message": "Failed to get status"}), 500
+
+
+@app.route("/slide_notes/<session_id>/view_quiz")
+@login_required
+def view_lecture_quiz(session_id):
+    """View quiz for a specific lecture session."""
+    try:
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return "Session not found", 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return "Unauthorized", 403
+        
+        quiz_id = session_data.get('quiz_id')
+        if not quiz_id:
+            return "No quiz found for this session", 404
+        
+        # Get the quiz activity
+        quiz_doc = db.collection('activities').document(quiz_id).get()
+        if not quiz_doc.exists:
+            return "Quiz not found", 404
+        
+        quiz_data = quiz_doc.to_dict()
+        quiz_activity = Activity.from_dict(quiz_data)
+        
+        return redirect(url_for('take_lecture_quiz', activity_id=quiz_id))
+        
+    except Exception as e:
+        print(f"Error viewing quiz: {e}")
+        return "Error loading quiz", 500
+
+
 @app.route("/slide_notes/<session_id>/view_flashcards")
 @login_required
 def view_lecture_flashcards(session_id):
