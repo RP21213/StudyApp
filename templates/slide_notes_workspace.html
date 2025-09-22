@@ -1135,6 +1135,9 @@ async function saveNotes() {
                 toggle.innerHTML = '<span class="ai-tutor-icon">✕</span><span class="ai-tutor-text">Close</span>';
             }
         }
+        
+        // Make function globally accessible for onclick handlers
+        window.toggleAiTutor = toggleAiTutor;
 
         function addMessageToChat(message, isUser = false) {
             const messagesContainer = document.getElementById('ai-tutor-messages');
@@ -1224,6 +1227,9 @@ async function saveNotes() {
                 input.value = '';
             }
         }
+        
+        // Make function globally accessible for onclick handlers
+        window.sendAiTutorMessage = sendAiTutorMessage;
         
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
