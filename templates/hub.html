@@ -1099,17 +1099,20 @@
         .tool-category-button[data-target="in-lecture-tools"]::before {
             content: 'NEW';
             position: absolute;
-            top: 0;
-            right: 0;
-            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            top: -5px;
+            right: -5px;
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
             color: white;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 1.5rem;
-            transform: translateX(30%) translateY(-30%) rotate(45deg);
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+            font-size: 1rem;
+            font-weight: 800;
+            padding: 0.5rem 2rem;
+            transform: rotate(45deg);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
             z-index: 10;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            border-radius: 4px;
+            min-width: 80px;
+            text-align: center;
         }
         /* Gradient for "Revision & Exams" */
         .tool-category-button[data-target="revision-exams-tools"] {
