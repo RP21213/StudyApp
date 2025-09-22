@@ -76,6 +76,8 @@
         .button-secondary:hover { background-color: var(--border-color); }
         .button-bronze { background-color: #cd7f32; color: white; }
         .button-bronze:hover { background-color: #b87333; }
+        .button-tutor { background-color: #8b5cf6; color: white; }
+        .button-tutor:hover { background-color: #7c3aed; }
         .button:disabled { cursor: not-allowed; opacity: 0.6; }
 
         .split-container {
@@ -229,6 +231,63 @@
         .modal-footer .button {
             min-width: 80px;
         }
+
+        /* AI Tutor Modal Styles */
+        .tutor-section h4 {
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .quick-questions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .quick-question-btn, .slide-question-btn {
+            padding: 0.5rem 0.75rem;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .quick-question-btn:hover, .slide-question-btn:hover {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        .slide-question-examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #tutor-response-section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1rem;
+        }
+
+        #tutor-response {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        #tutor-loading {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
@@ -261,6 +320,7 @@
                 <button class="button button-secondary" data-action="summarize">Summarize Slide</button>
                 <button class="button button-secondary" data-action="flashcards">Generate Flashcards</button>
                 <button class="button button-secondary" data-action="quiz">Generate Quiz</button>
+                <button class="button button-tutor" data-action="tutor">Ask me anything!</button>
                 <button class="button button-primary" id="open-flashcards-btn" style="display: none;">Open Flashcards</button>
                 <button class="button button-bronze" id="open-quiz-btn" style="display: none;">Open Quiz</button>
             </div>
@@ -327,6 +387,61 @@
             </div>
             <div class="modal-footer">
                 <button class="button button-primary" onclick="closeCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Tutor Modal -->
+    <div id="ai-tutor-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>🤖 AI Tutor - Ask me anything!</h3>
+                <button class="modal-close" onclick="closeAiTutorModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="tutor-section">
+                    <h4>Quick Questions:</h4>
+                    <div class="quick-questions-grid">
+                        <button class="quick-question-btn" data-question="What is the main topic of this lecture?">Main Topic</button>
+                        <button class="quick-question-btn" data-question="Can you explain the key concepts covered?">Key Concepts</button>
+                        <button class="quick-question-btn" data-question="What are the important formulas or equations?">Formulas</button>
+                        <button class="quick-question-btn" data-question="Can you summarize the main points?">Summary</button>
+                        <button class="quick-question-btn" data-question="What should I focus on for exams?">Exam Focus</button>
+                        <button class="quick-question-btn" data-question="Are there any difficult concepts I should review?">Difficult Concepts</button>
+                    </div>
+                </div>
+                
+                <div class="tutor-section" style="margin-top: 1.5rem;">
+                    <h4>Ask about specific slides:</h4>
+                    <div class="slide-question-examples">
+                        <button class="slide-question-btn" data-question="I don't understand slide 1">Slide 1</button>
+                        <button class="slide-question-btn" data-question="Can you explain slide 2?">Slide 2</button>
+                        <button class="slide-question-btn" data-question="What's the main point of slide 3?">Slide 3</button>
+                        <button class="slide-question-btn" data-question="I need help with slide 4">Slide 4</button>
+                        <button class="slide-question-btn" data-question="Can you clarify slide 5?">Slide 5</button>
+                        <button class="slide-question-btn" data-question="What does slide 6 mean?">Slide 6</button>
+                    </div>
+                </div>
+                
+                <div class="tutor-section" style="margin-top: 1.5rem;">
+                    <h4>Ask your own question:</h4>
+                    <textarea id="custom-question-input" placeholder="Type your question here... (e.g., 'I don't understand slide 24', 'What is the difference between X and Y?', 'Can you explain this concept?')" style="width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; resize: vertical;"></textarea>
+                    <button id="ask-custom-question-btn" class="button button-tutor" style="margin-top: 0.75rem;">Ask Question</button>
+                </div>
+                
+                <div id="tutor-response-section" style="margin-top: 1.5rem; display: none;">
+                    <h4>AI Tutor Response:</h4>
+                    <div id="tutor-response" style="background-color: #f8fafc; padding: 1rem; border-radius: 8px; border-left: 4px solid #8b5cf6; min-height: 100px;">
+                        <div id="tutor-loading" style="display: none; text-align: center; color: #6b7280;">
+                            <div style="margin-bottom: 0.5rem;">🤖 AI Tutor is thinking...</div>
+                            <div style="font-size: 0.8rem;">This may take a few moments</div>
+                        </div>
+                        <div id="tutor-answer" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary" onclick="closeAiTutorModal()">Close</button>
             </div>
         </div>
     </div>
@@ -666,6 +781,12 @@ async function saveNotes() {
                 return;
             }
             
+            if (action === 'tutor') {
+                // Open AI tutor modal
+                openAiTutorModal();
+                return;
+            }
+            
             saveStatus.textContent = `AI is working on: ${action}...`;
 
             try {
@@ -769,6 +890,61 @@ async function saveNotes() {
         function openQuiz() {
             window.open(`{{ url_for('view_lecture_quiz', session_id=session.id) }}`, '_blank');
         }
+
+        // AI Tutor Modal Functions
+        function openAiTutorModal() {
+            const modal = document.getElementById('ai-tutor-modal');
+            modal.style.display = 'flex';
+            
+            // Reset the response section
+            document.getElementById('tutor-response-section').style.display = 'none';
+            document.getElementById('tutor-loading').style.display = 'none';
+            document.getElementById('tutor-answer').style.display = 'none';
+            document.getElementById('custom-question-input').value = '';
+        }
+
+        function closeAiTutorModal() {
+            const modal = document.getElementById('ai-tutor-modal');
+            modal.style.display = 'none';
+        }
+
+        async function askAiTutor(question) {
+            // Show response section and loading
+            document.getElementById('tutor-response-section').style.display = 'block';
+            document.getElementById('tutor-loading').style.display = 'block';
+            document.getElementById('tutor-answer').style.display = 'none';
+            
+            try {
+                const response = await fetch(`{{ url_for('ask_ai_tutor', session_id=session.id) }}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        question: question,
+                        current_slide: pageNum 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading, show answer
+                document.getElementById('tutor-loading').style.display = 'none';
+                document.getElementById('tutor-answer').style.display = 'block';
+                
+                if (result.success) {
+                    document.getElementById('tutor-answer').innerHTML = result.answer;
+                } else {
+                    document.getElementById('tutor-answer').innerHTML = 
+                        '<div style="color: #dc2626;">Sorry, I encountered an error. Please try again.</div>';
+                }
+                
+            } catch (error) {
+                console.error('Error asking AI tutor:', error);
+                document.getElementById('tutor-loading').style.display = 'none';
+                document.getElementById('tutor-answer').style.display = 'block';
+                document.getElementById('tutor-answer').innerHTML = 
+                    '<div style="color: #dc2626;">Sorry, I encountered an error. Please try again.</div>';
+            }
+        }
         
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
@@ -806,6 +982,30 @@ async function saveNotes() {
                 
                 // Add event listener for Open Quiz button
                 document.getElementById('open-quiz-btn').addEventListener('click', openQuiz);
+                
+                // Add event listeners for AI Tutor modal
+                document.getElementById('ask-custom-question-btn').addEventListener('click', () => {
+                    const question = document.getElementById('custom-question-input').value.trim();
+                    if (question) {
+                        askAiTutor(question);
+                    }
+                });
+                
+                // Add event listeners for quick question buttons
+                document.querySelectorAll('.quick-question-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const question = btn.getAttribute('data-question');
+                        askAiTutor(question);
+                    });
+                });
+                
+                // Add event listeners for slide question buttons
+                document.querySelectorAll('.slide-question-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const question = btn.getAttribute('data-question');
+                        askAiTutor(question);
+                    });
+                });
 
                 // Add event listeners for modal functionality
                 document.getElementById('confirm-action-btn').addEventListener('click', window.confirmAction);
@@ -834,6 +1034,7 @@ async function saveNotes() {
                     if (e.key === 'Escape') {
                         window.closeCustomModal();
                         window.closeCustomAlert();
+                        closeAiTutorModal();
                     }
                 });
 

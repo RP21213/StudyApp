@@ -3141,6 +3141,154 @@ def view_lecture_quiz(session_id):
         return "Error loading quiz", 500
 
 
+@app.route("/slide_notes/<session_id>/ask_ai_tutor", methods=["POST"])
+@login_required
+def ask_ai_tutor(session_id):
+    """AI Tutor endpoint for answering questions about the lecture."""
+    try:
+        data = request.get_json()
+        question = data.get('question', '').strip()
+        current_slide = data.get('current_slide', 1)
+        
+        if not question:
+            return jsonify({"success": False, "message": "No question provided"}), 400
+        
+        # Get the session and verify ownership
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        # Get the processed lecture content
+        lecture_content = session_data.get('processed_content')
+        if not lecture_content:
+            # If not processed yet, process it now
+            lecture_content = process_lecture_for_ai_tutor(session_data)
+            if not lecture_content:
+                return jsonify({"success": False, "message": "Unable to process lecture content"}), 500
+        
+        # Generate AI response
+        ai_response = generate_ai_tutor_response(question, lecture_content, current_slide)
+        
+        return jsonify({
+            "success": True,
+            "answer": ai_response
+        })
+        
+    except Exception as e:
+        print(f"Error in AI tutor: {e}")
+        return jsonify({"success": False, "message": "Failed to get AI response"}), 500
+
+
+def process_lecture_for_ai_tutor(session_data):
+    """Process lecture content for AI tutor analysis."""
+    try:
+        # Get the PDF file
+        source_file_path = session_data.get('source_file_path')
+        if not source_file_path:
+            return None
+        
+        # Download PDF from Cloud Storage
+        blob = bucket.blob(source_file_path)
+        pdf_content = blob.download_as_bytes()
+        
+        # Extract text from all pages
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        processed_content = {
+            'total_pages': len(pdf_reader.pages),
+            'pages': []
+        }
+        
+        for page_num in range(len(pdf_reader.pages)):
+            page = pdf_reader.pages[page_num]
+            text = page.extract_text()
+            if text.strip():
+                processed_content['pages'].append({
+                    'page_number': page_num + 1,
+                    'text': text.strip(),
+                    'summary': generate_page_summary(text.strip())
+                })
+        
+        return processed_content
+        
+    except Exception as e:
+        print(f"Error processing lecture for AI tutor: {e}")
+        return None
+
+
+def generate_page_summary(page_text):
+    """Generate a brief summary of a page for AI tutor context."""
+    try:
+        prompt = f"""
+        Provide a brief, concise summary of the following page content. Focus on the main concepts, key terms, and important information. Keep it under 100 words.
+
+        Page content:
+        {page_text}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=150
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        print(f"Error generating page summary: {e}")
+        return "Content summary unavailable"
+
+
+def generate_ai_tutor_response(question, lecture_content, current_slide):
+    """Generate AI tutor response based on question and lecture content."""
+    try:
+        # Build context from lecture content
+        context_pages = []
+        for page in lecture_content['pages']:
+            context_pages.append(f"Slide {page['page_number']}: {page['summary']}")
+        
+        context = "\n".join(context_pages)
+        
+        # Create comprehensive prompt
+        prompt = f"""
+        You are an expert AI tutor helping a student understand their lecture material. You have access to the complete lecture content and can reference specific slides.
+
+        LECTURE CONTEXT:
+        {context}
+
+        STUDENT QUESTION: {question}
+
+        INSTRUCTIONS:
+        1. Provide a clear, helpful, and accurate answer based on the lecture content
+        2. If the question mentions a specific slide number, reference that slide specifically
+        3. If the question is about concepts not clearly covered, explain what you can from the available content
+        4. Keep your response concise but comprehensive (2-4 paragraphs max)
+        5. Use a friendly, encouraging tone
+        6. If you need to reference multiple slides, mention the slide numbers
+        7. If the question is unclear, ask for clarification while providing what help you can
+
+        Respond as a knowledgeable tutor who wants to help the student succeed.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content.strip()
+        
+    except Exception as e:
+        print(f"Error generating AI tutor response: {e}")
+        return "I apologize, but I'm having trouble processing your question right now. Please try rephrasing your question or try again later."
+
+
 @app.route("/slide_notes/<session_id>/view_flashcards")
 @login_required
 def view_lecture_flashcards(session_id):
