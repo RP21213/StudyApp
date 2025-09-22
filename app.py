@@ -3166,16 +3166,18 @@ def ask_ai_tutor(session_id):
         lecture_content = session_data.get('processed_content')
         if not lecture_content:
             # If not processed yet, process it now
-            print(f"Processing lecture content for session {session_id}")
+            print(f"Processing lecture content for existing session {session_id}")
             lecture_content = process_lecture_for_ai_tutor(session_data)
             if not lecture_content:
                 print(f"Failed to process lecture content for session {session_id}")
                 return jsonify({"success": False, "message": "Unable to process lecture content"}), 500
             
-            # Save processed content to session
+            # Save processed content to session for future use
             session_ref = db.collection('annotated_slide_decks').document(session_id)
             session_ref.update({'processed_content': lecture_content})
-            print(f"Saved processed content for session {session_id}")
+            print(f"Saved processed content for existing session {session_id}")
+        else:
+            print(f"Using cached processed content for session {session_id}")
         
         # Generate AI response
         print(f"Generating AI response for question: {question}")
@@ -3198,36 +3200,53 @@ def process_lecture_for_ai_tutor(session_data):
         # Get the PDF file
         source_file_path = session_data.get('source_file_path')
         if not source_file_path:
+            print("No source_file_path found in session data")
             return None
+        
+        print(f"Processing PDF from path: {source_file_path}")
         
         # Download PDF from Cloud Storage
         blob = bucket.blob(source_file_path)
         pdf_content = blob.download_as_bytes()
+        print(f"Downloaded PDF with {len(pdf_content)} bytes")
         
         # Extract text from all pages
         import PyPDF2
         import io
         
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        total_pages = len(pdf_reader.pages)
+        print(f"PDF has {total_pages} pages")
+        
         processed_content = {
-            'total_pages': len(pdf_reader.pages),
+            'total_pages': total_pages,
             'pages': []
         }
         
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            text = page.extract_text()
-            if text.strip():
-                processed_content['pages'].append({
-                    'page_number': page_num + 1,
-                    'text': text.strip(),
-                    'summary': generate_page_summary(text.strip())
-                })
+        for page_num in range(total_pages):
+            try:
+                page = pdf_reader.pages[page_num]
+                text = page.extract_text()
+                if text.strip():
+                    print(f"Processing page {page_num + 1} with {len(text)} characters")
+                    summary = generate_page_summary(text.strip())
+                    processed_content['pages'].append({
+                        'page_number': page_num + 1,
+                        'text': text.strip(),
+                        'summary': summary
+                    })
+                    print(f"Generated summary for page {page_num + 1}: {summary[:50]}...")
+            except Exception as page_error:
+                print(f"Error processing page {page_num + 1}: {page_error}")
+                continue
         
+        print(f"Successfully processed {len(processed_content['pages'])} pages")
         return processed_content
         
     except Exception as e:
         print(f"Error processing lecture for AI tutor: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
