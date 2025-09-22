@@ -46,6 +46,7 @@ class User(UserMixin):
                  # --- NEW: Fields for Settings ---
                  profile_visible=True, activity_visible=True, default_note_privacy='private',
                  font_size_preference='default', high_contrast_mode=False, language='en-US',
+                 background_preference='default',
                  # --- NEW: Fields for Spotify ---
                  spotify_access_token=None, spotify_refresh_token=None, spotify_token_expires_at=None,
                  # --- NEW: Onboarding Fields ---
@@ -76,6 +77,7 @@ class User(UserMixin):
         self.font_size_preference = font_size_preference
         self.high_contrast_mode = high_contrast_mode
         self.language = language
+        self.background_preference = background_preference
 
         # --- NEW: Initialize Spotify Properties ---
         self.spotify_access_token = spotify_access_token
@@ -120,6 +122,7 @@ class User(UserMixin):
             'font_size_preference': self.font_size_preference,
             'high_contrast_mode': self.high_contrast_mode,
             'language': self.language,
+            'background_preference': self.background_preference,
             # --- NEW: Add Spotify to dict for Firestore ---
             'spotify_access_token': self.spotify_access_token,
             'spotify_refresh_token': self.spotify_refresh_token,
