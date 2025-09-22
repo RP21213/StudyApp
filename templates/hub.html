@@ -868,7 +868,7 @@
         .new-label { font-size: 0.75rem; font-weight: bold; color: #155e75; background-color: #cffafe; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
         
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-        .feature-card { background-color: rgba(255, 255, 255, 0.85); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main); backdrop-filter: blur(8px);}
+        .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main); backdrop-filter: blur(8px);}
         .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
         .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
@@ -1124,14 +1124,14 @@
             color: white;
             font-size: 0.75rem;
             font-weight: 900;
-            padding: 0.4rem 1.5rem;
-            transform: rotate(45deg) translate(25%, -25%);
+            padding: 0.5rem 2rem;
+            transform: rotate(45deg) translate(35%, -35%);
             transform-origin: top right;
             box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
             z-index: 20;
             letter-spacing: 0.5px;
             border-radius: 3px;
-            min-width: 60px;
+            min-width: 80px;
             text-align: center;
             line-height: 1;
         }
