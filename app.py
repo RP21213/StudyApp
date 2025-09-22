@@ -3166,12 +3166,21 @@ def ask_ai_tutor(session_id):
         lecture_content = session_data.get('processed_content')
         if not lecture_content:
             # If not processed yet, process it now
+            print(f"Processing lecture content for session {session_id}")
             lecture_content = process_lecture_for_ai_tutor(session_data)
             if not lecture_content:
+                print(f"Failed to process lecture content for session {session_id}")
                 return jsonify({"success": False, "message": "Unable to process lecture content"}), 500
+            
+            # Save processed content to session
+            session_ref = db.collection('annotated_slide_decks').document(session_id)
+            session_ref.update({'processed_content': lecture_content})
+            print(f"Saved processed content for session {session_id}")
         
         # Generate AI response
+        print(f"Generating AI response for question: {question}")
         ai_response = generate_ai_tutor_response(question, lecture_content, current_slide)
+        print(f"Generated AI response: {ai_response[:100]}...")
         
         return jsonify({
             "success": True,
@@ -3248,41 +3257,45 @@ def generate_page_summary(page_text):
 def generate_ai_tutor_response(question, lecture_content, current_slide):
     """Generate AI tutor response based on question and lecture content."""
     try:
-        # Build context from lecture content
+        # Build context from lecture content - limit to avoid token limits
         context_pages = []
-        for page in lecture_content['pages']:
+        for page in lecture_content['pages'][:10]:  # Limit to first 10 pages to avoid token limits
             context_pages.append(f"Slide {page['page_number']}: {page['summary']}")
         
         context = "\n".join(context_pages)
         
         # Create comprehensive prompt
-        prompt = f"""
-        You are an expert AI tutor helping a student understand their lecture material. You have access to the complete lecture content and can reference specific slides.
+        prompt = f"""You are an expert AI tutor helping a student understand their lecture material. You have access to the complete lecture content and can reference specific slides.
 
-        LECTURE CONTEXT:
-        {context}
+LECTURE CONTEXT:
+{context}
 
-        STUDENT QUESTION: {question}
+STUDENT QUESTION: {question}
 
-        INSTRUCTIONS:
-        1. Provide a clear, helpful, and accurate answer based on the lecture content
-        2. If the question mentions a specific slide number, reference that slide specifically
-        3. If the question is about concepts not clearly covered, explain what you can from the available content
-        4. Keep your response concise but comprehensive (2-4 paragraphs max)
-        5. Use a friendly, encouraging tone
-        6. If you need to reference multiple slides, mention the slide numbers
-        7. If the question is unclear, ask for clarification while providing what help you can
+INSTRUCTIONS:
+1. Provide a clear, helpful, and accurate answer based on the lecture content
+2. If the question mentions a specific slide number, reference that slide specifically
+3. If the question is about concepts not clearly covered, explain what you can from the available content
+4. Keep your response concise but comprehensive (2-3 paragraphs max)
+5. Use a friendly, encouraging tone
+6. If you need to reference multiple slides, mention the slide numbers
+7. If the question is unclear, ask for clarification while providing what help you can
 
-        Respond as a knowledgeable tutor who wants to help the student succeed.
-        """
+Respond as a knowledgeable tutor who wants to help the student succeed."""
+        
+        print(f"Sending prompt to AI with {len(prompt)} characters")
         
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=500
+            max_tokens=400,
+            temperature=0.7
         )
         
-        return response.choices[0].message.content.strip()
+        answer = response.choices[0].message.content.strip()
+        print(f"Received AI response with {len(answer)} characters")
+        
+        return answer
         
     except Exception as e:
         print(f"Error generating AI tutor response: {e}")
