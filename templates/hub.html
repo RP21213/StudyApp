@@ -4584,14 +4584,20 @@
             const favouritesSystem = {
                 favourites: [],
                 availableTools: [
-                    { id: 'notes', name: 'My Notes', description: 'Create and manage study notes', url: '#notes', icon: 'M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z M13 2v7h7' },
-                    { id: 'flashcards', name: 'My Flashcards', description: 'Study with flashcards', url: '#flashcards', icon: 'M2 7h20v15H2z M17 2v5 M7 2v5' },
-                    { id: 'quizzes', name: 'My Quizzes', description: 'Take practice quizzes', url: '#quizzes', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9 12l2 2 4-4' },
-                    { id: 'lecture_notes', name: 'Lecture Notes', description: 'Take notes during lectures', url: '#lecture_notes', icon: 'M2 3h20v18H2z M2 8h20 M7 13h6 M7 18h6' },
-                    { id: 'folders', name: 'My Folders', description: 'Organize your study materials', url: '#folders', icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' },
-                    { id: 'calendar', name: 'Calendar', description: 'Schedule study sessions', url: '#calendar', icon: 'M3 4h18v18H3z M16 2v4 M8 2v4 M3 10h18' },
-                    { id: 'tutor', name: 'AI Tutor', description: 'Get help from AI tutor', url: '#tutor', icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' },
-                    { id: 'documents', name: 'Documents', description: 'Manage your documents', url: '#documents', icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8' }
+                    // In a Lecture Tools
+                    { id: 'pipeline-live-lecture', name: 'Live Lecture Capture', description: 'Record and transcribe live lectures', url: '#tools', icon: 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8' },
+                    { id: 'pipeline-slide-notes', name: 'Take Notes with Slides', description: 'Upload slides and take interactive notes', url: '#tools', icon: 'M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z' },
+                    
+                    // Revision & Exams Tools
+                    { id: 'individual-notes-generator', name: 'Interactive Notes', description: 'Generate comprehensive study notes', url: '#tools', icon: 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z' },
+                    { id: 'individual-flashcards-generator', name: 'Flashcards', description: 'Create flashcards for active recall', url: '#tools', icon: 'M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z' },
+                    { id: 'individual-quiz-generator', name: 'Practice Quiz', description: 'Generate practice questions and tests', url: '#tools', icon: 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z' },
+                    { id: 'individual-cheatsheet-generator', name: 'Cheat Sheet', description: 'Create one-page study summaries', url: '#tools', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1..125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z' },
+                    { id: 'pipeline-revision-pack', name: 'Revision Pack Builder', description: 'Create complete study packages', url: '#tools', icon: 'M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z' },
+                    { id: 'pipeline-stuck-question', name: 'Stuck on a Question?', description: 'Get help with difficult problems', url: '#tools', icon: 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z' },
+                    { id: 'pipeline-exam-kit', name: 'Exam Builder', description: 'Build comprehensive exam preparation', url: '#tools', icon: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25' },
+                    { id: 'pipeline-assignment-assistant', name: 'Assignment Assistant', description: 'Get help with writing assignments', url: '#tools', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z' },
+                    { id: 'pipeline-study-planner', name: 'Smart Study Planner', description: 'Plan your study schedule', url: '#tools', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5' }
                 ],
 
                 init: function() {
@@ -4600,7 +4606,7 @@
                     // Ensure modal is hidden on init
                     const modal = document.getElementById('tool-selection-modal');
                     if (modal) {
-                        modal.style.display = 'none';
+                        modal.style.display = 'none !important';
                     }
                 },
 
@@ -4723,10 +4729,19 @@
                 },
 
                 navigateToTool: function(toolId) {
-                    // Switch to the tool tab
-                    const toolLink = document.querySelector(`[data-tab="${toolId}"]`);
-                    if (toolLink) {
-                        toolLink.click();
+                    // First switch to the tools tab
+                    const toolsTab = document.querySelector('[data-tab="tools"]');
+                    if (toolsTab) {
+                        toolsTab.click();
+                    }
+                    
+                    // Then find and click the specific tool
+                    const toolElement = document.getElementById(toolId);
+                    if (toolElement) {
+                        // Small delay to ensure tab switch completes
+                        setTimeout(() => {
+                            toolElement.click();
+                        }, 100);
                     }
                 },
 
@@ -4771,7 +4786,7 @@
                         });
                     }
 
-                    modal.style.display = 'flex';
+                    modal.style.display = 'flex !important';
                     this.updateSelectedCount();
                 },
 
