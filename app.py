@@ -2581,6 +2581,124 @@ def update_password():
         print(f"Error updating password for {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
+# --- Favourites Management Routes ---
+@app.route("/api/favourites", methods=["GET"])
+@login_required
+def get_favourites():
+    """Get user's favourite tools."""
+    try:
+        user_doc = db.collection('users').document(current_user.id).get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            favourites = user_data.get('favourite_tools', [])
+            return jsonify({"success": True, "favourites": favourites})
+        return jsonify({"success": False, "message": "User not found"}), 404
+    except Exception as e:
+        print(f"Error getting favourites for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred"}), 500
+
+@app.route("/api/favourites/add", methods=["POST"])
+@login_required
+def add_favourite():
+    """Add a tool to user's favourites."""
+    try:
+        data = request.get_json()
+        tool_id = data.get('tool_id')
+        tool_name = data.get('tool_name')
+        tool_url = data.get('tool_url')
+        
+        if not tool_id or not tool_name:
+            return jsonify({"success": False, "message": "Tool ID and name are required"}), 400
+        
+        # Get current favourites
+        user_ref = db.collection('users').document(current_user.id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return jsonify({"success": False, "message": "User not found"}), 404
+        
+        current_favourites = user_doc.to_dict().get('favourite_tools', [])
+        
+        # Check if already exists
+        if any(fav['tool_id'] == tool_id for fav in current_favourites):
+            return jsonify({"success": False, "message": "Tool already in favourites"}), 400
+        
+        # Check if limit reached
+        if len(current_favourites) >= 5:
+            return jsonify({"success": False, "message": "Maximum 5 favourite tools allowed"}), 400
+        
+        # Add new favourite
+        new_favourite = {
+            'tool_id': tool_id,
+            'tool_name': tool_name,
+            'tool_url': tool_url or f"#{tool_id}",
+            'added_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        current_favourites.append(new_favourite)
+        
+        # Update in database
+        user_ref.update({'favourite_tools': current_favourites})
+        
+        return jsonify({"success": True, "favourites": current_favourites})
+        
+    except Exception as e:
+        print(f"Error adding favourite for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred"}), 500
+
+@app.route("/api/favourites/remove", methods=["POST"])
+@login_required
+def remove_favourite():
+    """Remove a tool from user's favourites."""
+    try:
+        data = request.get_json()
+        tool_id = data.get('tool_id')
+        
+        if not tool_id:
+            return jsonify({"success": False, "message": "Tool ID is required"}), 400
+        
+        # Get current favourites
+        user_ref = db.collection('users').document(current_user.id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return jsonify({"success": False, "message": "User not found"}), 404
+        
+        current_favourites = user_doc.to_dict().get('favourite_tools', [])
+        
+        # Remove the tool
+        updated_favourites = [fav for fav in current_favourites if fav['tool_id'] != tool_id]
+        
+        # Update in database
+        user_ref.update({'favourite_tools': updated_favourites})
+        
+        return jsonify({"success": True, "favourites": updated_favourites})
+        
+    except Exception as e:
+        print(f"Error removing favourite for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred"}), 500
+
+@app.route("/api/favourites/reorder", methods=["POST"])
+@login_required
+def reorder_favourites():
+    """Reorder user's favourite tools."""
+    try:
+        data = request.get_json()
+        new_order = data.get('favourites', [])
+        
+        if len(new_order) > 5:
+            return jsonify({"success": False, "message": "Maximum 5 favourite tools allowed"}), 400
+        
+        # Update in database
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({'favourite_tools': new_order})
+        
+        return jsonify({"success": True, "favourites": new_order})
+        
+    except Exception as e:
+        print(f"Error reordering favourites for {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred"}), 500
+
 @app.route("/account/request_data")
 @login_required
 def request_data():
