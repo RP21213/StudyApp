@@ -55,6 +55,8 @@ class User(UserMixin):
                  phone_number=None, phone_verified=False,
                  # --- NEW: Referral Fields ---
                  referral_code=None, referred_by=None, pro_referral_count=0, referral_earnings=0.0,
+                 # --- NEW: Favourites Fields ---
+                 favourite_tools=None,
                  **kwargs):
         self.id = id
         self.email = email
@@ -96,6 +98,9 @@ class User(UserMixin):
         self.referred_by = referred_by
         self.pro_referral_count = pro_referral_count
         self.referral_earnings = referral_earnings
+        
+        # --- NEW: Favourites Properties ---
+        self.favourite_tools = favourite_tools if favourite_tools is not None else []
 
     def to_dict(self):
         return {
@@ -132,6 +137,8 @@ class User(UserMixin):
             'referred_by': self.referred_by,
             'pro_referral_count': self.pro_referral_count,
             'referral_earnings': self.referral_earnings,
+            # --- NEW: Favourites to dict ---
+            'favourite_tools': self.favourite_tools,
         }
 
     @staticmethod
@@ -172,7 +179,9 @@ class User(UserMixin):
             referral_code=source.get('referral_code'),
             referred_by=source.get('referred_by'),
             pro_referral_count=source.get('pro_referral_count', 0),
-            referral_earnings=source.get('referral_earnings', 0.0)
+            referral_earnings=source.get('referral_earnings', 0.0),
+            # --- NEW: Favourites from dict ---
+            favourite_tools=source.get('favourite_tools', [])
         )
     
 # --- NEW: Model for Note-Taking with Slides ---
