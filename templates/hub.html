@@ -710,6 +710,18 @@
         }
         .button-primary { background-color: var(--primary-color); color: white; }
         .button-primary:hover { background-color: var(--primary-hover); }
+        
+        /* Upload button specific styling */
+        #quick-action-upload {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            gap: 0.75rem;
+        }
+        
+        #quick-action-upload svg {
+            width: 18px;
+            height: 18px;
+        }
         .button-secondary { background-color: var(--background-interactive-hover); border-color: var(--border-color); color: var(--text-main); }
         .button-secondary:hover { background-color: var(--border-color); }
         .button-danger { background-color: var(--danger-color); color: white; }
@@ -856,7 +868,7 @@
         .new-label { font-size: 0.75rem; font-weight: bold; color: #155e75; background-color: #cffafe; padding: 0.2rem 0.6rem; border-radius: 99px; margin-left: 0.5rem; }
         
         .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-        .feature-card { background-color: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main);}
+        .feature-card { background-color: rgba(255, 255, 255, 0.85); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1rem; transition: all 0.2s; box-shadow: var(--card-shadow); text-decoration: none; color: var(--text-main); backdrop-filter: blur(8px);}
         .feature-card:hover:not(:disabled) { transform: translateY(-5px) scale(1.02); box-shadow: var(--card-shadow-hover); border-color: var(--primary-color); }
         .feature-icon-wrapper { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .feature-text h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
@@ -1106,14 +1118,15 @@
         .tool-category-button[data-target="in-lecture-tools"]::before {
             content: 'NEW';
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 0;
+            right: 0;
             background: linear-gradient(45deg, #3b82f6, #1d4ed8);
             color: white;
             font-size: 0.75rem;
             font-weight: 900;
             padding: 0.4rem 1.5rem;
             transform: rotate(45deg);
+            transform-origin: top right;
             box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
             z-index: 20;
             letter-spacing: 0.5px;
@@ -2143,7 +2156,7 @@
             <header class="top-bar">
                 <div class="user-profile-section">
                         <button class="button button-primary" id="quick-action-upload">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                             Upload
                         </button>
                          <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
