@@ -1309,37 +1309,19 @@
             margin-bottom: 0.5rem;
         }
 
-        .favourites-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 1rem;
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-weight: 500;
-            border-radius: 8px;
-            margin-bottom: 0.25rem;
-            white-space: nowrap;
-            transition: background-color 0.2s, color 0.2s;
-            cursor: pointer;
-            background-color: transparent;
-            border: none;
-            width: 100%;
+        .favourites-toggle {
+            position: relative;
         }
 
-        .favourites-header:hover {
-            background-color: var(--background-interactive-hover);
-            color: var(--text-main);
-        }
-
-        .favourites-arrow {
+        .favourites-toggle .favourites-arrow {
             margin-left: auto;
             width: 16px;
             height: 16px;
             transition: transform 0.2s ease;
         }
 
-        .favourites-section.expanded .favourites-arrow {
+
+        .favourites-section.expanded .favourites-toggle .favourites-arrow {
             transform: rotate(180deg);
         }
 
@@ -1350,10 +1332,14 @@
             background-color: var(--background-interactive);
             border-radius: 8px;
             margin-top: 0.25rem;
+            opacity: 0;
+            visibility: hidden;
         }
 
         .favourites-section.expanded .favourites-dropdown {
             max-height: 400px;
+            opacity: 1;
+            visibility: visible;
         }
 
         .favourites-content {
@@ -1434,22 +1420,11 @@
             padding: 1rem;
             color: var(--text-secondary);
             font-style: italic;
+            font-size: 0.85rem;
         }
 
         /* Collapsed state for favourites */
-        .sidebar.collapsed .favourites-header {
-            justify-content: center;
-            padding: 0.75rem;
-        }
-
-        .sidebar.collapsed .favourites-header .nav-text {
-            opacity: 0;
-            pointer-events: none;
-            width: 0;
-            overflow: hidden;
-        }
-
-        .sidebar.collapsed .favourites-header .favourites-arrow {
+        .sidebar.collapsed .favourites-toggle .favourites-arrow {
             display: none;
         }
 
@@ -1460,43 +1435,51 @@
         /* Tool Selection Modal Styles */
         .tool-selection-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1rem;
             margin: 1rem 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .tool-option {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 1rem;
+            gap: 1rem;
+            padding: 1.25rem;
             border: 2px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             background-color: var(--background-card);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .tool-option:hover {
             border-color: var(--primary-color);
             background-color: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
         }
 
         .tool-option.selected {
             border-color: var(--primary-color);
             background-color: var(--primary-light);
             color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
         }
 
         .tool-option .tool-checkbox {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border: 2px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
         .tool-option.selected .tool-checkbox {
@@ -1505,11 +1488,11 @@
         }
 
         .tool-option .tool-checkbox svg {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             color: white;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s ease;
         }
 
         .tool-option.selected .tool-checkbox svg {
@@ -1521,22 +1504,26 @@
         }
 
         .tool-option .tool-name {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 0.25rem;
+            font-size: 1rem;
+            color: var(--text-main);
         }
 
         .tool-option .tool-description {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-secondary);
+            line-height: 1.4;
         }
 
         .selected-tools-info {
             text-align: center;
-            padding: 0.75rem;
+            padding: 1rem;
             background-color: var(--background-interactive);
-            border-radius: 6px;
-            margin-top: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
             font-weight: 500;
+            border: 1px solid var(--border-color);
         }
 
         .selected-tools-info .selected-count {
@@ -2071,11 +2058,11 @@
                     
                     <!-- Favourites Section -->
                     <li class="favourites-section">
-                        <div class="favourites-header" id="favourites-toggle">
+                        <a href="#" class="nav-link favourites-toggle" id="favourites-toggle">
                             <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                             <span class="nav-text">Favourites</span>
                             <svg class="favourites-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>
-                        </div>
+                        </a>
                         <div class="favourites-dropdown" id="favourites-dropdown">
                             <div class="favourites-content" id="favourites-content">
                                 <!-- Favourites will be loaded here -->
@@ -4563,7 +4550,8 @@
                     // Favourites toggle
                     const favouritesToggle = document.getElementById('favourites-toggle');
                     if (favouritesToggle) {
-                        favouritesToggle.addEventListener('click', () => {
+                        favouritesToggle.addEventListener('click', (e) => {
+                            e.preventDefault();
                             this.toggleFavourites();
                         });
                     }
