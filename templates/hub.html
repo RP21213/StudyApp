@@ -191,10 +191,17 @@
             z-index: 1000;
             background: var(--primary-color);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            min-width: 40px;
+            min-height: 40px;
+            padding: 0.5rem;
         }
         .sidebar.collapsed #sidebar-toggle:hover {
             background: var(--primary-hover);
             transform: scale(1.1);
+        }
+        .sidebar.collapsed #sidebar-toggle svg {
+            width: 20px;
+            height: 20px;
         }
         .sidebar-nav {
             flex-grow: 1;
