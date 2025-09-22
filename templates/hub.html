@@ -4613,7 +4613,7 @@
                                     <path d="${this.getToolIcon(fav.tool_id)}"></path>
                                 </svg>
                             </div>
-                            <span class="favourite-name">${fav.name}</span>
+                            <span class="favourite-name">${fav.tool_name}</span>
                             <button class="favourite-remove" data-tool-id="${fav.tool_id}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
@@ -4675,19 +4675,17 @@
                     const tool = this.availableTools.find(t => t.id === toolId);
                     if (!tool) return;
 
-                    const toolData = {
-                        tool_id: toolId,
-                        name: tool.name,
-                        description: tool.description
-                    };
-
                     try {
                         const response = await fetch('/api/favourites/add', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({ tools: [toolData] })
+                            body: JSON.stringify({
+                                tool_id: toolId,
+                                tool_name: tool.name,
+                                tool_url: tool.url
+                            })
                         });
 
                         const data = await response.json();
