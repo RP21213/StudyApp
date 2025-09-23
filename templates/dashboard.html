@@ -2324,7 +2324,7 @@
         
         .flash-message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
         .flash-success { background-color: #dcfce7; color: #166534; }
-        
+
         /* Universal Notification Modal Styles */
         .universal-notification-modal {
             position: fixed;
@@ -4273,7 +4273,7 @@
                     {% if messages %}
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
-                                {% for category, message in messages %}
+                        {% for category, message in messages %}
                                     {% if category == 'success' %}
                                         showSuccess('{{ message|e }}');
                                     {% elif category == 'error' %}
@@ -4283,7 +4283,7 @@
                                     {% else %}
                                         showInfo('{{ message|e }}');
                                     {% endif %}
-                                {% endfor %}
+                        {% endfor %}
                             });
                         </script>
                     {% endif %}
@@ -5917,9 +5917,11 @@ Best regards,
         });
     </script>
     
-    {% if spotify_connected %}
     <script>
+    // Define Spotify Web Playback SDK ready function globally
     window.onSpotifyWebPlaybackSDKReady = () => {
+        // Only initialize if Spotify is connected
+        {% if spotify_connected %}
         // --- Player UI Elements ---
         const playerContainer = document.getElementById('spotify-player-container');
         const toggleBtn = document.getElementById('spotify-player-toggle-btn');
@@ -6541,9 +6543,12 @@ Best regards,
                 });
             }
         });
+        {% else %}
+        // Spotify not connected - function exists but does nothing
+        console.log('Spotify not connected - Web Playback SDK ready but not initialized');
+        {% endif %}
     };
     </script>
-    {% endif %}
 
 {% if needs_onboarding %}
     <script>
