@@ -3173,6 +3173,107 @@ def repair_spaced_repetition_indices(activity_id):
         print(f"❌ ERROR: Failed to repair indices for activity {activity_id}: {e}")
         return False
 
+def recover_missing_flashcards(activity_id):
+    """Recover missing flashcards from spaced repetition data"""
+    try:
+        print(f"🔄 RECOVERY: Starting flashcard recovery for activity {activity_id}")
+        
+        # Get the activity
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            print(f"❌ ERROR: Activity {activity_id} not found")
+            return False
+        
+        activity_data = activity_doc.to_dict()
+        current_cards = activity_data.get('cards', [])
+        
+        # Get spaced repetition cards for this activity
+        sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+        sr_cards = list(sr_cards_query.stream())
+        
+        if not sr_cards:
+            print(f"❌ ERROR: No spaced repetition cards found for activity {activity_id}")
+            return False
+        
+        print(f"🔄 RECOVERY: Found {len(sr_cards)} spaced repetition cards")
+        
+        # If activity has no cards but SR cards exist, recover from SR data
+        if len(current_cards) == 0 and len(sr_cards) > 0:
+            print(f"🔄 RECOVERY: Activity has no cards, recovering from SR data")
+            
+            # Create cards array from SR data, sorted by card_index
+            recovered_cards = []
+            sr_cards_data = []
+            
+            for sr_card_doc in sr_cards:
+                sr_card_data = sr_card_doc.to_dict()
+                sr_cards_data.append(sr_card_data)
+            
+            # Sort by card_index to maintain order
+            sr_cards_data.sort(key=lambda x: x.get('card_index', 0))
+            
+            for sr_card_data in sr_cards_data:
+                card = {
+                    'front': sr_card_data.get('front', ''),
+                    'back': sr_card_data.get('back', '')
+                }
+                recovered_cards.append(card)
+            
+            # Update the activity with recovered cards
+            activity_doc.reference.update({
+                'data.cards': recovered_cards
+            })
+            
+            print(f"✅ RECOVERY: Recovered {len(recovered_cards)} cards for activity {activity_id}")
+            return True
+        
+        # If activity has some cards, try to merge with SR data
+        elif len(current_cards) > 0 and len(sr_cards) > 0:
+            print(f"🔄 RECOVERY: Activity has {len(current_cards)} cards, checking for missing ones")
+            
+            # Find SR cards that don't have matching activity cards
+            missing_cards = []
+            for sr_card_doc in sr_cards:
+                sr_card_data = sr_card_doc.to_dict()
+                sr_front = sr_card_data.get('front', '').strip()
+                sr_back = sr_card_data.get('back', '').strip()
+                
+                # Check if this card exists in activity
+                found = False
+                for activity_card in current_cards:
+                    if (activity_card.get('front', '').strip() == sr_front and 
+                        activity_card.get('back', '').strip() == sr_back):
+                        found = True
+                        break
+                
+                if not found:
+                    missing_cards.append({
+                        'front': sr_front,
+                        'back': sr_back
+                    })
+            
+            if missing_cards:
+                # Add missing cards to activity
+                updated_cards = current_cards + missing_cards
+                activity_doc.reference.update({
+                    'data.cards': updated_cards
+                })
+                print(f"✅ RECOVERY: Added {len(missing_cards)} missing cards to activity {activity_id}")
+                return True
+            else:
+                print(f"✅ RECOVERY: No missing cards found for activity {activity_id}")
+                return True
+        
+        else:
+            print(f"ℹ️ RECOVERY: Activity {activity_id} already has cards, no recovery needed")
+            return True
+        
+    except Exception as e:
+        print(f"❌ ERROR: Failed to recover flashcards for activity {activity_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def generate_lecture_flashcards_background(session_id, flashcard_count=10):
     """Background function to generate flashcards for the entire lecture."""
     try:
@@ -8131,6 +8232,18 @@ def create_review_session():
                                     flashcard_data = flashcard_doc.to_dict()
                                     flashcards = flashcard_data.get('cards', [])
                                     
+                                    # If activity has no cards but SR cards exist, try to recover
+                                    if len(flashcards) == 0:
+                                        print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery")
+                                        if recover_missing_flashcards(activity_id):
+                                            # Re-fetch the activity data after recovery
+                                            flashcard_doc = db.collection('activities').document(activity_id).get()
+                                            flashcard_data = flashcard_doc.to_dict()
+                                            flashcards = flashcard_data.get('cards', [])
+                                            print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id}")
+                                        else:
+                                            print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
+                                    
                                     # Find the specific flashcard using robust matching
                                     flashcard = None
                                     card_index = sr_card.card_index
@@ -8197,6 +8310,18 @@ def create_review_session():
                                     if flashcard_doc.exists:
                                         flashcard_data = flashcard_doc.to_dict()
                                         flashcards = flashcard_data.get('cards', [])
+                                        
+                                        # If activity has no cards but SR cards exist, try to recover
+                                        if len(flashcards) == 0:
+                                            print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery (fallback)")
+                                            if recover_missing_flashcards(activity_id):
+                                                # Re-fetch the activity data after recovery
+                                                flashcard_doc = db.collection('activities').document(activity_id).get()
+                                                flashcard_data = flashcard_doc.to_dict()
+                                                flashcards = flashcard_data.get('cards', [])
+                                                print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id} (fallback)")
+                                            else:
+                                                print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id} (fallback)")
                                         
                                         # Find the specific flashcard using robust matching
                                         flashcard = None
@@ -8532,26 +8657,85 @@ def repair_all_spaced_repetition_indices():
         activities = list(activities_query.stream())
         
         repaired_activities = 0
-        total_repaired_cards = 0
+        recovered_activities = 0
         
         for activity_doc in activities:
             activity_id = activity_doc.id
             print(f"🔧 REPAIR: Processing activity {activity_id}")
             
+            # First try to recover missing flashcards
+            if recover_missing_flashcards(activity_id):
+                recovered_activities += 1
+            
+            # Then repair indices
             if repair_spaced_repetition_indices(activity_id):
                 repaired_activities += 1
         
         print(f"🔧 REPAIR: Completed global repair for {repaired_activities} activities")
+        print(f"🔄 RECOVERY: Recovered flashcards for {recovered_activities} activities")
         
         return jsonify({
             "success": True,
-            "message": f"Successfully repaired indices for {repaired_activities} activities",
-            "repaired_activities": repaired_activities
+            "message": f"Successfully repaired {repaired_activities} activities and recovered {recovered_activities} activities",
+            "repaired_activities": repaired_activities,
+            "recovered_activities": recovered_activities
         })
         
     except Exception as e:
         print(f"Error repairing spaced repetition indices: {e}")
         return jsonify({"success": False, "message": "Failed to repair indices"}), 500
+
+@app.route("/admin/recover_missing_flashcards", methods=["POST"])
+@login_required
+def recover_all_missing_flashcards():
+    """
+    Recover missing flashcards from spaced repetition data.
+    This fixes activities that have 0 cards but have SR cards.
+    """
+    try:
+        print("🔄 RECOVERY: Starting global flashcard recovery")
+        
+        # Get all flashcard activities
+        activities_query = db.collection('activities').where('type', '==', 'Flashcards')
+        activities = list(activities_query.stream())
+        
+        recovered_activities = 0
+        total_recovered_cards = 0
+        
+        for activity_doc in activities:
+            activity_id = activity_doc.id
+            activity_data = activity_doc.to_dict()
+            current_cards = activity_data.get('cards', [])
+            
+            # Only process activities with missing cards
+            if len(current_cards) == 0:
+                print(f"🔄 RECOVERY: Processing activity {activity_id} (0 cards)")
+                
+                # Get spaced repetition cards for this activity
+                sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+                sr_cards = list(sr_cards_query.stream())
+                
+                if sr_cards:
+                    if recover_missing_flashcards(activity_id):
+                        recovered_activities += 1
+                        total_recovered_cards += len(sr_cards)
+                        print(f"✅ RECOVERY: Recovered {len(sr_cards)} cards for activity {activity_id}")
+                else:
+                    print(f"ℹ️ RECOVERY: No SR cards found for activity {activity_id}")
+        
+        print(f"🔄 RECOVERY: Completed recovery for {recovered_activities} activities")
+        print(f"🔄 RECOVERY: Total cards recovered: {total_recovered_cards}")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully recovered {total_recovered_cards} cards from {recovered_activities} activities",
+            "recovered_activities": recovered_activities,
+            "total_recovered_cards": total_recovered_cards
+        })
+        
+    except Exception as e:
+        print(f"Error recovering missing flashcards: {e}")
+        return jsonify({"success": False, "message": "Failed to recover flashcards"}), 500
 
 @app.route("/admin/migrate_flashcards_to_spaced_repetition", methods=["POST"])
 @login_required
