@@ -745,3 +745,21 @@
 2025-09-24 00:03:30,729 - werkzeug - INFO -  * Restarting with stat
 2025-09-24 00:03:30,825 - werkzeug - INFO -  * Restarting with stat
 2025-09-24 00:03:30,924 - werkzeug - INFO -  * Restarting with stat
+2025-09-24 00:03:40,934 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-24 00:03:40,935 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T23:03:40.934994+00:00"}
+2025-09-24 00:03:40,940 - werkzeug - WARNING -  * Debugger is active!
+2025-09-24 00:03:40,948 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-24 00:03:41,026 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-24 00:03:41,026 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T23:03:41.026534+00:00"}
+2025-09-24 00:03:41,032 - werkzeug - WARNING -  * Debugger is active!
+2025-09-24 00:03:41,039 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-24 00:03:41,065 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-24 00:03:41,065 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T23:03:41.065513+00:00"}
+2025-09-24 00:03:41,070 - werkzeug - WARNING -  * Debugger is active!
+2025-09-24 00:03:41,077 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-24 00:10:53,102 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-24 00:10:53,155 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-24 00:10:54,028 - werkzeug - INFO -  * Restarting with stat
+2025-09-24 00:10:54,036 - werkzeug - INFO -  * Restarting with stat
+2025-09-24 00:10:55,065 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-24 00:10:56,131 - werkzeug - INFO -  * Restarting with stat
