@@ -342,6 +342,113 @@
             opacity: 1;
         }
         
+        /* Loading Screen Styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-body);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+        
+        .loading-message {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        
+        .loading-submessage {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+        
+        .loading-details {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--background-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .loading-step {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading-step.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .loading-step.completed {
+            color: var(--success-color);
+        }
+        
+        .step-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+        
+        .step-icon.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .step-icon.completed {
+            border-color: var(--success-color);
+            background: var(--success-color);
+            color: white;
+        }
+        
         @media (max-width: 768px) {
             .review-container {
                 padding: 0.5rem;
@@ -366,10 +473,65 @@
                 padding: 0.75rem 1rem;
                 font-size: 0.875rem;
             }
+            
+            /* Mobile loading screen adjustments */
+            .loading-content {
+                max-width: 90%;
+                padding: 1rem;
+            }
+            
+            .loading-title {
+                font-size: 1.25rem;
+            }
+            
+            .loading-message {
+                font-size: 0.875rem;
+            }
+            
+            .loading-submessage {
+                font-size: 0.75rem;
+            }
+            
+            .loading-details {
+                padding: 0.75rem;
+            }
+            
+            .loading-step {
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">Preparing Your Study Session</div>
+            <div class="loading-message" id="loading-message">Setting up your flashcards...</div>
+            <div class="loading-submessage" id="loading-submessage">This may take a moment while we recover and organize your cards.</div>
+            
+            <div class="loading-details">
+                <div class="loading-step" id="step-1">
+                    <div class="step-icon" id="icon-1">1</div>
+                    <span>Connecting to your study hub</span>
+                </div>
+                <div class="loading-step" id="step-2">
+                    <div class="step-icon" id="icon-2">2</div>
+                    <span>Finding due cards</span>
+                </div>
+                <div class="loading-step" id="step-3">
+                    <div class="step-icon" id="icon-3">3</div>
+                    <span>Recovering missing flashcards</span>
+                </div>
+                <div class="loading-step" id="step-4">
+                    <div class="step-icon" id="icon-4">4</div>
+                    <span>Preparing session</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="review-container">
         <!-- Session Header -->
         <div class="review-header">
@@ -497,9 +659,57 @@
             alert('❌ ' + message);
         }
 
+        // Loading screen functions
+        function updateLoadingStep(stepNumber, status = 'active') {
+            const step = document.getElementById(`step-${stepNumber}`);
+            const icon = document.getElementById(`icon-${stepNumber}`);
+            
+            if (step && icon) {
+                step.className = `loading-step ${status}`;
+                icon.className = `step-icon ${status}`;
+                
+                if (status === 'completed') {
+                    icon.textContent = '✓';
+                } else if (status === 'active') {
+                    icon.textContent = stepNumber;
+                }
+            }
+        }
+        
+        function updateLoadingMessage(message, submessage = null) {
+            const messageEl = document.getElementById('loading-message');
+            const submessageEl = document.getElementById('loading-submessage');
+            
+            if (messageEl) messageEl.textContent = message;
+            if (submessageEl && submessage) submessageEl.textContent = submessage;
+        }
+        
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }
+        }
+        
+        function showLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'flex';
+                loadingScreen.style.opacity = '1';
+            }
+        }
+
         // Initialize session
         async function initializeSession() {
             try {
+                // Show loading screen
+                showLoadingScreen();
+                updateLoadingStep(1, 'active');
+                updateLoadingMessage('Connecting to your study hub...', 'Validating your session parameters...');
+                
                 const urlParams = new URLSearchParams(window.location.search);
                 const hubId = urlParams.get('hub_id');
                 const maxCards = urlParams.get('max_cards') || 20;
@@ -510,7 +720,17 @@
                     return;
                 }
                 
+                // Step 1 complete
+                updateLoadingStep(1, 'completed');
+                updateLoadingStep(2, 'active');
+                updateLoadingMessage('Finding due cards...', 'Scanning your flashcard activities...');
+                
                 sessionStartTime = new Date();
+                
+                // Step 2 complete
+                updateLoadingStep(2, 'completed');
+                updateLoadingStep(3, 'active');
+                updateLoadingMessage('Recovering missing flashcards...', 'This may take a moment while we restore your cards from backup data...');
                 
                 const response = await fetch('/api/spaced_repetition/create_session', {
                     method: 'POST',
@@ -523,24 +743,40 @@
                     })
                 });
                 
+                // Step 3 complete
+                updateLoadingStep(3, 'completed');
+                updateLoadingStep(4, 'active');
+                updateLoadingMessage('Preparing session...', 'Finalizing your study cards...');
+                
                 const data = await response.json();
                 
                 if (data.success) {
                     currentSession = data.session_id;
                     cards = data.cards;
                     
-                    if (cards.length === 0) {
-                        showNoCardsMessage();
-                        return;
-                    }
+                    // Step 4 complete
+                    updateLoadingStep(4, 'completed');
+                    updateLoadingMessage('Session ready!', 'Your flashcards are prepared and ready to study.');
                     
-                    updateUI();
-                    loadCurrentCard();
+                    // Hide loading screen after a brief moment
+                    setTimeout(() => {
+                        hideLoadingScreen();
+                        
+                        if (cards.length === 0) {
+                            showNoCardsMessage();
+                            return;
+                        }
+                        
+                        updateUI();
+                        loadCurrentCard();
+                    }, 500);
                 } else {
+                    hideLoadingScreen();
                     showError('Failed to create session: ' + data.message);
                     window.location.href = '/dashboard';
                 }
             } catch (error) {
+                hideLoadingScreen();
                 console.error('Error initializing session:', error);
                 showError('An error occurred while starting the session');
                 window.location.href = '/dashboard';
@@ -835,15 +1071,6 @@
 
         // Start new session
         function startNewSession() {
-            // Show loading state
-            const cardContainer = document.getElementById('card-container');
-            cardContainer.innerHTML = `
-                <div style="text-align: center; padding: 2rem;">
-                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">🔄 Starting New Session...</div>
-                    <div style="color: var(--text-secondary);">Loading your cards...</div>
-                </div>
-            `;
-            
             // Reset all session variables
             currentSession = null;
             currentCardIndex = 0;
@@ -859,7 +1086,7 @@
             // Reset UI to initial state
             resetUI();
             
-            // Initialize new session
+            // Initialize new session (which will show the loading screen)
             initializeSession();
         }
 
