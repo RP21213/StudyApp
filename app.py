@@ -3055,23 +3055,46 @@ def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
     try:
         print(f"Migrating {len(flashcards_data)} flashcards to spaced repetition system...")
         
-        for i, card_data in enumerate(flashcards_data):
-            # Create spaced repetition card
-            sr_card_ref = db.collection('spaced_repetition_cards').document()
-            sr_card = SpacedRepetitionCard(
-                id=sr_card_ref.id,
-                activity_id=activity_id,
-                front=card_data.get('front', ''),
-                back=card_data.get('back', ''),
-                card_index=i,
-                difficulty='medium'
-            )
-            sr_card_ref.set(sr_card.to_dict())
+        # Check if already migrated
+        existing_cards = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id).stream()
+        if list(existing_cards):
+            print(f"Flashcards for activity {activity_id} already migrated")
+            return
         
-        print(f"Successfully migrated {len(flashcards_data)} flashcards to spaced repetition system")
+        migrated_count = 0
+        for i, card_data in enumerate(flashcards_data):
+            try:
+                # Validate card data
+                front = card_data.get('front', '').strip()
+                back = card_data.get('back', '').strip()
+                
+                if not front or not back:
+                    print(f"Skipping invalid card {i}: empty front or back")
+                    continue
+                
+                # Create spaced repetition card
+                sr_card_ref = db.collection('spaced_repetition_cards').document()
+                sr_card = SpacedRepetitionCard(
+                    id=sr_card_ref.id,
+                    activity_id=activity_id,
+                    front=front,
+                    back=back,
+                    card_index=i,
+                    difficulty='medium'
+                )
+                sr_card_ref.set(sr_card.to_dict())
+                migrated_count += 1
+                
+            except Exception as card_error:
+                print(f"Error migrating card {i}: {card_error}")
+                continue
+        
+        print(f"Successfully migrated {migrated_count}/{len(flashcards_data)} flashcards to spaced repetition system")
         
     except Exception as e:
         print(f"Error migrating flashcards to spaced repetition: {e}")
+        import traceback
+        traceback.print_exc()
 
 def generate_lecture_flashcards_background(session_id, flashcard_count=10):
     """Background function to generate flashcards for the entire lecture."""
@@ -5430,7 +5453,11 @@ def generate_individual_flashcards(hub_id):
         fc_ref.set(new_fc.to_dict())
         
         # Automatically migrate flashcards to spaced repetition system
-        migrate_flashcards_to_spaced_repetition(fc_ref.id, flashcards_parsed)
+        try:
+            migrate_flashcards_to_spaced_repetition(fc_ref.id, flashcards_parsed)
+        except Exception as e:
+            print(f"Warning: Failed to migrate flashcards to spaced repetition: {e}")
+            # Continue anyway - flashcards are still created in activities
         
         print("Individual flashcards generated successfully")
         return jsonify({"success": True, "redirect_url": url_for('view_flashcards', activity_id=fc_ref.id)})
