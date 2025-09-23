@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Foci - AI-Powered Study Platform | Transform Your Learning</title>
-    <meta name="description" content="Transform your study materials into flashcards, quizzes, and comprehensive notes with AI. Join thousands of students studying smarter with Foci.">
+    <meta name="description" content="Create accurate learning tools from your course material in seconds. AI-powered flashcards, quizzes, summaries, and personalized tutoring for smarter studying.">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -253,29 +253,31 @@
             align-items: center;
         }
 
-        .hero-stats {
-            display: flex;
-            gap: 2rem;
+        .hero-integrations {
             margin-top: 3rem;
         }
 
-        .stat {
+        .integration-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
             text-align: center;
         }
 
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .integration-logos {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
-        .stat-label {
+        .integration-logo {
             font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
         }
 
         /* Hero Demo */
@@ -359,10 +361,241 @@
             font-size: 0.9rem;
         }
 
-        /* Features Section */
-        .features {
+        /* Feature Highlights Section */
+        .feature-highlights {
             padding: 6rem 0;
             background: var(--bg-primary);
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .benefit-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
+        }
+
+        .benefit-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-2xl);
+        }
+
+        .benefit-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .benefit-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .benefit-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .benefit-metric {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Social Proof Section */
+        .social-proof {
+            padding: 6rem 0;
+            background: var(--bg-secondary);
+        }
+
+        .proof-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .institution-logos {
+            text-align: center;
+        }
+
+        .institution-logos h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .logo-item {
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Feature Exploration Section */
+        .feature-exploration {
+            padding: 6rem 0;
+            background: var(--bg-primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-module {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+            text-align: center;
+        }
+
+        .feature-module:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-lg);
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .feature-module h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-module p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* FAQ Section */
+        .faq {
+            padding: 6rem 0;
+            background: var(--bg-secondary);
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .faq-item h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .faq-item p {
+            color: var(--text-secondary);
+            line-height: 1.7;
         }
 
         .section-header {
@@ -619,18 +852,72 @@
                 font-size: 2.5rem;
             }
 
-            .founder-content {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
             .hero-ctas {
                 flex-direction: column;
                 align-items: stretch;
             }
 
+            .integration-logos {
+                gap: 1rem;
+            }
+
+            .integration-logo {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .proof-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .logo-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-social {
+                flex-direction: column;
+                gap: 2rem;
+                text-align: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
             .nav-links {
                 display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .proof-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .logo-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-badges {
+                justify-content: center;
             }
         }
 
@@ -802,11 +1089,74 @@
             color: white;
         }
 
-        .footer-bottom {
+        .footer-social {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            padding: 2rem 0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 2rem;
-            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: rgba(255, 255, 255, 0.7);
+            transition: all var(--transition-fast);
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .trust-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-badge {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .footer-links a:hover {
+            color: white;
         }
 
 
@@ -823,8 +1173,8 @@
             <a href="#" class="logo">Foci</a>
             <div class="nav-links">
                 <a href="#features" class="nav-link">Features</a>
-                <a href="#how-it-works" class="nav-link">How It Works</a>
-                <a href="#founder" class="nav-link">About</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#faq" class="nav-link">FAQ</a>
                 <a href="/login" class="nav-link">Login</a>
                 <a href="/signup" class="btn btn-primary">Get Started</a>
             </div>
@@ -837,46 +1187,47 @@
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text slide-in-left">
-                        <h1>Transform Your <span class="highlight">Study Materials</span> with AI</h1>
-                        <p>Upload your notes, lectures, and PDFs. Watch as Foci instantly creates flashcards, quizzes, summaries, and exam predictions to supercharge your learning.</p>
+                        <h1>Create accurate learning tools from your course material <span class="highlight">in seconds</span></h1>
+                        <p>Transform any content into flashcards, quizzes, and summaries instantly. Get personalized AI tutoring, track your progress, and study 30% more efficiently with our intelligent platform.</p>
                         <div class="hero-ctas">
-                            <a href="/signup" class="btn btn-primary">Start Free Today</a>
-                            <a href="#demo" class="btn btn-secondary">See Demo</a>
+                            <a href="/signup" class="btn btn-primary">Try for Free</a>
+                            <a href="#demo" class="btn btn-secondary">Watch Demo</a>
                         </div>
-                        <div class="hero-stats">
-                            <div class="stat">
-                                <div class="stat-number">10K+</div>
-                                <div class="stat-label">Students</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-number">50M+</div>
-                                <div class="stat-label">Study Materials Created</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-number">40%</div>
-                                <div class="stat-label">Faster Learning</div>
+                        <div class="hero-integrations">
+                            <p class="integration-label">Trusted by students at</p>
+                            <div class="integration-logos">
+                                <div class="integration-logo">Harvard</div>
+                                <div class="integration-logo">MIT</div>
+                                <div class="integration-logo">Stanford</div>
+                                <div class="integration-logo">Oxford</div>
+                                <div class="integration-logo">Cambridge</div>
                             </div>
                         </div>
                     </div>
-                    <div class="hero-demo slide-in-right" id="demo">
-                        <div class="demo-header">
-                            <div class="demo-dot"></div>
-                            <div class="demo-dot"></div>
-                            <div class="demo-dot"></div>
-                        </div>
-                        <div class="demo-content">
-                            <div class="demo-animation">
-                                <div class="demo-step active" data-step="1">
-                                    <h3>📄 Upload Your Notes</h3>
-                                    <p>Drag and drop your PDFs, lecture slides, or paste your text directly</p>
+                    <div class="hero-visual slide-in-right" id="demo">
+                        <div class="visual-container">
+                            <div class="device-mockup">
+                                <div class="device-header">
+                                    <div class="device-dot"></div>
+                                    <div class="device-dot"></div>
+                                    <div class="device-dot"></div>
                                 </div>
-                                <div class="demo-step" data-step="2">
-                                    <h3>⚡ AI Processing</h3>
-                                    <p>Our AI analyzes your content and identifies key concepts and relationships</p>
-                                </div>
-                                <div class="demo-step" data-step="3">
-                                    <h3>🎯 Study Tools Created</h3>
-                                    <p>Get flashcards, quizzes, summaries, and exam predictions instantly</p>
+                                <div class="device-content">
+                                    <div class="demo-step active" data-step="1">
+                                        <div class="step-icon">📄</div>
+                                        <h3>Upload Materials</h3>
+                                        <p>Drag & drop PDFs, paste notes, or upload any study content</p>
+                                    </div>
+                                    <div class="demo-step" data-step="2">
+                                        <div class="step-icon">⚡</div>
+                                        <h3>AI Processing</h3>
+                                        <p>Advanced AI analyzes content and identifies key concepts</p>
+                                    </div>
+                                    <div class="demo-step" data-step="3">
+                                        <div class="step-icon">🎯</div>
+                                        <h3>Study Tools Ready</h3>
+                                        <p>Get flashcards, quizzes, summaries, and exam predictions</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -885,132 +1236,198 @@
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section class="features" id="features">
+        <!-- Feature Highlights Section -->
+        <section class="feature-highlights" id="features">
             <div class="container">
                 <div class="section-header fade-in">
-                    <h2 class="section-title">Everything You Need to Study Smarter</h2>
-                    <p class="section-subtitle">Foci combines cutting-edge AI with proven study techniques to create the ultimate learning platform</p>
+                    <h2 class="section-title">Why Students Choose Foci</h2>
+                    <p class="section-subtitle">Four powerful benefits that transform how you learn</p>
+                </div>
+                <div class="benefits-grid">
+                    <div class="benefit-card fade-in">
+                        <div class="benefit-icon">
+                            <i data-lucide="zap"></i>
+                        </div>
+                        <h3>Automatically Generate Study Tools</h3>
+                        <p>Upload any content and instantly get flashcards, quizzes, and summaries. No more manual creation - our AI does the work for you.</p>
+                        <div class="benefit-metric">
+                            <span class="metric-number">95%</span>
+                            <span class="metric-label">Time Saved</span>
+                        </div>
+                    </div>
+                    <div class="benefit-card fade-in">
+                        <div class="benefit-icon">
+                            <i data-lucide="bot"></i>
+                        </div>
+                        <h3>AI Tutor Interaction</h3>
+                        <p>Ask questions, get explanations, and receive personalized feedback. Your AI tutor adapts to your learning style and pace.</p>
+                        <div class="benefit-metric">
+                            <span class="metric-number">24/7</span>
+                            <span class="metric-label">Available</span>
+                        </div>
+                    </div>
+                    <div class="benefit-card fade-in">
+                        <div class="benefit-icon">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <h3>Progress Tracking & Insights</h3>
+                        <p>See your strengths, weaknesses, and performance trends. Get personalized recommendations to optimize your study strategy.</p>
+                        <div class="benefit-metric">
+                            <span class="metric-number">40%</span>
+                            <span class="metric-label">Better Grades</span>
+                        </div>
+                    </div>
+                    <div class="benefit-card fade-in">
+                        <div class="benefit-icon">
+                            <i data-lucide="clock"></i>
+                        </div>
+                        <h3>Study More Efficiently</h3>
+                        <p>Focus on what matters most with intelligent prioritization. Students report studying 30% less time with better results.</p>
+                        <div class="benefit-metric">
+                            <span class="metric-number">30%</span>
+                            <span class="metric-label">Less Study Time</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof Section -->
+        <section class="social-proof">
+            <div class="container">
+                <div class="proof-stats fade-in">
+                    <div class="stat-item">
+                        <div class="stat-number">85%</div>
+                        <div class="stat-label">of students improved their grades</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2.3M+</div>
+                        <div class="stat-label">study materials created</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">30%</div>
+                        <div class="stat-label">average reduction in study time</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">4.8/5</div>
+                        <div class="stat-label">average student rating</div>
+                    </div>
+                </div>
+                <div class="institution-logos fade-in">
+                    <h3>Trusted by students at top universities</h3>
+                    <div class="logo-grid">
+                        <div class="logo-item">Harvard University</div>
+                        <div class="logo-item">MIT</div>
+                        <div class="logo-item">Stanford University</div>
+                        <div class="logo-item">Oxford University</div>
+                        <div class="logo-item">Cambridge University</div>
+                        <div class="logo-item">UC Berkeley</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Exploration Section -->
+        <section class="feature-exploration">
+            <div class="container">
+                <div class="section-header fade-in">
+                    <h2 class="section-title">Complete Study Toolkit</h2>
+                    <p class="section-subtitle">Everything you need to succeed, powered by AI</p>
                 </div>
                 <div class="features-grid">
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">🧠</div>
-                        <h3>AI-Powered Flashcards</h3>
-                        <p>Transform any content into smart flashcards that adapt to your learning pace and focus on areas you need to improve.</p>
-                        <div class="feature-badge">
-                            <i data-lucide="zap"></i>
-                            Instant Generation
-                        </div>
-                    </div>
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">📝</div>
-                        <h3>Smart Summaries</h3>
-                        <p>Get concise, comprehensive summaries of your study materials that highlight the most important concepts and relationships.</p>
-                        <div class="feature-badge">
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
                             <i data-lucide="brain"></i>
-                            AI Optimized
                         </div>
+                        <h3>Smart Flashcards</h3>
+                        <p>AI-generated flashcards that adapt to your learning pace and focus on weak areas</p>
                     </div>
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">🎯</div>
-                        <h3>Exam Predictions</h3>
-                        <p>Analyze past papers and course content to predict likely exam questions and focus your study time where it matters most.</p>
-                        <div class="feature-badge">
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <h3>Intelligent Summaries</h3>
+                        <p>Comprehensive summaries highlighting key concepts and relationships</p>
+                    </div>
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
+                            <i data-lucide="help-circle"></i>
+                        </div>
+                        <h3>Practice Quizzes</h3>
+                        <p>Automatically generated quizzes to test your understanding and retention</p>
+                    </div>
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
+                            <i data-lucide="bot"></i>
+                        </div>
+                        <h3>AI Tutor</h3>
+                        <p>Personalized tutoring with instant answers and explanations</p>
+                    </div>
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
                             <i data-lucide="target"></i>
-                            Pro Feature
                         </div>
+                        <h3>Exam Predictions</h3>
+                        <p>Predict likely exam questions based on course content and patterns</p>
                     </div>
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">🎙️</div>
-                        <h3>Live Lecture Notes</h3>
-                        <p>Real-time transcription and note-taking during live lectures with instant AI-powered summarization and key point extraction.</p>
-                        <div class="feature-badge">
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
                             <i data-lucide="mic"></i>
-                            Real-time
                         </div>
+                        <h3>Live Lecture Notes</h3>
+                        <p>Real-time transcription and note-taking during lectures</p>
                     </div>
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">📊</div>
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
+                            <i data-lucide="bar-chart"></i>
+                        </div>
                         <h3>Progress Analytics</h3>
-                        <p>Track your learning progress with detailed analytics, study heatmaps, and personalized insights to optimize your study habits.</p>
-                        <div class="feature-badge">
-                            <i data-lucide="trending-up"></i>
-                            Data Driven
-                        </div>
+                        <p>Detailed insights into your learning progress and performance</p>
                     </div>
-                    <div class="feature-card fade-in">
-                        <div class="feature-icon">👥</div>
-                        <h3>Study Groups</h3>
-                        <p>Collaborate with classmates, share study materials, and learn together in our integrated study group platform.</p>
-                        <div class="feature-badge">
+                    <div class="feature-module fade-in">
+                        <div class="module-icon">
                             <i data-lucide="users"></i>
-                            Collaborative
                         </div>
+                        <h3>Study Groups</h3>
+                        <p>Collaborate with classmates and share study materials</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- How It Works -->
-        <section class="how-it-works" id="how-it-works">
+        <!-- FAQ Section -->
+        <section class="faq">
             <div class="container">
                 <div class="section-header fade-in">
-                    <h2 class="section-title">How Foci Works</h2>
-                    <p class="section-subtitle">Get started in minutes and see results immediately</p>
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+                    <p class="section-subtitle">Everything you need to know about Foci</p>
                 </div>
-                <div class="steps">
-                    <div class="step fade-in">
-                        <div class="step-number">1</div>
-                        <h3>Upload Your Materials</h3>
-                        <p>Simply drag and drop your PDFs, paste lecture notes, or upload any study material. Our AI supports all major formats.</p>
+                <div class="faq-grid">
+                    <div class="faq-item fade-in">
+                        <h3>What is Foci and how does it work?</h3>
+                        <p>Foci is an AI-powered study platform that transforms your course materials into interactive learning tools. Simply upload your notes, PDFs, or paste text, and our AI instantly creates flashcards, quizzes, summaries, and exam predictions.</p>
                     </div>
-                    <div class="step fade-in">
-                        <div class="step-number">2</div>
-                        <h3>AI Analysis & Processing</h3>
-                        <p>Our advanced AI analyzes your content, identifies key concepts, relationships, and creates personalized study materials.</p>
+                    <div class="faq-item fade-in">
+                        <h3>What content formats are supported?</h3>
+                        <p>We support PDFs, Word documents, PowerPoint presentations, plain text, and even live audio from lectures. Our AI can process virtually any study material you have.</p>
                     </div>
-                    <div class="step fade-in">
-                        <div class="step-number">3</div>
-                        <h3>Study & Succeed</h3>
-                        <p>Access your flashcards, quizzes, summaries, and exam predictions. Track your progress and study smarter, not harder.</p>
+                    <div class="faq-item fade-in">
+                        <h3>How does the AI tutor work?</h3>
+                        <p>Our AI tutor analyzes your uploaded content and can answer questions, provide explanations, and give personalized feedback. It adapts to your learning style and helps clarify concepts you're struggling with.</p>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Founder Section -->
-        <section class="founder" id="founder">
-            <div class="container">
-                <div class="founder-content">
-                    <div class="founder-image fade-in">
-                        <div class="founder-placeholder">
-                            <div class="placeholder-icon">👨‍💻</div>
-                            <p>Founder Photo</p>
-                        </div>
+                    <div class="faq-item fade-in">
+                        <h3>Is my data private and secure?</h3>
+                        <p>Yes, we take privacy seriously. Your study materials are encrypted and stored securely. We never share your content with third parties, and you can delete your data at any time.</p>
                     </div>
-                    <div class="founder-text slide-in-right">
-                        <h2>Meet <span class="highlight">Raihan</span>, the Founder</h2>
-                        <p>As a passionate student and tech entrepreneur, I experienced firsthand the struggles of inefficient study methods and scattered learning tools. After spending countless hours manually creating flashcards and struggling to retain information, I knew there had to be a better way.</p>
-                        <p>Foci was born from my vision to democratize effective learning through AI. I believe every student deserves access to personalized, intelligent study tools that adapt to their learning style and help them achieve their academic goals.</p>
-                        <div class="founder-credentials">
-                            <div class="credential">
-                                <h4>Computer Science Graduate</h4>
-                                <p>Deep understanding of AI and machine learning</p>
-                            </div>
-                            <div class="credential">
-                                <h4>EdTech Innovator</h4>
-                                <p>Passionate about transforming education through technology</p>
-                            </div>
-                            <div class="credential">
-                                <h4>Student Advocate</h4>
-                                <p>Committed to making quality education accessible to all</p>
-                            </div>
-                        </div>
+                    <div class="faq-item fade-in">
+                        <h3>What's the pricing and cost?</h3>
+                        <p>Foci offers a free tier with basic features. Our Pro plan starts at $9.99/month and includes advanced features like exam predictions, unlimited materials, and priority AI processing.</p>
+                    </div>
+                    <div class="faq-item fade-in">
+                        <h3>Can I use Foci for group study?</h3>
+                        <p>Absolutely! Foci includes study group features where you can collaborate with classmates, share materials, and work together on projects. Perfect for team assignments and group exam prep.</p>
                     </div>
                 </div>
-            </div>
-        </section>
-
             </div>
         </section>
 
@@ -1080,20 +1497,16 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Product</h3>
-                    <p><a href="#features">Features</a></p>
-                    <p><a href="#pricing">Pricing</a></p>
-                    <p><a href="#demo">Demo</a></p>
-                </div>
-                <div class="footer-section">
                     <h3>Company</h3>
-                    <p><a href="#founder">About</a></p>
+                    <p><a href="#about">About</a></p>
                     <p><a href="#">Blog</a></p>
+                    <p><a href="#">Careers</a></p>
                     <p><a href="#">Contact</a></p>
                 </div>
                 <div class="footer-section">
-                    <h3>Support</h3>
-                    <p><a href="#">Help Center</a></p>
+                    <h3>Help</h3>
+                    <p><a href="#faq">FAQ</a></p>
+                    <p><a href="#">Support</a></p>
                     <p><a href="#">Documentation</a></p>
                     <p><a href="#">Community</a></p>
                 </div>
@@ -1102,10 +1515,43 @@
                     <p><a href="#">Privacy Policy</a></p>
                     <p><a href="#">Terms of Service</a></p>
                     <p><a href="#">Cookie Policy</a></p>
+                    <p><a href="#">GDPR</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>For Educators</h3>
+                    <p><a href="#">Institutions</a></p>
+                    <p><a href="#">Classroom Integration</a></p>
+                    <p><a href="#">Teacher Resources</a></p>
+                    <p><a href="#">Bulk Licensing</a></p>
+                </div>
+            </div>
+            <div class="footer-social">
+                <div class="social-links">
+                    <a href="#" class="social-link" aria-label="Twitter">
+                        <i data-lucide="twitter"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="LinkedIn">
+                        <i data-lucide="linkedin"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    <a href="#" class="social-link" aria-label="YouTube">
+                        <i data-lucide="youtube"></i>
+                    </a>
+                </div>
+                <div class="trust-badges">
+                    <div class="trust-badge">SOC 2 Compliant</div>
+                    <div class="trust-badge">GDPR Ready</div>
+                    <div class="trust-badge">256-bit SSL</div>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2024 Foci. All rights reserved. Made with ❤️ for students everywhere.</p>
+                <div class="footer-links">
+                    <a href="#">Accessibility</a>
+                    <a href="#">Language: English</a>
+                </div>
             </div>
         </div>
     </footer>
