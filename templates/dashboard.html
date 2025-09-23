@@ -8541,7 +8541,7 @@ Best regards,
             // Show loading message
             const startBtn = document.querySelector('.sr-primary-btn');
             if (startBtn) {
-                startBtn.innerHTML = '<span class="sr-btn-icon">⏳</span><span>Migrating flashcards...</span>';
+                startBtn.innerHTML = '<span class="sr-btn-icon">⏳</span><span>Starting session...</span>';
                 startBtn.disabled = true;
             }
             
@@ -8554,23 +8554,39 @@ Best regards,
                 return;
             }
             
-            // Find a hub with flashcards
+            // Debug: Log all hub data
+            console.log('🔍 All hubs data:', hubsData.hubs);
+            
+            // Find a hub with flashcards - check multiple possible fields
             let targetHub = null;
             for (const hub of hubsData.hubs) {
-                if (hub.flashcard_count && hub.flashcard_count > 0) {
+                // Check various possible flashcard count fields
+                const flashcardCount = hub.flashcard_count || hub.flashcards_count || hub.card_count || hub.total_cards || 0;
+                console.log(`🔍 Checking hub ${hub.id}: flashcard_count=${hub.flashcard_count}, total_cards=${hub.total_cards}, flashcardCount=${flashcardCount}`);
+                
+                if (flashcardCount > 0) {
                     targetHub = hub;
                     break;
                 }
             }
             
+            // If no hub found by count, just use the first hub (the migration will handle it)
+            if (!targetHub && hubsData.hubs.length > 0) {
+                targetHub = hubsData.hubs[0];
+                console.log(`🔍 Using first available hub: ${targetHub.id}`);
+            }
+            
+            console.log('🔍 Selected target hub:', targetHub);
+            
             if (!targetHub) {
-                alert('⚠️ No flashcards found. Create flashcards in your study hubs first!');
+                alert('⚠️ No study hubs found. Create a hub and add flashcards first!');
                 resetButton();
                 return;
             }
             
             // Start the session
             const sessionUrl = `/spaced_repetition_review?hub_id=${targetHub.id}&max_cards=20`;
+            console.log(`🚀 Starting session with hub: ${targetHub.id}`);
             window.location.href = sessionUrl;
         }
         
