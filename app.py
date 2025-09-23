@@ -3050,6 +3050,29 @@ def generate_full_lecture_flashcards(session_id):
         return jsonify({"success": False, "message": "Failed to start flashcard generation"}), 500
 
 
+def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
+    """Migrate flashcards from activities to spaced repetition system"""
+    try:
+        print(f"Migrating {len(flashcards_data)} flashcards to spaced repetition system...")
+        
+        for i, card_data in enumerate(flashcards_data):
+            # Create spaced repetition card
+            sr_card_ref = db.collection('spaced_repetition_cards').document()
+            sr_card = SpacedRepetitionCard(
+                id=sr_card_ref.id,
+                activity_id=activity_id,
+                front=card_data.get('front', ''),
+                back=card_data.get('back', ''),
+                card_index=i,
+                difficulty='medium'
+            )
+            sr_card_ref.set(sr_card.to_dict())
+        
+        print(f"Successfully migrated {len(flashcards_data)} flashcards to spaced repetition system")
+        
+    except Exception as e:
+        print(f"Error migrating flashcards to spaced repetition: {e}")
+
 def generate_lecture_flashcards_background(session_id, flashcard_count=10):
     """Background function to generate flashcards for the entire lecture."""
     try:
@@ -5405,6 +5428,9 @@ def generate_individual_flashcards(hub_id):
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         new_fc = Activity(id=fc_ref.id, hub_id=hub_id, type='Flashcards', title=f"Flashcards: {first_file_name}", data={'cards': flashcards_parsed}, status='completed')
         fc_ref.set(new_fc.to_dict())
+        
+        # Automatically migrate flashcards to spaced repetition system
+        migrate_flashcards_to_spaced_repetition(fc_ref.id, flashcards_parsed)
         
         print("Individual flashcards generated successfully")
         return jsonify({"success": True, "redirect_url": url_for('view_flashcards', activity_id=fc_ref.id)})
@@ -7795,6 +7821,45 @@ def spaced_repetition_review():
     return render_template("spaced_repetition_review.html")
 
 
+@app.route("/api/spaced_repetition/migrate_flashcards/<activity_id>", methods=["POST"])
+@login_required
+def migrate_existing_flashcards(activity_id):
+    """Migrate existing flashcards to spaced repetition system"""
+    try:
+        # Get the original activity
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            return jsonify({"success": False, "message": "Activity not found"}), 404
+        
+        activity = Activity.from_dict(activity_doc.to_dict())
+        
+        # Check if user owns this activity
+        hub_doc = db.collection('hubs').document(activity.hub_id).get()
+        if not hub_doc.exists or hub_doc.to_dict().get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        # Check if already migrated
+        existing_sr_cards = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id).stream()
+        if list(existing_sr_cards):
+            return jsonify({"success": True, "message": "Flashcards already migrated"})
+        
+        # Get flashcards data
+        flashcards_data = activity.data.get('cards', [])
+        if not flashcards_data:
+            return jsonify({"success": False, "message": "No flashcards found in activity"}), 400
+        
+        # Migrate flashcards
+        migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Successfully migrated {len(flashcards_data)} flashcards to spaced repetition system"
+        })
+        
+    except Exception as e:
+        print(f"Error migrating flashcards: {e}")
+        return jsonify({"success": False, "message": "Failed to migrate flashcards"}), 500
+
 @app.route("/api/spaced_repetition/enhanced_flashcards/<activity_id>")
 @login_required
 def get_enhanced_flashcards(activity_id):
@@ -7814,7 +7879,16 @@ def get_enhanced_flashcards(activity_id):
         
         # Get spaced repetition cards
         sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
-        sr_cards = sr_cards_query.stream()
+        sr_cards = list(sr_cards_query.stream())
+        
+        # If no spaced repetition cards exist, migrate them automatically
+        if not sr_cards:
+            flashcards_data = activity.data.get('cards', [])
+            if flashcards_data:
+                print(f"Auto-migrating {len(flashcards_data)} flashcards for activity {activity_id}")
+                migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
+                # Re-query after migration
+                sr_cards = list(sr_cards_query.stream())
         
         enhanced_cards = []
         for sr_card_doc in sr_cards:
