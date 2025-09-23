@@ -8220,43 +8220,43 @@ def create_review_session():
                             debugger.logger.error(f"Auto-migration failed for activity {activity_id}: {migration_error}")
                             continue
                 
-            # Check if activity needs recovery before processing cards
-            activity_doc = db.collection('activities').document(activity_id).get()
-            if activity_doc.exists:
-                activity_data = activity_doc.to_dict()
-                current_cards = activity_data.get('cards', [])
-                
-                # If activity has no cards but SR cards exist, recover once for the entire activity
-                if len(current_cards) == 0 and len(sr_cards) > 0:
-                    print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery")
-                    if recover_missing_flashcards(activity_id):
-                        print(f"✅ AUTO-RECOVERY: Recovered cards for activity {activity_id}")
-                        # Re-fetch the activity data after recovery
-                        activity_doc = db.collection('activities').document(activity_id).get()
-                        activity_data = activity_doc.to_dict()
-                        current_cards = activity_data.get('cards', [])
-                        print(f"✅ AUTO-RECOVERY: Activity now has {len(current_cards)} cards")
-                        
-                        # CRITICAL: Re-query SR cards after recovery to get updated data
-                        sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
-                        sr_cards = list(sr_cards_query.stream())
-                        print(f"✅ AUTO-RECOVERY: Re-queried {len(sr_cards)} SR cards after recovery")
-                    else:
-                        print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
-                        # Skip this entire activity if recovery failed
-                        continue
-
-            for sr_card_doc in sr_cards:
-                sr_card_data = sr_card_doc.to_dict()
-                total_cards_checked += 1
-                
-                try:
-                    sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
-                    print(f"🔍 DEBUG: Processing card {sr_card.id}, interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}")
+                # Check if activity needs recovery before processing cards
+                activity_doc = db.collection('activities').document(activity_id).get()
+                if activity_doc.exists:
+                    activity_data = activity_doc.to_dict()
+                    current_cards = activity_data.get('cards', [])
                     
-                    # Use the same is_due() logic as get_due_cards
-                    if sr_card.is_due():
-                        print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
+                    # If activity has no cards but SR cards exist, recover once for the entire activity
+                    if len(current_cards) == 0 and len(sr_cards) > 0:
+                        print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery")
+                        if recover_missing_flashcards(activity_id):
+                            print(f"✅ AUTO-RECOVERY: Recovered cards for activity {activity_id}")
+                            # Re-fetch the activity data after recovery
+                            activity_doc = db.collection('activities').document(activity_id).get()
+                            activity_data = activity_doc.to_dict()
+                            current_cards = activity_data.get('cards', [])
+                            print(f"✅ AUTO-RECOVERY: Activity now has {len(current_cards)} cards")
+                            
+                            # CRITICAL: Re-query SR cards after recovery to get updated data
+                            sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+                            sr_cards = list(sr_cards_query.stream())
+                            print(f"✅ AUTO-RECOVERY: Re-queried {len(sr_cards)} SR cards after recovery")
+                        else:
+                            print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
+                            # Skip this entire activity if recovery failed
+                            continue
+
+                for sr_card_doc in sr_cards:
+                    sr_card_data = sr_card_doc.to_dict()
+                    total_cards_checked += 1
+                    
+                    try:
+                        sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                        print(f"🔍 DEBUG: Processing card {sr_card.id}, interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}")
+                        
+                        # Use the same is_due() logic as get_due_cards
+                        if sr_card.is_due():
+                            print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
                         # Get the original flashcard data (use the already fetched data)
                         try:
                             flashcard_doc = db.collection('activities').document(activity_id).get()
@@ -8307,21 +8307,21 @@ def create_review_session():
                         else:
                             next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
                             print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
-                except Exception as card_error:
-                    print(f"❌ ERROR: Failed to process card {sr_card_doc.id}: {card_error}")
-                    debugger.logger.error(f"Failed to process card {sr_card_doc.id}: {card_error}")
-                    
-                    # Fallback: Use the same logic as get_due_cards function
-                    print(f"🔄 FALLBACK: Using manual due check for card {sr_card_doc.id}")
-                    try:
-                        # Manual due check (same as get_due_cards)
-                        next_review = sr_card_data.get('next_review')
-                        if next_review:
-                            # Convert Firestore timestamp to datetime if needed
-                            if hasattr(next_review, 'timestamp'):
-                                next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
-                            else:
-                                next_review_dt = next_review
+                    except Exception as card_error:
+                        print(f"❌ ERROR: Failed to process card {sr_card_doc.id}: {card_error}")
+                        debugger.logger.error(f"Failed to process card {sr_card_doc.id}: {card_error}")
+                        
+                        # Fallback: Use the same logic as get_due_cards function
+                        print(f"🔄 FALLBACK: Using manual due check for card {sr_card_doc.id}")
+                        try:
+                            # Manual due check (same as get_due_cards)
+                            next_review = sr_card_data.get('next_review')
+                            if next_review:
+                                # Convert Firestore timestamp to datetime if needed
+                                if hasattr(next_review, 'timestamp'):
+                                    next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
+                                else:
+                                    next_review_dt = next_review
                             
                             if next_review_dt <= datetime.now(timezone.utc):
                                 print(f"🔍 DEBUG: Card {sr_card_doc.id} is due (manual check)")
@@ -8380,9 +8380,9 @@ def create_review_session():
                                             print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards (fallback)")
                                         else:
                                             print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card_doc.id} (fallback)")
-                    except Exception as fallback_error:
-                        print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
-                        debugger.logger.error(f"Fallback failed for card {sr_card_doc.id}: {fallback_error}")
+                        except Exception as fallback_error:
+                            print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
+                            debugger.logger.error(f"Fallback failed for card {sr_card_doc.id}: {fallback_error}")
             
             print(f"🔍 DEBUG: Total cards checked: {total_cards_checked}, Due cards: {len(due_cards)}")
             debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards in hub {hub_id}")
