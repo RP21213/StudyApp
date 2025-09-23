@@ -8352,18 +8352,18 @@ def create_review_session():
                                     if 0 <= card_index < len(flashcards):
                                         flashcard = flashcards[card_index]
                                         print(f"✅ DEBUG: Found card by index {card_index} (fallback)")
-                                        else:
-                                            # Second try: Match by content (front/back text)
-                                            print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching (fallback)")
-                                            sr_front = sr_card_data.get('front', '').strip()
-                                            sr_back = sr_card_data.get('back', '').strip()
-                                            for idx, fc in enumerate(flashcards):
-                                                if (fc.get('front', '').strip() == sr_front and 
-                                                    fc.get('back', '').strip() == sr_back):
-                                                    flashcard = fc
-                                                    card_index = idx
-                                                    print(f"✅ DEBUG: Found card by content matching at index {idx} (fallback)")
-                                                    break
+                                    else:
+                                        # Second try: Match by content (front/back text)
+                                        print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching (fallback)")
+                                        sr_front = sr_card_data.get('front', '').strip()
+                                        sr_back = sr_card_data.get('back', '').strip()
+                                        for idx, fc in enumerate(flashcards):
+                                            if (fc.get('front', '').strip() == sr_front and 
+                                                fc.get('back', '').strip() == sr_back):
+                                                flashcard = fc
+                                                card_index = idx
+                                                print(f"✅ DEBUG: Found card by content matching at index {idx} (fallback)")
+                                                break
                                         
                                         if flashcard:
                                             due_cards.append({
@@ -8380,9 +8380,9 @@ def create_review_session():
                                             print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards (fallback)")
                                         else:
                                             print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card_doc.id} (fallback)")
-                        except Exception as fallback_error:
-                            print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
-                            continue
+                    except Exception as fallback_error:
+                        print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
+                        debugger.logger.error(f"Fallback failed for card {sr_card_doc.id}: {fallback_error}")
             
             print(f"🔍 DEBUG: Total cards checked: {total_cards_checked}, Due cards: {len(due_cards)}")
             debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards in hub {hub_id}")
