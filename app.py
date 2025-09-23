@@ -8038,37 +8038,91 @@ def create_review_session():
                 
                 for sr_card_doc in sr_cards:
                     sr_card_data = sr_card_doc.to_dict()
-                    sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
                     total_cards_checked += 1
                     
-                    # Use the same is_due() logic as get_due_cards
-                    if sr_card.is_due():
-                        # Get the original flashcard data
+                    try:
+                        sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                        print(f"🔍 DEBUG: Processing card {sr_card.id}, interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}")
+                        
+                        # Use the same is_due() logic as get_due_cards
+                        if sr_card.is_due():
+                            print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
+                            # Get the original flashcard data
+                            try:
+                                flashcard_doc = db.collection('activities').document(activity_id).get()
+                                if flashcard_doc.exists:
+                                    flashcard_data = flashcard_doc.to_dict()
+                                    flashcards = flashcard_data.get('cards', [])
+                                    
+                                    # Find the specific flashcard
+                                    card_index = sr_card.card_index
+                                    if card_index < len(flashcards):
+                                        flashcard = flashcards[card_index]
+                                        due_cards.append({
+                                            'id': sr_card.id,
+                                            'front': flashcard.get('front', ''),
+                                            'back': flashcard.get('back', ''),
+                                            'activity_id': activity_id,
+                                            'card_index': card_index,
+                                            'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
+                                            'interval': sr_card.interval_days,
+                                            'ease_factor': sr_card.ease_factor,
+                                            'repetitions': sr_card.repetitions
+                                        })
+                                        print(f"✅ DEBUG: Added card {sr_card.id} to due cards")
+                                    else:
+                                        print(f"❌ ERROR: Card index {card_index} out of range for activity {activity_id}")
+                                else:
+                                    print(f"❌ ERROR: Activity {activity_id} not found")
+                            except Exception as e:
+                                print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
+                                debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
+                        else:
+                            next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
+                            print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
+                    except Exception as card_error:
+                        print(f"❌ ERROR: Failed to process card {sr_card_doc.id}: {card_error}")
+                        debugger.logger.error(f"Failed to process card {sr_card_doc.id}: {card_error}")
+                        
+                        # Fallback: Use the same logic as get_due_cards function
+                        print(f"🔄 FALLBACK: Using manual due check for card {sr_card_doc.id}")
                         try:
-                            flashcard_doc = db.collection('activities').document(activity_id).get()
-                            if flashcard_doc.exists:
-                                flashcard_data = flashcard_doc.to_dict()
-                                flashcards = flashcard_data.get('cards', [])
+                            # Manual due check (same as get_due_cards)
+                            next_review = sr_card_data.get('next_review')
+                            if next_review:
+                                # Convert Firestore timestamp to datetime if needed
+                                if hasattr(next_review, 'timestamp'):
+                                    next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
+                                else:
+                                    next_review_dt = next_review
                                 
-                                # Find the specific flashcard
-                                card_index = sr_card.card_index
-                                if card_index < len(flashcards):
-                                    flashcard = flashcards[card_index]
-                                    due_cards.append({
-                                        'id': sr_card.id,
-                                        'front': flashcard.get('front', ''),
-                                        'back': flashcard.get('back', ''),
-                                        'activity_id': activity_id,
-                                        'card_index': card_index,
-                                        'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
-                                        'interval': sr_card.interval_days,
-                                        'ease_factor': sr_card.ease_factor,
-                                        'repetitions': sr_card.repetitions
-                                    })
-                                    print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
-                        except Exception as e:
-                            print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
-                            debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
+                                if next_review_dt <= datetime.now(timezone.utc):
+                                    print(f"🔍 DEBUG: Card {sr_card_doc.id} is due (manual check)")
+                                    # Get the original flashcard data
+                                    flashcard_doc = db.collection('activities').document(activity_id).get()
+                                    if flashcard_doc.exists:
+                                        flashcard_data = flashcard_doc.to_dict()
+                                        flashcards = flashcard_data.get('cards', [])
+                                        
+                                        # Find the specific flashcard
+                                        card_index = sr_card_data.get('card_index', 0)
+                                        if card_index < len(flashcards):
+                                            flashcard = flashcards[card_index]
+                                            due_cards.append({
+                                                'id': sr_card_doc.id,
+                                                'front': flashcard.get('front', ''),
+                                                'back': flashcard.get('back', ''),
+                                                'activity_id': activity_id,
+                                                'card_index': card_index,
+                                                'next_review': next_review_dt.isoformat(),
+                                                'interval': sr_card_data.get('interval_days', 1),
+                                                'ease_factor': sr_card_data.get('ease_factor', 2.5),
+                                                'repetitions': sr_card_data.get('repetitions', 0)
+                                            })
+                                            print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards (fallback)")
+                        except Exception as fallback_error:
+                            print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
+                            continue
             
             print(f"🔍 DEBUG: Total cards checked: {total_cards_checked}, Due cards: {len(due_cards)}")
             debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards in hub {hub_id}")
