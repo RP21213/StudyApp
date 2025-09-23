@@ -7,6 +7,8 @@ import json
 import markdown
 import re
 import random
+import traceback
+import sys
 from datetime import datetime, timezone
 from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify, session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -7848,12 +7850,16 @@ def get_enhanced_flashcards(activity_id):
         return jsonify({"success": False, "message": "Failed to get flashcards"}), 500
 
 
+# Import debugging system
+from debug_spaced_repetition import debugger, debug_logger, log_user_action, log_system_health
+
 # ==============================================================================
 # SPACED REPETITION SYSTEM - PHASE 2 IMPLEMENTATION
 # ==============================================================================
 
 @app.route("/api/spaced_repetition/create_session", methods=["POST"])
 @login_required
+@debug_logger
 def create_review_session():
     """Create a new spaced repetition review session"""
     try:
@@ -7862,20 +7868,28 @@ def create_review_session():
         session_type = data.get('session_type', 'spaced_repetition')
         max_cards = data.get('max_cards', 20)
         
+        # Debug logging
+        debugger.log_api_call('/api/spaced_repetition/create_session', 'POST', current_user.id, data)
+        log_user_action(current_user.id, 'create_review_session', {'hub_id': hub_id, 'max_cards': max_cards})
+        
         if not hub_id:
+            debugger.logger.warning(f"User {current_user.id} attempted to create session without hub_id")
             return jsonify({"success": False, "message": "Hub ID is required"}), 400
         
         # Get due cards for this hub
         due_cards_response = get_due_cards(hub_id)
         if not due_cards_response[0].get_json().get('success'):
+            debugger.logger.error(f"Failed to get due cards for hub {hub_id}")
             return jsonify({"success": False, "message": "Failed to get due cards"}), 500
         
         due_cards = due_cards_response[0].get_json().get('due_cards', [])
+        debugger.logger.info(f"Found {len(due_cards)} due cards for hub {hub_id}")
         
         # Limit cards for this session
         session_cards = due_cards[:max_cards]
         
         if not session_cards:
+            debugger.logger.info(f"No cards due for review in hub {hub_id}")
             return jsonify({
                 "success": True,
                 "message": "No cards due for review",
@@ -7895,15 +7909,26 @@ def create_review_session():
         
         session_ref.set(session.to_dict())
         
-        return jsonify({
+        debugger.log_session_event(session.id, 'created', {
+            'user_id': current_user.id,
+            'hub_id': hub_id,
+            'cards_count': len(session_cards)
+        })
+        
+        response_data = {
             "success": True,
             "session_id": session.id,
             "cards": session_cards,
             "total_cards": len(session_cards)
-        })
+        }
+        
+        debugger.log_api_call('/api/spaced_repetition/create_session', 'POST', current_user.id, data, response_data)
+        
+        return jsonify(response_data)
         
     except Exception as e:
-        print(f"Error creating review session: {e}")
+        debugger.logger.error(f"Error creating review session: {e}")
+        debugger.logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "message": "Failed to create session"}), 500
 
 
@@ -8236,6 +8261,7 @@ def get_due_cards(hub_id):
 
 @app.route("/api/spaced_repetition/review_card", methods=["POST"])
 @login_required
+@debug_logger
 def review_card():
     """Process a card review and update its spaced repetition data"""
     try:
@@ -8243,7 +8269,12 @@ def review_card():
         card_id = data.get('card_id')
         quality_rating = data.get('quality_rating')  # 0=again, 1=hard, 2=good, 3=easy
         
+        # Debug logging
+        debugger.log_api_call('/api/spaced_repetition/review_card', 'POST', current_user.id, data)
+        log_user_action(current_user.id, 'review_card', {'card_id': card_id, 'rating': quality_rating})
+        
         if not card_id or quality_rating is None:
+            debugger.logger.warning(f"User {current_user.id} attempted card review with missing data")
             return jsonify({"success": False, "message": "Missing card_id or quality_rating"}), 400
         
         # Get the card
@@ -8251,25 +8282,45 @@ def review_card():
         card_doc = card_ref.get()
         
         if not card_doc.exists:
+            debugger.logger.error(f"Card {card_id} not found for user {current_user.id}")
             return jsonify({"success": False, "message": "Card not found"}), 404
         
         # Update the card with new review data
         sr_card = SpacedRepetitionCard.from_dict(card_doc.to_dict())
+        old_interval = sr_card.interval_days
+        old_ease_factor = sr_card.ease_factor
+        
         sr_card.calculate_next_review(quality_rating)
+        
+        # Log algorithm calculation
+        debugger.log_algorithm_calculation(
+            card_id, 
+            old_interval, 
+            quality_rating, 
+            sr_card.interval_days, 
+            sr_card.ease_factor
+        )
         
         # Save updated card
         card_ref.update(sr_card.to_dict())
         
-        return jsonify({
+        debugger.logger.info(f"Card {card_id} updated: {old_interval}d -> {sr_card.interval_days}d")
+        
+        response_data = {
             "success": True,
             "message": "Card reviewed successfully",
             "next_review": sr_card.next_review.isoformat() if sr_card.next_review else None,
             "interval_days": sr_card.interval_days,
             "ease_factor": sr_card.ease_factor
-        })
+        }
+        
+        debugger.log_api_call('/api/spaced_repetition/review_card', 'POST', current_user.id, data, response_data)
+        
+        return jsonify(response_data)
         
     except Exception as e:
-        print(f"Error reviewing card: {e}")
+        debugger.logger.error(f"Error reviewing card: {e}")
+        debugger.logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "message": "Failed to review card"}), 500
 
 
@@ -8323,5 +8374,123 @@ def get_spaced_repetition_stats(hub_id):
         return jsonify({"success": False, "message": "Failed to get stats"}), 500
 
 
+@app.route("/api/spaced_repetition/system_health")
+@login_required
+def get_system_health():
+    """Get system health and debugging information"""
+    try:
+        # Get system health metrics
+        health_metrics = log_system_health()
+        
+        # Get recent errors
+        recent_errors = debugger._get_recent_errors()
+        
+        # Get log file information
+        log_files = debugger._get_log_file_info()
+        
+        # Get spaced repetition statistics
+        try:
+            # Get total cards across all hubs
+            total_cards = 0
+            total_due_cards = 0
+            
+            # Get user's hubs
+            hubs_query = db.collection('hubs').where('user_id', '==', current_user.id)
+            hubs = hubs_query.stream()
+            
+            for hub in hubs:
+                hub_id = hub.id
+                
+                # Count total cards
+                cards_query = db.collection('spaced_repetition_cards').where('activity_id', 'in', 
+                    [activity.id for activity in db.collection('activities').where('hub_id', '==', hub_id).stream()])
+                total_cards += len(list(cards_query.stream()))
+                
+                # Count due cards
+                due_query = db.collection('spaced_repetition_cards').where('next_review', '<=', datetime.now(timezone.utc))
+                total_due_cards += len(list(due_query.stream()))
+        
+        except Exception as e:
+            debugger.logger.warning(f"Error getting spaced repetition stats: {e}")
+            total_cards = 0
+            total_due_cards = 0
+        
+        health_data = {
+            "success": True,
+            "system_health": health_metrics,
+            "spaced_repetition_stats": {
+                "total_cards": total_cards,
+                "due_cards": total_due_cards,
+                "system_status": "operational" if total_cards > 0 else "no_cards"
+            },
+            "recent_errors": recent_errors,
+            "log_files": log_files,
+            "debugging_enabled": True,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        debugger.log_api_call('/api/spaced_repetition/system_health', 'GET', current_user.id, None, health_data)
+        
+        return jsonify(health_data)
+        
+    except Exception as e:
+        debugger.logger.error(f"Error getting system health: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to get system health",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }), 500
+
+
+@app.route("/api/spaced_repetition/debug_report")
+@login_required
+def generate_debug_report():
+    """Generate comprehensive debug report"""
+    try:
+        report = debugger.create_debug_report()
+        
+        debugger.log_api_call('/api/spaced_repetition/debug_report', 'GET', current_user.id, None, report)
+        
+        return jsonify({
+            "success": True,
+            "report": report,
+            "message": "Debug report generated successfully"
+        })
+        
+    except Exception as e:
+        debugger.logger.error(f"Error generating debug report: {e}")
+        return jsonify({
+            "success": False,
+            "message": "Failed to generate debug report",
+            "error": str(e)
+        }), 500
+
+
+@app.route("/spaced_repetition/settings")
+@login_required
+def spaced_repetition_settings():
+    """Serve the spaced repetition settings page"""
+    try:
+        debugger.log_api_call('/spaced_repetition/settings', 'GET', current_user.id)
+        return render_template('spaced_repetition_settings.html')
+    except Exception as e:
+        debugger.logger.error(f"Error serving settings page: {e}")
+        return render_template('error.html', error="Failed to load settings page"), 500
+
+
 if __name__ == '__main__':
+    # Initialize debugging system
+    print("Initializing Spaced Repetition Debugging System...")
+    debugger.logger.info("Starting Flask application with spaced repetition system")
+    
+    # Log system startup
+    startup_info = {
+        'python_version': sys.version,
+        'platform': sys.platform,
+        'working_directory': os.getcwd(),
+        'timestamp': datetime.now(timezone.utc).isoformat()
+    }
+    debugger.logger.info(f"Application startup: {json.dumps(startup_info)}")
+    
     app.run(debug=True)

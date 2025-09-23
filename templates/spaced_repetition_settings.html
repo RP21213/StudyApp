@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaced Repetition Settings - StudyBot</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .settings-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .settings-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .settings-content {
+            padding: 40px;
+        }
+
+        .settings-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .setting-group {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .setting-group:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .setting-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .setting-range {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .range-value {
+            text-align: center;
+            font-weight: 600;
+            color: #667eea;
+            margin-top: 5px;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .debug-section {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .debug-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .debug-content {
+            display: none;
+        }
+
+        .debug-content.active {
+            display: block;
+        }
+
+        .debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            font-family: monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .settings-content {
+                padding: 20px;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .settings-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1>🧠 Spaced Repetition Settings</h1>
+            <p>Customize your learning experience for optimal retention</p>
+        </div>
+
+        <div class="settings-content">
+            <div id="status-message" class="status-message"></div>
+
+            <!-- Basic Settings -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i data-lucide="settings"></i>
+                    Basic Settings
+                </h2>
+                
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">New Cards Per Day</label>
+                            <div class="setting-description">Maximum number of new cards to introduce each day</div>
+                            <input type="number" id="new-cards-per-day" class="setting-input" min="1" max="100" value="20">
+                            <div class="preset-buttons">
+                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 10)">10</button>
+                                <button class="preset-btn active" onclick="setPreset('new-cards-per-day', 20)">20</button>
+                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 30)">30</button>
+                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 50)">50</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Max Reviews Per Day</label>
+                            <div class="setting-description">Maximum number of cards to review in a single day</div>
+                            <input type="number" id="max-reviews-per-day" class="setting-input" min="10" max="1000" value="200">
+                            <div class="preset-buttons">
+                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 100)">100</button>
+                                <button class="preset-btn active" onclick="setPreset('max-reviews-per-day', 200)">200</button>
+                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 300)">300</button>
+                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 500)">500</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Settings -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i data-lucide="brain"></i>
+                    Algorithm Settings
+                </h2>
+                
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Easy Bonus</label>
+                            <div class="setting-description">Multiplier for "Easy" ratings (higher = longer intervals)</div>
+                            <input type="range" id="easy-bonus" class="setting-range" min="1.0" max="2.0" step="0.1" value="1.3">
+                            <div class="range-value" id="easy-bonus-value">1.3</div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Interval Modifier</label>
+                            <div class="setting-description">Global multiplier for all intervals (1.0 = normal)</div>
+                            <input type="range" id="interval-modifier" class="setting-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                            <div class="range-value" id="interval-modifier-value">1.0</div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Max Interval (Days)</label>
+                            <div class="setting-description">Maximum interval between reviews</div>
+                            <input type="number" id="max-interval" class="setting-input" min="30" max="36500" value="36500">
+                            <div class="preset-buttons">
+                                <button class="preset-btn" onclick="setPreset('max-interval', 365)">1 Year</button>
+                                <button class="preset-btn" onclick="setPreset('max-interval', 1825)">5 Years</button>
+                                <button class="preset-btn active" onclick="setPreset('max-interval', 36500)">100 Years</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Min Interval (Days)</label>
+                            <div class="setting-description">Minimum interval between reviews</div>
+                            <input type="number" id="min-interval" class="setting-input" min="1" max="30" value="1">
+                            <div class="preset-buttons">
+                                <button class="preset-btn active" onclick="setPreset('min-interval', 1)">1 Day</button>
+                                <button class="preset-btn" onclick="setPreset('min-interval', 2)">2 Days</button>
+                                <button class="preset-btn" onclick="setPreset('min-interval', 7)">1 Week</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Steps -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i data-lucide="graduation-cap"></i>
+                    Learning Steps
+                </h2>
+                
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Learning Steps</label>
+                            <div class="setting-description">Intervals for new cards (space-separated minutes)</div>
+                            <input type="text" id="learning-steps" class="setting-input" value="1 10">
+                            <div class="preset-buttons">
+                                <button class="preset-btn active" onclick="setPreset('learning-steps', '1 10')">Default</button>
+                                <button class="preset-btn" onclick="setPreset('learning-steps', '1 5 15')">Fast</button>
+                                <button class="preset-btn" onclick="setPreset('learning-steps', '1 10 30')">Slow</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Lapse Steps</label>
+                            <div class="setting-description">Intervals for forgotten cards (space-separated minutes)</div>
+                            <input type="text" id="lapse-steps" class="setting-input" value="10">
+                            <div class="preset-buttons">
+                                <button class="preset-btn active" onclick="setPreset('lapse-steps', '10')">Default</button>
+                                <button class="preset-btn" onclick="setPreset('lapse-steps', '5 15')">Fast</button>
+                                <button class="preset-btn" onclick="setPreset('lapse-steps', '15 30')">Slow</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Lapse Interval</label>
+                            <div class="setting-description">Interval multiplier when card is forgotten</div>
+                            <input type="range" id="lapse-interval" class="setting-range" min="0.1" max="1.0" step="0.1" value="0.1">
+                            <div class="range-value" id="lapse-interval-value">0.1</div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <div class="setting-item">
+                            <label class="setting-label">Graduated Interval</label>
+                            <div class="setting-description">First interval after completing learning steps</div>
+                            <input type="number" id="graduated-interval" class="setting-input" min="1" max="30" value="1">
+                            <div class="preset-buttons">
+                                <button class="preset-btn active" onclick="setPreset('graduated-interval', 1)">1 Day</button>
+                                <button class="preset-btn" onclick="setPreset('graduated-interval', 2)">2 Days</button>
+                                <button class="preset-btn" onclick="setPreset('graduated-interval', 7)">1 Week</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Section -->
+            <div class="debug-section">
+                <div class="debug-toggle">
+                    <input type="checkbox" id="debug-toggle" onchange="toggleDebug()">
+                    <label for="debug-toggle">Show Debug Information</label>
+                </div>
+                
+                <div id="debug-content" class="debug-content">
+                    <h3>System Health</h3>
+                    <div id="debug-info" class="debug-info">Loading...</div>
+                    <button class="btn btn-secondary" onclick="refreshDebugInfo()">
+                        <i data-lucide="refresh-cw"></i>
+                        Refresh Debug Info
+                    </button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="settings-actions">
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <i data-lucide="save"></i>
+                    Save Settings
+                </button>
+                <button class="btn btn-secondary" onclick="resetToDefaults()">
+                    <i data-lucide="rotate-ccw"></i>
+                    Reset to Defaults
+                </button>
+                <button class="btn btn-success" onclick="testSettings()">
+                    <i data-lucide="play"></i>
+                    Test Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Load current settings
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/spaced_repetition/user_settings');
+                const data = await response.json();
+                
+                if (data.success && data.settings) {
+                    const settings = data.settings;
+                    
+                    // Populate form fields
+                    document.getElementById('new-cards-per-day').value = settings.new_cards_per_day || 20;
+                    document.getElementById('max-reviews-per-day').value = settings.max_reviews_per_day || 200;
+                    document.getElementById('easy-bonus').value = settings.easy_bonus || 1.3;
+                    document.getElementById('interval-modifier').value = settings.interval_modifier || 1.0;
+                    document.getElementById('max-interval').value = settings.max_interval || 36500;
+                    document.getElementById('min-interval').value = settings.min_interval || 1;
+                    document.getElementById('learning-steps').value = settings.learning_steps || '1 10';
+                    document.getElementById('lapse-steps').value = settings.lapse_steps || '10';
+                    document.getElementById('lapse-interval').value = settings.lapse_interval || 0.1;
+                    document.getElementById('graduated-interval').value = settings.graduated_interval || 1;
+                    
+                    // Update range values
+                    updateRangeValues();
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showStatus('Error loading settings', 'error');
+            }
+        }
+
+        // Update range value displays
+        function updateRangeValues() {
+            document.getElementById('easy-bonus-value').textContent = document.getElementById('easy-bonus').value;
+            document.getElementById('interval-modifier-value').textContent = document.getElementById('interval-modifier').value;
+            document.getElementById('lapse-interval-value').textContent = document.getElementById('lapse-interval').value;
+        }
+
+        // Set preset values
+        function setPreset(fieldId, value) {
+            document.getElementById(fieldId).value = value;
+            
+            // Update active preset button
+            const group = document.getElementById(fieldId).closest('.setting-group');
+            group.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Save settings
+        async function saveSettings() {
+            try {
+                const settings = {
+                    new_cards_per_day: parseInt(document.getElementById('new-cards-per-day').value),
+                    max_reviews_per_day: parseInt(document.getElementById('max-reviews-per-day').value),
+                    easy_bonus: parseFloat(document.getElementById('easy-bonus').value),
+                    interval_modifier: parseFloat(document.getElementById('interval-modifier').value),
+                    max_interval: parseInt(document.getElementById('max-interval').value),
+                    min_interval: parseInt(document.getElementById('min-interval').value),
+                    learning_steps: document.getElementById('learning-steps').value,
+                    lapse_steps: document.getElementById('lapse-steps').value,
+                    lapse_interval: parseFloat(document.getElementById('lapse-interval').value),
+                    graduated_interval: parseInt(document.getElementById('graduated-interval').value)
+                };
+
+                const response = await fetch('/api/spaced_repetition/user_settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings)
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Settings saved successfully!', 'success');
+                } else {
+                    showStatus('Error saving settings: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showStatus('Error saving settings', 'error');
+            }
+        }
+
+        // Reset to defaults
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all settings to defaults?')) {
+                document.getElementById('new-cards-per-day').value = 20;
+                document.getElementById('max-reviews-per-day').value = 200;
+                document.getElementById('easy-bonus').value = 1.3;
+                document.getElementById('interval-modifier').value = 1.0;
+                document.getElementById('max-interval').value = 36500;
+                document.getElementById('min-interval').value = 1;
+                document.getElementById('learning-steps').value = '1 10';
+                document.getElementById('lapse-steps').value = '10';
+                document.getElementById('lapse-interval').value = 0.1;
+                document.getElementById('graduated-interval').value = 1;
+                
+                updateRangeValues();
+                showStatus('Settings reset to defaults', 'success');
+            }
+        }
+
+        // Test settings
+        async function testSettings() {
+            try {
+                const response = await fetch('/api/spaced_repetition/system_health');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Settings test passed! System is operational.', 'success');
+                } else {
+                    showStatus('Settings test failed: ' + data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error testing settings:', error);
+                showStatus('Error testing settings', 'error');
+            }
+        }
+
+        // Toggle debug information
+        function toggleDebug() {
+            const debugContent = document.getElementById('debug-content');
+            const isChecked = document.getElementById('debug-toggle').checked;
+            
+            if (isChecked) {
+                debugContent.classList.add('active');
+                refreshDebugInfo();
+            } else {
+                debugContent.classList.remove('active');
+            }
+        }
+
+        // Refresh debug information
+        async function refreshDebugInfo() {
+            try {
+                const response = await fetch('/api/spaced_repetition/system_health');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const debugInfo = document.getElementById('debug-info');
+                    debugInfo.innerHTML = JSON.stringify(data, null, 2);
+                } else {
+                    document.getElementById('debug-info').innerHTML = 'Error loading debug info: ' + data.message;
+                }
+            } catch (error) {
+                console.error('Error refreshing debug info:', error);
+                document.getElementById('debug-info').innerHTML = 'Error loading debug info: ' + error.message;
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Event listeners for range inputs
+        document.getElementById('easy-bonus').addEventListener('input', updateRangeValues);
+        document.getElementById('interval-modifier').addEventListener('input', updateRangeValues);
+        document.getElementById('lapse-interval').addEventListener('input', updateRangeValues);
+
+        // Load settings on page load
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>

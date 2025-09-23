@@ -151,7 +151,7 @@
                     body: JSON.stringify({ items: selectedItems })
                 });
                 if (response.ok) window.location.reload();
-                else alert('Failed to add items.');
+                else showError('Failed to add items.');
             } else {
                 modal.style.display = 'none';
             }
@@ -172,7 +172,7 @@
                          itemEl.style.opacity = '0';
                          setTimeout(() => itemEl.remove(), 300);
                     } else {
-                        alert('Failed to remove item.');
+                        showError('Failed to remove item.');
                     }
                 }
             }

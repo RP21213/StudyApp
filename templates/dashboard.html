@@ -1147,6 +1147,224 @@
         .score-low { color: var(--danger-color); }
         .score-mid { color: #f59e0b; }
 
+        /* Spaced Repetition Styles */
+        .spaced-repetition-section {
+            background-color: var(--background-white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        
+        .section-header {
+            margin-bottom: 2rem;
+        }
+        
+        .section-header h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        
+        .section-header p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        .spaced-repetition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .sr-card {
+            background: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .sr-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .sr-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .sr-card-header h3 {
+            margin: 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .sr-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sr-badge.urgent {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+        
+        .sr-badge.moderate {
+            background: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fed7aa;
+        }
+        
+        .sr-badge.low {
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .sr-card-content p {
+            margin: 0 0 1rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .sr-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .sr-action-btn:hover {
+            background: #3730a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .sr-action-btn.secondary {
+            background: var(--background-white);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        
+        .sr-action-btn.secondary:hover {
+            background: var(--background-light);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        .progress-stat {
+            text-align: center;
+            padding: 1rem;
+            background: var(--background-light);
+            border-radius: 8px;
+        }
+        
+        .progress-stat .stat-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .progress-stat .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .recent-sessions {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .session-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .session-item:last-child {
+            border-bottom: none;
+        }
+        
+        .session-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .session-date {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .session-stats {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .session-accuracy {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .session-accuracy.high {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+        
+        .session-accuracy.medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .session-accuracy.low {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .no-sessions {
+            text-align: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 2rem 0;
+        }
+
         .settings-container {
             max-width: 800px;
             margin: 0 auto;
@@ -2106,6 +2324,129 @@
         
         .flash-message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
         .flash-success { background-color: #dcfce7; color: #166534; }
+        
+        /* Universal Notification Modal Styles */
+        .universal-notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .universal-notification-modal.visible {
+            opacity: 1;
+        }
+        
+        .universal-notification-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .universal-notification-modal.visible .universal-notification-content {
+            transform: scale(1);
+        }
+        
+        .universal-notification-header {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .universal-notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .universal-notification-content.success .universal-notification-icon {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .universal-notification-content.error .universal-notification-icon {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .universal-notification-content.warning .universal-notification-icon {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        
+        .universal-notification-content.info .universal-notification-icon {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .universal-notification-content.confirm .universal-notification-icon {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .universal-notification-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            flex-grow: 1;
+        }
+        
+        .universal-notification-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .universal-notification-close:hover {
+            color: #374151;
+            background-color: #f3f4f6;
+        }
+        
+        .universal-notification-body {
+            padding: 0 1.5rem 1rem 1.5rem;
+        }
+        
+        .universal-notification-body p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        
+        .universal-notification-footer {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .universal-notification-footer .button {
+            min-width: 80px;
+        }
 
         /* --- ENHANCED SPOTIFY PLAYER CSS - PHASE 1 --- */
         #spotify-player-container {
@@ -3217,6 +3558,152 @@
         function closeCustomAlert() {
             document.getElementById('custom-alert-modal').style.display = 'none';
         }
+        
+        // ==============================================================================
+        // UNIVERSAL NOTIFICATION SYSTEM
+        // ==============================================================================
+        
+        // Universal notification types
+        const NOTIFICATION_TYPES = {
+            SUCCESS: 'success',
+            ERROR: 'error', 
+            WARNING: 'warning',
+            INFO: 'info',
+            CONFIRM: 'confirm'
+        };
+        
+        // Universal notification function
+        function showNotification(message, type = NOTIFICATION_TYPES.INFO, title = null, options = {}) {
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => showNotification(message, type, title, options));
+                return;
+            }
+            
+            // Auto-generate title based on type if not provided
+            if (!title) {
+                switch(type) {
+                    case NOTIFICATION_TYPES.SUCCESS: title = 'Success!'; break;
+                    case NOTIFICATION_TYPES.ERROR: title = 'Error'; break;
+                    case NOTIFICATION_TYPES.WARNING: title = 'Warning'; break;
+                    case NOTIFICATION_TYPES.CONFIRM: title = 'Confirm Action'; break;
+                    default: title = 'Information'; break;
+                }
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'universal-notification-modal';
+            modal.innerHTML = `
+                <div class="universal-notification-content ${type}">
+                    <div class="universal-notification-header">
+                        <div class="universal-notification-icon">
+                            ${getNotificationIcon(type)}
+                        </div>
+                        <h3 class="universal-notification-title">${title}</h3>
+                        <button class="universal-notification-close" onclick="closeUniversalNotification(this)">×</button>
+                    </div>
+                    <div class="universal-notification-body">
+                        <p>${message}</p>
+                    </div>
+                    <div class="universal-notification-footer">
+                        ${getNotificationButtons(type, options)}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Show modal with animation
+            setTimeout(() => {
+                modal.classList.add('visible');
+            }, 10);
+            
+            // Store callback for later use
+            modal.callback = options.callback;
+            modal.confirmCallback = options.confirmCallback;
+            modal.cancelCallback = options.cancelCallback;
+            
+            // Auto-close for non-confirm types after delay
+            if (type !== NOTIFICATION_TYPES.CONFIRM && options.autoClose !== false) {
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        closeUniversalNotification(modal.querySelector('.universal-notification-close'));
+                    }
+                }, options.autoCloseDelay || 5000);
+            }
+        }
+        
+        function getNotificationIcon(type) {
+            switch(type) {
+                case NOTIFICATION_TYPES.SUCCESS:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22,4 12,14.01 9,11.01"></polyline></svg>';
+                case NOTIFICATION_TYPES.ERROR:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+                case NOTIFICATION_TYPES.WARNING:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+                case NOTIFICATION_TYPES.CONFIRM:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9,12l2,2l4,-4"></path></svg>';
+                default:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12,16v-4"></path><path d="M12,8h.01"></path></svg>';
+            }
+        }
+        
+        function getNotificationButtons(type, options) {
+            if (type === NOTIFICATION_TYPES.CONFIRM) {
+                return `
+                    <button class="button button-secondary" onclick="handleNotificationAction(this, 'cancel')">Cancel</button>
+                    <button class="button button-primary" onclick="handleNotificationAction(this, 'confirm')">Confirm</button>
+                `;
+            } else {
+                return `<button class="button button-primary" onclick="closeUniversalNotification(this)">OK</button>`;
+            }
+        }
+        
+        function handleNotificationAction(button, action) {
+            const modal = button.closest('.universal-notification-modal');
+            if (action === 'confirm' && modal.confirmCallback) {
+                modal.confirmCallback();
+            } else if (action === 'cancel' && modal.cancelCallback) {
+                modal.cancelCallback();
+            }
+            closeUniversalNotification(button);
+        }
+        
+        function closeUniversalNotification(button) {
+            const modal = button.closest('.universal-notification-modal');
+            modal.classList.remove('visible');
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, 300);
+        }
+        
+        // Convenience functions for different notification types
+        function showSuccess(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.SUCCESS, title, options);
+        }
+        
+        function showError(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.ERROR, title, options);
+        }
+        
+        function showWarning(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.WARNING, title, options);
+        }
+        
+        function showInfo(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.INFO, title, options);
+        }
+        
+        function showConfirm(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.CONFIRM, title, options);
+        }
+        
+        // Replace window.alert globally
+        window.alert = function(message) {
+            showInfo(message, 'Information');
+        };
 
         function confirmAction() {
             if (confirmationCallback) {
@@ -3425,6 +3912,80 @@
                         {% else %}
                         <p style="padding: 1rem 0; color: var(--text-secondary);">No specific weaknesses identified yet. Keep taking quizzes to get feedback!</p>
                         {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Spaced Repetition Section -->
+                <div class="spaced-repetition-section" style="margin-top: 3rem;">
+                    <div class="section-header">
+                        <h2>🧠 Spaced Repetition</h2>
+                        <p>Review your flashcards using scientifically-proven spaced repetition for optimal long-term retention.</p>
+                    </div>
+                    
+                    <div class="spaced-repetition-grid">
+                        <!-- Due Cards Overview -->
+                        <div class="sr-card due-cards-card">
+                            <div class="sr-card-header">
+                                <h3>📚 Due for Review</h3>
+                                <span class="sr-badge urgent" id="due-cards-badge">0</span>
+                            </div>
+                            <div class="sr-card-content">
+                                <p>Cards that are ready for review based on your learning progress.</p>
+                                <button class="sr-action-btn" id="start-review-btn" onclick="startSpacedRepetitionReview()">
+                                    <i data-lucide="play"></i>
+                                    Start Review Session
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Learning Progress -->
+                        <div class="sr-card progress-card">
+                            <div class="sr-card-header">
+                                <h3>📊 Learning Progress</h3>
+                            </div>
+                            <div class="sr-card-content">
+                                <div class="progress-stats">
+                                    <div class="progress-stat">
+                                        <span class="stat-label">New Cards</span>
+                                        <span class="stat-value" id="new-cards-count">0</span>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <span class="stat-label">Learning</span>
+                                        <span class="stat-value" id="learning-cards-count">0</span>
+                                    </div>
+                                    <div class="progress-stat">
+                                        <span class="stat-label">Mature</span>
+                                        <span class="stat-value" id="mature-cards-count">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Sessions -->
+                        <div class="sr-card sessions-card">
+                            <div class="sr-card-header">
+                                <h3>⏱️ Recent Sessions</h3>
+                            </div>
+                            <div class="sr-card-content">
+                                <div class="recent-sessions" id="recent-sessions-list">
+                                    <p class="no-sessions">No recent sessions yet. Start your first review!</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings -->
+                        <div class="sr-card settings-card">
+                            <div class="sr-card-header">
+                                <h3>⚙️ Settings</h3>
+                            </div>
+                            <div class="sr-card-content">
+                                <p>Customize your spaced repetition experience.</p>
+                                <button class="sr-action-btn secondary" onclick="openSpacedRepetitionSettings()">
+                                    <i data-lucide="settings"></i>
+                                    Configure Settings
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3710,9 +4271,21 @@
             <div class="container">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="flash-message flash-{{ category }}">{{ message }}</div>
-                        {% endfor %}
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                {% for category, message in messages %}
+                                    {% if category == 'success' %}
+                                        showSuccess('{{ message|e }}');
+                                    {% elif category == 'error' %}
+                                        showError('{{ message|e }}');
+                                    {% elif category == 'warning' %}
+                                        showWarning('{{ message|e }}');
+                                    {% else %}
+                                        showInfo('{{ message|e }}');
+                                    {% endif %}
+                                {% endfor %}
+                            });
+                        </script>
                     {% endif %}
                 {% endwith %}
 
@@ -4548,14 +5121,14 @@ Best regards,
                 })
                 .then(response => response.json())
                 .then(data => {
-                    alert(data.message);
+                    showError(data.message);
                     if (data.success) {
                         window.location.reload(); // Reload to reflect changes
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred during the import process.');
+                    showError('An error occurred during the import process.');
                 });
                 
                 importModal.classList.remove('visible');
@@ -4655,7 +5228,7 @@ Best regards,
                 
                 // Check if we have a valid referral code (not "Loading..." or "Generating...")
                 if (!referralCode || referralCode === 'Loading...' || referralCode === 'Generating...' || referralCode.length !== 6) {
-                    alert('Referral code is not ready yet. Please wait a moment and try again.');
+                    showWarning('Referral code is not ready yet. Please wait a moment and try again.');
                     return;
                 }
                 
@@ -4671,7 +5244,7 @@ Best regards,
                     }, 2000);
                 }).catch(err => {
                     console.error('Failed to copy referral code: ', err);
-                    alert('Failed to copy referral code. Please try again.');
+                    showError('Failed to copy referral code. Please try again.');
                 });
             }
 
@@ -5094,7 +5667,7 @@ Best regards,
                                     button.classList.remove('liked');
                                 }
                             } else {
-                                alert(data.message);
+                                showError(data.message);
                             }
                         })
                         .catch(err => console.error('Like action failed:', err));
@@ -5136,11 +5709,11 @@ Best regards,
                         });
                         const result = await response.json();
                         if (!result.success) {
-                            alert('Error saving setting: ' + result.message);
+                            showError('Error saving setting: ' + result.message);
                         }
                     } catch (error) {
                         console.error('Failed to update setting:', error);
-                        alert('An error occurred. Please try again.');
+                        showError('An error occurred. Please try again.');
                     }
                 };
 
@@ -5151,7 +5724,7 @@ Best regards,
                     const confirmPassword = document.getElementById('confirm_password').value;
 
                     if (!newPassword || newPassword !== confirmPassword) {
-                        alert('Passwords do not match or are empty.');
+                        showWarning('Passwords do not match or are empty.');
                         return;
                     }
                     
@@ -5162,14 +5735,14 @@ Best regards,
                              body: JSON.stringify({ new_password: newPassword })
                         });
                         const result = await response.json();
-                        alert(result.message);
+                        showInfo(result.message);
                         if(result.success) {
                              document.getElementById('new_password').value = '';
                              document.getElementById('confirm_password').value = '';
                         }
                     } catch(error) {
                         console.error(error);
-                        alert('An error occurred while changing password.');
+                        showError('An error occurred while changing password.');
                     }
                 });
 
@@ -5675,7 +6248,7 @@ Best regards,
         }
 
         function filterPlaylists() {
-            playlistSelect.innerHTML = '<option value="">Select a Playlist</option>';
+                playlistSelect.innerHTML = '<option value="">Select a Playlist</option>';
             
             let filteredPlaylists = allPlaylists;
             
@@ -6021,7 +6594,7 @@ Best regards,
 
                 if (!welcomeHubCard) {
                     console.error("Onboarding target '.hub-card[data-hub-name*=\"Welcome\"]' not found.");
-                    alert("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
+                    showWarning("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
                     fetch('/onboarding/complete', { method: 'POST' }); 
                     return;
                 }
@@ -6224,12 +6797,12 @@ Best regards,
                             // Refresh study groups list
                             loadStudyGroups();
                         } else {
-                            alert(result.message || 'Error creating study group. Please try again.');
+                            showError(result.message || 'Error creating study group. Please try again.');
                         }
                         
                     } catch (error) {
                         console.error('Error creating study group:', error);
-                        alert('Error creating study group. Please try again.');
+                        showError('Error creating study group. Please try again.');
                     }
                 });
             }
@@ -6255,7 +6828,7 @@ Best regards,
                         const result = await response.json();
                         
                         if (result.success) {
-                            alert('Successfully joined study group!');
+                            showSuccess('Successfully joined study group!');
                             joinStudyGroupModal.classList.remove('visible');
                             
                             // Reset form
@@ -6264,12 +6837,12 @@ Best regards,
                             // Refresh study groups list
                             loadStudyGroups();
                         } else {
-                            alert(result.message || 'Invalid study group code. Please check and try again.');
+                            showError(result.message || 'Invalid study group code. Please check and try again.');
                         }
                         
                     } catch (error) {
                         console.error('Error joining study group:', error);
-                        alert('Error joining study group. Please try again.');
+                        showError('Error joining study group. Please try again.');
                     }
                 });
             }
@@ -6280,7 +6853,7 @@ Best regards,
                 copyCodeBtn.addEventListener('click', () => {
                     const code = document.getElementById('generated-study-group-code').textContent;
                     navigator.clipboard.writeText(code).then(() => {
-                        alert('Study group code copied to clipboard!');
+                        showSuccess('Study group code copied to clipboard!');
                     });
                 });
             }
@@ -6358,11 +6931,11 @@ Best regards,
                         // Display resources in the study groups tab
                         displayStudyGroupResources(result.resources, studyGroupId);
                     } else {
-                        alert(result.message || 'Error loading study group resources');
+                        showError(result.message || 'Error loading study group resources');
                     }
                 } catch (error) {
                     console.error('Error loading study group resources:', error);
-                    alert('Error loading study group resources');
+                    showError('Error loading study group resources');
                 }
             }
 
@@ -6556,11 +7129,11 @@ Best regards,
                         // Show import modal with resource details
                         showImportModal(result.resource);
                     } else {
-                        alert('Error loading resource details. Please try again.');
+                        showError('Error loading resource details. Please try again.');
                     }
                 } catch (error) {
                     console.error('Error loading resource details:', error);
-                    alert('Error loading resource details. Please try again.');
+                    showError('Error loading resource details. Please try again.');
                 }
             }
 
@@ -6642,12 +7215,12 @@ Best regards,
                             }
                         );
                     } else {
-                        alert(result.message || 'Error importing resource. Please try again.');
+                        showError(result.message || 'Error importing resource. Please try again.');
                     }
                     
                 } catch (error) {
                     console.error('Error importing resource:', error);
-                    alert('Error importing resource. Please try again.');
+                    showError('Error importing resource. Please try again.');
                 }
             }
 
@@ -6679,12 +7252,12 @@ Best regards,
                         // Refresh the global resources list to update all counts
                         loadGlobalResources();
                     } else {
-                        alert(result.message || 'Error liking resource. Please try again.');
+                        showError(result.message || 'Error liking resource. Please try again.');
                     }
                     
                 } catch (error) {
                     console.error('Error liking resource:', error);
-                    alert('Error liking resource. Please try again.');
+                    showError('Error liking resource. Please try again.');
                 }
             }
 
@@ -6793,12 +7366,12 @@ Best regards,
                     // Validate form
                     if (!folderId || !title || !description || !hubId) {
                         console.log('Validation failed - missing required fields');
-                        alert('Please fill in all required fields.');
+                        showWarning('Please fill in all required fields.');
                         return;
                     }
 
                     if (shareDestination === 'study_group' && !studyGroupId) {
-                        alert('Please select a study group.');
+                        showWarning('Please select a study group.');
                         return;
                     }
 
@@ -6844,12 +7417,12 @@ Best regards,
                                 }
                             );
                         } else {
-                            alert(result.message || 'Error sharing folder. Please try again.');
+                            showError(result.message || 'Error sharing folder. Please try again.');
                         }
                         
                     } catch (error) {
                         console.error('Error sharing folder:', error);
-                        alert('Error sharing folder. Please try again.');
+                        showError('Error sharing folder. Please try again.');
                     }
                 });
             }
@@ -6937,7 +7510,7 @@ Best regards,
                     const resourceId = importModal.dataset.resourceId;
 
                     if (!hubId || !resourceId) {
-                        alert('Please select a hub to import to.');
+                        showWarning('Please select a hub to import to.');
                         return;
                     }
 
@@ -7036,11 +7609,11 @@ Best regards,
                         }
                     );
                 } else {
-                    alert(result.message || 'Error deleting resource. Please try again.');
+                    showError(result.message || 'Error deleting resource. Please try again.');
                 }
             } catch (error) {
                 console.error('Error deleting resource:', error);
-                alert('Error deleting resource. Please try again.');
+                showError('Error deleting resource. Please try again.');
             }
         }
     </script>
@@ -7283,7 +7856,139 @@ Best regards,
                     }, null, 'Delete Hub');
                 }
             });
+            
+            // Load spaced repetition data when progress tab is active
+            loadSpacedRepetitionData();
         });
+        
+        // Spaced Repetition Functions
+        async function loadSpacedRepetitionData() {
+            try {
+                // Get all hubs for the user
+                const hubsResponse = await fetch('/api/user/hubs');
+                const hubsData = await hubsResponse.json();
+                
+                if (!hubsData.success) {
+                    console.error('Failed to load hubs');
+                    return;
+                }
+                
+                let totalDueCards = 0;
+                let totalCards = 0;
+                let totalNewCards = 0;
+                let totalLearningCards = 0;
+                let totalMatureCards = 0;
+                let allRecentSessions = [];
+                
+                // Get data for each hub
+                for (const hub of hubsData.hubs) {
+                    try {
+                        // Get due cards
+                        const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`);
+                        const dueData = await dueResponse.json();
+                        
+                        if (dueData.success) {
+                            totalDueCards += dueData.total_due;
+                        }
+                        
+                        // Get learning progress
+                        const progressResponse = await fetch(`/api/spaced_repetition/learning_progress/${hub.id}`);
+                        const progressData = await progressResponse.json();
+                        
+                        if (progressData.success) {
+                            totalCards += progressData.progress.total_cards;
+                            totalNewCards += progressData.progress.new_cards;
+                            totalLearningCards += progressData.progress.learning_cards;
+                            totalMatureCards += progressData.progress.mature_cards;
+                        }
+                        
+                        // Get recent sessions
+                        const sessionsResponse = await fetch(`/api/spaced_repetition/recent_sessions/${hub.id}`);
+                        const sessionsData = await sessionsResponse.json();
+                        
+                        if (sessionsData.success) {
+                            allRecentSessions = allRecentSessions.concat(sessionsData.sessions.map(session => ({
+                                ...session,
+                                hub_name: hub.name
+                            })));
+                        }
+                    } catch (error) {
+                        console.error(`Error loading data for hub ${hub.id}:`, error);
+                    }
+                }
+                
+                // Update UI
+                updateSpacedRepetitionUI({
+                    totalDueCards,
+                    totalCards,
+                    totalNewCards,
+                    totalLearningCards,
+                    totalMatureCards,
+                    recentSessions: allRecentSessions.slice(0, 5) // Show only 5 most recent
+                });
+                
+            } catch (error) {
+                console.error('Error loading spaced repetition data:', error);
+            }
+        }
+        
+        function updateSpacedRepetitionUI(data) {
+            // Update due cards badge
+            const dueCardsBadge = document.getElementById('due-cards-badge');
+            if (dueCardsBadge) {
+                dueCardsBadge.textContent = data.totalDueCards;
+                
+                // Update badge color based on urgency
+                dueCardsBadge.className = 'sr-badge';
+                if (data.totalDueCards > 20) {
+                    dueCardsBadge.classList.add('urgent');
+                } else if (data.totalDueCards > 5) {
+                    dueCardsBadge.classList.add('moderate');
+                } else {
+                    dueCardsBadge.classList.add('low');
+                }
+            }
+            
+            // Update progress stats
+            document.getElementById('new-cards-count').textContent = data.totalNewCards;
+            document.getElementById('learning-cards-count').textContent = data.totalLearningCards;
+            document.getElementById('mature-cards-count').textContent = data.totalMatureCards;
+            
+            // Update recent sessions
+            const recentSessionsList = document.getElementById('recent-sessions-list');
+            if (recentSessionsList) {
+                if (data.recentSessions.length === 0) {
+                    recentSessionsList.innerHTML = '<p class="no-sessions">No recent sessions yet. Start your first review!</p>';
+                } else {
+                    recentSessionsList.innerHTML = data.recentSessions.map(session => {
+                        const date = new Date(session.started_at).toLocaleDateString();
+                        const accuracyClass = session.accuracy >= 80 ? 'high' : session.accuracy >= 60 ? 'medium' : 'low';
+                        
+                        return `
+                            <div class="session-item">
+                                <div class="session-info">
+                                    <div class="session-date">${date} - ${session.hub_name}</div>
+                                    <div class="session-stats">${session.cards_reviewed} cards</div>
+                                </div>
+                                <div class="session-accuracy ${accuracyClass}">
+                                    ${Math.round(session.accuracy)}%
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        }
+        
+        function startSpacedRepetitionReview() {
+            // Redirect to spaced repetition review page
+            window.location.href = '/spaced_repetition/review';
+        }
+        
+        function openSpacedRepetitionSettings() {
+            // Open the dedicated settings page
+            window.open('/spaced_repetition/settings', '_blank');
+        }
     </script>
 </body>
 </html>

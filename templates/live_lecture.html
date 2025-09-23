@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Error accessing microphone:', err);
-            alert('Could not access the microphone. Please check your browser permissions.');
+            showError('Could not access the microphone. Please check your browser permissions.');
         }
     }
 
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Error uploading file:', err);
-            alert('An error occurred while generating notes: ' + err.message);
+            showError('An error occurred while generating notes: ' + err.message);
             // Reset UI
             startBtn.style.display = 'block';
             stopBtn.style.display = 'none';

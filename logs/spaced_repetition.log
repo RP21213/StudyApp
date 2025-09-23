@@ -1,0 +1,44 @@
+2025-09-23 16:34:00,581 - spaced_repetition.api - INFO - API Call: POST /api/test
+2025-09-23 16:34:00,581 - spaced_repetition.api - INFO - User: test_user
+2025-09-23 16:34:00,582 - spaced_repetition.algorithm - INFO - Card card_123: 1d -> 6d (rating: 2, ease: 2.50)
+2025-09-23 16:34:00,582 - spaced_repetition.session - INFO - Session session_456: started
+2025-09-23 16:34:00,583 - spaced_repetition - ERROR - Test error caught: Test error for debugging
+2025-09-23 16:37:18,594 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:37:18,595 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:37:18.595739+00:00"}
+2025-09-23 16:37:18,662 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-09-23 16:37:18,662 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-09-23 16:37:18,662 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 16:37:24,363 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:37:24,364 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:37:24.363966+00:00"}
+2025-09-23 16:37:24,372 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 16:37:24,378 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 16:37:29,425 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\check_flashcards.py', reloading
+2025-09-23 16:37:30,025 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 16:37:35,457 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:37:35,458 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:37:35.458169+00:00"}
+2025-09-23 16:37:35,463 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 16:37:35,471 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 16:37:53,598 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\check_flashcards.py', reloading
+2025-09-23 16:37:54,272 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 16:38:00,361 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:38:00,362 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:38:00.362283+00:00"}
+2025-09-23 16:38:00,370 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 16:38:00,378 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 16:38:30,357 - werkzeug - INFO - 127.0.0.1 - - [23/Sep/2025 16:38:30] "[32mPOST /admin/migrate_flashcards_to_spaced_repetition HTTP/1.1[0m" 302 -
+2025-09-23 16:38:30,378 - werkzeug - INFO - 127.0.0.1 - - [23/Sep/2025 16:38:30] "GET /login?next=/admin/migrate_flashcards_to_spaced_repetition HTTP/1.1" 200 -
+2025-09-23 16:40:44,891 - werkzeug - INFO - 127.0.0.1 - - [23/Sep/2025 16:40:44] "[32mPOST /admin/migrate_flashcards_to_spaced_repetition HTTP/1.1[0m" 302 -
+2025-09-23 16:40:44,895 - werkzeug - INFO - 127.0.0.1 - - [23/Sep/2025 16:40:44] "GET /login?next=/admin/migrate_flashcards_to_spaced_repetition HTTP/1.1" 200 -
+2025-09-23 16:40:51,309 - werkzeug - INFO - 127.0.0.1 - - [23/Sep/2025 16:40:51] "GET / HTTP/1.1" 200 -
+2025-09-23 16:47:17,328 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\check_flashcards.py', reloading
+2025-09-23 16:47:17,820 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 16:47:23,166 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:47:23,166 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:47:23.166491+00:00"}
+2025-09-23 16:47:23,171 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 16:47:23,178 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 16:51:18,763 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\test_migration.py', reloading
+2025-09-23 16:51:19,298 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 16:51:24,754 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 16:51:24,766 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T15:51:24.765833+00:00"}
+2025-09-23 16:51:24,772 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 16:51:24,781 - werkzeug - INFO -  * Debugger PIN: 651-930-276

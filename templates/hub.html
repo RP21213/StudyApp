@@ -1114,48 +1114,7 @@
             overflow: hidden;
         }
         
-        /* NEW Banner for Lecture Notes Navigation Link */
-        .nav-link[data-tab="lecture_notes"] {
-            position: relative;
-        }
-        .nav-link[data-tab="lecture_notes"]::before {
-            content: 'New';
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-            color: white;
-            font-size: 0.65rem;
-            font-weight: 900;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            z-index: 20;
-            letter-spacing: 0.3px;
-            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
-            line-height: 1;
-        }
         
-        /* NEW Ribbon for "In a Lecture" */
-        .tool-category-button[data-target="in-lecture-tools"]::before {
-            content: 'NEW';
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 900;
-            padding: 0.5rem 2rem;
-            transform: rotate(45deg) translate(35%, -35%);
-            transform-origin: top right;
-            box-shadow: 0 3px 8px rgba(59, 130, 246, 0.4);
-            z-index: 20;
-            letter-spacing: 0.5px;
-            border-radius: 3px;
-            min-width: 80px;
-            text-align: center;
-            line-height: 1;
-        }
         
         /* Gradient for "Revision & Exams" */
         .tool-category-button[data-target="revision-exams-tools"] {
@@ -1979,6 +1938,127 @@
                 transform: scale(1.1);
             }
         }
+        .universal-notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .universal-notification-modal.visible {
+            opacity: 1;
+        }
+        
+        .universal-notification-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .universal-notification-modal.visible .universal-notification-content {
+            transform: scale(1);
+        }
+        
+        .universal-notification-header {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .universal-notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .universal-notification-content.success .universal-notification-icon {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .universal-notification-content.error .universal-notification-icon {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .universal-notification-content.warning .universal-notification-icon {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+        
+        .universal-notification-content.info .universal-notification-icon {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .universal-notification-content.confirm .universal-notification-icon {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+        
+        .universal-notification-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            flex-grow: 1;
+        }
+        
+        .universal-notification-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .universal-notification-close:hover {
+            color: #374151;
+            background-color: #f3f4f6;
+        }
+        
+        .universal-notification-body {
+            padding: 0 1.5rem 1rem 1.5rem;
+        }
+        
+        .universal-notification-body p {
+            margin: 0;
+            color: #4b5563;
+            line-height: 1.5;
+        }
+        
+        .universal-notification-footer {
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+        
+        .universal-notification-footer .button {
+            min-width: 80px;
+        }
     </style>
 
     <!-- Custom Modal Functions -->
@@ -2178,7 +2258,7 @@
             <header class="top-bar">
                 <div class="user-profile-section">
                         <button class="button button-primary" id="quick-action-upload">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 14l5-5 5 5"></path><path d="M12 9v12"></path></svg>
                             Upload
                         </button>
                          <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
@@ -2346,7 +2426,7 @@
                                 </div>
                                 <div class="feature-icon-wrapper" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
                                 <div class="feature-text">
-                                    <h4>Take Notes with Slides<span class="new-label">NEW</span></h4>
+                                    <h4>Take Notes with Slides</h4>
                                     <p>Upload your lecture slides (PDF) to open a split-screen workspace with AI tutor, quiz generation, and flashcard creation.</p>
                                 </div>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -3015,6 +3095,133 @@
     {% endif %}
 
     <script>
+        // Universal Notification System (copied from dashboard)
+        const NOTIFICATION_TYPES = {
+            SUCCESS: 'success',
+            ERROR: 'error', 
+            WARNING: 'warning',
+            INFO: 'info',
+            CONFIRM: 'confirm'
+        };
+        
+        function showNotification(message, type = NOTIFICATION_TYPES.INFO, title = null, options = {}) {
+            if (!title) {
+                switch(type) {
+                    case NOTIFICATION_TYPES.SUCCESS: title = 'Success!'; break;
+                    case NOTIFICATION_TYPES.ERROR: title = 'Error'; break;
+                    case NOTIFICATION_TYPES.WARNING: title = 'Warning'; break;
+                    case NOTIFICATION_TYPES.CONFIRM: title = 'Confirm Action'; break;
+                    default: title = 'Information'; break;
+                }
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'universal-notification-modal';
+            modal.innerHTML = `
+                <div class="universal-notification-content ${type}">
+                    <div class="universal-notification-header">
+                        <div class="universal-notification-icon">
+                            ${getNotificationIcon(type)}
+                        </div>
+                        <h3 class="universal-notification-title">${title}</h3>
+                        <button class="universal-notification-close" onclick="closeUniversalNotification(this)">×</button>
+                    </div>
+                    <div class="universal-notification-body">
+                        <p>${message}</p>
+                    </div>
+                    <div class="universal-notification-footer">
+                        ${getNotificationButtons(type, options)}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            setTimeout(() => modal.classList.add('visible'), 10);
+            
+            modal.callback = options.callback;
+            modal.confirmCallback = options.confirmCallback;
+            modal.cancelCallback = options.cancelCallback;
+            
+            if (type !== NOTIFICATION_TYPES.CONFIRM && options.autoClose !== false) {
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        closeUniversalNotification(modal.querySelector('.universal-notification-close'));
+                    }
+                }, options.autoCloseDelay || 5000);
+            }
+        }
+        
+        function getNotificationIcon(type) {
+            switch(type) {
+                case NOTIFICATION_TYPES.SUCCESS:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22,4 12,14.01 9,11.01"></polyline></svg>';
+                case NOTIFICATION_TYPES.ERROR:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+                case NOTIFICATION_TYPES.WARNING:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+                case NOTIFICATION_TYPES.CONFIRM:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9,12l2,2l4,-4"></path></svg>';
+                default:
+                    return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12,16v-4"></path><path d="M12,8h.01"></path></svg>';
+            }
+        }
+        
+        function getNotificationButtons(type, options) {
+            if (type === NOTIFICATION_TYPES.CONFIRM) {
+                return `
+                    <button class="button button-secondary" onclick="handleNotificationAction(this, 'cancel')">Cancel</button>
+                    <button class="button button-primary" onclick="handleNotificationAction(this, 'confirm')">Confirm</button>
+                `;
+            } else {
+                return `<button class="button button-primary" onclick="closeUniversalNotification(this)">OK</button>`;
+            }
+        }
+        
+        function handleNotificationAction(button, action) {
+            const modal = button.closest('.universal-notification-modal');
+            if (action === 'confirm' && modal.confirmCallback) {
+                modal.confirmCallback();
+            } else if (action === 'cancel' && modal.cancelCallback) {
+                modal.cancelCallback();
+            }
+            closeUniversalNotification(button);
+        }
+        
+        function closeUniversalNotification(button) {
+            const modal = button.closest('.universal-notification-modal');
+            modal.classList.remove('visible');
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, 300);
+        }
+        
+        function showSuccess(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.SUCCESS, title, options);
+        }
+        
+        function showError(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.ERROR, title, options);
+        }
+        
+        function showWarning(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.WARNING, title, options);
+        }
+        
+        function showInfo(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.INFO, title, options);
+        }
+        
+        function showConfirm(message, title = null, options = {}) {
+            showNotification(message, NOTIFICATION_TYPES.CONFIRM, title, options);
+        }
+        
+        // Replace window.alert globally
+        window.alert = function(message) {
+            showInfo(message, 'Information');
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             const hubId = '{{ hub.id }}';
             const sidebar = document.getElementById('sidebar');
@@ -3792,19 +3999,19 @@
                 const form = e.target;
                 const lectureFiles = Array.from(form.querySelectorAll('input[name="exam-kit-lecture-files_files"]:checked')).map(cb => cb.value);
                 const pastPaperFiles = Array.from(form.querySelectorAll('input[name="exam-kit-past-paper-files_files"]:checked')).map(cb => cb.value);
-                if(lectureFiles.length === 0) return alert("Please select at least one main lecture document.");
+                if(lectureFiles.length === 0) return showWarning("Please select at least one main lecture document.");
                 examKitModal.style.display = 'none';
                 showLoading("Assembling Your Exam Kit...", "Analyzing documents and generating resources.");
                  try {
                     const response = await fetch(`/hub/${hubId}/build_exam_kit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ lecture_files: lectureFiles, past_paper_files: pastPaperFiles }) });
                     const result = await response.json();
                     if (result.success) { window.location.hash = 'folders'; window.location.reload(); } 
-                    else { alert(`Error: ${result.message}`); hideLoading(); }
-                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
+                    else { showError(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
             });
             
             function openStudyPlanModal() {
-                 if(getAllFiles().length === 0) return alert("Please upload at least one syllabus document first.");
+                 if(getAllFiles().length === 0) return showWarning("Please upload at least one syllabus document first.");
                  populateModalFileList('study-plan-files', getAllFiles());
                  studyPlanModal.style.display = 'flex';
             }
@@ -3814,14 +4021,14 @@
                  const form = e.target;
                  const syllabusFiles = Array.from(form.querySelectorAll('input[name="study-plan-files_files"]:checked')).map(cb => cb.value);
                  const deadline = form.deadline.value;
-                 if (syllabusFiles.length === 0) return alert("Please select a syllabus document.");
+                 if (syllabusFiles.length === 0) return showWarning("Please select a syllabus document.");
                  showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
                 try {
                     const response = await fetch(`/hub/${hubId}/create_study_plan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline }) });
                     const result = await response.json();
                      if (result.success) { window.location.hash = 'calendar'; window.location.reload(); }
-                     else { alert(`Error: ${result.message}`); hideLoading(); }
-                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
+                     else { showError(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
             });
             
             async function handleQuickToolSubmit(toolName, selectedFiles) {
@@ -3832,8 +4039,8 @@
                     const result = await response.json();
                     if (result.success) {
                         window.location.href = result.redirect_url;
-                    } else { alert(`Error: ${result.message}`); hideLoading(); }
-                } catch (error) { alert('A network or server error occurred.'); hideLoading(); }
+                    } else { showError(`Error: ${result.message}`); hideLoading(); }
+                } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
             }
 
             function getAllFiles() {
@@ -3878,8 +4085,8 @@
                     if(result.success) {
                         scheduleModal.style.display = 'none';
                         calendar.refetchEvents();
-                    } else { alert(`Error: ${result.message}`); }
-                } catch(err) { alert('A network error occurred.'); }
+                    } else { showError(`Error: ${result.message}`); }
+                } catch(err) { showError('A network error occurred.'); }
             });
             
             const bell = document.getElementById('notification-bell');
@@ -4039,7 +4246,7 @@
             function openToolFileSelectModal(toolName) {
                 const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
                 if (fileSpans.length === 0) {
-                    alert("Please upload a document first to use this tool.");
+                    showWarning("Please upload a document first to use this tool.");
                     return;
                 }
                 
@@ -4072,7 +4279,7 @@
             document.getElementById('tool-file-select-submit').addEventListener('click', () => {
                 const selectedFiles = Array.from(document.querySelectorAll('#tool-file-select-list input:checked')).map(cb => cb.value);
                 if (selectedFiles.length === 0) {
-                    alert("Please select at least one file.");
+                    showWarning("Please select at least one file.");
                     return;
                 }
                 toolFileSelectModal.style.display = 'none';
@@ -4267,7 +4474,7 @@
                 const textInput = sqTextInput.value.trim();
                 const fileInput = sqFileInput.files[0];
                 if (!textInput && !fileInput) {
-                    return alert("Please type a question or upload a file.");
+                    return showWarning("Please type a question or upload a file.");
                 }
 
                 setSqLoading(true, "Reading your question...");
@@ -4287,7 +4494,7 @@
                     sqQuestionPreview.innerHTML = marked.parse(result.extracted_question);
                     showSqScreen('confirm');
                 } catch (error) {
-                    alert(`Error: ${error.message}`);
+                    showError(`Error: ${error.message}`);
                 } finally {
                     setSqLoading(false);
                 }
@@ -4718,7 +4925,7 @@
                     } else {
                         // Add to favourites (check limit)
                         if (this.favourites.length >= 5) {
-                            alert('You can only have up to 5 favourite tools!');
+                            showWarning('You can only have up to 5 favourite tools!');
                             return;
                         }
                         await this.addFavourite(toolId);
@@ -4746,11 +4953,11 @@
                         if (data.success) {
                             this.loadFavourites(); // Reload favourites
                         } else {
-                            alert('Error adding favourite: ' + (data.message || 'Unknown error'));
+                            showError('Error adding favourite: ' + (data.message || 'Unknown error'));
                         }
                     } catch (error) {
                         console.error('Error adding favourite:', error);
-                        alert('Error adding favourite. Please try again.');
+                        showError('Error adding favourite. Please try again.');
                     }
                 },
 
@@ -4768,11 +4975,11 @@
                         if (data.success) {
                             this.loadFavourites(); // Reload favourites
                         } else {
-                            alert('Error removing favourite: ' + (data.message || 'Unknown error'));
+                            showError('Error removing favourite: ' + (data.message || 'Unknown error'));
                         }
                     } catch (error) {
                         console.error('Error removing favourite:', error);
-                        alert('Error removing favourite. Please try again.');
+                        showError('Error removing favourite. Please try again.');
                     }
                 },
 
@@ -5673,13 +5880,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (result.success) {
                     titleElement.innerHTML = newTitle;
                 } else {
-                    alert('Error updating title: ' + (result.message || 'Unknown error'));
+                    showError('Error updating title: ' + (result.message || 'Unknown error'));
                     // Revert to original title
                     titleElement.innerHTML = titleElement.textContent;
                 }
             } catch (error) {
                 console.error('Error updating title:', error);
-                alert('Error updating title. Please try again.');
+                showError('Error updating title. Please try again.');
                 // Revert to original title
                 titleElement.innerHTML = titleElement.textContent;
             }

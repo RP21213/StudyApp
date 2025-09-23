@@ -1,0 +1,37 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "spaced_repetition_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activity_id", "order": "ASCENDING" },
+        { "fieldPath": "next_review", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "spaced_repetition_cards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activity_id", "order": "ASCENDING" },
+        { "fieldPath": "repetitions", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "review_sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_id", "order": "ASCENDING" },
+        { "fieldPath": "hub_id", "order": "ASCENDING" },
+        { "fieldPath": "started_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "user_spaced_repetition_settings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "user_id", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

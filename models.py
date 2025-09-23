@@ -595,3 +595,179 @@ class Referral:
     @staticmethod
     def from_dict(source):
         return Referral(**source)
+
+# ==============================================================================
+# SPACED REPETITION MODELS
+# ==============================================================================
+
+class SpacedRepetitionCard:
+    """Model for individual flashcards in spaced repetition system"""
+    def __init__(self, id, activity_id, card_index, front, back, 
+                 ease_factor=2.5, interval_days=1, repetitions=0, 
+                 last_reviewed=None, next_review=None, difficulty='medium',
+                 created_at=None, **kwargs):
+        self.id = id
+        self.activity_id = activity_id  # Links to the flashcard Activity
+        self.card_index = card_index     # Index within the activity's cards array
+        self.front = front
+        self.back = back
+        self.ease_factor = ease_factor    # Anki's ease factor (1.3-2.5)
+        self.interval_days = interval_days
+        self.repetitions = repetitions
+        self.last_reviewed = last_reviewed
+        self.next_review = next_review
+        self.difficulty = difficulty      # 'easy', 'medium', 'hard'
+        self.created_at = created_at or datetime.now(timezone.utc)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'activity_id': self.activity_id,
+            'card_index': self.card_index,
+            'front': self.front,
+            'back': self.back,
+            'ease_factor': self.ease_factor,
+            'interval_days': self.interval_days,
+            'repetitions': self.repetitions,
+            'last_reviewed': self.last_reviewed,
+            'next_review': self.next_review,
+            'difficulty': self.difficulty,
+            'created_at': self.created_at,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return SpacedRepetitionCard(**source)
+
+    def is_due(self):
+        """Check if this card is due for review"""
+        if self.next_review is None:
+            return True
+        return datetime.now(timezone.utc) >= self.next_review
+
+    def calculate_next_review(self, quality_rating):
+        """
+        Calculate next review based on SM-2 algorithm
+        Quality ratings: 0=again, 1=hard, 2=good, 3=easy
+        """
+        if quality_rating <= 1:  # Again or Hard
+            self.repetitions = 0
+            self.interval_days = 1
+        else:  # Good or Easy
+            self.repetitions += 1
+            if self.repetitions == 1:
+                self.interval_days = 1
+            elif self.repetitions == 2:
+                self.interval_days = 6
+            else:
+                self.interval_days = int(self.interval_days * self.ease_factor)
+        
+        # Update ease factor based on quality
+        if quality_rating == 0:  # Again
+            self.ease_factor = max(1.3, self.ease_factor - 0.2)
+        elif quality_rating == 1:  # Hard
+            self.ease_factor = max(1.3, self.ease_factor - 0.15)
+        elif quality_rating == 2:  # Good
+            self.ease_factor = self.ease_factor  # No change
+        else:  # Easy
+            self.ease_factor = min(2.5, self.ease_factor + 0.15)
+        
+        # Set next review date
+        self.last_reviewed = datetime.now(timezone.utc)
+        self.next_review = self.last_reviewed + timedelta(days=self.interval_days)
+        
+        return self
+
+
+class ReviewSession:
+    """Model for tracking spaced repetition study sessions"""
+    def __init__(self, id, user_id, hub_id, session_type='spaced_repetition',
+                 cards_reviewed=0, correct_count=0, incorrect_count=0,
+                 session_duration_minutes=0, started_at=None, completed_at=None,
+                 cards_data=None, **kwargs):
+        self.id = id
+        self.user_id = user_id
+        self.hub_id = hub_id
+        self.session_type = session_type
+        self.cards_reviewed = cards_reviewed
+        self.correct_count = correct_count
+        self.incorrect_count = incorrect_count
+        self.session_duration_minutes = session_duration_minutes
+        self.started_at = started_at or datetime.now(timezone.utc)
+        self.completed_at = completed_at
+        self.cards_data = cards_data if cards_data is not None else []  # Store card IDs reviewed
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'hub_id': self.hub_id,
+            'session_type': self.session_type,
+            'cards_reviewed': self.cards_reviewed,
+            'correct_count': self.correct_count,
+            'incorrect_count': self.incorrect_count,
+            'session_duration_minutes': self.session_duration_minutes,
+            'started_at': self.started_at,
+            'completed_at': self.completed_at,
+            'cards_data': self.cards_data,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return ReviewSession(**source)
+
+    def calculate_accuracy(self):
+        """Calculate accuracy percentage for this session"""
+        if self.cards_reviewed == 0:
+            return 0
+        return (self.correct_count / self.cards_reviewed) * 100
+
+    def complete_session(self):
+        """Mark session as completed"""
+        self.completed_at = datetime.now(timezone.utc)
+        if self.started_at:
+            duration = self.completed_at - self.started_at
+            self.session_duration_minutes = int(duration.total_seconds() / 60)
+
+
+class UserSpacedRepetitionSettings:
+    """Model for user preferences in spaced repetition system"""
+    def __init__(self, id, user_id, new_cards_per_day=20, max_reviews_per_day=200,
+                 easy_bonus=1.3, interval_modifier=1.0, max_interval=36500,
+                 graduated_interval=1, learning_steps="1 10", 
+                 lapse_interval=0.1, lapse_steps="10", 
+                 min_interval=1, created_at=None, **kwargs):
+        self.id = id
+        self.user_id = user_id
+        self.new_cards_per_day = new_cards_per_day
+        self.max_reviews_per_day = max_reviews_per_day
+        self.easy_bonus = easy_bonus
+        self.interval_modifier = interval_modifier
+        self.max_interval = max_interval
+        self.graduated_interval = graduated_interval
+        self.learning_steps = learning_steps
+        self.lapse_interval = lapse_interval
+        self.lapse_steps = lapse_steps
+        self.min_interval = min_interval
+        self.created_at = created_at or datetime.now(timezone.utc)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'new_cards_per_day': self.new_cards_per_day,
+            'max_reviews_per_day': self.max_reviews_per_day,
+            'easy_bonus': self.easy_bonus,
+            'interval_modifier': self.interval_modifier,
+            'max_interval': self.max_interval,
+            'graduated_interval': self.graduated_interval,
+            'learning_steps': self.learning_steps,
+            'lapse_interval': self.lapse_interval,
+            'lapse_steps': self.lapse_steps,
+            'min_interval': self.min_interval,
+            'created_at': self.created_at,
+        }
+
+    @staticmethod
+    def from_dict(source):
+        return UserSpacedRepetitionSettings(**source)

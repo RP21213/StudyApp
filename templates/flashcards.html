@@ -90,6 +90,108 @@
         .results-screen h2 { font-size: 2rem; }
         .button { display: inline-flex; text-decoration: none; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--primary-color); color: white; transition: background-color 0.2s; border: none; font-size: 1rem; cursor: pointer; }
         .button:hover { background-color: var(--primary-hover); }
+        
+        /* Spaced Repetition Styles */
+        .mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-card);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .mode-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .mode-btn:hover:not(.active) {
+            background: var(--background-body);
+            color: var(--text-main);
+        }
+        
+        .spaced-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--background-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        /* Spaced Repetition Rating Buttons */
+        .spaced-rating-buttons {
+            display: none;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .spaced-rating-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 100px;
+        }
+        
+        .spaced-rating-btn.again {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .spaced-rating-btn.hard {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .spaced-rating-btn.good {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .spaced-rating-btn.easy {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .spaced-rating-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
 
     </style>
 </head>
@@ -98,6 +200,32 @@
         <div class="game-header">
             <h1 id="game-title">{{ activity.title or 'Flashcard Set' }}</h1>
             <p id="game-subtitle">Click card to flip. Swipe or use buttons to answer.</p>
+            
+            <!-- Spaced Repetition Mode Toggle -->
+            <div class="mode-toggle">
+                <button id="regular-mode-btn" class="mode-btn active" onclick="switchMode('regular')">
+                    <span>🎮 Regular Mode</span>
+                </button>
+                <button id="spaced-mode-btn" class="mode-btn" onclick="switchMode('spaced')">
+                    <span>🧠 Spaced Repetition</span>
+                </button>
+            </div>
+            
+            <!-- Spaced Repetition Stats -->
+            <div id="spaced-stats" class="spaced-stats" style="display: none;">
+                <div class="stat-item">
+                    <span class="stat-label">Due Cards:</span>
+                    <span class="stat-value" id="due-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Cards:</span>
+                    <span class="stat-value" id="total-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Accuracy:</span>
+                    <span class="stat-value" id="accuracy-display">0%</span>
+                </div>
+            </div>
         </div>
 
         <div class="deck-container" id="deck-container">
@@ -129,6 +257,26 @@
             </button>
             <button class="swipe-btn" id="correct-btn" title="I know this">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            </button>
+        </div>
+        
+        <!-- Spaced Repetition Rating Buttons -->
+        <div class="spaced-rating-buttons" id="spaced-rating-buttons">
+            <button class="spaced-rating-btn again" onclick="rateCardSpaced(0)">
+                <span>Again</span>
+                <small>0-1 days</small>
+            </button>
+            <button class="spaced-rating-btn hard" onclick="rateCardSpaced(1)">
+                <span>Hard</span>
+                <small>1 day</small>
+            </button>
+            <button class="spaced-rating-btn good" onclick="rateCardSpaced(2)">
+                <span>Good</span>
+                <small>1+ days</small>
+            </button>
+            <button class="spaced-rating-btn easy" onclick="rateCardSpaced(3)">
+                <span>Easy</span>
+                <small>4+ days</small>
             </button>
         </div>
     </div>
@@ -286,6 +434,192 @@
         } finally {
             window.location.href = `/hub/${hubId}`;
         }
+    }
+
+    // Spaced Repetition Variables
+    let currentMode = 'regular';
+    let spacedCards = [];
+    let currentSpacedCardIndex = 0;
+    let spacedStats = { correct: 0, incorrect: 0, total: 0 };
+    
+    // Mode switching functions
+    async function switchMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        document.getElementById('regular-mode-btn').classList.toggle('active', mode === 'regular');
+        document.getElementById('spaced-mode-btn').classList.toggle('active', mode === 'spaced');
+        
+        // Show/hide appropriate UI elements
+        document.getElementById('game-controls').style.display = mode === 'regular' ? 'flex' : 'none';
+        document.getElementById('spaced-rating-buttons').style.display = mode === 'spaced' ? 'flex' : 'none';
+        document.getElementById('spaced-stats').style.display = mode === 'spaced' ? 'flex' : 'none';
+        
+        if (mode === 'spaced') {
+            await loadSpacedRepetitionData();
+        } else {
+            // Reset to regular mode
+            resetToRegularMode();
+        }
+    }
+    
+    async function loadSpacedRepetitionData() {
+        try {
+            const response = await fetch(`/api/spaced_repetition/enhanced_flashcards/${activityId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                spacedCards = data.cards;
+                currentSpacedCardIndex = 0;
+                spacedStats = { correct: 0, incorrect: 0, total: 0 };
+                
+                // Update stats display
+                document.getElementById('due-count').textContent = data.due_cards;
+                document.getElementById('total-count').textContent = data.total_cards;
+                document.getElementById('accuracy-display').textContent = '0%';
+                
+                // Load first card
+                loadSpacedCard();
+            } else {
+                showError('Failed to load spaced repetition data: ' + data.message);
+                switchMode('regular');
+            }
+        } catch (error) {
+            console.error('Error loading spaced repetition data:', error);
+            showError('An error occurred while loading spaced repetition data');
+            switchMode('regular');
+        }
+    }
+    
+    function loadSpacedCard() {
+        if (currentSpacedCardIndex >= spacedCards.length) {
+            showSpacedResults();
+            return;
+        }
+        
+        const card = spacedCards[currentSpacedCardIndex];
+        const cardElement = allCards[currentSpacedCardIndex % allCards.length];
+        
+        // Update card content
+        const frontElement = cardElement.querySelector('.flashcard-front');
+        const backElement = cardElement.querySelector('.flashcard-back');
+        
+        frontElement.textContent = card.front;
+        backElement.textContent = card.back;
+        
+        // Reset card state
+        cardElement.classList.remove('is-flipped');
+        
+        // Show only the current card
+        allCards.forEach((c, index) => {
+            if (index === (currentSpacedCardIndex % allCards.length)) {
+                c.style.display = 'block';
+                c.style.zIndex = 1;
+            } else {
+                c.style.display = 'none';
+            }
+        });
+    }
+    
+    async function rateCardSpaced(rating) {
+        try {
+            const card = spacedCards[currentSpacedCardIndex];
+            
+            // Update local stats
+            if (rating >= 2) {
+                spacedStats.correct++;
+            } else {
+                spacedStats.incorrect++;
+            }
+            spacedStats.total++;
+            
+            // Send rating to server
+            const response = await fetch('/api/spaced_repetition/review_card', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    card_id: card.id,
+                    quality_rating: rating
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update accuracy display
+                const accuracy = Math.round((spacedStats.correct / spacedStats.total) * 100);
+                document.getElementById('accuracy-display').textContent = accuracy + '%';
+                
+                // Move to next card
+                currentSpacedCardIndex++;
+                
+                if (currentSpacedCardIndex < spacedCards.length) {
+                    setTimeout(() => {
+                        loadSpacedCard();
+                    }, 500);
+                } else {
+                    showSpacedResults();
+                }
+            } else {
+                showError('Failed to save rating: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error rating card:', error);
+            showError('An error occurred while saving your rating');
+        }
+    }
+    
+    function showSpacedResults() {
+        // Hide card and rating buttons
+        document.getElementById('deck-container').style.display = 'none';
+        document.getElementById('spaced-rating-buttons').style.display = 'none';
+        
+        // Show results
+        const accuracy = Math.round((spacedStats.correct / spacedStats.total) * 100);
+        
+        document.getElementById('spaced-stats').innerHTML = `
+            <div class="stat-item">
+                <span class="stat-label">Session Complete!</span>
+                <span class="stat-value">${spacedStats.total} cards reviewed</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Accuracy</span>
+                <span class="stat-value">${accuracy}%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Correct</span>
+                <span class="stat-value">${spacedStats.correct}</span>
+            </div>
+        `;
+        
+        // Add restart button
+        const restartBtn = document.createElement('button');
+        restartBtn.className = 'button';
+        restartBtn.textContent = 'Start New Session';
+        restartBtn.onclick = () => {
+            currentSpacedCardIndex = 0;
+            spacedStats = { correct: 0, incorrect: 0, total: 0 };
+            document.getElementById('deck-container').style.display = 'block';
+            loadSpacedRepetitionData();
+        };
+        
+        document.getElementById('spaced-stats').appendChild(restartBtn);
+    }
+    
+    function resetToRegularMode() {
+        // Reset all cards to original state
+        allCards.forEach((card, index) => {
+            card.style.display = 'block';
+            card.style.zIndex = allCards.length - index;
+            card.style.transform = `translateY(${index * 4}px) scale(${1 - (index * 0.05)})`;
+            card.classList.remove('is-flipped');
+        });
+        
+        // Reset stats
+        spacedStats = { correct: 0, incorrect: 0, total: 0 };
+        currentSpacedCardIndex = 0;
     }
 
     setupCards();

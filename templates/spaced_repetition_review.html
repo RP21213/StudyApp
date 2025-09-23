@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaced Repetition Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .review-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--background-card);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .progress-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            transition: width 0.3s ease;
+        }
+        
+        .card-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .flashcard {
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: var(--card-shadow);
+            border-radius: 16px;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+        
+        .flashcard-front {
+            background: linear-gradient(135deg, var(--background-card) 0%, #f8fafc 100%);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .flashcard-back {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            transform: rotateY(180deg);
+            font-size: 1.25rem;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+        
+        .card-content {
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .card-hint {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .rating-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .rating-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .rating-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .rating-btn.again {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .rating-btn.hard {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .rating-btn.good {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .rating-btn.easy {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .rating-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .session-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: var(--background-card);
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .session-complete {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .session-complete h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--success-color);
+        }
+        
+        .session-complete p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        .complete-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .complete-stat {
+            background: var(--background-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .complete-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .complete-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--background-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .flip-hint {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .flashcard:hover .flip-hint {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .review-container {
+                padding: 0.5rem;
+            }
+            
+            .flashcard {
+                height: 300px;
+            }
+            
+            .flashcard-front, .flashcard-back {
+                font-size: 1.25rem;
+                padding: 1.5rem;
+            }
+            
+            .rating-buttons {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .rating-btn {
+                min-width: 100px;
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="review-container">
+        <!-- Session Header -->
+        <div class="review-header">
+            <div class="progress-info">
+                <span id="current-card">1</span>
+                <span>/</span>
+                <span id="total-cards">0</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            <div class="session-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="correct-count">0</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="incorrect-count">0</div>
+                    <div class="stat-label">Incorrect</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="accuracy">0%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card Container -->
+        <div class="card-container" id="card-container">
+            <!-- Flashcard -->
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div class="card-content" id="card-front">
+                            <!-- Card front content will be loaded here -->
+                        </div>
+                        <div class="card-hint">Click to reveal answer</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="card-content" id="card-back">
+                            <!-- Card back content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="flip-hint">Click card to flip</div>
+            </div>
+            
+            <!-- Rating Buttons -->
+            <div class="rating-buttons" id="rating-buttons" style="display: none;">
+                <button class="rating-btn again" onclick="rateCard(0)">
+                    <span>Again</span>
+                    <small>0-1 days</small>
+                </button>
+                <button class="rating-btn hard" onclick="rateCard(1)">
+                    <span>Hard</span>
+                    <small>1 day</small>
+                </button>
+                <button class="rating-btn good" onclick="rateCard(2)">
+                    <span>Good</span>
+                    <small>1+ days</small>
+                </button>
+                <button class="rating-btn easy" onclick="rateCard(3)">
+                    <span>Easy</span>
+                    <small>4+ days</small>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Session Complete Screen -->
+        <div class="session-complete" id="session-complete" style="display: none;">
+            <h2>🎉 Session Complete!</h2>
+            <p>Great job! You've completed your spaced repetition review.</p>
+            
+            <div class="complete-stats">
+                <div class="complete-stat">
+                    <div class="complete-stat-value" id="final-cards">0</div>
+                    <div class="complete-stat-label">Cards Reviewed</div>
+                </div>
+                <div class="complete-stat">
+                    <div class="complete-stat-value" id="final-accuracy">0%</div>
+                    <div class="complete-stat-label">Accuracy</div>
+                </div>
+                <div class="complete-stat">
+                    <div class="complete-stat-value" id="final-xp">0</div>
+                    <div class="complete-stat-label">XP Earned</div>
+                </div>
+                <div class="complete-stat">
+                    <div class="complete-stat-value" id="final-duration">0m</div>
+                    <div class="complete-stat-label">Duration</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="startNewSession()">
+                    <span>Start New Session</span>
+                </button>
+                <a href="/dashboard" class="btn btn-secondary">
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentSession = null;
+        let currentCardIndex = 0;
+        let cards = [];
+        let sessionStats = {
+            correct: 0,
+            incorrect: 0,
+            total: 0
+        };
+        let sessionStartTime = null;
+        let isCardFlipped = false;
+
+        // Initialize session
+        async function initializeSession() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const hubId = urlParams.get('hub_id');
+                const maxCards = urlParams.get('max_cards') || 20;
+                
+                if (!hubId) {
+                    showWarning('Hub ID is required');
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                
+                sessionStartTime = new Date();
+                
+                const response = await fetch('/api/spaced_repetition/create_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        hub_id: hubId,
+                        max_cards: parseInt(maxCards)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSession = data.session_id;
+                    cards = data.cards;
+                    
+                    if (cards.length === 0) {
+                        showNoCardsMessage();
+                        return;
+                    }
+                    
+                    updateUI();
+                    loadCurrentCard();
+                } else {
+                    showError('Failed to create session: ' + data.message);
+                    window.location.href = '/dashboard';
+                }
+            } catch (error) {
+                console.error('Error initializing session:', error);
+                showError('An error occurred while starting the session');
+                window.location.href = '/dashboard';
+            }
+        }
+
+        // Load current card
+        function loadCurrentCard() {
+            if (currentCardIndex >= cards.length) {
+                completeSession();
+                return;
+            }
+            
+            const card = cards[currentCardIndex];
+            document.getElementById('card-front').textContent = card.front;
+            document.getElementById('card-back').textContent = card.back;
+            
+            // Reset card state
+            isCardFlipped = false;
+            document.getElementById('flashcard').classList.remove('flipped');
+            document.getElementById('rating-buttons').style.display = 'none';
+            
+            updateProgress();
+        }
+
+        // Flip card
+        function flipCard() {
+            if (isCardFlipped) return;
+            
+            isCardFlipped = true;
+            document.getElementById('flashcard').classList.add('flipped');
+            document.getElementById('rating-buttons').style.display = 'flex';
+        }
+
+        // Rate card
+        async function rateCard(rating) {
+            try {
+                const card = cards[currentCardIndex];
+                
+                // Update local stats
+                if (rating >= 2) {
+                    sessionStats.correct++;
+                } else {
+                    sessionStats.incorrect++;
+                }
+                sessionStats.total++;
+                
+                // Send rating to server
+                const response = await fetch('/api/spaced_repetition/review_card', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        card_id: card.id,
+                        quality_rating: rating
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Move to next card
+                    currentCardIndex++;
+                    updateUI();
+                    
+                    if (currentCardIndex < cards.length) {
+                        setTimeout(() => {
+                            loadCurrentCard();
+                        }, 500);
+                    } else {
+                        completeSession();
+                    }
+                } else {
+                    showError('Failed to save rating: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error rating card:', error);
+                showError('An error occurred while saving your rating');
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            document.getElementById('current-card').textContent = currentCardIndex + 1;
+            document.getElementById('total-cards').textContent = cards.length;
+            document.getElementById('correct-count').textContent = sessionStats.correct;
+            document.getElementById('incorrect-count').textContent = sessionStats.incorrect;
+            
+            const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentCardIndex / cards.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        // Complete session
+        async function completeSession() {
+            try {
+                const duration = Math.round((new Date() - sessionStartTime) / 1000 / 60); // minutes
+                
+                const response = await fetch('/api/spaced_repetition/complete_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSession,
+                        cards_reviewed: sessionStats.total,
+                        correct_count: sessionStats.correct,
+                        incorrect_count: sessionStats.incorrect
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSessionComplete(data);
+                } else {
+                    showError('Failed to complete session: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error completing session:', error);
+                showError('An error occurred while completing the session');
+            }
+        }
+
+        // Show session complete screen
+        function showSessionComplete(data) {
+            document.getElementById('card-container').style.display = 'none';
+            document.getElementById('session-complete').style.display = 'block';
+            
+            const accuracy = Math.round((sessionStats.correct / sessionStats.total) * 100);
+            
+            document.getElementById('final-cards').textContent = sessionStats.total;
+            document.getElementById('final-accuracy').textContent = accuracy + '%';
+            document.getElementById('final-xp').textContent = data.xp_earned || 0;
+            document.getElementById('final-duration').textContent = data.duration_minutes || 0 + 'm';
+        }
+
+        // Show no cards message
+        function showNoCardsMessage() {
+            document.getElementById('card-container').innerHTML = `
+                <div class="session-complete">
+                    <h2>🎯 No Cards Due</h2>
+                    <p>Great job! You're all caught up with your reviews.</p>
+                    <div class="action-buttons">
+                        <a href="/dashboard" class="btn btn-primary">
+                            <span>Back to Dashboard</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Start new session
+        function startNewSession() {
+            window.location.reload();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
+            
+            switch(event.key) {
+                case ' ':
+                    event.preventDefault();
+                    flipCard();
+                    break;
+                case '1':
+                    if (isCardFlipped) rateCard(0);
+                    break;
+                case '2':
+                    if (isCardFlipped) rateCard(1);
+                    break;
+                case '3':
+                    if (isCardFlipped) rateCard(2);
+                    break;
+                case '4':
+                    if (isCardFlipped) rateCard(3);
+                    break;
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeSession);
+    </script>
+</body>
+</html>
