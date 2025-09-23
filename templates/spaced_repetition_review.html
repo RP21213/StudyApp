@@ -466,9 +466,9 @@
                 <button class="btn btn-primary" onclick="startNewSession()">
                     <span>Start New Session</span>
                 </button>
-                <a href="/dashboard" class="btn btn-secondary">
+                <button class="btn btn-secondary" onclick="goBackToDashboard()">
                     <span>Back to Dashboard</span>
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -667,6 +667,13 @@
         // Complete session
         async function completeSession() {
             try {
+                console.log('🔄 Completing session...', {
+                    sessionId: currentSession,
+                    cardsReviewed: sessionStats.total,
+                    correct: sessionStats.correct,
+                    incorrect: sessionStats.incorrect
+                });
+                
                 const duration = Math.round((new Date() - sessionStartTime) / 1000 / 60); // minutes
                 
                 const response = await fetch('/api/spaced_repetition/complete_session', {
@@ -682,26 +689,59 @@
                     })
                 });
                 
+                console.log('📡 Complete session response:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    console.error('❌ Complete session failed:', response.status, response.statusText);
+                    // Show session complete screen anyway, even if API call failed
+                    showSessionComplete({ 
+                        xp_earned: 0, 
+                        duration_minutes: duration 
+                    });
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('📊 Complete session data:', data);
                 
                 if (data.success) {
                     showSessionComplete(data);
-                    // Add a note about refreshing stats
                     console.log('✅ Session completed successfully! Stats should update on dashboard.');
                 } else {
-                    showError('Failed to complete session: ' + data.message);
+                    console.error('❌ Complete session API returned error:', data.message);
+                    // Show session complete screen anyway
+                    showSessionComplete({ 
+                        xp_earned: 0, 
+                        duration_minutes: duration 
+                    });
                 }
             } catch (error) {
-                console.error('Error completing session:', error);
-                showError('An error occurred while completing the session');
+                console.error('❌ Error completing session:', error);
+                // Show session complete screen anyway
+                const duration = Math.round((new Date() - sessionStartTime) / 1000 / 60);
+                showSessionComplete({ 
+                    xp_earned: 0, 
+                    duration_minutes: duration 
+                });
             }
         }
 
         // Show session complete screen
         function showSessionComplete(data) {
+            console.log('🎉 Showing session complete screen with data:', data);
+            
             // Hide card container and show session complete
-            document.getElementById('card-container').style.display = 'none';
-            document.getElementById('session-complete').style.display = 'block';
+            const cardContainer = document.getElementById('card-container');
+            const sessionComplete = document.getElementById('session-complete');
+            
+            console.log('📱 Card container display:', cardContainer.style.display);
+            console.log('📱 Session complete display:', sessionComplete.style.display);
+            
+            cardContainer.style.display = 'none';
+            sessionComplete.style.display = 'block';
+            
+            console.log('📱 After change - Card container display:', cardContainer.style.display);
+            console.log('📱 After change - Session complete display:', sessionComplete.style.display);
             
             // Calculate and display final stats
             const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
@@ -726,9 +766,9 @@
                     <h2>🎯 No Cards Due</h2>
                     <p>Great job! You're all caught up with your reviews.</p>
                     <div class="action-buttons">
-                        <a href="/dashboard" class="btn btn-primary">
+                        <button class="btn btn-primary" onclick="goBackToDashboard()">
                             <span>Back to Dashboard</span>
-                        </a>
+                        </button>
                     </div>
                 </div>
             `;
@@ -762,6 +802,24 @@
             // Show card container, hide session complete
             document.getElementById('card-container').style.display = 'flex';
             document.getElementById('session-complete').style.display = 'none';
+        }
+
+        // Go back to dashboard with proper timing
+        function goBackToDashboard() {
+            // Show loading state
+            const sessionComplete = document.getElementById('session-complete');
+            sessionComplete.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">🔄 Returning to Dashboard...</div>
+                    <div style="color: var(--text-secondary);">Updating your progress...</div>
+                </div>
+            `;
+            
+            // Add a small delay to ensure session completion is fully processed
+            setTimeout(() => {
+                // Navigate to dashboard with a refresh parameter to trigger stats update
+                window.location.href = '/dashboard?refresh=1&session_completed=1';
+            }, 1000);
         }
 
         // Start new session
@@ -815,6 +873,23 @@
                 case '4':
                     if (isCardFlipped) rateCard(3);
                     break;
+            }
+        });
+
+        // Test function to manually show session complete (for debugging)
+        function testSessionComplete() {
+            console.log('🧪 Testing session complete screen...');
+            showSessionComplete({ 
+                xp_earned: 50, 
+                duration_minutes: 5 
+            });
+        }
+        
+        // Add keyboard shortcut for testing (Ctrl+T)
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 't') {
+                event.preventDefault();
+                testSessionComplete();
             }
         });
 

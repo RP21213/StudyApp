@@ -7836,8 +7836,27 @@ Best regards,
             // Load spaced repetition data when progress tab is active
             loadSpacedRepetitionData();
             
-            // Also refresh stats when page loads (in case returning from a session)
-            refreshSpacedRepetitionStats();
+            // Check if returning from a spaced repetition session
+            const urlParams = new URLSearchParams(window.location.search);
+            const sessionCompleted = urlParams.get('session_completed');
+            const refresh = urlParams.get('refresh');
+            
+            if (sessionCompleted === '1' || refresh === '1') {
+                console.log('🔄 Returning from spaced repetition session - refreshing stats');
+                // Longer delay when returning from session to ensure data is processed
+                setTimeout(() => {
+                    refreshSpacedRepetitionStats();
+                }, 2000);
+                
+                // Clean up URL parameters
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            } else {
+                // Normal refresh with standard delay
+                setTimeout(() => {
+                    refreshSpacedRepetitionStats();
+                }, 1000);
+            }
         });
         
         // Refresh stats when page becomes visible (user switches back to tab)
@@ -7849,6 +7868,11 @@ Best regards,
         
         // Spaced Repetition Functions
         async function refreshSpacedRepetitionStats() {
+            // Only run if we're on the dashboard page
+            if (!window.location.pathname.includes('/dashboard')) {
+                return;
+            }
+            
             console.log('🔄 Refreshing spaced repetition stats...');
             // Force refresh stats by calling the API again
             await loadSpacedRepetitionData();
@@ -7857,12 +7881,52 @@ Best regards,
         
         async function loadSpacedRepetitionData() {
             try {
-                console.log('📊 Loading spaced repetition data...');
-                // Get all hubs for the user
-                const hubsResponse = await fetch('/api/user/hubs');
-                const hubsData = await hubsResponse.json();
+                // Only run if we're on the dashboard page
+                if (!window.location.pathname.includes('/dashboard')) {
+                    return;
+                }
                 
-                if (!hubsData.success) {
+                console.log('📊 Loading spaced repetition data...');
+                
+                // Check if Firebase is available by testing a simple endpoint
+                let firebaseAvailable = false;
+                try {
+                    const testResponse = await fetch('/api/spaced_repetition/system_health', {
+                        credentials: 'include' // Include cookies for authentication
+                    });
+                    firebaseAvailable = testResponse.ok;
+                    
+                    if (!firebaseAvailable) {
+                        console.log('🔍 API call failed - checking response:', testResponse.status);
+                        // If we get a 401/403, user might not be authenticated
+                        if (testResponse.status === 401 || testResponse.status === 403) {
+                            console.log('🔍 User not authenticated - skipping spaced repetition data');
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.log('🔍 Firebase not available - running in development mode');
+                    firebaseAvailable = false;
+                }
+                
+                if (!firebaseAvailable) {
+                    console.log('ℹ️ Firebase not available - showing demo data');
+                    updateSpacedRepetitionUI({
+                        totalDueCards: 0,
+                        totalCards: 0,
+                        totalNewCards: 0,
+                        totalLearningCards: 0,
+                        totalMatureCards: 0,
+                        recentSessions: [],
+                        firebaseAvailable: false
+                    });
+                    return;
+                }
+                
+                // Use existing hubs data from the template
+                const hubsData = { success: true, hubs: {{ hubs_for_json|tojson }} };
+                
+                if (!hubsData.success || !hubsData.hubs) {
                     console.error('Failed to load hubs');
                     return;
                 }
@@ -7880,33 +7944,51 @@ Best regards,
                 for (const hub of hubsData.hubs) {
                     try {
                         // Get due cards
-                        const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`);
-                        const dueData = await dueResponse.json();
-                        
-                        if (dueData.success) {
-                            totalDueCards += dueData.total_due;
+                        const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`, {
+                            credentials: 'include'
+                        });
+                        if (dueResponse.ok) {
+                            const dueData = await dueResponse.json();
+                            if (dueData.success) {
+                                totalDueCards += dueData.total_due;
+                            }
+                        } else if (dueResponse.status === 401 || dueResponse.status === 403) {
+                            console.log('🔍 Authentication required for due cards - skipping');
+                            continue;
                         }
                         
                         // Get learning progress
-                        const progressResponse = await fetch(`/api/spaced_repetition/learning_progress/${hub.id}`);
-                        const progressData = await progressResponse.json();
-                        
-                        if (progressData.success) {
-                            totalCards += progressData.progress.total_cards;
-                            totalNewCards += progressData.progress.new_cards;
-                            totalLearningCards += progressData.progress.learning_cards;
-                            totalMatureCards += progressData.progress.mature_cards;
+                        const progressResponse = await fetch(`/api/spaced_repetition/learning_progress/${hub.id}`, {
+                            credentials: 'include'
+                        });
+                        if (progressResponse.ok) {
+                            const progressData = await progressResponse.json();
+                            if (progressData.success) {
+                                totalCards += progressData.progress.total_cards;
+                                totalNewCards += progressData.progress.new_cards;
+                                totalLearningCards += progressData.progress.learning_cards;
+                                totalMatureCards += progressData.progress.mature_cards;
+                            }
+                        } else if (progressResponse.status === 401 || progressResponse.status === 403) {
+                            console.log('🔍 Authentication required for learning progress - skipping');
+                            continue;
                         }
                         
                         // Get recent sessions
-                        const sessionsResponse = await fetch(`/api/spaced_repetition/recent_sessions/${hub.id}`);
-                        const sessionsData = await sessionsResponse.json();
-                        
-                        if (sessionsData.success) {
-                            allRecentSessions = allRecentSessions.concat(sessionsData.sessions.map(session => ({
-                                ...session,
-                                hub_name: hub.name
-                            })));
+                        const sessionsResponse = await fetch(`/api/spaced_repetition/recent_sessions/${hub.id}`, {
+                            credentials: 'include'
+                        });
+                        if (sessionsResponse.ok) {
+                            const sessionsData = await sessionsResponse.json();
+                            if (sessionsData.success) {
+                                allRecentSessions = allRecentSessions.concat(sessionsData.sessions.map(session => ({
+                                    ...session,
+                                    hub_name: hub.name
+                                })));
+                            }
+                        } else if (sessionsResponse.status === 401 || sessionsResponse.status === 403) {
+                            console.log('🔍 Authentication required for recent sessions - skipping');
+                            continue;
                         }
                     } catch (error) {
                         console.error(`Error loading data for hub ${hub.id}:`, error);
@@ -7929,6 +8011,25 @@ Best regards,
         }
         
         function updateSpacedRepetitionUI(data) {
+            // Handle case when Firebase is not available
+            if (data.firebaseAvailable === false) {
+                console.log('🔧 Showing development mode message');
+                const dueCardsBadge = document.getElementById('due-cards-badge');
+                if (dueCardsBadge) {
+                    dueCardsBadge.textContent = '0';
+                    dueCardsBadge.className = 'sr-badge low';
+                    dueCardsBadge.title = 'Firebase not configured - running in development mode';
+                }
+                
+                // Show a subtle indicator that we're in dev mode
+                const srSection = document.querySelector('.spaced-repetition-section');
+                if (srSection) {
+                    srSection.style.opacity = '0.7';
+                    srSection.title = 'Spaced repetition requires Firebase configuration';
+                }
+                return;
+            }
+            
             // Update due cards badge
             const dueCardsBadge = document.getElementById('due-cards-badge');
             if (dueCardsBadge) {

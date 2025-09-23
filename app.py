@@ -7987,27 +7987,35 @@ def create_review_session():
         session_type = data.get('session_type', 'spaced_repetition')
         max_cards = data.get('max_cards', 20)
         
-        # Debug logging
+        # Enhanced debug logging
+        print(f"🔍 DEBUG: Creating spaced repetition session for user {current_user.id}")
+        print(f"🔍 DEBUG: Hub ID: {hub_id}, Max cards: {max_cards}, Session type: {session_type}")
         debugger.log_api_call('/api/spaced_repetition/create_session', 'POST', current_user.id, data)
         log_user_action(current_user.id, 'create_review_session', {'hub_id': hub_id, 'max_cards': max_cards})
         
         if not hub_id:
+            print(f"❌ ERROR: User {current_user.id} attempted to create session without hub_id")
             debugger.logger.warning(f"User {current_user.id} attempted to create session without hub_id")
             return jsonify({"success": False, "message": "Hub ID is required"}), 400
         
         # Get due cards for this hub
+        print(f"🔍 DEBUG: Getting due cards for hub {hub_id}")
         due_cards_response = get_due_cards(hub_id)
         if not due_cards_response[0].get_json().get('success'):
+            print(f"❌ ERROR: Failed to get due cards for hub {hub_id}")
             debugger.logger.error(f"Failed to get due cards for hub {hub_id}")
             return jsonify({"success": False, "message": "Failed to get due cards"}), 500
         
         due_cards = due_cards_response[0].get_json().get('due_cards', [])
+        print(f"🔍 DEBUG: Found {len(due_cards)} due cards for hub {hub_id}")
         debugger.logger.info(f"Found {len(due_cards)} due cards for hub {hub_id}")
         
         # Limit cards for this session
         session_cards = due_cards[:max_cards]
+        print(f"🔍 DEBUG: Limited to {len(session_cards)} cards for this session")
         
         if not session_cards:
+            print(f"ℹ️ INFO: No cards due for review in hub {hub_id}")
             debugger.logger.info(f"No cards due for review in hub {hub_id}")
             return jsonify({
                 "success": True,
@@ -8017,6 +8025,7 @@ def create_review_session():
             })
         
         # Create review session
+        print(f"🔍 DEBUG: Creating review session with {len(session_cards)} cards")
         session_ref = db.collection('review_sessions').document()
         session = ReviewSession(
             id=session_ref.id,
@@ -8027,6 +8036,7 @@ def create_review_session():
         )
         
         session_ref.set(session.to_dict())
+        print(f"✅ SUCCESS: Created session {session.id} with {len(session_cards)} cards")
         
         debugger.log_session_event(session.id, 'created', {
             'user_id': current_user.id,
@@ -8041,6 +8051,7 @@ def create_review_session():
             "total_cards": len(session_cards)
         }
         
+        print(f"🔍 DEBUG: Returning session data: {len(session_cards)} cards")
         debugger.log_api_call('/api/spaced_repetition/create_session', 'POST', current_user.id, data, response_data)
         
         return jsonify(response_data)
@@ -8338,21 +8349,40 @@ def migrate_all_flashcards_to_spaced_repetition():
 def get_due_cards(hub_id):
     """Get cards that are due for review in a specific hub"""
     try:
+        print(f"🔍 DEBUG: Getting due cards for hub {hub_id}")
+        
+        # Check if Firebase is available
+        if not db:
+            print(f"❌ ERROR: Firebase not available for hub {hub_id}")
+            return jsonify({
+                "success": False,
+                "message": "Firebase not configured",
+                "firebase_available": False,
+                "total_due": 0,
+                "due_cards": []
+            })
+        
         # Get all activities in this hub
         activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
-        activities = activities_query.stream()
+        activities = list(activities_query.stream())
+        print(f"🔍 DEBUG: Found {len(activities)} flashcard activities in hub {hub_id}")
         
         due_cards = []
+        total_cards_checked = 0
+        
         for activity_doc in activities:
             activity_id = activity_doc.id
+            print(f"🔍 DEBUG: Checking activity {activity_id}")
             
             # Get spaced repetition cards for this activity
             sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
-            sr_cards = sr_cards_query.stream()
+            sr_cards = list(sr_cards_query.stream())
+            print(f"🔍 DEBUG: Found {len(sr_cards)} spaced repetition cards in activity {activity_id}")
             
             for sr_card_doc in sr_cards:
                 sr_card_data = sr_card_doc.to_dict()
                 sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                total_cards_checked += 1
                 
                 if sr_card.is_due():
                     due_cards.append({
@@ -8366,6 +8396,12 @@ def get_due_cards(hub_id):
                         'repetitions': sr_card.repetitions,
                         'difficulty': sr_card.difficulty
                     })
+                    print(f"🔍 DEBUG: Card {sr_card.id} is due (interval: {sr_card.interval_days}d, reps: {sr_card.repetitions})")
+                else:
+                    next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
+                    print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
+        
+        print(f"✅ SUCCESS: Found {len(due_cards)} due cards out of {total_cards_checked} total cards")
         
         return jsonify({
             "success": True,
@@ -8388,19 +8424,24 @@ def review_card():
         card_id = data.get('card_id')
         quality_rating = data.get('quality_rating')  # 0=again, 1=hard, 2=good, 3=easy
         
-        # Debug logging
+        # Enhanced debug logging
+        print(f"🔍 DEBUG: Processing card review for user {current_user.id}")
+        print(f"🔍 DEBUG: Card ID: {card_id}, Quality rating: {quality_rating}")
         debugger.log_api_call('/api/spaced_repetition/review_card', 'POST', current_user.id, data)
         log_user_action(current_user.id, 'review_card', {'card_id': card_id, 'rating': quality_rating})
         
         if not card_id or quality_rating is None:
+            print(f"❌ ERROR: User {current_user.id} attempted card review with missing data")
             debugger.logger.warning(f"User {current_user.id} attempted card review with missing data")
             return jsonify({"success": False, "message": "Missing card_id or quality_rating"}), 400
         
         # Get the card
+        print(f"🔍 DEBUG: Fetching card {card_id} from database")
         card_ref = db.collection('spaced_repetition_cards').document(card_id)
         card_doc = card_ref.get()
         
         if not card_doc.exists:
+            print(f"❌ ERROR: Card {card_id} not found for user {current_user.id}")
             debugger.logger.error(f"Card {card_id} not found for user {current_user.id}")
             return jsonify({"success": False, "message": "Card not found"}), 404
         
@@ -8408,8 +8449,13 @@ def review_card():
         sr_card = SpacedRepetitionCard.from_dict(card_doc.to_dict())
         old_interval = sr_card.interval_days
         old_ease_factor = sr_card.ease_factor
+        old_repetitions = sr_card.repetitions
+        
+        print(f"🔍 DEBUG: Card state before review: interval={old_interval}d, ease={old_ease_factor:.2f}, reps={old_repetitions}")
         
         sr_card.calculate_next_review(quality_rating)
+        
+        print(f"🔍 DEBUG: Card state after review: interval={sr_card.interval_days}d, ease={sr_card.ease_factor:.2f}, reps={sr_card.repetitions}")
         
         # Log algorithm calculation
         debugger.log_algorithm_calculation(
@@ -8422,6 +8468,7 @@ def review_card():
         
         # Save updated card
         card_ref.update(sr_card.to_dict())
+        print(f"✅ SUCCESS: Card {card_id} updated: {old_interval}d -> {sr_card.interval_days}d")
         
         debugger.logger.info(f"Card {card_id} updated: {old_interval}d -> {sr_card.interval_days}d")
         
@@ -8498,6 +8545,16 @@ def get_spaced_repetition_stats(hub_id):
 def get_system_health():
     """Get system health and debugging information"""
     try:
+        # Check if Firebase is available
+        if not db:
+            return jsonify({
+                "success": False,
+                "message": "Firebase not configured",
+                "firebase_available": False,
+                "system_status": "development_mode",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+        
         # Get system health metrics
         health_metrics = log_system_health()
         
@@ -8541,6 +8598,7 @@ def get_system_health():
         
         health_data = {
             "success": True,
+            "firebase_available": True,
             "system_health": health_metrics,
             "spaced_repetition_stats": {
                 "total_cards": total_cards,

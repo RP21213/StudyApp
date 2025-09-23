@@ -247,7 +247,10 @@
                 <h2>Session Complete!</h2>
                 <p>You reviewed all the cards in this deck.</p>
                 <p><strong>Correct:</strong> <span id="correct-count">0</span> | <strong>Incorrect:</strong> <span id="incorrect-count">0</span></p>
-                <button id="save-exit-btn" class="button">Save & Exit to Hub</button>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+                    <button id="save-exit-btn" class="button">Save & Exit to Hub</button>
+                    <button id="back-to-dashboard-btn" class="button" style="background: var(--text-secondary);">Back to Dashboard</button>
+                </div>
             </div>
         </div>
 
@@ -319,6 +322,14 @@
         document.getElementById('wrong-btn').onclick = () => swipeCard('left');
         document.getElementById('correct-btn').onclick = () => swipeCard('right');
         saveExitBtn.onclick = saveAndExit;
+        
+        // Add event listener for back to dashboard button
+        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
+        if (backToDashboardBtn) {
+            backToDashboardBtn.onclick = () => {
+                window.location.href = '/dashboard';
+            };
+        }
     }
     
     function updateTopCard() {
@@ -441,6 +452,7 @@
     let spacedCards = [];
     let currentSpacedCardIndex = 0;
     let spacedStats = { correct: 0, incorrect: 0, total: 0 };
+    let currentSessionId = null;
     
     // Mode switching functions
     async function switchMode(mode) {
@@ -458,6 +470,10 @@
         if (mode === 'spaced') {
             await loadSpacedRepetitionData();
         } else {
+            // Complete current session if switching away from spaced repetition
+            if (currentMode === 'spaced' && currentSessionId) {
+                await completeSpacedRepetitionSession();
+            }
             // Reset to regular mode
             resetToRegularMode();
         }
@@ -482,6 +498,9 @@
                 if (totalCountEl) totalCountEl.textContent = data.total_cards;
                 if (accuracyEl) accuracyEl.textContent = '0%';
                 
+                // Create a spaced repetition session
+                await createSpacedRepetitionSession();
+                
                 // Load first card
                 if (spacedCards.length > 0) {
                     loadSpacedCard();
@@ -498,6 +517,61 @@
             console.error('Error loading spaced repetition data:', error);
             alert('An error occurred while loading spaced repetition data');
             switchMode('regular');
+        }
+    }
+    
+    async function createSpacedRepetitionSession() {
+        try {
+            const response = await fetch('/api/spaced_repetition/create_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    hub_id: hubId,
+                    session_type: 'spaced_repetition',
+                    max_cards: spacedCards.length
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                currentSessionId = data.session_id;
+                console.log('Created spaced repetition session:', currentSessionId);
+            } else {
+                console.error('Failed to create session:', data.message);
+            }
+        } catch (error) {
+            console.error('Error creating spaced repetition session:', error);
+        }
+    }
+    
+    async function completeSpacedRepetitionSession() {
+        if (!currentSessionId) {
+            console.log('No active session to complete');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/spaced_repetition/complete_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                console.log('Completed spaced repetition session:', currentSessionId);
+                currentSessionId = null;
+            } else {
+                console.error('Failed to complete session:', data.message);
+            }
+        } catch (error) {
+            console.error('Error completing spaced repetition session:', error);
         }
     }
     
@@ -645,14 +719,35 @@
             const restartBtn = document.createElement('button');
             restartBtn.className = 'button';
             restartBtn.textContent = 'Start New Session';
-            restartBtn.onclick = () => {
+            restartBtn.onclick = async () => {
+                await completeSpacedRepetitionSession();
                 currentSpacedCardIndex = 0;
                 spacedStats = { correct: 0, incorrect: 0, total: 0 };
                 if (deckContainer) deckContainer.style.display = 'block';
                 loadSpacedRepetitionData();
             };
             
-            statsContainer.appendChild(restartBtn);
+            // Add back to dashboard button
+            const dashboardBtn = document.createElement('button');
+            dashboardBtn.className = 'button';
+            dashboardBtn.textContent = 'Back to Dashboard';
+            dashboardBtn.style.background = 'var(--text-secondary)';
+            dashboardBtn.style.marginLeft = '1rem';
+            dashboardBtn.onclick = async () => {
+                await completeSpacedRepetitionSession();
+                window.location.href = '/dashboard';
+            };
+            
+            // Create button container
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.display = 'flex';
+            buttonContainer.style.gap = '1rem';
+            buttonContainer.style.justifyContent = 'center';
+            buttonContainer.style.marginTop = '1rem';
+            
+            buttonContainer.appendChild(restartBtn);
+            buttonContainer.appendChild(dashboardBtn);
+            statsContainer.appendChild(buttonContainer);
         }
     }
     
