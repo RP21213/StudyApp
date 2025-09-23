@@ -253,94 +253,414 @@
 
 
 
+        /* Watch Demo Section */
+        .watch-demo {
+            padding: 6rem 0;
+            background: var(--bg-secondary);
+            position: relative;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .demo-character {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .character-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .demo-character h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .demo-video-container {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+        }
+
+        .video-player {
+            background: #000;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+            position: relative;
+        }
+
+        .video-placeholder {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+        }
+
+        .video-placeholder:hover {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        }
+
+        .play-button {
+            position: relative;
+            z-index: 2;
+            transition: all var(--transition-normal);
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .video-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .video-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .video-controls {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .video-progress {
+            flex: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #667eea;
+            border-radius: 2px;
+            transition: width 0.1s ease;
+        }
+
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .volume-control {
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .volume-control:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .time-display {
+            color: white;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
+        }
+
+        .demo-description {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .demo-description p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Responsive Design for Demo Section */
+        @media (max-width: 768px) {
+            .demo-character h2 {
+                font-size: 2rem;
+            }
+
+            .character-icon {
+                width: 50px;
+                height: 50px;
+            }
+
+            .video-placeholder {
+                height: 250px;
+            }
+
+            .video-title {
+                font-size: 1.2rem;
+            }
+
+            .video-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .video-controls {
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .control-buttons {
+                gap: 0.75rem;
+            }
+
+            .time-display {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .demo-character {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .demo-character h2 {
+                font-size: 1.75rem;
+            }
+
+            .video-placeholder {
+                height: 200px;
+            }
+
+            .video-overlay {
+                padding: 1rem;
+            }
+
+            .video-title {
+                font-size: 1rem;
+            }
+
+            .video-subtitle {
+                font-size: 0.8rem;
+            }
+        }
+
         /* Feature Highlights Section */
         .feature-highlights {
-            padding: 6rem 0;
-            background: var(--bg-primary);
+            padding: 8rem 0;
+            background: #1a202c;
+            color: white;
         }
 
-        .benefits-grid {
+        .feature-block {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-bottom: 6rem;
         }
 
-        .benefit-card {
-            background: white;
+        .feature-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .feature-block.reverse {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .feature-block.reverse .feature-content {
+            order: 2;
+        }
+
+        .feature-block.reverse .feature-text {
+            order: 1;
+        }
+
+        .feature-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .feature-image-placeholder {
+            width: 100%;
+            max-width: 500px;
+            height: 350px;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
             border-radius: var(--radius-xl);
-            padding: 2rem;
-            box-shadow: var(--shadow-lg);
-            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-2xl);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
         }
 
-        .benefit-card::before {
+        .feature-image-placeholder::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
-            transform: scaleX(0);
-            transition: transform var(--transition-normal);
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
         }
 
-        .benefit-card:hover::before {
-            transform: scaleX(1);
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
 
-        .benefit-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-2xl);
+        .placeholder-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
         }
 
-        .benefit-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: var(--radius-lg);
-            background: var(--primary-gradient);
+        .placeholder-icon {
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .placeholder-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .placeholder-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .feature-text {
+            max-width: 500px;
+        }
+
+        .feature-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: white;
+        }
+
+        .feature-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+
+        .feature-list {
+            margin-bottom: 2.5rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem 0;
+        }
+
+        .checkmark {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            background: rgba(34, 197, 94, 0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
+        }
+
+        .feature-item span {
             color: white;
-            font-size: 1.5rem;
+            font-weight: 500;
+            font-size: 1rem;
         }
 
-        .benefit-card h3 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
+        .cta-container {
+            margin-top: 2rem;
         }
 
-        .benefit-card p {
-            color: var(--text-secondary);
-            line-height: 1.7;
-            margin-bottom: 1.5rem;
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-lg);
+            border: none;
+            cursor: pointer;
         }
 
-        .benefit-metric {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .metric-number {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .metric-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
         }
 
         /* Social Proof Section */
@@ -719,8 +1039,26 @@
             }
 
 
-            .benefits-grid {
+            .feature-block {
                 grid-template-columns: 1fr;
+                gap: 2rem;
+                margin-bottom: 4rem;
+            }
+
+            .feature-block.reverse .feature-content {
+                order: 1;
+            }
+
+            .feature-block.reverse .feature-text {
+                order: 2;
+            }
+
+            .feature-title {
+                font-size: 2rem;
+            }
+
+            .feature-image-placeholder {
+                height: 250px;
             }
 
             .proof-stats {
@@ -759,6 +1097,23 @@
         @media (max-width: 480px) {
             .hero-text h1 {
                 font-size: 2rem;
+            }
+
+            .feature-title {
+                font-size: 1.75rem;
+            }
+
+            .feature-description {
+                font-size: 1rem;
+            }
+
+            .feature-image-placeholder {
+                height: 200px;
+            }
+
+            .cta-button {
+                padding: 0.875rem 1.5rem;
+                font-size: 1rem;
             }
 
             .proof-stats {
@@ -1049,56 +1404,190 @@
             </div>
         </section>
 
+        <!-- Watch Demo Section -->
+        <section class="watch-demo">
+            <div class="container">
+                <div class="demo-header">
+                    <div class="demo-character">
+                        <div class="character-icon">
+                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="20" cy="20" r="18" fill="#667eea" stroke="#4f46e5" stroke-width="2"/>
+                                <circle cx="15" cy="16" r="2" fill="white"/>
+                                <circle cx="25" cy="16" r="2" fill="white"/>
+                                <path d="M14 24c0-3 2.5-5.5 6-5.5s6 2.5 6 5.5" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+                                <text x="20" y="32" text-anchor="middle" fill="white" font-size="6" font-weight="bold">DEMO</text>
+                            </svg>
+                        </div>
+                        <h2>Watch a Demo</h2>
+                    </div>
+                </div>
+                
+                <div class="demo-video-container">
+                    <div class="video-player">
+                        <div class="video-placeholder">
+                            <div class="play-button">
+                                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="30" cy="30" r="30" fill="rgba(255, 255, 255, 0.9)"/>
+                                    <path d="M23 20l16 10-16 10V20z" fill="#667eea"/>
+                                </svg>
+                            </div>
+                            <div class="video-overlay">
+                                <p class="video-title">See how Foci transforms your study materials</p>
+                                <p class="video-subtitle">Watch our demo to see the magic in action</p>
+                            </div>
+                        </div>
+                        <div class="video-controls">
+                            <div class="video-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill"></div>
+                                </div>
+                            </div>
+                            <div class="control-buttons">
+                                <button class="control-btn play-pause">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="5,3 19,12 5,21"></polygon>
+                                    </svg>
+                                </button>
+                                <div class="volume-control">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon>
+                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                                    </svg>
+                                </div>
+                                <div class="time-display">
+                                    <span class="current-time">0:00</span> / <span class="total-time">2:30</span>
+                                </div>
+                                <button class="control-btn fullscreen">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-description">
+                    <p>See how Foci can transform your course materials into interactive study tools in just seconds. Our AI-powered platform makes studying more engaging and effective.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Feature Highlights Section -->
         <section class="feature-highlights" id="features">
             <div class="container">
-                <div class="section-header fade-in">
-                    <h2 class="section-title">Why Students Choose Foci</h2>
-                    <p class="section-subtitle">Four powerful benefits that transform how you learn</p>
+                <!-- First Feature Block -->
+                <div class="feature-block">
+                    <div class="feature-content">
+                        <div class="feature-image-placeholder">
+                            <div class="placeholder-content">
+                                <div class="placeholder-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="60" height="60" rx="12" fill="#f7fafc"/>
+                                        <rect x="15" y="15" width="30" height="30" rx="6" fill="#e2e8f0"/>
+                                        <rect x="20" y="20" width="20" height="4" rx="2" fill="#cbd5e0"/>
+                                        <rect x="20" y="28" width="15" height="3" rx="1.5" fill="#cbd5e0"/>
+                                        <rect x="20" y="35" width="18" height="3" rx="1.5" fill="#cbd5e0"/>
+                                        <rect x="20" y="42" width="12" height="3" rx="1.5" fill="#cbd5e0"/>
+                                    </svg>
+                                </div>
+                                <p class="placeholder-text">Dashboard Screenshot</p>
+                                <p class="placeholder-subtitle">Your image will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-text">
+                        <h2 class="feature-title">Comprehensive AI Study Solution</h2>
+                        <p class="feature-description">Transform your study materials into powerful learning tools with our advanced AI platform. Streamline your learning process, enhance retention, and achieve better results like never before.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>AI-Powered Study Tool Generation</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>Automated Progress Tracking & Analytics</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>Personalized Learning Recommendations</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>Interactive Study Sessions & Quizzes</span>
+                            </div>
+                        </div>
+                        <div class="cta-container">
+                            <a href="/signup" class="cta-button">Start Free Trial</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="benefits-grid">
-                    <div class="benefit-card fade-in">
-                        <div class="benefit-icon">
-                            <i data-lucide="zap"></i>
-                        </div>
-                        <h3>Automatically Generate Study Tools</h3>
-                        <p>Upload any content and instantly get flashcards, quizzes, and summaries. No more manual creation - our AI does the work for you.</p>
-                        <div class="benefit-metric">
-                            <span class="metric-number">95%</span>
-                            <span class="metric-label">Time Saved</span>
+
+                <!-- Second Feature Block -->
+                <div class="feature-block reverse">
+                    <div class="feature-text">
+                        <h2 class="feature-title">Build Your Study Workflow</h2>
+                        <p class="feature-description">Effortlessly organize your study materials using our intelligent workflow system. Upload, process, and interact with your content through our intuitive interface designed for maximum productivity.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>Smart Content Processing: Transform any document into study materials</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>AI Tutoring: Get instant answers and explanations</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="checkmark">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                </div>
+                                <span>Adaptive Learning: Study sessions that adjust to your pace</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="benefit-card fade-in">
-                        <div class="benefit-icon">
-                            <i data-lucide="bot"></i>
-                        </div>
-                        <h3>AI Tutor Interaction</h3>
-                        <p>Ask questions, get explanations, and receive personalized feedback. Your AI tutor adapts to your learning style and pace.</p>
-                        <div class="benefit-metric">
-                            <span class="metric-number">24/7</span>
-                            <span class="metric-label">Available</span>
-                        </div>
-                    </div>
-                    <div class="benefit-card fade-in">
-                        <div class="benefit-icon">
-                            <i data-lucide="trending-up"></i>
-                        </div>
-                        <h3>Progress Tracking & Insights</h3>
-                        <p>See your strengths, weaknesses, and performance trends. Get personalized recommendations to optimize your study strategy.</p>
-                        <div class="benefit-metric">
-                            <span class="metric-number">40%</span>
-                            <span class="metric-label">Better Grades</span>
-                        </div>
-                    </div>
-                    <div class="benefit-card fade-in">
-                        <div class="benefit-icon">
-                            <i data-lucide="clock"></i>
-                        </div>
-                        <h3>Study More Efficiently</h3>
-                        <p>Focus on what matters most with intelligent prioritization. Students report studying 30% less time with better results.</p>
-                        <div class="benefit-metric">
-                            <span class="metric-number">30%</span>
-                            <span class="metric-label">Less Study Time</span>
+                    <div class="feature-content">
+                        <div class="feature-image-placeholder">
+                            <div class="placeholder-content">
+                                <div class="placeholder-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="60" height="60" rx="12" fill="#f7fafc"/>
+                                        <rect x="10" y="10" width="40" height="25" rx="4" fill="#e2e8f0"/>
+                                        <rect x="15" y="15" width="30" height="3" rx="1.5" fill="#cbd5e0"/>
+                                        <rect x="15" y="20" width="25" height="3" rx="1.5" fill="#cbd5e0"/>
+                                        <rect x="15" y="25" width="20" height="3" rx="1.5" fill="#cbd5e0"/>
+                                        <rect x="10" y="40" width="15" height="8" rx="2" fill="#667eea" opacity="0.3"/>
+                                        <rect x="30" y="40" width="15" height="8" rx="2" fill="#667eea" opacity="0.3"/>
+                                    </svg>
+                                </div>
+                                <p class="placeholder-text">Workflow Interface</p>
+                                <p class="placeholder-subtitle">Your image will appear here</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1418,6 +1907,132 @@
         // Initialize GSAP animations
         gsap.registerPlugin(ScrollTrigger);
 
+        // Demo Video Functionality
+        const videoPlayer = document.querySelector('.video-player');
+        const playButton = document.querySelector('.play-button');
+        const videoPlaceholder = document.querySelector('.video-placeholder');
+        const progressFill = document.querySelector('.progress-fill');
+        const currentTimeDisplay = document.querySelector('.current-time');
+        const totalTimeDisplay = document.querySelector('.total-time');
+        const playPauseBtn = document.querySelector('.play-pause');
+        
+        let isPlaying = false;
+        let currentTime = 0;
+        let totalTime = 150; // 2:30 in seconds
+        
+        // Format time helper
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Update time display
+        function updateTimeDisplay() {
+            currentTimeDisplay.textContent = formatTime(currentTime);
+            totalTimeDisplay.textContent = formatTime(totalTime);
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            const progress = (currentTime / totalTime) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        // Play/pause functionality
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            
+            if (isPlaying) {
+                playButton.style.display = 'none';
+                // Here you would start the actual video
+                // For now, we'll just simulate playback
+                startSimulatedPlayback();
+            } else {
+                playButton.style.display = 'block';
+                stopSimulatedPlayback();
+            }
+        }
+        
+        // Simulate video playback (replace with actual video integration)
+        let playbackInterval;
+        
+        function startSimulatedPlayback() {
+            playbackInterval = setInterval(() => {
+                if (currentTime < totalTime) {
+                    currentTime += 1;
+                    updateTimeDisplay();
+                    updateProgress();
+                } else {
+                    // Video ended
+                    isPlaying = false;
+                    playButton.style.display = 'block';
+                    currentTime = 0;
+                    updateTimeDisplay();
+                    updateProgress();
+                    clearInterval(playbackInterval);
+                }
+            }, 1000);
+        }
+        
+        function stopSimulatedPlayback() {
+            if (playbackInterval) {
+                clearInterval(playbackInterval);
+            }
+        }
+        
+        // Event listeners
+        if (playButton) {
+            playButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                togglePlay();
+            });
+        }
+        
+        if (playPauseBtn) {
+            playPauseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                togglePlay();
+            });
+        }
+        
+        if (videoPlaceholder) {
+            videoPlaceholder.addEventListener('click', (e) => {
+                e.preventDefault();
+                togglePlay();
+            });
+        }
+        
+        // Initialize time display
+        updateTimeDisplay();
+        
+        // Demo section animation
+        gsap.from('.watch-demo .demo-header', {
+            duration: 0.8,
+            y: 50,
+            opacity: 0,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.watch-demo',
+                start: 'top 80%',
+                end: 'bottom 20%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+        
+        gsap.from('.video-player', {
+            duration: 1,
+            y: 50,
+            opacity: 0,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.video-player',
+                start: 'top 85%',
+                end: 'bottom 15%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
         // Hero animations
         gsap.from('.hero-text', {
             duration: 1,
@@ -1434,16 +2049,46 @@
             delay: 0.3
         });
 
-        // Feature cards animation
-        gsap.from('.feature-card', {
+        // Feature blocks animation
+        gsap.from('.feature-block', {
+            duration: 1,
+            y: 80,
+            opacity: 0,
+            stagger: 0.3,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.feature-highlights',
+                start: 'top 80%',
+                end: 'bottom 20%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        gsap.from('.feature-title', {
             duration: 0.8,
-            y: 50,
+            y: 30,
             opacity: 0,
             stagger: 0.2,
             ease: 'power3.out',
             scrollTrigger: {
-                trigger: '.features-grid',
-                start: 'top 80%'
+                trigger: '.feature-highlights',
+                start: 'top 85%',
+                end: 'bottom 15%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        gsap.from('.feature-item', {
+            duration: 0.6,
+            x: -30,
+            opacity: 0,
+            stagger: 0.1,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.feature-list',
+                start: 'top 90%',
+                end: 'bottom 10%',
+                toggleActions: 'play none none reverse'
             }
         });
 
