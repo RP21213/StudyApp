@@ -1303,6 +1303,63 @@
             border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         
+        /* Background image dimming overlay */
+        body:not([data-background="default"])::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* Additional dimming for main content area */
+        body:not([data-background="default"]) .main-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.2);
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* Ensure content is above the overlay */
+        body:not([data-background="default"]) .main-content > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Enhanced text contrast for background images */
+        body:not([data-background="default"]) h1,
+        body:not([data-background="default"]) h2,
+        body:not([data-background="default"]) h3,
+        body:not([data-background="default"]) h4,
+        body:not([data-background="default"]) h5,
+        body:not([data-background="default"]) h6 {
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+        
+        body:not([data-background="default"]) .hub-card,
+        body:not([data-background="default"]) .content-card,
+        body:not([data-background="default"]) .community-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        body:not([data-background="default"]) .hub-card:hover,
+        body:not([data-background="default"]) .content-card:hover,
+        body:not([data-background="default"]) .community-card:hover {
+            background-color: rgba(255, 255, 255, 0.98);
+            transform: translateY(-2px);
+        }
+        
         /* Make all sidebar tabs visible when background theme is applied */
         body:not([data-background="default"]) .side-panel .nav-tab {
             background-color: rgba(255, 255, 255, 0.1) !important;
@@ -2433,6 +2490,299 @@
         #spotify-player-container.mini .sp-album-art {
             width: 60px;
             height: 60px;
+        }
+        
+        /* Music Visualization Effects */
+        .sp-visualization-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .sp-waveform {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            padding: 0 1rem 1rem;
+        }
+        
+        .sp-wave-bar {
+            width: 3px;
+            background: linear-gradient(to top, rgba(255,255,255,0.8), rgba(255,255,255,0.3));
+            border-radius: 2px;
+            transition: height 0.1s ease;
+            animation: wavePulse 1.5s ease-in-out infinite;
+        }
+        
+        .sp-wave-bar:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+        
+        .sp-wave-bar:nth-child(even) {
+            animation-delay: 0.3s;
+        }
+        
+        @keyframes wavePulse {
+            0%, 100% { height: 8px; }
+            50% { height: 24px; }
+        }
+        
+        .sp-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .sp-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: floatUp 3s linear infinite;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 0;
+            }
+        }
+        
+        /* Advanced Audio Features */
+        .sp-audio-controls {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sp-equalizer {
+            display: flex;
+            align-items: end;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            height: 60px;
+        }
+        
+        .sp-eq-band {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            position: relative;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sp-eq-band:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .sp-eq-level {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 2px;
+            transition: height 0.3s ease;
+        }
+        
+        .sp-audio-presets {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .sp-preset-btn {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sp-preset-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .sp-preset-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* AI Recommendations */
+        .sp-recommendations {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sp-recommendations h4 {
+            color: white;
+            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .sp-recommendation-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sp-recommendation-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sp-rec-album-art {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .sp-rec-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .sp-rec-title {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sp-rec-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Spotify Search */
+        .sp-search-container {
+            margin-top: 1rem;
+        }
+        
+        .sp-search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .sp-search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .sp-search-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        
+        .sp-search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .sp-search-result {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sp-search-result:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sp-search-result:last-child {
+            border-bottom: none;
+        }
+        
+        .sp-search-album-art {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .sp-search-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .sp-search-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .sp-search-artist {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         /* Dynamic background colors based on album art */
@@ -3801,6 +4151,16 @@
 
     {% if spotify_connected %}
     <div id="spotify-player-container">
+        <!-- Music Visualization Effects -->
+        <div class="sp-visualization-container">
+            <div class="sp-waveform" id="sp-waveform">
+                <!-- Wave bars will be generated dynamically -->
+            </div>
+            <div class="sp-particles" id="sp-particles">
+                <!-- Particles will be generated dynamically -->
+            </div>
+        </div>
+        
         <!-- Mini player toggle button -->
         <button id="sp-mini-toggle" class="sp-mini-toggle" title="Toggle Mini Player">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3830,6 +4190,43 @@
             </div>
         </div>
         
+        <!-- Advanced Audio Features -->
+        <div class="sp-audio-controls">
+            <div class="sp-equalizer" id="sp-equalizer">
+                <div class="sp-eq-band" data-freq="60">
+                    <div class="sp-eq-level" style="height: 50%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="170">
+                    <div class="sp-eq-level" style="height: 60%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="310">
+                    <div class="sp-eq-level" style="height: 70%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="600">
+                    <div class="sp-eq-level" style="height: 80%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="1000">
+                    <div class="sp-eq-level" style="height: 90%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="3000">
+                    <div class="sp-eq-level" style="height: 75%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="6000">
+                    <div class="sp-eq-level" style="height: 65%"></div>
+                </div>
+                <div class="sp-eq-band" data-freq="12000">
+                    <div class="sp-eq-level" style="height: 55%"></div>
+                </div>
+            </div>
+            
+            <div class="sp-audio-presets">
+                <button class="sp-preset-btn active" data-preset="flat">Flat</button>
+                <button class="sp-preset-btn" data-preset="study">Study</button>
+                <button class="sp-preset-btn" data-preset="bass">Bass</button>
+                <button class="sp-preset-btn" data-preset="treble">Treble</button>
+            </div>
+        </div>
+        
         <!-- Study-focused playlist categories -->
         <div class="sp-study-categories">
             <div class="sp-category-tabs">
@@ -3840,13 +4237,29 @@
             </div>
         </div>
         
+        <!-- Spotify Search -->
+        <div class="sp-search-container">
+            <input type="text" id="sp-search-input" class="sp-search-input" placeholder="Search your Spotify library...">
+            <div class="sp-search-results" id="sp-search-results" style="display: none;">
+                <!-- Search results will be populated dynamically -->
+            </div>
+        </div>
+        
         <select id="sp-playlist-select" class="sp-playlist-select">
             <option value="">Select a Playlist</option>
         </select>
         
+        <!-- AI Recommendations -->
+        <div class="sp-recommendations" id="sp-recommendations" style="display: none;">
+            <h4>🎵 Similar to this track</h4>
+            <div id="sp-recommendations-list">
+                <!-- Recommendations will be populated dynamically -->
+            </div>
+        </div>
+        
         <!-- Keyboard shortcuts hint -->
         <div class="sp-shortcuts-hint">
-            <small>Press Space to play/pause • ← → to skip tracks</small>
+            <small>Press Space to play/pause • ← → to skip tracks • M for mini mode</small>
         </div>
     </div>
     {% endif %}
@@ -4949,6 +5362,16 @@ Best regards,
         const progressBar = document.getElementById('sp-progress');
         const categoryTabs = document.querySelectorAll('.sp-category-tab');
         
+        // Phase 2 Elements
+        const waveform = document.getElementById('sp-waveform');
+        const particles = document.getElementById('sp-particles');
+        const equalizer = document.getElementById('sp-equalizer');
+        const presetBtns = document.querySelectorAll('.sp-preset-btn');
+        const searchInput = document.getElementById('sp-search-input');
+        const searchResults = document.getElementById('sp-search-results');
+        const recommendations = document.getElementById('sp-recommendations');
+        const recommendationsList = document.getElementById('sp-recommendations-list');
+        
         const playIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M8 5v14l11-7z"></path></svg>`;
         const pauseIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>`;
 
@@ -4958,6 +5381,21 @@ Best regards,
         let currentCategory = 'all';
         let allPlaylists = [];
         let isPlaying = false;
+        
+        // Phase 2 Variables
+        let currentTrack = null;
+        let waveformAnimation = null;
+        let particleAnimation = null;
+        let searchTimeout = null;
+        let audioContext = null;
+        let analyser = null;
+        let audioPresets = {
+            flat: [50, 50, 50, 50, 50, 50, 50, 50],
+            study: [40, 45, 50, 55, 60, 55, 50, 45],
+            bass: [70, 65, 50, 40, 35, 30, 25, 20],
+            treble: [20, 25, 30, 35, 40, 50, 65, 70]
+        };
+        let currentPreset = 'flat';
 
         // --- SDK Initialization ---
         const player = new Spotify.Player({
@@ -4984,6 +5422,7 @@ Best regards,
             isPlayerReady = true;
             trackArtist.textContent = "Ready to play";
             loadPlaylists();
+            initializePhase2Features();
         });
 
         player.addListener('not_ready', ({ device_id }) => {
@@ -5131,9 +5570,21 @@ Best regards,
             if (isPlaying) {
                 playerContainer.classList.add('playing');
                 albumArt.classList.add('playing');
+                startWaveformAnimation();
+                startParticleAnimation();
             } else {
                 playerContainer.classList.remove('playing');
                 albumArt.classList.remove('playing');
+                stopWaveformAnimation();
+                stopParticleAnimation();
+            }
+            
+            // Update current track for Phase 2 features
+            currentTrack = currentTrack;
+            
+            // Load AI recommendations for new track
+            if (currentTrack.id) {
+                loadRecommendations(currentTrack.id);
             }
             
             // Update dynamic background
@@ -5250,9 +5701,237 @@ Best regards,
                 });
             }
             
-            filteredPlaylists.forEach(playlist => {
-                const option = new Option(playlist.name, playlist.uri);
-                playlistSelect.add(option);
+            });
+        }
+
+        // --- Phase 2 Functions ---
+        
+        // Initialize Phase 2 features
+        function initializePhase2Features() {
+            initializeWaveform();
+            initializeEqualizer();
+            initializeSearch();
+            initializeRecommendations();
+        }
+        
+        // Music Visualization Effects
+        function initializeWaveform() {
+            // Create waveform bars
+            for (let i = 0; i < 20; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'sp-wave-bar';
+                bar.style.height = Math.random() * 20 + 8 + 'px';
+                waveform.appendChild(bar);
+            }
+            
+            // Start waveform animation
+            startWaveformAnimation();
+        }
+        
+        function startWaveformAnimation() {
+            if (waveformAnimation) return;
+            
+            waveformAnimation = setInterval(() => {
+                if (!isPlaying) return;
+                
+                const bars = waveform.querySelectorAll('.sp-wave-bar');
+                bars.forEach(bar => {
+                    const newHeight = Math.random() * 30 + 8;
+                    bar.style.height = newHeight + 'px';
+                });
+            }, 150);
+        }
+        
+        function stopWaveformAnimation() {
+            if (waveformAnimation) {
+                clearInterval(waveformAnimation);
+                waveformAnimation = null;
+            }
+        }
+        
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'sp-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particles.appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 5000);
+        }
+        
+        function startParticleAnimation() {
+            if (particleAnimation) return;
+            
+            particleAnimation = setInterval(() => {
+                if (!isPlaying) return;
+                createParticle();
+            }, 300);
+        }
+        
+        function stopParticleAnimation() {
+            if (particleAnimation) {
+                clearInterval(particleAnimation);
+                particleAnimation = null;
+            }
+        }
+        
+        // Advanced Audio Features
+        function initializeEqualizer() {
+            const eqBands = equalizer.querySelectorAll('.sp-eq-band');
+            
+            eqBands.forEach((band, index) => {
+                band.addEventListener('click', (e) => {
+                    const rect = band.getBoundingClientRect();
+                    const clickY = e.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(100, 100 - (clickY / rect.height) * 100));
+                    
+                    const level = band.querySelector('.sp-eq-level');
+                    level.style.height = percentage + '%';
+                    
+                    // Update preset to custom
+                    presetBtns.forEach(btn => btn.classList.remove('active'));
+                    currentPreset = 'custom';
+                });
+            });
+            
+            // Preset buttons
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    presetBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentPreset = btn.dataset.preset;
+                    applyAudioPreset(currentPreset);
+                });
+            });
+        }
+        
+        function applyAudioPreset(preset) {
+            if (!audioPresets[preset]) return;
+            
+            const eqBands = equalizer.querySelectorAll('.sp-eq-band');
+            const levels = audioPresets[preset];
+            
+            eqBands.forEach((band, index) => {
+                const level = band.querySelector('.sp-eq-level');
+                level.style.height = levels[index] + '%';
+            });
+        }
+        
+        // Spotify Search
+        function initializeSearch() {
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim();
+                
+                clearTimeout(searchTimeout);
+                
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    searchSpotify(query);
+                }, 300);
+            });
+        }
+        
+        async function searchSpotify(query) {
+            try {
+                const response = await fetch(`/spotify/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.tracks && data.tracks.items) {
+                    displaySearchResults(data.tracks.items);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+        
+        function displaySearchResults(tracks) {
+            searchResults.innerHTML = '';
+            searchResults.style.display = 'block';
+            
+            tracks.slice(0, 5).forEach(track => {
+                const result = document.createElement('div');
+                result.className = 'sp-search-result';
+                result.innerHTML = `
+                    <img src="${track.album.images[0]?.url || ''}" alt="Album Art" class="sp-search-album-art">
+                    <div class="sp-search-details">
+                        <div class="sp-search-title">${track.name}</div>
+                        <div class="sp-search-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                        <div class="sp-search-type">Track</div>
+                    </div>
+                `;
+                
+                result.addEventListener('click', () => {
+                    playTrack(track.uri);
+                    searchResults.style.display = 'none';
+                    searchInput.value = '';
+                });
+                
+                searchResults.appendChild(result);
+            });
+        }
+        
+        async function playTrack(trackUri) {
+            try {
+                await fetch('/spotify/play', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        uris: [trackUri],
+                        device_id: sdkDeviceId
+                    })
+                });
+            } catch (error) {
+                console.error('Play track error:', error);
+            }
+        }
+        
+        // AI Recommendations
+        function initializeRecommendations() {
+            // This will be called when a track starts playing
+        }
+        
+        async function loadRecommendations(trackId) {
+            try {
+                const response = await fetch(`/spotify/recommendations?seed_tracks=${trackId}`);
+                const data = await response.json();
+                
+                if (data.tracks && data.tracks.length > 0) {
+                    displayRecommendations(data.tracks);
+                }
+            } catch (error) {
+                console.error('Recommendations error:', error);
+            }
+        }
+        
+        function displayRecommendations(tracks) {
+            recommendationsList.innerHTML = '';
+            recommendations.style.display = 'block';
+            
+            tracks.slice(0, 3).forEach(track => {
+                const item = document.createElement('div');
+                item.className = 'sp-recommendation-item';
+                item.innerHTML = `
+                    <img src="${track.album.images[0]?.url || ''}" alt="Album Art" class="sp-rec-album-art">
+                    <div class="sp-rec-details">
+                        <div class="sp-rec-title">${track.name}</div>
+                        <div class="sp-rec-artist">${track.artists.map(a => a.name).join(', ')}</div>
+                    </div>
+                `;
+                
+                item.addEventListener('click', () => {
+                    playTrack(track.uri);
+                });
+                
+                recommendationsList.appendChild(item);
             });
         }
 

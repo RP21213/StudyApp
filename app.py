@@ -25,7 +25,7 @@ from firebase_admin import credentials, firestore, storage
 import stripe
 import base64 
 import json   
-from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource, Referral
+from models import Hub, Activity, Note, Lecture, StudySession, Folder, Notification, Assignment, CalendarEvent, User, SharedFolder, AnnotatedSlideDeck, StudyGroup, StudyGroupMember, SharedResource, Referral, SpacedRepetitionCard, ReviewSession, UserSpacedRepetitionSettings
 import asyncio 
 from flask_socketio import SocketIO, emit, join_room, leave_room 
 import assemblyai as aai 
@@ -1703,6 +1703,62 @@ def previous_track():
 def set_volume():
     volume_percent = request.json.get('volume_percent')
     return spotify_api_request('PUT', f'me/player/volume?volume_percent={volume_percent}')
+
+# --- Phase 2: Advanced Spotify Features ---
+@app.route('/spotify/search')
+@login_required
+@spotify_connected
+def search_spotify():
+    """Search user's Spotify library"""
+    query = request.args.get('q', '')
+    if not query:
+        return jsonify({'error': 'Query parameter required'}), 400
+    
+    # Search for tracks, albums, artists, and playlists
+    search_params = {
+        'q': query,
+        'type': 'track,album,artist,playlist',
+        'limit': 20
+    }
+    
+    return spotify_api_request('GET', 'search', data=search_params)
+
+@app.route('/spotify/recommendations')
+@login_required
+@spotify_connected
+def get_recommendations():
+    """Get AI-powered music recommendations based on current track"""
+    seed_tracks = request.args.get('seed_tracks', '')
+    if not seed_tracks:
+        return jsonify({'error': 'seed_tracks parameter required'}), 400
+    
+    # Get recommendations with study-focused parameters
+    rec_params = {
+        'seed_tracks': seed_tracks,
+        'limit': 10,
+        'target_energy': 0.5,  # Moderate energy for study
+        'target_valence': 0.6,  # Slightly positive mood
+        'target_acousticness': 0.3,  # Mix of acoustic and electronic
+        'target_instrumentalness': 0.4,  # Some instrumental tracks
+        'target_tempo': 120,  # Moderate tempo
+        'min_popularity': 20  # Not too obscure
+    }
+    
+    return spotify_api_request('GET', 'recommendations', data=rec_params)
+
+@app.route('/spotify/audio-features/<track_id>')
+@login_required
+@spotify_connected
+def get_audio_features(track_id):
+    """Get detailed audio features for a track"""
+    return spotify_api_request('GET', f'audio-features/{track_id}')
+
+@app.route('/spotify/currently-playing')
+@login_required
+@spotify_connected
+def get_currently_playing():
+    """Get currently playing track with full details"""
+    return spotify_api_request('GET', 'me/player/currently-playing')
 
 # --- Homepage and Auth Routes ---
 @app.route("/")
@@ -5436,35 +5492,46 @@ def generate_individual_cheatsheet(hub_id):
         cheat_sheet_data = safe_load_json(cheat_sheet_json)
         
         if not cheat_sheet_data:
-            # Fallback cheat sheet
+            # Fallback cheat sheet with correct JSON structure
             first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
             cheat_sheet_data = {
                 "title": f"Quick Reference: {first_file_name}",
-                "sections": [
+                "columns": [
                     {
-                        "title": "Key Concepts",
-                        "items": ["Review the document for main concepts", "Identify important definitions", "Note key formulas or equations"]
+                        "blocks": [
+                            {
+                                "title": "Key Concepts",
+                                "content_html": "<p>Review the document for main concepts, identify important definitions, and note key formulas or equations.</p>"
+                            }
+                        ]
                     },
                     {
-                        "title": "Important Points",
-                        "items": ["Focus on highlighted sections", "Review examples and case studies", "Understand the main arguments"]
+                        "blocks": [
+                            {
+                                "title": "Important Points", 
+                                "content_html": "<p>Focus on highlighted sections, review examples and case studies, and understand the main arguments.</p>"
+                            }
+                        ]
+                    },
+                    {
+                        "blocks": [
+                            {
+                                "title": "Study Tips",
+                                "content_html": "<p>Create flashcards for key terms, practice with examples, and review regularly for retention.</p>"
+                            }
+                        ]
                     }
                 ]
             }
+            # Convert to JSON string for storage
+            cheat_sheet_json = json.dumps(cheat_sheet_data)
         
         # Create cheat sheet as a note
         note_ref = db.collection('notes').document()
         first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
         
-        # Convert cheat sheet data to HTML
-        html_content = f"<h1>{cheat_sheet_data.get('title', f'Cheat Sheet: {first_file_name}')}</h1>"
-        for section in cheat_sheet_data.get('sections', []):
-            html_content += f"<h2>{section.get('title', 'Section')}</h2><ul>"
-            for item in section.get('items', []):
-                html_content += f"<li>{item}</li>"
-            html_content += "</ul>"
-        
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet: {first_file_name}", content_html=html_content)
+        # Store the JSON directly (same as exam pack version)
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Cheat Sheet for {first_file_name}", content_html=cheat_sheet_json)
         note_ref.set(new_note.to_dict())
         
         print("Individual cheat sheet generated successfully")
@@ -7719,8 +7786,542 @@ def add_referral_code():
         return jsonify({"success": False, "message": "Error adding referral code"}), 500
 
 
+@app.route("/spaced_repetition/review")
+@login_required
+def spaced_repetition_review():
+    """Serve the spaced repetition review interface"""
+    return render_template("spaced_repetition_review.html")
+
+
+@app.route("/api/spaced_repetition/enhanced_flashcards/<activity_id>")
+@login_required
+def get_enhanced_flashcards(activity_id):
+    """Get flashcards with spaced repetition data for enhanced interface"""
+    try:
+        # Get the original activity
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            return jsonify({"success": False, "message": "Activity not found"}), 404
+        
+        activity = Activity.from_dict(activity_doc.to_dict())
+        
+        # Check if user owns this activity
+        hub_doc = db.collection('hubs').document(activity.hub_id).get()
+        if not hub_doc.exists or hub_doc.to_dict().get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized"}), 403
+        
+        # Get spaced repetition cards
+        sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+        sr_cards = sr_cards_query.stream()
+        
+        enhanced_cards = []
+        for sr_card_doc in sr_cards:
+            sr_card_data = sr_card_doc.to_dict()
+            sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+            
+            enhanced_cards.append({
+                'id': sr_card.id,
+                'front': sr_card.front,
+                'back': sr_card.back,
+                'ease_factor': sr_card.ease_factor,
+                'interval_days': sr_card.interval_days,
+                'repetitions': sr_card.repetitions,
+                'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
+                'is_due': sr_card.is_due(),
+                'difficulty': sr_card.difficulty
+            })
+        
+        return jsonify({
+            "success": True,
+            "activity": {
+                'id': activity.id,
+                'title': activity.title,
+                'hub_id': activity.hub_id
+            },
+            "cards": enhanced_cards,
+            "total_cards": len(enhanced_cards),
+            "due_cards": len([c for c in enhanced_cards if c['is_due']])
+        })
+        
+    except Exception as e:
+        print(f"Error getting enhanced flashcards: {e}")
+        return jsonify({"success": False, "message": "Failed to get flashcards"}), 500
+
+
 # ==============================================================================
-# 9. MAIN EXECUTION
+# SPACED REPETITION SYSTEM - PHASE 2 IMPLEMENTATION
 # ==============================================================================
-if __name__ == "__main__":
+
+@app.route("/api/spaced_repetition/create_session", methods=["POST"])
+@login_required
+def create_review_session():
+    """Create a new spaced repetition review session"""
+    try:
+        data = request.get_json()
+        hub_id = data.get('hub_id')
+        session_type = data.get('session_type', 'spaced_repetition')
+        max_cards = data.get('max_cards', 20)
+        
+        if not hub_id:
+            return jsonify({"success": False, "message": "Hub ID is required"}), 400
+        
+        # Get due cards for this hub
+        due_cards_response = get_due_cards(hub_id)
+        if not due_cards_response[0].get_json().get('success'):
+            return jsonify({"success": False, "message": "Failed to get due cards"}), 500
+        
+        due_cards = due_cards_response[0].get_json().get('due_cards', [])
+        
+        # Limit cards for this session
+        session_cards = due_cards[:max_cards]
+        
+        if not session_cards:
+            return jsonify({
+                "success": True,
+                "message": "No cards due for review",
+                "session_id": None,
+                "cards": []
+            })
+        
+        # Create review session
+        session_ref = db.collection('review_sessions').document()
+        session = ReviewSession(
+            id=session_ref.id,
+            user_id=current_user.id,
+            hub_id=hub_id,
+            session_type=session_type,
+            cards_data=[card['id'] for card in session_cards]
+        )
+        
+        session_ref.set(session.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "session_id": session.id,
+            "cards": session_cards,
+            "total_cards": len(session_cards)
+        })
+        
+    except Exception as e:
+        print(f"Error creating review session: {e}")
+        return jsonify({"success": False, "message": "Failed to create session"}), 500
+
+
+@app.route("/api/spaced_repetition/complete_session", methods=["POST"])
+@login_required
+def complete_review_session():
+    """Complete a review session and update statistics"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id')
+        cards_reviewed = data.get('cards_reviewed', 0)
+        correct_count = data.get('correct_count', 0)
+        incorrect_count = data.get('incorrect_count', 0)
+        
+        if not session_id:
+            return jsonify({"success": False, "message": "Session ID is required"}), 400
+        
+        # Get and update session
+        session_ref = db.collection('review_sessions').document(session_id)
+        session_doc = session_ref.get()
+        
+        if not session_doc.exists:
+            return jsonify({"success": False, "message": "Session not found"}), 404
+        
+        session = ReviewSession.from_dict(session_doc.to_dict())
+        session.cards_reviewed = cards_reviewed
+        session.correct_count = correct_count
+        session.incorrect_count = incorrect_count
+        session.complete_session()
+        
+        # Update session in database
+        session_ref.update(session.to_dict())
+        
+        # Update hub progress (XP)
+        accuracy = session.calculate_accuracy()
+        xp_earned = int(cards_reviewed * (accuracy / 100) * 2)  # 2 XP per card with accuracy bonus
+        update_hub_progress(session.hub_id, xp_earned)
+        
+        return jsonify({
+            "success": True,
+            "message": "Session completed successfully",
+            "accuracy": accuracy,
+            "xp_earned": xp_earned,
+            "duration_minutes": session.session_duration_minutes
+        })
+        
+    except Exception as e:
+        print(f"Error completing session: {e}")
+        return jsonify({"success": False, "message": "Failed to complete session"}), 500
+
+
+@app.route("/api/spaced_repetition/user_settings", methods=["GET", "POST"])
+@login_required
+def manage_user_settings():
+    """Get or update user spaced repetition settings"""
+    try:
+        if request.method == "GET":
+            # Get user settings
+            settings_query = db.collection('user_spaced_repetition_settings').where('user_id', '==', current_user.id).limit(1)
+            settings_docs = list(settings_query.stream())
+            
+            if settings_docs:
+                settings = UserSpacedRepetitionSettings.from_dict(settings_docs[0].to_dict())
+                return jsonify({
+                    "success": True,
+                    "settings": settings.to_dict()
+                })
+            else:
+                # Create default settings
+                settings_ref = db.collection('user_spaced_repetition_settings').document()
+                default_settings = UserSpacedRepetitionSettings(
+                    id=settings_ref.id,
+                    user_id=current_user.id
+                )
+                settings_ref.set(default_settings.to_dict())
+                
+                return jsonify({
+                    "success": True,
+                    "settings": default_settings.to_dict()
+                })
+        
+        else:  # POST
+            # Update user settings
+            data = request.get_json()
+            
+            settings_query = db.collection('user_spaced_repetition_settings').where('user_id', '==', current_user.id).limit(1)
+            settings_docs = list(settings_query.stream())
+            
+            if settings_docs:
+                settings_ref = db.collection('user_spaced_repetition_settings').document(settings_docs[0].id)
+                settings_ref.update(data)
+            else:
+                # Create new settings
+                settings_ref = db.collection('user_spaced_repetition_settings').document()
+                settings = UserSpacedRepetitionSettings(
+                    id=settings_ref.id,
+                    user_id=current_user.id,
+                    **data
+                )
+                settings_ref.set(settings.to_dict())
+            
+            return jsonify({"success": True, "message": "Settings updated successfully"})
+            
+    except Exception as e:
+        print(f"Error managing user settings: {e}")
+        return jsonify({"success": False, "message": "Failed to manage settings"}), 500
+
+
+@app.route("/api/spaced_repetition/recent_sessions/<hub_id>")
+@login_required
+def get_recent_sessions(hub_id):
+    """Get recent review sessions for a hub"""
+    try:
+        sessions_query = db.collection('review_sessions').where('user_id', '==', current_user.id).where('hub_id', '==', hub_id).order_by('started_at', direction=firestore.Query.DESCENDING).limit(10)
+        sessions = sessions_query.stream()
+        
+        recent_sessions = []
+        for session_doc in sessions:
+            session_data = session_doc.to_dict()
+            session = ReviewSession.from_dict(session_data)
+            
+            recent_sessions.append({
+                'id': session.id,
+                'started_at': session.started_at.isoformat() if session.started_at else None,
+                'completed_at': session.completed_at.isoformat() if session.completed_at else None,
+                'cards_reviewed': session.cards_reviewed,
+                'accuracy': session.calculate_accuracy(),
+                'duration_minutes': session.session_duration_minutes
+            })
+        
+        return jsonify({
+            "success": True,
+            "sessions": recent_sessions
+        })
+        
+    except Exception as e:
+        print(f"Error getting recent sessions: {e}")
+        return jsonify({"success": False, "message": "Failed to get sessions"}), 500
+
+
+@app.route("/api/spaced_repetition/learning_progress/<hub_id>")
+@login_required
+def get_learning_progress(hub_id):
+    """Get detailed learning progress for a hub"""
+    try:
+        # Get all activities in this hub
+        activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
+        activities = activities_query.stream()
+        
+        progress_data = {
+            'total_cards': 0,
+            'new_cards': 0,
+            'learning_cards': 0,
+            'review_cards': 0,
+            'mature_cards': 0,
+            'overdue_cards': 0,
+            'cards_by_difficulty': {'easy': 0, 'medium': 0, 'hard': 0},
+            'average_ease_factor': 0,
+            'retention_rate': 0
+        }
+        
+        total_ease_factor = 0
+        total_reviews = 0
+        successful_reviews = 0
+        
+        for activity_doc in activities:
+            activity_id = activity_doc.id
+            
+            # Get spaced repetition cards for this activity
+            sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+            sr_cards = sr_cards_query.stream()
+            
+            for sr_card_doc in sr_cards:
+                sr_card_data = sr_card_doc.to_dict()
+                sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                
+                progress_data['total_cards'] += 1
+                total_ease_factor += sr_card.ease_factor
+                
+                # Categorize cards
+                if sr_card.repetitions == 0:
+                    progress_data['new_cards'] += 1
+                elif sr_card.repetitions < 3:
+                    progress_data['learning_cards'] += 1
+                elif sr_card.interval_days >= 21:
+                    progress_data['mature_cards'] += 1
+                else:
+                    progress_data['review_cards'] += 1
+                
+                # Check if overdue
+                if sr_card.next_review and datetime.now(timezone.utc) > sr_card.next_review:
+                    progress_data['overdue_cards'] += 1
+                
+                # Count by difficulty
+                progress_data['cards_by_difficulty'][sr_card.difficulty] += 1
+                
+                # Calculate retention rate
+                if sr_card.repetitions > 0:
+                    total_reviews += sr_card.repetitions
+                    successful_reviews += max(0, sr_card.repetitions - 1)  # Assume last review was successful
+        
+        # Calculate averages
+        if progress_data['total_cards'] > 0:
+            progress_data['average_ease_factor'] = total_ease_factor / progress_data['total_cards']
+        
+        if total_reviews > 0:
+            progress_data['retention_rate'] = (successful_reviews / total_reviews) * 100
+        
+        return jsonify({
+            "success": True,
+            "progress": progress_data
+        })
+        
+    except Exception as e:
+        print(f"Error getting learning progress: {e}")
+        return jsonify({"success": False, "message": "Failed to get progress"}), 500
+
+
+# ==============================================================================
+# SPACED REPETITION SYSTEM - PHASE 1 IMPLEMENTATION
+# ==============================================================================
+
+@app.route("/admin/migrate_flashcards_to_spaced_repetition", methods=["POST"])
+@login_required
+def migrate_flashcards_to_spaced_repetition():
+    """
+    Migration script to convert existing flashcards to spaced repetition system.
+    This should be run once to migrate all existing flashcard activities.
+    """
+    try:
+        # Get all flashcard activities
+        activities_query = db.collection('activities').where('type', '==', 'Flashcards')
+        activities = activities_query.stream()
+        
+        migrated_count = 0
+        skipped_count = 0
+        
+        for activity_doc in activities:
+            activity_data = activity_doc.to_dict()
+            activity_id = activity_doc.id
+            
+            # Check if already migrated
+            existing_sr_cards = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id).limit(1).stream()
+            if list(existing_sr_cards):
+                skipped_count += 1
+                continue
+            
+            cards = activity_data.get('data', {}).get('cards', [])
+            if not cards:
+                skipped_count += 1
+                continue
+            
+            # Create SpacedRepetitionCard for each card
+            batch = db.batch()
+            for card_index, card in enumerate(cards):
+                sr_card_ref = db.collection('spaced_repetition_cards').document()
+                sr_card = SpacedRepetitionCard(
+                    id=sr_card_ref.id,
+                    activity_id=activity_id,
+                    card_index=card_index,
+                    front=card.get('front', ''),
+                    back=card.get('back', ''),
+                    ease_factor=2.5,  # Default ease factor
+                    interval_days=1,  # Start with 1 day interval
+                    repetitions=0,
+                    difficulty='medium'
+                )
+                batch.set(sr_card_ref, sr_card.to_dict())
+            
+            batch.commit()
+            migrated_count += 1
+            print(f"Migrated activity {activity_id} with {len(cards)} cards")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Migration completed. Migrated {migrated_count} activities, skipped {skipped_count} activities.",
+            "migrated_count": migrated_count,
+            "skipped_count": skipped_count
+        })
+        
+    except Exception as e:
+        print(f"Error during migration: {e}")
+        return jsonify({"success": False, "message": f"Migration failed: {str(e)}"}), 500
+
+
+@app.route("/api/spaced_repetition/due_cards/<hub_id>")
+@login_required
+def get_due_cards(hub_id):
+    """Get cards that are due for review in a specific hub"""
+    try:
+        # Get all activities in this hub
+        activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
+        activities = activities_query.stream()
+        
+        due_cards = []
+        for activity_doc in activities:
+            activity_id = activity_doc.id
+            
+            # Get spaced repetition cards for this activity
+            sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+            sr_cards = sr_cards_query.stream()
+            
+            for sr_card_doc in sr_cards:
+                sr_card_data = sr_card_doc.to_dict()
+                sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                
+                if sr_card.is_due():
+                    due_cards.append({
+                        'id': sr_card.id,
+                        'front': sr_card.front,
+                        'back': sr_card.back,
+                        'activity_id': sr_card.activity_id,
+                        'card_index': sr_card.card_index,
+                        'ease_factor': sr_card.ease_factor,
+                        'interval_days': sr_card.interval_days,
+                        'repetitions': sr_card.repetitions,
+                        'difficulty': sr_card.difficulty
+                    })
+        
+        return jsonify({
+            "success": True,
+            "due_cards": due_cards,
+            "total_due": len(due_cards)
+        })
+        
+    except Exception as e:
+        print(f"Error getting due cards: {e}")
+        return jsonify({"success": False, "message": "Failed to get due cards"}), 500
+
+
+@app.route("/api/spaced_repetition/review_card", methods=["POST"])
+@login_required
+def review_card():
+    """Process a card review and update its spaced repetition data"""
+    try:
+        data = request.get_json()
+        card_id = data.get('card_id')
+        quality_rating = data.get('quality_rating')  # 0=again, 1=hard, 2=good, 3=easy
+        
+        if not card_id or quality_rating is None:
+            return jsonify({"success": False, "message": "Missing card_id or quality_rating"}), 400
+        
+        # Get the card
+        card_ref = db.collection('spaced_repetition_cards').document(card_id)
+        card_doc = card_ref.get()
+        
+        if not card_doc.exists:
+            return jsonify({"success": False, "message": "Card not found"}), 404
+        
+        # Update the card with new review data
+        sr_card = SpacedRepetitionCard.from_dict(card_doc.to_dict())
+        sr_card.calculate_next_review(quality_rating)
+        
+        # Save updated card
+        card_ref.update(sr_card.to_dict())
+        
+        return jsonify({
+            "success": True,
+            "message": "Card reviewed successfully",
+            "next_review": sr_card.next_review.isoformat() if sr_card.next_review else None,
+            "interval_days": sr_card.interval_days,
+            "ease_factor": sr_card.ease_factor
+        })
+        
+    except Exception as e:
+        print(f"Error reviewing card: {e}")
+        return jsonify({"success": False, "message": "Failed to review card"}), 500
+
+
+@app.route("/api/spaced_repetition/stats/<hub_id>")
+@login_required
+def get_spaced_repetition_stats(hub_id):
+    """Get spaced repetition statistics for a hub"""
+    try:
+        # Get all activities in this hub
+        activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
+        activities = activities_query.stream()
+        
+        total_cards = 0
+        due_cards = 0
+        new_cards = 0
+        mature_cards = 0
+        
+        for activity_doc in activities:
+            activity_id = activity_doc.id
+            
+            # Get spaced repetition cards for this activity
+            sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+            sr_cards = sr_cards_query.stream()
+            
+            for sr_card_doc in sr_cards:
+                sr_card_data = sr_card_doc.to_dict()
+                sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                
+                total_cards += 1
+                
+                if sr_card.is_due():
+                    due_cards += 1
+                
+                if sr_card.repetitions == 0:
+                    new_cards += 1
+                elif sr_card.interval_days >= 21:  # Cards with 21+ day intervals are considered mature
+                    mature_cards += 1
+        
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total_cards": total_cards,
+                "due_cards": due_cards,
+                "new_cards": new_cards,
+                "mature_cards": mature_cards
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error getting stats: {e}")
+        return jsonify({"success": False, "message": "Failed to get stats"}), 500
+
+
+if __name__ == '__main__':
     app.run(debug=True)
