@@ -483,7 +483,12 @@
                 if (accuracyEl) accuracyEl.textContent = '0%';
                 
                 // Load first card
-                loadSpacedCard();
+                if (spacedCards.length > 0) {
+                    loadSpacedCard();
+                } else {
+                    alert('No spaced repetition cards available. Please ensure flashcards are properly migrated.');
+                    switchMode('regular');
+                }
             } else {
                 console.error('Failed to load spaced repetition data:', data.message);
                 alert('Failed to load spaced repetition data: ' + data.message);
@@ -508,15 +513,16 @@
             return;
         }
         
-        const cardElement = allCards[currentSpacedCardIndex % allCards.length];
+        // Use the first card element for all spaced repetition cards
+        const cardElement = allCards[0];
         if (!cardElement) {
             console.error('No card element found');
             return;
         }
         
         // Update card content with null checks
-        const frontElement = cardElement.querySelector('.flashcard-front');
-        const backElement = cardElement.querySelector('.flashcard-back');
+        const frontElement = cardElement.querySelector('.flashcard-front p');
+        const backElement = cardElement.querySelector('.flashcard-back p');
         
         if (frontElement) frontElement.textContent = card.front || '';
         if (backElement) backElement.textContent = card.back || '';
@@ -524,10 +530,10 @@
         // Reset card state
         cardElement.classList.remove('is-flipped');
         
-        // Show only the current card
+        // Show only the first card (we'll reuse it for all spaced repetition cards)
         allCards.forEach((c, index) => {
             if (c) {
-                if (index === (currentSpacedCardIndex % allCards.length)) {
+                if (index === 0) {
                     c.style.display = 'block';
                     c.style.zIndex = 1;
                 } else {

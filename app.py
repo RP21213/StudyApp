@@ -8272,7 +8272,7 @@ def get_learning_progress(hub_id):
 
 @app.route("/admin/migrate_flashcards_to_spaced_repetition", methods=["POST"])
 @login_required
-def migrate_flashcards_to_spaced_repetition():
+def migrate_all_flashcards_to_spaced_repetition():
     """
     Migration script to convert existing flashcards to spaced repetition system.
     This should be run once to migrate all existing flashcard activities.
