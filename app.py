@@ -3062,6 +3062,9 @@ def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
             return
         
         migrated_count = 0
+        valid_cards = []
+        
+        # First pass: validate and collect valid cards
         for i, card_data in enumerate(flashcards_data):
             try:
                 # Validate card data
@@ -3072,21 +3075,35 @@ def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
                     print(f"Skipping invalid card {i}: empty front or back")
                     continue
                 
+                valid_cards.append({
+                    'index': i,
+                    'front': front,
+                    'back': back,
+                    'data': card_data
+                })
+                
+            except Exception as card_error:
+                print(f"Error validating card {i}: {card_error}")
+                continue
+        
+        # Second pass: create spaced repetition cards with correct indices
+        for valid_card in valid_cards:
+            try:
                 # Create spaced repetition card
                 sr_card_ref = db.collection('spaced_repetition_cards').document()
                 sr_card = SpacedRepetitionCard(
                     id=sr_card_ref.id,
                     activity_id=activity_id,
-                    front=front,
-                    back=back,
-                    card_index=i,
+                    front=valid_card['front'],
+                    back=valid_card['back'],
+                    card_index=valid_card['index'],
                     difficulty='medium'
                 )
                 sr_card_ref.set(sr_card.to_dict())
                 migrated_count += 1
                 
             except Exception as card_error:
-                print(f"Error migrating card {i}: {card_error}")
+                print(f"Error migrating card {valid_card['index']}: {card_error}")
                 continue
         
         print(f"Successfully migrated {migrated_count}/{len(flashcards_data)} flashcards to spaced repetition system")
@@ -3095,6 +3112,66 @@ def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
         print(f"Error migrating flashcards to spaced repetition: {e}")
         import traceback
         traceback.print_exc()
+
+def find_matching_flashcard(sr_card, flashcards):
+    """Find a flashcard that matches the spaced repetition card by content"""
+    sr_front = sr_card.front.strip()
+    sr_back = sr_card.back.strip()
+    
+    for idx, fc in enumerate(flashcards):
+        fc_front = fc.get('front', '').strip()
+        fc_back = fc.get('back', '').strip()
+        
+        if fc_front == sr_front and fc_back == sr_back:
+            return idx, fc
+    
+    return None, None
+
+def repair_spaced_repetition_indices(activity_id):
+    """Repair card indices for a specific activity by matching content"""
+    try:
+        print(f"🔧 REPAIR: Starting index repair for activity {activity_id}")
+        
+        # Get the activity's flashcards
+        activity_doc = db.collection('activities').document(activity_id).get()
+        if not activity_doc.exists:
+            print(f"❌ ERROR: Activity {activity_id} not found")
+            return False
+        
+        activity_data = activity_doc.to_dict()
+        flashcards = activity_data.get('cards', [])
+        print(f"🔧 REPAIR: Found {len(flashcards)} flashcards in activity")
+        
+        # Get spaced repetition cards for this activity
+        sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+        sr_cards = list(sr_cards_query.stream())
+        print(f"🔧 REPAIR: Found {len(sr_cards)} spaced repetition cards")
+        
+        repaired_count = 0
+        for sr_card_doc in sr_cards:
+            sr_card_data = sr_card_doc.to_dict()
+            sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+            
+            # Try to find matching flashcard
+            match_index, match_flashcard = find_matching_flashcard(sr_card, flashcards)
+            
+            if match_index is not None:
+                # Update the card index if it's different
+                if sr_card.card_index != match_index:
+                    print(f"🔧 REPAIR: Updating card {sr_card.id} index from {sr_card.card_index} to {match_index}")
+                    sr_card_doc.reference.update({'card_index': match_index})
+                    repaired_count += 1
+                else:
+                    print(f"✅ REPAIR: Card {sr_card.id} index {match_index} is correct")
+            else:
+                print(f"❌ REPAIR: No matching flashcard found for SR card {sr_card.id}")
+        
+        print(f"🔧 REPAIR: Completed repair for activity {activity_id}, updated {repaired_count} cards")
+        return True
+        
+    except Exception as e:
+        print(f"❌ ERROR: Failed to repair indices for activity {activity_id}: {e}")
+        return False
 
 def generate_lecture_flashcards_background(session_id, flashcard_count=10):
     """Background function to generate flashcards for the entire lecture."""
@@ -8054,10 +8131,26 @@ def create_review_session():
                                     flashcard_data = flashcard_doc.to_dict()
                                     flashcards = flashcard_data.get('cards', [])
                                     
-                                    # Find the specific flashcard
+                                    # Find the specific flashcard using robust matching
+                                    flashcard = None
                                     card_index = sr_card.card_index
-                                    if card_index < len(flashcards):
+                                    
+                                    # First try: Use stored index if valid
+                                    if 0 <= card_index < len(flashcards):
                                         flashcard = flashcards[card_index]
+                                        print(f"✅ DEBUG: Found card by index {card_index}")
+                                    else:
+                                        # Second try: Match by content (front/back text)
+                                        print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching")
+                                        for idx, fc in enumerate(flashcards):
+                                            if (fc.get('front', '').strip() == sr_card.front.strip() and 
+                                                fc.get('back', '').strip() == sr_card.back.strip()):
+                                                flashcard = fc
+                                                card_index = idx
+                                                print(f"✅ DEBUG: Found card by content matching at index {idx}")
+                                                break
+                                    
+                                    if flashcard:
                                         due_cards.append({
                                             'id': sr_card.id,
                                             'front': flashcard.get('front', ''),
@@ -8071,7 +8164,8 @@ def create_review_session():
                                         })
                                         print(f"✅ DEBUG: Added card {sr_card.id} to due cards")
                                     else:
-                                        print(f"❌ ERROR: Card index {card_index} out of range for activity {activity_id}")
+                                        print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card.id} (index: {sr_card.card_index}, activity: {activity_id})")
+                                        print(f"🔍 DEBUG: Activity has {len(flashcards)} cards, SR card front: '{sr_card.front[:50]}...'")
                                 else:
                                     print(f"❌ ERROR: Activity {activity_id} not found")
                             except Exception as e:
@@ -8104,10 +8198,28 @@ def create_review_session():
                                         flashcard_data = flashcard_doc.to_dict()
                                         flashcards = flashcard_data.get('cards', [])
                                         
-                                        # Find the specific flashcard
+                                        # Find the specific flashcard using robust matching
+                                        flashcard = None
                                         card_index = sr_card_data.get('card_index', 0)
-                                        if card_index < len(flashcards):
+                                        
+                                        # First try: Use stored index if valid
+                                        if 0 <= card_index < len(flashcards):
                                             flashcard = flashcards[card_index]
+                                            print(f"✅ DEBUG: Found card by index {card_index} (fallback)")
+                                        else:
+                                            # Second try: Match by content (front/back text)
+                                            print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching (fallback)")
+                                            sr_front = sr_card_data.get('front', '').strip()
+                                            sr_back = sr_card_data.get('back', '').strip()
+                                            for idx, fc in enumerate(flashcards):
+                                                if (fc.get('front', '').strip() == sr_front and 
+                                                    fc.get('back', '').strip() == sr_back):
+                                                    flashcard = fc
+                                                    card_index = idx
+                                                    print(f"✅ DEBUG: Found card by content matching at index {idx} (fallback)")
+                                                    break
+                                        
+                                        if flashcard:
                                             due_cards.append({
                                                 'id': sr_card_doc.id,
                                                 'front': flashcard.get('front', ''),
@@ -8120,6 +8232,8 @@ def create_review_session():
                                                 'repetitions': sr_card_data.get('repetitions', 0)
                                             })
                                             print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards (fallback)")
+                                        else:
+                                            print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card_doc.id} (fallback)")
                         except Exception as fallback_error:
                             print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
                             continue
@@ -8402,6 +8516,42 @@ def get_learning_progress(hub_id):
 # ==============================================================================
 # SPACED REPETITION SYSTEM - PHASE 1 IMPLEMENTATION
 # ==============================================================================
+
+@app.route("/admin/repair_spaced_repetition_indices", methods=["POST"])
+@login_required
+def repair_all_spaced_repetition_indices():
+    """
+    Repair card indices for all activities by matching content.
+    This fixes the "Card index out of range" errors.
+    """
+    try:
+        print("🔧 REPAIR: Starting global index repair")
+        
+        # Get all flashcard activities
+        activities_query = db.collection('activities').where('type', '==', 'Flashcards')
+        activities = list(activities_query.stream())
+        
+        repaired_activities = 0
+        total_repaired_cards = 0
+        
+        for activity_doc in activities:
+            activity_id = activity_doc.id
+            print(f"🔧 REPAIR: Processing activity {activity_id}")
+            
+            if repair_spaced_repetition_indices(activity_id):
+                repaired_activities += 1
+        
+        print(f"🔧 REPAIR: Completed global repair for {repaired_activities} activities")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully repaired indices for {repaired_activities} activities",
+            "repaired_activities": repaired_activities
+        })
+        
+    except Exception as e:
+        print(f"Error repairing spaced repetition indices: {e}")
+        return jsonify({"success": False, "message": "Failed to repair indices"}), 500
 
 @app.route("/admin/migrate_flashcards_to_spaced_repetition", methods=["POST"])
 @login_required
