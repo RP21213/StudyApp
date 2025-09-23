@@ -196,67 +196,53 @@
 
         /* Hero Section */
         .hero {
-            padding: 8rem 0 6rem;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 12rem 0 8rem;
+            background: white;
             position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e2e8f0' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.3;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
         }
 
         .hero-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-            position: relative;
-            z-index: 1;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .hero-text h1 {
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 800;
             line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
         }
 
         .hero-text .highlight {
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ff6b6b;
+            position: relative;
         }
 
-        .hero-text p {
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            line-height: 1.7;
+        .typing-text {
+            display: inline-block;
+            min-width: 200px;
         }
 
         .hero-ctas {
             display: flex;
-            gap: 1rem;
+            justify-content: center;
             align-items: center;
+        }
+
+        .hero-ctas .btn {
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
         }
 
 
         .cursor-blink {
             animation: blink 1s infinite;
-            color: var(--primary-gradient);
+            color: #ff6b6b;
             font-weight: 300;
         }
 
@@ -265,113 +251,6 @@
             51%, 100% { opacity: 0; }
         }
 
-        /* Hero Visual */
-        .hero-visual {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .visual-container {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .feature-icons-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            position: relative;
-            z-index: 2;
-        }
-
-        .feature-icon-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-            transition: all var(--transition-normal);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        .feature-icon-item:nth-child(1) { animation-delay: 0s; }
-        .feature-icon-item:nth-child(2) { animation-delay: 0.5s; }
-        .feature-icon-item:nth-child(3) { animation-delay: 1s; }
-        .feature-icon-item:nth-child(4) { animation-delay: 1.5s; }
-        .feature-icon-item:nth-child(5) { animation-delay: 2s; }
-        .feature-icon-item:nth-child(6) { animation-delay: 2.5s; }
-
-        .feature-icon-item:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .icon-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .feature-icon-item span {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        .robot-mascot {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .mascot-icon {
-            font-size: 4rem;
-            animation: bounce 2s ease-in-out infinite;
-        }
-
-        .mascot-text {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            background: white;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-md);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
-        }
 
 
         /* Feature Highlights Section */
@@ -831,37 +710,12 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .hero-content {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
             .hero-text h1 {
                 font-size: 2.5rem;
             }
 
-            .hero-ctas {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .feature-icons-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
-            }
-
-            .feature-icon-item {
-                padding: 0.75rem;
-            }
-
-            .icon-circle {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-
-            .mascot-icon {
-                font-size: 3rem;
+            .typing-text {
+                min-width: 150px;
             }
 
 
@@ -1185,46 +1039,10 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <div class="hero-text slide-in-left">
-                        <h1>Create accurate <span class="highlight">tests and quizzes</span> from your course material in seconds<span class="cursor-blink">|</span></h1>
-                        <p>Transform any content into flashcards, quizzes, and summaries instantly. Get personalized AI tutoring, track your progress, and study 30% more efficiently with our intelligent platform.</p>
+                    <div class="hero-text">
+                        <h1>Create accurate <span class="highlight typing-text" id="typing-text">games</span> from your course material in seconds<span class="cursor-blink">|</span></h1>
                         <div class="hero-ctas">
                             <a href="/signup" class="btn btn-primary">Try For Free</a>
-                            <a href="#demo" class="btn btn-secondary">Watch Demo</a>
-                        </div>
-                    </div>
-                    <div class="hero-visual slide-in-right" id="demo">
-                        <div class="visual-container">
-                            <div class="feature-icons-grid">
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">🧠</div>
-                                    <span>Flashcards</span>
-                                </div>
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">📝</div>
-                                    <span>Summaries</span>
-                                </div>
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">🎯</div>
-                                    <span>Quizzes</span>
-                                </div>
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">📊</div>
-                                    <span>Analytics</span>
-                                </div>
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">🤖</div>
-                                    <span>AI Tutor</span>
-                                </div>
-                                <div class="feature-icon-item">
-                                    <div class="icon-circle">📚</div>
-                                    <span>Study Groups</span>
-                                </div>
-                            </div>
-                            <div class="robot-mascot">
-                                <div class="mascot-icon">🤖</div>
-                                <div class="mascot-text">AI-Powered Learning</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1649,6 +1467,41 @@
                 }
             });
         });
+
+        // Typing animation
+        const words = ['games', 'flashcards', 'notes', 'quizzes', 'summaries', 'tests'];
+        let wordIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingElement = document.getElementById('typing-text');
+        
+        function typeWriter() {
+            const currentWord = words[wordIndex];
+            
+            if (isDeleting) {
+                typingElement.textContent = currentWord.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingElement.textContent = currentWord.substring(0, charIndex + 1);
+                charIndex++;
+            }
+            
+            let typeSpeed = isDeleting ? 50 : 100;
+            
+            if (!isDeleting && charIndex === currentWord.length) {
+                typeSpeed = 2000; // Pause at end of word
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                wordIndex = (wordIndex + 1) % words.length;
+                typeSpeed = 500; // Pause before next word
+            }
+            
+            setTimeout(typeWriter, typeSpeed);
+        }
+        
+        // Start typing animation
+        typeWriter();
     </script>
 
 </body>
