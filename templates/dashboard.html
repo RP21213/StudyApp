@@ -152,6 +152,9 @@
         .side-panel .nav-tab.active[data-tab="progress"] {
             background-image: linear-gradient(to right, #2dd4bf, #22c55e); /* teal -> green */
         }
+        .side-panel .nav-tab.active[data-tab="spaced-repetition"] {
+            background-image: linear-gradient(to right, #f59e0b, #d97706); /* amber -> orange */
+        }
         .side-panel .nav-tab.active[data-tab="community"] {
             background-image: linear-gradient(to right, #3b82f6, #8b5cf6); /* blue -> violet */
         }
@@ -3407,6 +3410,383 @@
                 transform: scale(1.1);
             }
         }
+        
+        /* Spaced Repetition Tab Styles */
+        .sr-hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        
+        .sr-hero-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        
+        .sr-hero-text h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .sr-hero-text p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .sr-benefits {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .sr-benefit {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .sr-benefit-icon {
+            font-size: 1.25rem;
+        }
+        
+        .sr-visualization {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .sr-card-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .sr-card {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        .sr-card.new {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .sr-card.learning {
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+        
+        .sr-card.mature {
+            background: rgba(255, 255, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .sr-arrows {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .sr-arrow {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .sr-quick-start {
+            background: var(--background-white);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .sr-quick-start-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .sr-quick-start-header h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+        
+        .sr-quick-start-header p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+        }
+        
+        .sr-stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .sr-stat-card {
+            background: var(--background-white);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .sr-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .sr-stat-card.urgent {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        }
+        
+        .sr-stat-icon {
+            font-size: 2rem;
+        }
+        
+        .sr-stat-content {
+            flex: 1;
+        }
+        
+        .sr-stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1;
+        }
+        
+        .sr-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .sr-action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .sr-primary-btn, .sr-secondary-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .sr-primary-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .sr-primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .sr-secondary-btn {
+            background: var(--background-white);
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+        }
+        
+        .sr-secondary-btn:hover {
+            background: var(--background-light);
+            transform: translateY(-1px);
+        }
+        
+        .sr-btn-icon {
+            font-size: 1.25rem;
+        }
+        
+        .sr-how-it-works, .sr-rating-system, .sr-tips {
+            background: var(--background-white);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .sr-how-it-works h3, .sr-rating-system h3, .sr-tips h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+        
+        .sr-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .sr-step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .sr-step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .sr-step-content h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+        
+        .sr-step-content p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        
+        .sr-rating-system p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1.125rem;
+        }
+        
+        .sr-ratings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .sr-rating {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .sr-rating-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+        
+        .sr-rating-color.again {
+            background: #ef4444;
+        }
+        
+        .sr-rating-color.hard {
+            background: #f59e0b;
+        }
+        
+        .sr-rating-color.good {
+            background: #10b981;
+        }
+        
+        .sr-rating-color.easy {
+            background: #3b82f6;
+        }
+        
+        .sr-rating-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+        }
+        
+        .sr-rating-content p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .sr-tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .sr-tip {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+        
+        .sr-tip-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .sr-tip-content h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+        
+        .sr-tip-content p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 768px) {
+            .sr-hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .sr-hero-text h2 {
+                font-size: 2rem;
+            }
+            
+            .sr-benefits {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .sr-stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .sr-action-buttons {
+                flex-direction: column;
+            }
+            
+            .sr-steps, .sr-ratings, .sr-tips-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
     <script>
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
@@ -3687,6 +4067,9 @@
             <a href="#" class="nav-tab" data-tab="progress">
                 <span>📈 Progress</span>
             </a>
+            <a href="#" class="nav-tab" data-tab="spaced-repetition">
+                <span>🧠 Spaced Repetition</span>
+            </a>
             <a href="#" class="nav-tab" data-tab="community">
                 <span>🌍 Community</span>
             </a>
@@ -3936,6 +4319,203 @@
                                     <i data-lucide="settings"></i>
                                     Configure Settings
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="spaced-repetition" class="tab-content">
+            <div class="container">
+                <header>
+                    <div class="header-text">
+                        <h1>🧠 Spaced Repetition</h1>
+                        <p>The scientifically-proven method to maximize your learning efficiency and long-term retention.</p>
+                    </div>
+                </header>
+
+                <!-- Hero Section -->
+                <div class="sr-hero-section">
+                    <div class="sr-hero-content">
+                        <div class="sr-hero-text">
+                            <h2>Transform Your Learning with Spaced Repetition</h2>
+                            <p>Our advanced algorithm shows you flashcards at the perfect intervals to maximize retention. Based on the same science that powers Anki, this system adapts to your performance and optimizes your study schedule.</p>
+                            <div class="sr-benefits">
+                                <div class="sr-benefit">
+                                    <span class="sr-benefit-icon">⚡</span>
+                                    <span>3x Faster Learning</span>
+                                </div>
+                                <div class="sr-benefit">
+                                    <span class="sr-benefit-icon">🧠</span>
+                                    <span>Long-term Retention</span>
+                                </div>
+                                <div class="sr-benefit">
+                                    <span class="sr-benefit-icon">📊</span>
+                                    <span>Adaptive Algorithm</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sr-hero-visual">
+                            <div class="sr-visualization">
+                                <div class="sr-card-stack">
+                                    <div class="sr-card new">New</div>
+                                    <div class="sr-card learning">Learning</div>
+                                    <div class="sr-card mature">Mature</div>
+                                </div>
+                                <div class="sr-arrows">
+                                    <div class="sr-arrow">→</div>
+                                    <div class="sr-arrow">→</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start Section -->
+                <div class="sr-quick-start">
+                    <div class="sr-quick-start-header">
+                        <h3>🚀 Quick Start</h3>
+                        <p>Ready to supercharge your learning? Start reviewing your flashcards now!</p>
+                    </div>
+                    <div class="sr-quick-start-content">
+                        <div class="sr-stats-overview">
+                            <div class="sr-stat-card urgent">
+                                <div class="sr-stat-icon">🔥</div>
+                                <div class="sr-stat-content">
+                                    <div class="sr-stat-number" id="sr-due-cards">0</div>
+                                    <div class="sr-stat-label">Due for Review</div>
+                                </div>
+                            </div>
+                            <div class="sr-stat-card">
+                                <div class="sr-stat-icon">🆕</div>
+                                <div class="sr-stat-content">
+                                    <div class="sr-stat-number" id="sr-new-cards">0</div>
+                                    <div class="sr-stat-label">New Cards</div>
+                                </div>
+                            </div>
+                            <div class="sr-stat-card">
+                                <div class="sr-stat-icon">📚</div>
+                                <div class="sr-stat-content">
+                                    <div class="sr-stat-number" id="sr-learning-cards">0</div>
+                                    <div class="sr-stat-label">Learning</div>
+                                </div>
+                            </div>
+                            <div class="sr-stat-card">
+                                <div class="sr-stat-icon">🎯</div>
+                                <div class="sr-stat-content">
+                                    <div class="sr-stat-number" id="sr-mature-cards">0</div>
+                                    <div class="sr-stat-label">Mature</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sr-action-buttons">
+                            <button class="sr-primary-btn" onclick="startSpacedRepetitionSession()">
+                                <span class="sr-btn-icon">🎯</span>
+                                <span>Start Review Session</span>
+                            </button>
+                            <button class="sr-secondary-btn" onclick="showSpacedRepetitionTutorial()">
+                                <span class="sr-btn-icon">📖</span>
+                                <span>How It Works</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works Section -->
+                <div class="sr-how-it-works">
+                    <h3>🔬 How Spaced Repetition Works</h3>
+                    <div class="sr-steps">
+                        <div class="sr-step">
+                            <div class="sr-step-number">1</div>
+                            <div class="sr-step-content">
+                                <h4>New Cards</h4>
+                                <p>Fresh flashcards waiting for their first review. These appear immediately after creation.</p>
+                            </div>
+                        </div>
+                        <div class="sr-step">
+                            <div class="sr-step-number">2</div>
+                            <div class="sr-step-content">
+                                <h4>Learning Phase</h4>
+                                <p>Cards you're actively learning. They appear frequently (every few minutes to hours) until you demonstrate mastery.</p>
+                            </div>
+                        </div>
+                        <div class="sr-step">
+                            <div class="sr-step-number">3</div>
+                            <div class="sr-step-content">
+                                <h4>Mature Cards</h4>
+                                <p>Cards you've mastered. They appear less frequently (days to weeks) for long-term retention.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rating System Explanation -->
+                <div class="sr-rating-system">
+                    <h3>⭐ Rating System</h3>
+                    <p>Rate your performance on each card to help the algorithm optimize your learning schedule:</p>
+                    <div class="sr-ratings">
+                        <div class="sr-rating">
+                            <div class="sr-rating-color again"></div>
+                            <div class="sr-rating-content">
+                                <h4>Again (0-1 days)</h4>
+                                <p>Complete blackout. You didn't remember the answer at all.</p>
+                            </div>
+                        </div>
+                        <div class="sr-rating">
+                            <div class="sr-rating-color hard"></div>
+                            <div class="sr-rating-content">
+                                <h4>Hard (1 day)</h4>
+                                <p>Incorrect response; correct one remembered with difficulty.</p>
+                            </div>
+                        </div>
+                        <div class="sr-rating">
+                            <div class="sr-rating-color good"></div>
+                            <div class="sr-rating-content">
+                                <h4>Good (1+ days)</h4>
+                                <p>Correct response after a hesitation of ~10 seconds.</p>
+                            </div>
+                        </div>
+                        <div class="sr-rating">
+                            <div class="sr-rating-color easy"></div>
+                            <div class="sr-rating-content">
+                                <h4>Easy (4+ days)</h4>
+                                <p>Perfect response. You knew it immediately.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips Section -->
+                <div class="sr-tips">
+                    <h3>💡 Pro Tips</h3>
+                    <div class="sr-tips-grid">
+                        <div class="sr-tip">
+                            <div class="sr-tip-icon">📅</div>
+                            <div class="sr-tip-content">
+                                <h4>Daily Reviews</h4>
+                                <p>Review your cards every day, even if just for 10-15 minutes. Consistency is key!</p>
+                            </div>
+                        </div>
+                        <div class="sr-tip">
+                            <div class="sr-tip-icon">🎯</div>
+                            <div class="sr-tip-content">
+                                <h4>Focus on Learning Cards</h4>
+                                <p>Cards in the learning phase need the most attention. Prioritize these!</p>
+                            </div>
+                        </div>
+                        <div class="sr-tip">
+                            <div class="sr-tip-icon">🧠</div>
+                            <div class="sr-tip-content">
+                                <h4>Trust the Algorithm</h4>
+                                <p>The system knows when to show you each card. Trust the process!</p>
+                            </div>
+                        </div>
+                        <div class="sr-tip">
+                            <div class="sr-tip-icon">📊</div>
+                            <div class="sr-tip-content">
+                                <h4>Track Your Progress</h4>
+                                <p>Watch your mature cards grow - this is your knowledge foundation!</p>
                             </div>
                         </div>
                     </div>
@@ -8081,6 +8661,67 @@ Best regards,
                         `;
                     }).join('');
                 }
+            }
+            
+            // Also update the dedicated spaced repetition tab
+            updateSpacedRepetitionTabStats(data);
+        }
+        
+        // New Spaced Repetition Tab Functions
+        function startSpacedRepetitionSession() {
+            console.log('🎯 Starting spaced repetition session...');
+            
+            // Get the first available hub with flashcards
+            const hubsData = { success: true, hubs: {{ hubs_for_json|tojson }} };
+            
+            if (!hubsData.success || !hubsData.hubs || hubsData.hubs.length === 0) {
+                showUniversalNotification('No study hubs found. Create a hub and add flashcards first!', 'warning');
+                return;
+            }
+            
+            // Find a hub with flashcards
+            let targetHub = null;
+            for (const hub of hubsData.hubs) {
+                if (hub.flashcard_count && hub.flashcard_count > 0) {
+                    targetHub = hub;
+                    break;
+                }
+            }
+            
+            if (!targetHub) {
+                showUniversalNotification('No flashcards found. Create flashcards in your study hubs first!', 'warning');
+                return;
+            }
+            
+            // Start the session
+            const sessionUrl = `/spaced_repetition_review?hub_id=${targetHub.id}&max_cards=20`;
+            window.location.href = sessionUrl;
+        }
+        
+        function showSpacedRepetitionTutorial() {
+            showUniversalNotification('Spaced repetition uses scientifically-proven intervals to maximize your learning efficiency. The system shows you cards at the perfect time - not too soon (wasteful) and not too late (you forget).', 'info', {
+                title: 'How Spaced Repetition Works',
+                autoClose: 8000
+            });
+        }
+        
+        // Update spaced repetition stats in the dedicated tab
+        function updateSpacedRepetitionTabStats(data) {
+            // Update the stats in the spaced repetition tab
+            const dueCardsElement = document.getElementById('sr-due-cards');
+            const newCardsElement = document.getElementById('sr-new-cards');
+            const learningCardsElement = document.getElementById('sr-learning-cards');
+            const matureCardsElement = document.getElementById('sr-mature-cards');
+            
+            if (dueCardsElement) dueCardsElement.textContent = data.totalDueCards || 0;
+            if (newCardsElement) newCardsElement.textContent = data.totalNewCards || 0;
+            if (learningCardsElement) learningCardsElement.textContent = data.totalLearningCards || 0;
+            if (matureCardsElement) matureCardsElement.textContent = data.totalMatureCards || 0;
+            
+            // Update the urgent styling for due cards
+            const dueCardElement = document.querySelector('.sr-stat-card.urgent');
+            if (dueCardElement && data.totalDueCards > 0) {
+                dueCardElement.style.borderColor = data.totalDueCards > 20 ? '#ef4444' : data.totalDueCards > 5 ? '#f59e0b' : '#10b981';
             }
         }
         

@@ -8000,15 +8000,74 @@ def create_review_session():
         
         # Get due cards for this hub
         print(f"🔍 DEBUG: Getting due cards for hub {hub_id}")
-        due_cards_response = get_due_cards(hub_id)
-        if not due_cards_response[0].get_json().get('success'):
-            print(f"❌ ERROR: Failed to get due cards for hub {hub_id}")
-            debugger.logger.error(f"Failed to get due cards for hub {hub_id}")
-            return jsonify({"success": False, "message": "Failed to get due cards"}), 500
         
-        due_cards = due_cards_response[0].get_json().get('due_cards', [])
-        print(f"🔍 DEBUG: Found {len(due_cards)} due cards for hub {hub_id}")
-        debugger.logger.info(f"Found {len(due_cards)} due cards for hub {hub_id}")
+        # Call the get_due_cards function directly (not the route)
+        try:
+            # Get all activities in this hub
+            activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
+            activities = list(activities_query.stream())
+            print(f"🔍 DEBUG: Found {len(activities)} flashcard activities in hub {hub_id}")
+            
+            due_cards = []
+            total_cards_checked = 0
+            
+            for activity_doc in activities:
+                activity_id = activity_doc.id
+                print(f"🔍 DEBUG: Checking activity {activity_id}")
+                
+                # Get spaced repetition cards for this activity
+                sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+                sr_cards = list(sr_cards_query.stream())
+                print(f"🔍 DEBUG: Found {len(sr_cards)} SR cards in activity {activity_id}")
+                
+                for sr_card_doc in sr_cards:
+                    sr_card_data = sr_card_doc.to_dict()
+                    total_cards_checked += 1
+                    
+                    # Check if card is due for review
+                    next_review = sr_card_data.get('next_review')
+                    if next_review:
+                        # Convert Firestore timestamp to datetime if needed
+                        if hasattr(next_review, 'timestamp'):
+                            next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
+                        else:
+                            next_review_dt = next_review
+                        
+                        if next_review_dt <= datetime.now(timezone.utc):
+                            # Get the original flashcard data
+                            try:
+                                flashcard_doc = db.collection('activities').document(activity_id).get()
+                                if flashcard_doc.exists:
+                                    flashcard_data = flashcard_doc.to_dict()
+                                    flashcards = flashcard_data.get('flashcards', [])
+                                    
+                                    # Find the specific flashcard
+                                    card_index = sr_card_data.get('card_index', 0)
+                                    if card_index < len(flashcards):
+                                        flashcard = flashcards[card_index]
+                                        due_cards.append({
+                                            'id': sr_card_doc.id,
+                                            'front': flashcard.get('front', ''),
+                                            'back': flashcard.get('back', ''),
+                                            'activity_id': activity_id,
+                                            'card_index': card_index,
+                                            'next_review': next_review_dt.isoformat(),
+                                            'interval': sr_card_data.get('interval', 1),
+                                            'ease_factor': sr_card_data.get('ease_factor', 2.5),
+                                            'repetitions': sr_card_data.get('repetitions', 0)
+                                        })
+                                        print(f"🔍 DEBUG: Card {sr_card_doc.id} is due for review")
+                            except Exception as e:
+                                print(f"❌ ERROR: Failed to get flashcard data for card {sr_card_doc.id}: {e}")
+                                debugger.logger.error(f"Failed to get flashcard data for card {sr_card_doc.id}: {e}")
+            
+            print(f"🔍 DEBUG: Total cards checked: {total_cards_checked}, Due cards: {len(due_cards)}")
+            debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards in hub {hub_id}")
+            
+        except Exception as e:
+            print(f"❌ ERROR: Failed to get due cards for hub {hub_id}: {e}")
+            debugger.logger.error(f"Error getting due cards for hub {hub_id}: {e}")
+            return jsonify({"success": False, "message": f"Failed to get due cards: {str(e)}"}), 500
         
         # Limit cards for this session
         session_cards = due_cards[:max_cards]

@@ -486,6 +486,17 @@
         let sessionStartTime = null;
         let isCardFlipped = false;
 
+        // Helper functions for error handling
+        function showWarning(message) {
+            console.warn('⚠️ Warning:', message);
+            alert('⚠️ ' + message);
+        }
+        
+        function showError(message) {
+            console.error('❌ Error:', message);
+            alert('❌ ' + message);
+        }
+
         // Initialize session
         async function initializeSession() {
             try {
