@@ -8020,6 +8020,22 @@ def create_review_session():
                 sr_cards = list(sr_cards_query.stream())
                 print(f"🔍 DEBUG: Found {len(sr_cards)} SR cards in activity {activity_id}")
                 
+                # If no spaced repetition cards exist, migrate them automatically
+                if not sr_cards:
+                    activity_data = activity_doc.to_dict()
+                    flashcards_data = activity_data.get('cards', [])
+                    if flashcards_data:
+                        print(f"🔍 DEBUG: Auto-migrating {len(flashcards_data)} flashcards for activity {activity_id}")
+                        try:
+                            migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
+                            # Re-query after migration
+                            sr_cards = list(sr_cards_query.stream())
+                            print(f"🔍 DEBUG: After migration, found {len(sr_cards)} SR cards")
+                        except Exception as migration_error:
+                            print(f"❌ ERROR: Auto-migration failed for activity {activity_id}: {migration_error}")
+                            debugger.logger.error(f"Auto-migration failed for activity {activity_id}: {migration_error}")
+                            continue
+                
                 for sr_card_doc in sr_cards:
                     sr_card_data = sr_card_doc.to_dict()
                     total_cards_checked += 1
@@ -8039,7 +8055,7 @@ def create_review_session():
                                 flashcard_doc = db.collection('activities').document(activity_id).get()
                                 if flashcard_doc.exists:
                                     flashcard_data = flashcard_doc.to_dict()
-                                    flashcards = flashcard_data.get('flashcards', [])
+                                    flashcards = flashcard_data.get('cards', [])
                                     
                                     # Find the specific flashcard
                                     card_index = sr_card_data.get('card_index', 0)
