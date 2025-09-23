@@ -3221,7 +3221,10 @@ def recover_missing_flashcards(activity_id):
             
             # Update the activity with recovered cards
             activity_doc.reference.update({
-                'data.cards': recovered_cards
+                'data': {
+                    **activity_data.get('data', {}),
+                    'cards': recovered_cards
+                }
             })
             
             print(f"✅ RECOVERY: Recovered {len(recovered_cards)} cards for activity {activity_id}")
@@ -3256,7 +3259,10 @@ def recover_missing_flashcards(activity_id):
                 # Add missing cards to activity
                 updated_cards = current_cards + missing_cards
                 activity_doc.reference.update({
-                    'data.cards': updated_cards
+                    'data': {
+                        **activity_data.get('data', {}),
+                        'cards': updated_cards
+                    }
                 })
                 print(f"✅ RECOVERY: Added {len(missing_cards)} missing cards to activity {activity_id}")
                 return True
@@ -8243,6 +8249,7 @@ def create_review_session():
                                             print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id}")
                                         else:
                                             print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
+                                            continue  # Skip this card if recovery failed
                                     
                                     # Find the specific flashcard using robust matching
                                     flashcard = None
@@ -8322,6 +8329,7 @@ def create_review_session():
                                                 print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id} (fallback)")
                                             else:
                                                 print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id} (fallback)")
+                                                continue  # Skip this card if recovery failed
                                         
                                         # Find the specific flashcard using robust matching
                                         flashcard = None
