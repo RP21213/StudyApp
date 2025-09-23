@@ -7913,9 +7913,25 @@ def get_enhanced_flashcards(activity_id):
             flashcards_data = activity.data.get('cards', [])
             if flashcards_data:
                 print(f"Auto-migrating {len(flashcards_data)} flashcards for activity {activity_id}")
-                migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
-                # Re-query after migration
-                sr_cards = list(sr_cards_query.stream())
+                try:
+                    migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
+                    # Re-query after migration
+                    sr_cards = list(sr_cards_query.stream())
+                except Exception as migration_error:
+                    print(f"Auto-migration failed for activity {activity_id}: {migration_error}")
+                    # Return empty cards instead of crashing
+                    return jsonify({
+                        "success": True,
+                        "activity": {
+                            'id': activity.id,
+                            'title': activity.title,
+                            'hub_id': activity.hub_id
+                        },
+                        "cards": [],
+                        "total_cards": 0,
+                        "due_cards": 0,
+                        "migration_error": "Failed to migrate flashcards to spaced repetition system"
+                    })
         
         enhanced_cards = []
         for sr_card_doc in sr_cards:
@@ -7947,8 +7963,10 @@ def get_enhanced_flashcards(activity_id):
         })
         
     except Exception as e:
-        print(f"Error getting enhanced flashcards: {e}")
-        return jsonify({"success": False, "message": "Failed to get flashcards"}), 500
+        print(f"Error getting enhanced flashcards for activity {activity_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Failed to get enhanced flashcards: {str(e)}"}), 500
 
 
 # Import debugging system
