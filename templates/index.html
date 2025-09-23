@@ -253,113 +253,126 @@
             align-items: center;
         }
 
-        .hero-integrations {
-            margin-top: 3rem;
+
+        .cursor-blink {
+            animation: blink 1s infinite;
+            color: var(--primary-gradient);
+            font-weight: 300;
         }
 
-        .integration-label {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .visual-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-icons-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .feature-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-normal);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .feature-icon-item:nth-child(1) { animation-delay: 0s; }
+        .feature-icon-item:nth-child(2) { animation-delay: 0.5s; }
+        .feature-icon-item:nth-child(3) { animation-delay: 1s; }
+        .feature-icon-item:nth-child(4) { animation-delay: 1.5s; }
+        .feature-icon-item:nth-child(5) { animation-delay: 2s; }
+        .feature-icon-item:nth-child(6) { animation-delay: 2.5s; }
+
+        .feature-icon-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .feature-icon-item span {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
             text-align: center;
         }
 
-        .integration-logos {
+        .robot-mascot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
             display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .integration-logo {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-        }
-
-        /* Hero Demo */
-        .hero-demo {
-            position: relative;
-            background: white;
-            border-radius: var(--radius-2xl);
-            box-shadow: var(--shadow-2xl);
-            overflow: hidden;
-            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-            transition: transform var(--transition-slow);
-        }
-
-        .hero-demo:hover {
-            transform: perspective(1000px) rotateY(-2deg) rotateX(2deg);
-        }
-
-        .demo-header {
-            background: var(--bg-dark);
-            padding: 1rem;
-            display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .demo-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ff5f56;
+        .mascot-icon {
+            font-size: 4rem;
+            animation: bounce 2s ease-in-out infinite;
         }
 
-        .demo-dot:nth-child(2) { background: #ffbd2e; }
-        .demo-dot:nth-child(3) { background: #27ca3f; }
-
-        .demo-content {
-            padding: 2rem;
-            min-height: 400px;
-            position: relative;
-        }
-
-        .demo-animation {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .demo-step {
+        .mascot-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
             background: white;
-            padding: 1.5rem;
+            padding: 0.5rem 1rem;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
-            max-width: 300px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all var(--transition-normal);
         }
 
-        .demo-step.active {
-            opacity: 1;
-            transform: translateY(0);
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
-        .demo-step h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
         }
 
-        .demo-step p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
 
         /* Feature Highlights Section */
         .feature-highlights {
@@ -487,31 +500,6 @@
             color: var(--text-muted);
         }
 
-        .institution-logos {
-            text-align: center;
-        }
-
-        .institution-logos h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            color: var(--text-primary);
-        }
-
-        .logo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .logo-item {
-            padding: 1rem;
-            background: white;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
 
         /* Feature Exploration Section */
         .feature-exploration {
@@ -857,14 +845,25 @@
                 align-items: stretch;
             }
 
-            .integration-logos {
+            .feature-icons-grid {
+                grid-template-columns: repeat(2, 1fr);
                 gap: 1rem;
             }
 
-            .integration-logo {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
+            .feature-icon-item {
+                padding: 0.75rem;
             }
+
+            .icon-circle {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .mascot-icon {
+                font-size: 3rem;
+            }
+
 
             .benefits-grid {
                 grid-template-columns: 1fr;
@@ -1187,48 +1186,44 @@
             <div class="container">
                 <div class="hero-content">
                     <div class="hero-text slide-in-left">
-                        <h1>Create accurate learning tools from your course material <span class="highlight">in seconds</span></h1>
+                        <h1>Create accurate <span class="highlight">tests and quizzes</span> from your course material in seconds<span class="cursor-blink">|</span></h1>
                         <p>Transform any content into flashcards, quizzes, and summaries instantly. Get personalized AI tutoring, track your progress, and study 30% more efficiently with our intelligent platform.</p>
                         <div class="hero-ctas">
-                            <a href="/signup" class="btn btn-primary">Try for Free</a>
+                            <a href="/signup" class="btn btn-primary">Try For Free</a>
                             <a href="#demo" class="btn btn-secondary">Watch Demo</a>
-                        </div>
-                        <div class="hero-integrations">
-                            <p class="integration-label">Trusted by students at</p>
-                            <div class="integration-logos">
-                                <div class="integration-logo">Harvard</div>
-                                <div class="integration-logo">MIT</div>
-                                <div class="integration-logo">Stanford</div>
-                                <div class="integration-logo">Oxford</div>
-                                <div class="integration-logo">Cambridge</div>
-                            </div>
                         </div>
                     </div>
                     <div class="hero-visual slide-in-right" id="demo">
                         <div class="visual-container">
-                            <div class="device-mockup">
-                                <div class="device-header">
-                                    <div class="device-dot"></div>
-                                    <div class="device-dot"></div>
-                                    <div class="device-dot"></div>
+                            <div class="feature-icons-grid">
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">🧠</div>
+                                    <span>Flashcards</span>
                                 </div>
-                                <div class="device-content">
-                                    <div class="demo-step active" data-step="1">
-                                        <div class="step-icon">📄</div>
-                                        <h3>Upload Materials</h3>
-                                        <p>Drag & drop PDFs, paste notes, or upload any study content</p>
-                                    </div>
-                                    <div class="demo-step" data-step="2">
-                                        <div class="step-icon">⚡</div>
-                                        <h3>AI Processing</h3>
-                                        <p>Advanced AI analyzes content and identifies key concepts</p>
-                                    </div>
-                                    <div class="demo-step" data-step="3">
-                                        <div class="step-icon">🎯</div>
-                                        <h3>Study Tools Ready</h3>
-                                        <p>Get flashcards, quizzes, summaries, and exam predictions</p>
-                                    </div>
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">📝</div>
+                                    <span>Summaries</span>
                                 </div>
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">🎯</div>
+                                    <span>Quizzes</span>
+                                </div>
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">📊</div>
+                                    <span>Analytics</span>
+                                </div>
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">🤖</div>
+                                    <span>AI Tutor</span>
+                                </div>
+                                <div class="feature-icon-item">
+                                    <div class="icon-circle">📚</div>
+                                    <span>Study Groups</span>
+                                </div>
+                            </div>
+                            <div class="robot-mascot">
+                                <div class="mascot-icon">🤖</div>
+                                <div class="mascot-text">AI-Powered Learning</div>
                             </div>
                         </div>
                     </div>
@@ -1311,17 +1306,6 @@
                     <div class="stat-item">
                         <div class="stat-number">4.8/5</div>
                         <div class="stat-label">average student rating</div>
-                    </div>
-                </div>
-                <div class="institution-logos fade-in">
-                    <h3>Trusted by students at top universities</h3>
-                    <div class="logo-grid">
-                        <div class="logo-item">Harvard University</div>
-                        <div class="logo-item">MIT</div>
-                        <div class="logo-item">Stanford University</div>
-                        <div class="logo-item">Oxford University</div>
-                        <div class="logo-item">Cambridge University</div>
-                        <div class="logo-item">UC Berkeley</div>
                     </div>
                 </div>
             </div>
