@@ -473,20 +473,25 @@
                 currentSpacedCardIndex = 0;
                 spacedStats = { correct: 0, incorrect: 0, total: 0 };
                 
-                // Update stats display
-                document.getElementById('due-count').textContent = data.due_cards;
-                document.getElementById('total-count').textContent = data.total_cards;
-                document.getElementById('accuracy-display').textContent = '0%';
+                // Update stats display with null checks
+                const dueCountEl = document.getElementById('due-count');
+                const totalCountEl = document.getElementById('total-count');
+                const accuracyEl = document.getElementById('accuracy-display');
+                
+                if (dueCountEl) dueCountEl.textContent = data.due_cards;
+                if (totalCountEl) totalCountEl.textContent = data.total_cards;
+                if (accuracyEl) accuracyEl.textContent = '0%';
                 
                 // Load first card
                 loadSpacedCard();
             } else {
-                showError('Failed to load spaced repetition data: ' + data.message);
+                console.error('Failed to load spaced repetition data:', data.message);
+                alert('Failed to load spaced repetition data: ' + data.message);
                 switchMode('regular');
             }
         } catch (error) {
             console.error('Error loading spaced repetition data:', error);
-            showError('An error occurred while loading spaced repetition data');
+            alert('An error occurred while loading spaced repetition data');
             switchMode('regular');
         }
     }
@@ -498,32 +503,61 @@
         }
         
         const card = spacedCards[currentSpacedCardIndex];
-        const cardElement = allCards[currentSpacedCardIndex % allCards.length];
+        if (!card) {
+            console.error('No card found at index:', currentSpacedCardIndex);
+            return;
+        }
         
-        // Update card content
+        const cardElement = allCards[currentSpacedCardIndex % allCards.length];
+        if (!cardElement) {
+            console.error('No card element found');
+            return;
+        }
+        
+        // Update card content with null checks
         const frontElement = cardElement.querySelector('.flashcard-front');
         const backElement = cardElement.querySelector('.flashcard-back');
         
-        frontElement.textContent = card.front;
-        backElement.textContent = card.back;
+        if (frontElement) frontElement.textContent = card.front || '';
+        if (backElement) backElement.textContent = card.back || '';
         
         // Reset card state
         cardElement.classList.remove('is-flipped');
         
         // Show only the current card
         allCards.forEach((c, index) => {
-            if (index === (currentSpacedCardIndex % allCards.length)) {
-                c.style.display = 'block';
-                c.style.zIndex = 1;
-            } else {
-                c.style.display = 'none';
+            if (c) {
+                if (index === (currentSpacedCardIndex % allCards.length)) {
+                    c.style.display = 'block';
+                    c.style.zIndex = 1;
+                } else {
+                    c.style.display = 'none';
+                }
             }
         });
     }
     
     async function rateCardSpaced(rating) {
         try {
+            // Validate that we have cards and current card exists
+            if (!spacedCards || spacedCards.length === 0) {
+                console.error('No spaced cards available');
+                alert('No cards available for rating');
+                return;
+            }
+            
+            if (currentSpacedCardIndex >= spacedCards.length) {
+                console.error('Current card index out of bounds');
+                alert('No more cards to rate');
+                return;
+            }
+            
             const card = spacedCards[currentSpacedCardIndex];
+            if (!card || !card.id) {
+                console.error('Invalid card data:', card);
+                alert('Invalid card data');
+                return;
+            }
             
             // Update local stats
             if (rating >= 2) {
@@ -548,9 +582,10 @@
             const data = await response.json();
             
             if (data.success) {
-                // Update accuracy display
+                // Update accuracy display with null check
                 const accuracy = Math.round((spacedStats.correct / spacedStats.total) * 100);
-                document.getElementById('accuracy-display').textContent = accuracy + '%';
+                const accuracyEl = document.getElementById('accuracy-display');
+                if (accuracyEl) accuracyEl.textContent = accuracy + '%';
                 
                 // Move to next card
                 currentSpacedCardIndex++;
@@ -563,59 +598,70 @@
                     showSpacedResults();
                 }
             } else {
-                showError('Failed to save rating: ' + data.message);
+                console.error('Failed to save rating:', data.message);
+                alert('Failed to save rating: ' + data.message);
             }
         } catch (error) {
             console.error('Error rating card:', error);
-            showError('An error occurred while saving your rating');
+            alert('An error occurred while saving your rating');
         }
     }
     
     function showSpacedResults() {
-        // Hide card and rating buttons
-        document.getElementById('deck-container').style.display = 'none';
-        document.getElementById('spaced-rating-buttons').style.display = 'none';
+        // Hide card and rating buttons with null checks
+        const deckContainer = document.getElementById('deck-container');
+        const ratingButtons = document.getElementById('spaced-rating-buttons');
+        const statsContainer = document.getElementById('spaced-stats');
+        
+        if (deckContainer) deckContainer.style.display = 'none';
+        if (ratingButtons) ratingButtons.style.display = 'none';
         
         // Show results
         const accuracy = Math.round((spacedStats.correct / spacedStats.total) * 100);
         
-        document.getElementById('spaced-stats').innerHTML = `
-            <div class="stat-item">
-                <span class="stat-label">Session Complete!</span>
-                <span class="stat-value">${spacedStats.total} cards reviewed</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Accuracy</span>
-                <span class="stat-value">${accuracy}%</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">Correct</span>
-                <span class="stat-value">${spacedStats.correct}</span>
-            </div>
-        `;
-        
-        // Add restart button
-        const restartBtn = document.createElement('button');
-        restartBtn.className = 'button';
-        restartBtn.textContent = 'Start New Session';
-        restartBtn.onclick = () => {
-            currentSpacedCardIndex = 0;
-            spacedStats = { correct: 0, incorrect: 0, total: 0 };
-            document.getElementById('deck-container').style.display = 'block';
-            loadSpacedRepetitionData();
-        };
-        
-        document.getElementById('spaced-stats').appendChild(restartBtn);
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+                <div class="stat-item">
+                    <span class="stat-label">Session Complete!</span>
+                    <span class="stat-value">${spacedStats.total} cards reviewed</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value">${accuracy}%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Correct</span>
+                    <span class="stat-value">${spacedStats.correct}</span>
+                </div>
+            `;
+            
+            // Add restart button
+            const restartBtn = document.createElement('button');
+            restartBtn.className = 'button';
+            restartBtn.textContent = 'Start New Session';
+            restartBtn.onclick = () => {
+                currentSpacedCardIndex = 0;
+                spacedStats = { correct: 0, incorrect: 0, total: 0 };
+                if (deckContainer) deckContainer.style.display = 'block';
+                loadSpacedRepetitionData();
+            };
+            
+            statsContainer.appendChild(restartBtn);
+        }
     }
     
     function resetToRegularMode() {
-        // Reset all cards to original state
-        allCards.forEach((card, index) => {
-            card.style.display = 'block';
-            card.style.zIndex = allCards.length - index;
-            card.style.transform = `translateY(${index * 4}px) scale(${1 - (index * 0.05)})`;
-            card.classList.remove('is-flipped');
-        });
+        // Reset all cards to original state with null checks
+        if (allCards && allCards.length > 0) {
+            allCards.forEach((card, index) => {
+                if (card) {
+                    card.style.display = 'block';
+                    card.style.zIndex = allCards.length - index;
+                    card.style.transform = `translateY(${index * 4}px) scale(${1 - (index * 0.05)})`;
+                    card.classList.remove('is-flipped');
+                }
+            });
+        }
         
         // Reset stats
         spacedStats = { correct: 0, incorrect: 0, total: 0 };

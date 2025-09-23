@@ -8390,25 +8390,30 @@ def get_system_health():
         
         # Get spaced repetition statistics
         try:
-            # Get total cards across all hubs
+            # Get total cards across all hubs - more efficient approach
             total_cards = 0
             total_due_cards = 0
             
-            # Get user's hubs
+            # Get user's hubs first
             hubs_query = db.collection('hubs').where('user_id', '==', current_user.id)
             hubs = hubs_query.stream()
             
-            for hub in hubs:
-                hub_id = hub.id
+            hub_ids = [hub.id for hub in hubs]
+            
+            if hub_ids:
+                # Get all activities for user's hubs
+                activities_query = db.collection('activities').where('hub_id', 'in', hub_ids).where('type', '==', 'Flashcards')
+                activities = list(activities_query.stream())
+                activity_ids = [activity.id for activity in activities]
                 
-                # Count total cards
-                cards_query = db.collection('spaced_repetition_cards').where('activity_id', 'in', 
-                    [activity.id for activity in db.collection('activities').where('hub_id', '==', hub_id).stream()])
-                total_cards += len(list(cards_query.stream()))
-                
-                # Count due cards
-                due_query = db.collection('spaced_repetition_cards').where('next_review', '<=', datetime.now(timezone.utc))
-                total_due_cards += len(list(due_query.stream()))
+                if activity_ids:
+                    # Count total cards for these activities
+                    cards_query = db.collection('spaced_repetition_cards').where('activity_id', 'in', activity_ids)
+                    total_cards = len(list(cards_query.stream()))
+                    
+                    # Count due cards for these activities
+                    due_query = db.collection('spaced_repetition_cards').where('activity_id', 'in', activity_ids).where('next_review', '<=', datetime.now(timezone.utc))
+                    total_due_cards = len(list(due_query.stream()))
         
         except Exception as e:
             debugger.logger.warning(f"Error getting spaced repetition stats: {e}")

@@ -6,13 +6,51 @@ Check existing flashcards before migration
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
+import json
+import base64
+
+def initialize_firebase():
+    """Initialize Firebase using the same method as the main app"""
+    try:
+        # Check if Firebase is already initialized
+        if firebase_admin._apps:
+            return firebase_admin.get_app()
+        
+        # Get Firebase credentials from environment variable
+        firebase_key_b64 = os.getenv("FIREBASE_KEY_B64")
+        if firebase_key_b64:
+            # Decode the base64 encoded Firebase key
+            firebase_key_json = base64.b64decode(firebase_key_b64).decode('utf-8')
+            cred_dict = json.loads(firebase_key_json)
+            cred = credentials.Certificate(cred_dict)
+        else:
+            # Try to load from file
+            key_path = os.path.join(os.path.dirname(__file__), "firebase_key.json")
+            if os.path.exists(key_path):
+                cred = credentials.Certificate(key_path)
+            else:
+                print("❌ No Firebase credentials found!")
+                print("Please set FIREBASE_KEY_B64 environment variable or create firebase_key.json")
+                return None
+        
+        # Initialize Firebase
+        bucket_name = os.getenv("FIREBASE_BUCKET_NAME", "ai-study-hub-f3040.firebasestorage.app")
+        app = firebase_admin.initialize_app(cred, {'storageBucket': bucket_name})
+        print("✅ Firebase initialized successfully!")
+        return app
+        
+    except Exception as e:
+        print(f"❌ Firebase initialization failed: {e}")
+        return None
 
 def check_existing_flashcards():
     """Check what flashcards exist in the database"""
     try:
         # Initialize Firebase
-        cred = credentials.Certificate('cors.json')
-        firebase_admin.initialize_app(cred)
+        app = initialize_firebase()
+        if not app:
+            return 0, 0
+        
         db = firestore.client()
 
         # Get all flashcard activities

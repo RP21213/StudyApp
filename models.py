@@ -650,6 +650,9 @@ class SpacedRepetitionCard:
         Calculate next review based on SM-2 algorithm
         Quality ratings: 0=again, 1=hard, 2=good, 3=easy
         """
+        # Store the previous interval for calculation
+        previous_interval = self.interval_days
+        
         if quality_rating <= 1:  # Again or Hard
             self.repetitions = 0
             self.interval_days = 1
@@ -660,7 +663,8 @@ class SpacedRepetitionCard:
             elif self.repetitions == 2:
                 self.interval_days = 6
             else:
-                self.interval_days = int(self.interval_days * self.ease_factor)
+                # Use the previous interval multiplied by ease factor
+                self.interval_days = int(previous_interval * self.ease_factor)
         
         # Update ease factor based on quality
         if quality_rating == 0:  # Again
