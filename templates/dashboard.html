@@ -4244,85 +4244,6 @@
                         {% endfor %}
                     </div>
                 </div>
-                
-                <!-- Spaced Repetition Section -->
-                <div class="spaced-repetition-section" style="margin-top: 3rem;">
-                    <div class="section-header">
-                        <h2>🧠 Spaced Repetition</h2>
-                        <p>Review your flashcards using scientifically-proven spaced repetition for optimal long-term retention.</p>
-                    </div>
-                    
-                    <div class="spaced-repetition-grid">
-                        <!-- Due Cards Overview -->
-                        <div class="sr-card due-cards-card">
-                            <div class="sr-card-header">
-                                <h3>📚 Due for Review</h3>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="sr-badge urgent" id="due-cards-badge">0</span>
-                                    <button onclick="refreshSpacedRepetitionStats()" style="background: none; border: none; cursor: pointer; padding: 4px;" title="Refresh Stats">
-                                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px; color: #6b7280;"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="sr-card-content">
-                                <p>Cards that are ready for review based on your learning progress.</p>
-                                <button class="sr-action-btn" id="start-review-btn" onclick="startSpacedRepetitionReview()">
-                                    <i data-lucide="play"></i>
-                                    Start Review Session
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Learning Progress -->
-                        <div class="sr-card progress-card">
-                            <div class="sr-card-header">
-                                <h3>📊 Learning Progress</h3>
-                            </div>
-                            <div class="sr-card-content">
-                                <div class="progress-stats">
-                                    <div class="progress-stat">
-                                        <span class="stat-label">New Cards</span>
-                                        <span class="stat-value" id="new-cards-count">0</span>
-                                    </div>
-                                    <div class="progress-stat">
-                                        <span class="stat-label">Learning</span>
-                                        <span class="stat-value" id="learning-cards-count">0</span>
-                                    </div>
-                                    <div class="progress-stat">
-                                        <span class="stat-label">Mature</span>
-                                        <span class="stat-value" id="mature-cards-count">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Recent Sessions -->
-                        <div class="sr-card sessions-card">
-                            <div class="sr-card-header">
-                                <h3>⏱️ Recent Sessions</h3>
-                            </div>
-                            <div class="sr-card-content">
-                                <div class="recent-sessions" id="recent-sessions-list">
-                                    <p class="no-sessions">No recent sessions yet. Start your first review!</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Settings -->
-                        <div class="sr-card settings-card">
-                            <div class="sr-card-header">
-                                <h3>⚙️ Settings</h3>
-                            </div>
-                            <div class="sr-card-content">
-                                <p>Customize your spaced repetition experience.</p>
-                                <button class="sr-action-btn secondary" onclick="openSpacedRepetitionSettings()">
-                                    <i data-lucide="settings"></i>
-                                    Configure Settings
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -8593,77 +8514,18 @@ Best regards,
         function updateSpacedRepetitionUI(data) {
             // Handle case when Firebase is not available
             if (data.firebaseAvailable === false) {
-                console.log('🔧 Showing development mode message');
-                const dueCardsBadge = document.getElementById('due-cards-badge');
-                if (dueCardsBadge) {
-                    dueCardsBadge.textContent = '0';
-                    dueCardsBadge.className = 'sr-badge low';
-                    dueCardsBadge.title = 'Firebase not configured - running in development mode';
-                }
-                
-                // Show a subtle indicator that we're in dev mode
-                const srSection = document.querySelector('.spaced-repetition-section');
-                if (srSection) {
-                    srSection.style.opacity = '0.7';
-                    srSection.title = 'Spaced repetition requires Firebase configuration';
-                }
+                console.log('🔧 Firebase not available - showing demo data');
+                // Update the dedicated spaced repetition tab with demo data
+                updateSpacedRepetitionTabStats({
+                    totalDueCards: 0,
+                    totalNewCards: 0,
+                    totalLearningCards: 0,
+                    totalMatureCards: 0
+                });
                 return;
             }
             
-            // Update due cards badge
-            const dueCardsBadge = document.getElementById('due-cards-badge');
-            if (dueCardsBadge) {
-                dueCardsBadge.textContent = data.totalDueCards;
-                
-                // Update badge color based on urgency
-                dueCardsBadge.className = 'sr-badge';
-                if (data.totalDueCards > 20) {
-                    dueCardsBadge.classList.add('urgent');
-                } else if (data.totalDueCards > 5) {
-                    dueCardsBadge.classList.add('moderate');
-                } else {
-                    dueCardsBadge.classList.add('low');
-                }
-            }
-            
-            // Update progress stats
-            console.log('📈 Updating stats:', {
-                newCards: data.totalNewCards,
-                learningCards: data.totalLearningCards,
-                matureCards: data.totalMatureCards,
-                dueCards: data.totalDueCards
-            });
-            
-            document.getElementById('new-cards-count').textContent = data.totalNewCards;
-            document.getElementById('learning-cards-count').textContent = data.totalLearningCards;
-            document.getElementById('mature-cards-count').textContent = data.totalMatureCards;
-            
-            // Update recent sessions
-            const recentSessionsList = document.getElementById('recent-sessions-list');
-            if (recentSessionsList) {
-                if (data.recentSessions.length === 0) {
-                    recentSessionsList.innerHTML = '<p class="no-sessions">No recent sessions yet. Start your first review!</p>';
-                } else {
-                    recentSessionsList.innerHTML = data.recentSessions.map(session => {
-                        const date = new Date(session.started_at).toLocaleDateString();
-                        const accuracyClass = session.accuracy >= 80 ? 'high' : session.accuracy >= 60 ? 'medium' : 'low';
-                        
-                        return `
-                            <div class="session-item">
-                                <div class="session-info">
-                                    <div class="session-date">${date} - ${session.hub_name}</div>
-                                    <div class="session-stats">${session.cards_reviewed} cards</div>
-                                </div>
-                                <div class="session-accuracy ${accuracyClass}">
-                                    ${Math.round(session.accuracy)}%
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            }
-            
-            // Also update the dedicated spaced repetition tab
+            // Update the dedicated spaced repetition tab
             updateSpacedRepetitionTabStats(data);
         }
         
@@ -8675,7 +8537,7 @@ Best regards,
             const hubsData = { success: true, hubs: {{ hubs_for_json|tojson }} };
             
             if (!hubsData.success || !hubsData.hubs || hubsData.hubs.length === 0) {
-                showUniversalNotification('No study hubs found. Create a hub and add flashcards first!', 'warning');
+                alert('⚠️ No study hubs found. Create a hub and add flashcards first!');
                 return;
             }
             
@@ -8689,7 +8551,7 @@ Best regards,
             }
             
             if (!targetHub) {
-                showUniversalNotification('No flashcards found. Create flashcards in your study hubs first!', 'warning');
+                alert('⚠️ No flashcards found. Create flashcards in your study hubs first!');
                 return;
             }
             
@@ -8699,10 +8561,7 @@ Best regards,
         }
         
         function showSpacedRepetitionTutorial() {
-            showUniversalNotification('Spaced repetition uses scientifically-proven intervals to maximize your learning efficiency. The system shows you cards at the perfect time - not too soon (wasteful) and not too late (you forget).', 'info', {
-                title: 'How Spaced Repetition Works',
-                autoClose: 8000
-            });
+            alert('🧠 How Spaced Repetition Works:\n\nSpaced repetition uses scientifically-proven intervals to maximize your learning efficiency. The system shows you cards at the perfect time - not too soon (wasteful) and not too late (you forget).\n\nThis method is used by medical students, language learners, and professionals worldwide to master complex information efficiently.');
         }
         
         // Update spaced repetition stats in the dedicated tab
