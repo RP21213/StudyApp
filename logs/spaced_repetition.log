@@ -89,3 +89,26 @@
 2025-09-23 18:17:41,598 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T17:17:41.598842+00:00"}
 2025-09-23 18:17:41,604 - werkzeug - WARNING -  * Debugger is active!
 2025-09-23 18:17:41,613 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 18:31:10,684 - spaced_repetition.api - INFO - API Call: POST /api/test
+2025-09-23 18:31:10,684 - spaced_repetition.api - INFO - User: test_user
+2025-09-23 18:31:10,684 - spaced_repetition.algorithm - INFO - Card card_123: 1d -> 6d (rating: 2, ease: 2.50)
+2025-09-23 18:31:10,685 - spaced_repetition.session - INFO - Session session_456: started
+2025-09-23 18:31:10,685 - spaced_repetition - ERROR - Test error caught: Test error for debugging
+2025-09-23 18:37:18,117 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\debug_spaced_repetition.py', reloading
+2025-09-23 18:37:18,759 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 18:37:24,798 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 18:37:24,799 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T17:37:24.798972+00:00"}
+2025-09-23 18:37:24,813 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 18:37:24,822 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-23 18:37:31,987 - spaced_repetition.api - INFO - API Call: POST /api/test
+2025-09-23 18:37:31,987 - spaced_repetition.api - INFO - User: test_user
+2025-09-23 18:37:31,987 - spaced_repetition.algorithm - INFO - Card card_123: 1d -> 6d (rating: 2, ease: 2.50)
+2025-09-23 18:37:31,987 - spaced_repetition.session - INFO - Session session_456: started
+2025-09-23 18:37:31,987 - spaced_repetition - ERROR - Test error caught: Test error for debugging
+2025-09-23 18:37:54,190 - spaced_repetition - WARNING - psutil not available - limited system health monitoring
+2025-09-23 18:38:11,361 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\debug_spaced_repetition.py', reloading
+2025-09-23 18:38:11,891 - werkzeug - INFO -  * Restarting with stat
+2025-09-23 18:38:16,421 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-23 18:38:16,421 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-23T17:38:16.421782+00:00"}
+2025-09-23 18:38:16,426 - werkzeug - WARNING -  * Debugger is active!
+2025-09-23 18:38:16,432 - werkzeug - INFO -  * Debugger PIN: 651-930-276

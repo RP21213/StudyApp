@@ -195,17 +195,42 @@ def log_user_action(user_id, action, details=None):
 
 def log_system_health():
     """Log system health metrics"""
-    import psutil
-    
-    health_metrics = {
-        'cpu_percent': psutil.cpu_percent(),
-        'memory_percent': psutil.virtual_memory().percent,
-        'disk_percent': psutil.disk_usage('/').percent,
-        'timestamp': datetime.now(timezone.utc).isoformat()
-    }
-    
-    debugger.log_performance_metric('system_health', health_metrics)
-    return health_metrics
+    try:
+        import psutil
+        
+        health_metrics = {
+            'cpu_percent': psutil.cpu_percent(),
+            'memory_percent': psutil.virtual_memory().percent,
+            'disk_percent': psutil.disk_usage('/').percent,
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+        
+        debugger.log_performance_metric('system_health', health_metrics)
+        return health_metrics
+    except ImportError:
+        # psutil not available, return basic health info
+        health_metrics = {
+            'cpu_percent': 'N/A (psutil not installed)',
+            'memory_percent': 'N/A (psutil not installed)',
+            'disk_percent': 'N/A (psutil not installed)',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'status': 'Limited monitoring (psutil not available)'
+        }
+        
+        debugger.logger.warning("psutil not available - limited system health monitoring")
+        return health_metrics
+    except Exception as e:
+        # Fallback for any other errors
+        health_metrics = {
+            'cpu_percent': 'Error',
+            'memory_percent': 'Error',
+            'disk_percent': 'Error',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'error': str(e)
+        }
+        
+        debugger.logger.error(f"Error getting system health: {e}")
+        return health_metrics
 
 if __name__ == "__main__":
     # Test the debugging system

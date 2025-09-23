@@ -3877,7 +3877,12 @@
                         <div class="sr-card due-cards-card">
                             <div class="sr-card-header">
                                 <h3>📚 Due for Review</h3>
-                                <span class="sr-badge urgent" id="due-cards-badge">0</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="sr-badge urgent" id="due-cards-badge">0</span>
+                                    <button onclick="refreshSpacedRepetitionStats()" style="background: none; border: none; cursor: pointer; padding: 4px;" title="Refresh Stats">
+                                        <i data-lucide="refresh-cw" style="width: 16px; height: 16px; color: #6b7280;"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="sr-card-content">
                                 <p>Cards that are ready for review based on your learning progress.</p>
@@ -7814,11 +7819,29 @@ Best regards,
             
             // Load spaced repetition data when progress tab is active
             loadSpacedRepetitionData();
+            
+            // Also refresh stats when page loads (in case returning from a session)
+            refreshSpacedRepetitionStats();
+        });
+        
+        // Refresh stats when page becomes visible (user switches back to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                refreshSpacedRepetitionStats();
+            }
         });
         
         // Spaced Repetition Functions
+        async function refreshSpacedRepetitionStats() {
+            console.log('🔄 Refreshing spaced repetition stats...');
+            // Force refresh stats by calling the API again
+            await loadSpacedRepetitionData();
+            console.log('✅ Stats refreshed');
+        }
+        
         async function loadSpacedRepetitionData() {
             try {
+                console.log('📊 Loading spaced repetition data...');
                 // Get all hubs for the user
                 const hubsResponse = await fetch('/api/user/hubs');
                 const hubsData = await hubsResponse.json();
@@ -7827,6 +7850,8 @@ Best regards,
                     console.error('Failed to load hubs');
                     return;
                 }
+                
+                console.log(`Found ${hubsData.hubs.length} hubs`);
                 
                 let totalDueCards = 0;
                 let totalCards = 0;
@@ -7905,6 +7930,13 @@ Best regards,
             }
             
             // Update progress stats
+            console.log('📈 Updating stats:', {
+                newCards: data.totalNewCards,
+                learningCards: data.totalLearningCards,
+                matureCards: data.totalMatureCards,
+                dueCards: data.totalDueCards
+            });
+            
             document.getElementById('new-cards-count').textContent = data.totalNewCards;
             document.getElementById('learning-cards-count').textContent = data.totalLearningCards;
             document.getElementById('mature-cards-count').textContent = data.totalMatureCards;

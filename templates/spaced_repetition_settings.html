@@ -20,7 +20,7 @@
         }
 
         .settings-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -62,13 +62,20 @@
             gap: 10px;
         }
 
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+        .section-description {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            line-height: 1.5;
         }
 
-        .setting-group {
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .setting-card {
             background: #f8f9fa;
             padding: 25px;
             border-radius: 15px;
@@ -76,31 +83,33 @@
             transition: all 0.3s ease;
         }
 
-        .setting-group:hover {
+        .setting-card:hover {
             border-color: #667eea;
             transform: translateY(-2px);
         }
 
-        .setting-item {
-            margin-bottom: 20px;
+        .setting-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
-        .setting-item:last-child {
-            margin-bottom: 0;
+        .setting-icon {
+            width: 24px;
+            height: 24px;
+            color: #667eea;
         }
 
-        .setting-label {
-            display: block;
+        .setting-title {
+            font-size: 1.2rem;
             font-weight: 600;
             color: #333;
-            margin-bottom: 8px;
-            font-size: 1rem;
         }
 
         .setting-description {
-            font-size: 0.9rem;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             line-height: 1.4;
         }
 
@@ -123,11 +132,48 @@
             margin: 10px 0;
         }
 
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .range-value {
-            text-align: center;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
             color: #667eea;
-            margin-top: 5px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
         }
 
         .settings-actions {
@@ -135,6 +181,7 @@
             gap: 15px;
             justify-content: center;
             margin-top: 40px;
+            flex-wrap: wrap;
         }
 
         .btn {
@@ -148,6 +195,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 150px;
+            justify-content: center;
         }
 
         .btn-primary {
@@ -185,6 +234,7 @@
             border-radius: 10px;
             margin: 20px 0;
             display: none;
+            font-weight: 500;
         }
 
         .status-success {
@@ -199,66 +249,79 @@
             border: 1px solid #f5c6cb;
         }
 
-        .debug-section {
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box p {
+            color: #1565c0;
+            line-height: 1.5;
+        }
+
+        .quick-presets {
             background: #f8f9fa;
             border: 2px solid #e9ecef;
             border-radius: 15px;
             padding: 25px;
-            margin-top: 30px;
+            margin-bottom: 30px;
         }
 
-        .debug-toggle {
+        .quick-presets h3 {
+            color: #333;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
         }
 
-        .debug-content {
-            display: none;
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
 
-        .debug-content.active {
-            display: block;
-        }
-
-        .debug-info {
+        .preset-card {
             background: white;
-            padding: 20px;
+            border: 2px solid #e9ecef;
             border-radius: 10px;
-            border: 1px solid #e9ecef;
-            font-family: monospace;
-            font-size: 0.9rem;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .preset-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .preset-btn {
-            padding: 8px 16px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 20px;
-            font-size: 0.9rem;
+            padding: 20px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .preset-btn:hover {
-            background: #667eea;
-            color: white;
+        .preset-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
         }
 
-        .preset-btn.active {
-            background: #667eea;
-            color: white;
+        .preset-card.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .preset-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .preset-description {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.3;
         }
 
         @media (max-width: 768px) {
@@ -273,6 +336,10 @@
             .settings-actions {
                 flex-direction: column;
             }
+
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -286,39 +353,70 @@
         <div class="settings-content">
             <div id="status-message" class="status-message"></div>
 
+            <!-- Quick Presets -->
+            <div class="quick-presets">
+                <h3>
+                    <i data-lucide="zap"></i>
+                    Quick Presets
+                </h3>
+                <div class="preset-grid">
+                    <div class="preset-card" onclick="applyPreset('beginner')">
+                        <div class="preset-name">🌱 Beginner</div>
+                        <div class="preset-description">Gentle learning pace<br>10 new cards/day<br>100 reviews/day</div>
+                    </div>
+                    <div class="preset-card active" onclick="applyPreset('balanced')">
+                        <div class="preset-name">⚖️ Balanced</div>
+                        <div class="preset-description">Recommended settings<br>20 new cards/day<br>200 reviews/day</div>
+                    </div>
+                    <div class="preset-card" onclick="applyPreset('intensive')">
+                        <div class="preset-name">🚀 Intensive</div>
+                        <div class="preset-description">Fast learning pace<br>50 new cards/day<br>500 reviews/day</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Basic Settings -->
             <div class="settings-section">
                 <h2 class="section-title">
                     <i data-lucide="settings"></i>
-                    Basic Settings
+                    Daily Limits
                 </h2>
+                <div class="section-description">
+                    Control how many cards you study each day. Start with lower numbers and increase as you get comfortable.
+                </div>
                 
                 <div class="settings-grid">
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">New Cards Per Day</label>
-                            <div class="setting-description">Maximum number of new cards to introduce each day</div>
-                            <input type="number" id="new-cards-per-day" class="setting-input" min="1" max="100" value="20">
-                            <div class="preset-buttons">
-                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 10)">10</button>
-                                <button class="preset-btn active" onclick="setPreset('new-cards-per-day', 20)">20</button>
-                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 30)">30</button>
-                                <button class="preset-btn" onclick="setPreset('new-cards-per-day', 50)">50</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="plus-circle" class="setting-icon"></i>
+                            <div class="setting-title">New Cards Per Day</div>
+                        </div>
+                        <div class="setting-description">
+                            Maximum number of new cards to introduce each day. More cards = faster learning but more reviews later.
+                        </div>
+                        <input type="number" id="new-cards-per-day" class="setting-input" min="1" max="100" value="20">
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="setPreset('new-cards-per-day', 10)">10</button>
+                            <button class="preset-btn active" onclick="setPreset('new-cards-per-day', 20)">20</button>
+                            <button class="preset-btn" onclick="setPreset('new-cards-per-day', 30)">30</button>
+                            <button class="preset-btn" onclick="setPreset('new-cards-per-day', 50)">50</button>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Max Reviews Per Day</label>
-                            <div class="setting-description">Maximum number of cards to review in a single day</div>
-                            <input type="number" id="max-reviews-per-day" class="setting-input" min="10" max="1000" value="200">
-                            <div class="preset-buttons">
-                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 100)">100</button>
-                                <button class="preset-btn active" onclick="setPreset('max-reviews-per-day', 200)">200</button>
-                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 300)">300</button>
-                                <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 500)">500</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="refresh-cw" class="setting-icon"></i>
+                            <div class="setting-title">Max Reviews Per Day</div>
+                        </div>
+                        <div class="setting-description">
+                            Maximum number of cards to review in a single day. This prevents overwhelming study sessions.
+                        </div>
+                        <input type="number" id="max-reviews-per-day" class="setting-input" min="10" max="1000" value="200">
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 100)">100</button>
+                            <button class="preset-btn active" onclick="setPreset('max-reviews-per-day', 200)">200</button>
+                            <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 300)">300</button>
+                            <button class="preset-btn" onclick="setPreset('max-reviews-per-day', 500)">500</button>
                         </div>
                     </div>
                 </div>
@@ -330,49 +428,68 @@
                     <i data-lucide="brain"></i>
                     Algorithm Settings
                 </h2>
+                <div class="section-description">
+                    Fine-tune how the spaced repetition algorithm works. These settings affect how quickly you see cards again.
+                </div>
                 
                 <div class="settings-grid">
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Easy Bonus</label>
-                            <div class="setting-description">Multiplier for "Easy" ratings (higher = longer intervals)</div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="trending-up" class="setting-icon"></i>
+                            <div class="setting-title">Easy Bonus</div>
+                        </div>
+                        <div class="setting-description">
+                            When you rate a card "Easy", how much longer should the next interval be? Higher values = longer intervals.
+                        </div>
+                        <div class="range-container">
                             <input type="range" id="easy-bonus" class="setting-range" min="1.0" max="2.0" step="0.1" value="1.3">
                             <div class="range-value" id="easy-bonus-value">1.3</div>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Interval Modifier</label>
-                            <div class="setting-description">Global multiplier for all intervals (1.0 = normal)</div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="sliders" class="setting-icon"></i>
+                            <div class="setting-title">Interval Modifier</div>
+                        </div>
+                        <div class="setting-description">
+                            Global multiplier for all intervals. 1.0 = normal speed, 0.5 = faster, 2.0 = slower.
+                        </div>
+                        <div class="range-container">
                             <input type="range" id="interval-modifier" class="setting-range" min="0.5" max="2.0" step="0.1" value="1.0">
                             <div class="range-value" id="interval-modifier-value">1.0</div>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Max Interval (Days)</label>
-                            <div class="setting-description">Maximum interval between reviews</div>
-                            <input type="number" id="max-interval" class="setting-input" min="30" max="36500" value="36500">
-                            <div class="preset-buttons">
-                                <button class="preset-btn" onclick="setPreset('max-interval', 365)">1 Year</button>
-                                <button class="preset-btn" onclick="setPreset('max-interval', 1825)">5 Years</button>
-                                <button class="preset-btn active" onclick="setPreset('max-interval', 36500)">100 Years</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="calendar" class="setting-icon"></i>
+                            <div class="setting-title">Max Interval (Days)</div>
+                        </div>
+                        <div class="setting-description">
+                            Maximum time between reviews. Cards won't have intervals longer than this.
+                        </div>
+                        <input type="number" id="max-interval" class="setting-input" min="30" max="36500" value="36500">
+                        <div class="preset-buttons">
+                            <button class="preset-btn" onclick="setPreset('max-interval', 365)">1 Year</button>
+                            <button class="preset-btn" onclick="setPreset('max-interval', 1825)">5 Years</button>
+                            <button class="preset-btn active" onclick="setPreset('max-interval', 36500)">100 Years</button>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Min Interval (Days)</label>
-                            <div class="setting-description">Minimum interval between reviews</div>
-                            <input type="number" id="min-interval" class="setting-input" min="1" max="30" value="1">
-                            <div class="preset-buttons">
-                                <button class="preset-btn active" onclick="setPreset('min-interval', 1)">1 Day</button>
-                                <button class="preset-btn" onclick="setPreset('min-interval', 2)">2 Days</button>
-                                <button class="preset-btn" onclick="setPreset('min-interval', 7)">1 Week</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="clock" class="setting-icon"></i>
+                            <div class="setting-title">Min Interval (Days)</div>
+                        </div>
+                        <div class="setting-description">
+                            Minimum time between reviews. Cards won't have intervals shorter than this.
+                        </div>
+                        <input type="number" id="min-interval" class="setting-input" min="1" max="30" value="1">
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" onclick="setPreset('min-interval', 1)">1 Day</button>
+                            <button class="preset-btn" onclick="setPreset('min-interval', 2)">2 Days</button>
+                            <button class="preset-btn" onclick="setPreset('min-interval', 7)">1 Week</button>
                         </div>
                     </div>
                 </div>
@@ -384,73 +501,86 @@
                     <i data-lucide="graduation-cap"></i>
                     Learning Steps
                 </h2>
+                <div class="section-description">
+                    Control how new cards are introduced. These are the intervals (in minutes) before a card graduates to normal review.
+                </div>
                 
                 <div class="settings-grid">
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Learning Steps</label>
-                            <div class="setting-description">Intervals for new cards (space-separated minutes)</div>
-                            <input type="text" id="learning-steps" class="setting-input" value="1 10">
-                            <div class="preset-buttons">
-                                <button class="preset-btn active" onclick="setPreset('learning-steps', '1 10')">Default</button>
-                                <button class="preset-btn" onclick="setPreset('learning-steps', '1 5 15')">Fast</button>
-                                <button class="preset-btn" onclick="setPreset('learning-steps', '1 10 30')">Slow</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="book-open" class="setting-icon"></i>
+                            <div class="setting-title">Learning Steps</div>
+                        </div>
+                        <div class="setting-description">
+                            Intervals for new cards (space-separated minutes). Example: "1 10" means 1 minute, then 10 minutes.
+                        </div>
+                        <input type="text" id="learning-steps" class="setting-input" value="1 10">
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" onclick="setPreset('learning-steps', '1 10')">Default</button>
+                            <button class="preset-btn" onclick="setPreset('learning-steps', '1 5 15')">Fast</button>
+                            <button class="preset-btn" onclick="setPreset('learning-steps', '1 10 30')">Slow</button>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Lapse Steps</label>
-                            <div class="setting-description">Intervals for forgotten cards (space-separated minutes)</div>
-                            <input type="text" id="lapse-steps" class="setting-input" value="10">
-                            <div class="preset-buttons">
-                                <button class="preset-btn active" onclick="setPreset('lapse-steps', '10')">Default</button>
-                                <button class="preset-btn" onclick="setPreset('lapse-steps', '5 15')">Fast</button>
-                                <button class="preset-btn" onclick="setPreset('lapse-steps', '15 30')">Slow</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="alert-triangle" class="setting-icon"></i>
+                            <div class="setting-title">Lapse Steps</div>
+                        </div>
+                        <div class="setting-description">
+                            When you forget a card, these are the intervals (in minutes) before it goes back to normal review.
+                        </div>
+                        <input type="text" id="lapse-steps" class="setting-input" value="10">
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" onclick="setPreset('lapse-steps', '10')">Default</button>
+                            <button class="preset-btn" onclick="setPreset('lapse-steps', '5 15')">Fast</button>
+                            <button class="preset-btn" onclick="setPreset('lapse-steps', '15 30')">Slow</button>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Lapse Interval</label>
-                            <div class="setting-description">Interval multiplier when card is forgotten</div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="percent" class="setting-icon"></i>
+                            <div class="setting-title">Lapse Interval</div>
+                        </div>
+                        <div class="setting-description">
+                            When you forget a card, multiply its interval by this value. Lower = more frequent reviews.
+                        </div>
+                        <div class="range-container">
                             <input type="range" id="lapse-interval" class="setting-range" min="0.1" max="1.0" step="0.1" value="0.1">
                             <div class="range-value" id="lapse-interval-value">0.1</div>
                         </div>
                     </div>
 
-                    <div class="setting-group">
-                        <div class="setting-item">
-                            <label class="setting-label">Graduated Interval</label>
-                            <div class="setting-description">First interval after completing learning steps</div>
-                            <input type="number" id="graduated-interval" class="setting-input" min="1" max="30" value="1">
-                            <div class="preset-buttons">
-                                <button class="preset-btn active" onclick="setPreset('graduated-interval', 1)">1 Day</button>
-                                <button class="preset-btn" onclick="setPreset('graduated-interval', 2)">2 Days</button>
-                                <button class="preset-btn" onclick="setPreset('graduated-interval', 7)">1 Week</button>
-                            </div>
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <i data-lucide="award" class="setting-icon"></i>
+                            <div class="setting-title">Graduated Interval</div>
+                        </div>
+                        <div class="setting-description">
+                            After completing learning steps, what should the first normal review interval be?
+                        </div>
+                        <input type="number" id="graduated-interval" class="setting-input" min="1" max="30" value="1">
+                        <div class="preset-buttons">
+                            <button class="preset-btn active" onclick="setPreset('graduated-interval', 1)">1 Day</button>
+                            <button class="preset-btn" onclick="setPreset('graduated-interval', 2)">2 Days</button>
+                            <button class="preset-btn" onclick="setPreset('graduated-interval', 7)">1 Week</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Debug Section -->
-            <div class="debug-section">
-                <div class="debug-toggle">
-                    <input type="checkbox" id="debug-toggle" onchange="toggleDebug()">
-                    <label for="debug-toggle">Show Debug Information</label>
-                </div>
-                
-                <div id="debug-content" class="debug-content">
-                    <h3>System Health</h3>
-                    <div id="debug-info" class="debug-info">Loading...</div>
-                    <button class="btn btn-secondary" onclick="refreshDebugInfo()">
-                        <i data-lucide="refresh-cw"></i>
-                        Refresh Debug Info
-                    </button>
-                </div>
+            <!-- Info Box -->
+            <div class="info-box">
+                <h3>
+                    <i data-lucide="info"></i>
+                    How Spaced Repetition Works
+                </h3>
+                <p>
+                    Spaced repetition helps you remember information long-term by showing you cards at increasing intervals. 
+                    When you rate a card "Good" or "Easy", the next interval gets longer. When you rate it "Hard" or "Again", 
+                    the interval gets shorter. This ensures you review difficult cards more often and easy cards less often.
+                </p>
             </div>
 
             <!-- Actions -->
@@ -464,7 +594,7 @@
                     Reset to Defaults
                 </button>
                 <button class="btn btn-success" onclick="testSettings()">
-                    <i data-lucide="play"></i>
+                    <i data-lucide="check-circle"></i>
                     Test Settings
                 </button>
             </div>
@@ -474,6 +604,46 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // Preset configurations
+        const presets = {
+            beginner: {
+                new_cards_per_day: 10,
+                max_reviews_per_day: 100,
+                easy_bonus: 1.2,
+                interval_modifier: 0.8,
+                max_interval: 365,
+                min_interval: 1,
+                learning_steps: '1 10',
+                lapse_steps: '10',
+                lapse_interval: 0.2,
+                graduated_interval: 1
+            },
+            balanced: {
+                new_cards_per_day: 20,
+                max_reviews_per_day: 200,
+                easy_bonus: 1.3,
+                interval_modifier: 1.0,
+                max_interval: 36500,
+                min_interval: 1,
+                learning_steps: '1 10',
+                lapse_steps: '10',
+                lapse_interval: 0.1,
+                graduated_interval: 1
+            },
+            intensive: {
+                new_cards_per_day: 50,
+                max_reviews_per_day: 500,
+                easy_bonus: 1.5,
+                interval_modifier: 1.2,
+                max_interval: 36500,
+                min_interval: 1,
+                learning_steps: '1 5 15',
+                lapse_steps: '5 15',
+                lapse_interval: 0.1,
+                graduated_interval: 1
+            }
+        };
 
         // Load current settings
         async function loadSettings() {
@@ -505,6 +675,29 @@
             }
         }
 
+        // Apply preset configuration
+        function applyPreset(presetName) {
+            const preset = presets[presetName];
+            if (!preset) return;
+
+            // Update all form fields
+            Object.keys(preset).forEach(key => {
+                const element = document.getElementById(key.replace(/_/g, '-'));
+                if (element) {
+                    element.value = preset[key];
+                }
+            });
+
+            // Update range values
+            updateRangeValues();
+
+            // Update active preset card
+            document.querySelectorAll('.preset-card').forEach(card => card.classList.remove('active'));
+            event.target.closest('.preset-card').classList.add('active');
+
+            showStatus(`Applied ${presetName} preset`, 'success');
+        }
+
         // Update range value displays
         function updateRangeValues() {
             document.getElementById('easy-bonus-value').textContent = document.getElementById('easy-bonus').value;
@@ -517,7 +710,7 @@
             document.getElementById(fieldId).value = value;
             
             // Update active preset button
-            const group = document.getElementById(fieldId).closest('.setting-group');
+            const group = document.getElementById(fieldId).closest('.setting-card');
             group.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
         }
@@ -549,80 +742,40 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus('Settings saved successfully!', 'success');
+                    showStatus('✅ Settings saved successfully!', 'success');
                 } else {
-                    showStatus('Error saving settings: ' + data.message, 'error');
+                    showStatus('❌ Error saving settings: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Error saving settings:', error);
-                showStatus('Error saving settings', 'error');
+                showStatus('❌ Error saving settings', 'error');
             }
         }
 
         // Reset to defaults
         function resetToDefaults() {
             if (confirm('Are you sure you want to reset all settings to defaults?')) {
-                document.getElementById('new-cards-per-day').value = 20;
-                document.getElementById('max-reviews-per-day').value = 200;
-                document.getElementById('easy-bonus').value = 1.3;
-                document.getElementById('interval-modifier').value = 1.0;
-                document.getElementById('max-interval').value = 36500;
-                document.getElementById('min-interval').value = 1;
-                document.getElementById('learning-steps').value = '1 10';
-                document.getElementById('lapse-steps').value = '10';
-                document.getElementById('lapse-interval').value = 0.1;
-                document.getElementById('graduated-interval').value = 1;
-                
-                updateRangeValues();
-                showStatus('Settings reset to defaults', 'success');
+                applyPreset('balanced');
+                showStatus('✅ Settings reset to defaults', 'success');
             }
         }
 
         // Test settings
         async function testSettings() {
             try {
+                showStatus('🔄 Testing settings...', 'success');
+                
                 const response = await fetch('/api/spaced_repetition/system_health');
                 const data = await response.json();
                 
                 if (data.success) {
-                    showStatus('Settings test passed! System is operational.', 'success');
+                    showStatus('✅ Settings test passed! System is operational.', 'success');
                 } else {
-                    showStatus('Settings test failed: ' + data.message, 'error');
+                    showStatus('❌ Settings test failed: ' + data.message, 'error');
                 }
             } catch (error) {
                 console.error('Error testing settings:', error);
-                showStatus('Error testing settings', 'error');
-            }
-        }
-
-        // Toggle debug information
-        function toggleDebug() {
-            const debugContent = document.getElementById('debug-content');
-            const isChecked = document.getElementById('debug-toggle').checked;
-            
-            if (isChecked) {
-                debugContent.classList.add('active');
-                refreshDebugInfo();
-            } else {
-                debugContent.classList.remove('active');
-            }
-        }
-
-        // Refresh debug information
-        async function refreshDebugInfo() {
-            try {
-                const response = await fetch('/api/spaced_repetition/system_health');
-                const data = await response.json();
-                
-                if (data.success) {
-                    const debugInfo = document.getElementById('debug-info');
-                    debugInfo.innerHTML = JSON.stringify(data, null, 2);
-                } else {
-                    document.getElementById('debug-info').innerHTML = 'Error loading debug info: ' + data.message;
-                }
-            } catch (error) {
-                console.error('Error refreshing debug info:', error);
-                document.getElementById('debug-info').innerHTML = 'Error loading debug info: ' + error.message;
+                showStatus('❌ Error testing settings', 'error');
             }
         }
 

@@ -85,12 +85,15 @@
         }
         
         .flashcard {
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
+            width: 100% !important;
+            max-width: 600px !important;
+            height: 400px !important;
+            min-height: 400px;
             perspective: 1000px;
             cursor: pointer;
             margin-bottom: 2rem;
+            flex-shrink: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
         
         .flashcard-inner {
@@ -141,6 +144,14 @@
         .card-content {
             max-width: 100%;
             word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            max-height: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
         
         .card-hint {
@@ -533,13 +544,38 @@
             }
             
             const card = cards[currentCardIndex];
-            document.getElementById('card-front').textContent = card.front;
-            document.getElementById('card-back').textContent = card.back;
+            const cardFront = document.getElementById('card-front');
+            const cardBack = document.getElementById('card-back');
+            const flashcard = document.getElementById('flashcard');
+            const ratingButtons = document.getElementById('rating-buttons');
             
-            // Reset card state
+            // Clear previous content and reset styles
+            cardFront.textContent = '';
+            cardBack.textContent = '';
+            
+            // Force a reflow to ensure styles are reset
+            flashcard.offsetHeight;
+            
+            // Set new content
+            cardFront.textContent = card.front;
+            cardBack.textContent = card.back;
+            
+            // Reset card state with proper timing
             isCardFlipped = false;
-            document.getElementById('flashcard').classList.remove('flipped');
-            document.getElementById('rating-buttons').style.display = 'none';
+            flashcard.classList.remove('flipped');
+            ratingButtons.style.display = 'none';
+            
+            // Ensure card maintains its size
+            flashcard.style.width = '100%';
+            flashcard.style.maxWidth = '600px';
+            flashcard.style.height = '400px';
+            
+            // Debug: Log card dimensions
+            console.log(`Card ${currentCardIndex + 1} loaded. Dimensions:`, {
+                width: flashcard.offsetWidth,
+                height: flashcard.offsetHeight,
+                contentLength: card.front.length + card.back.length
+            });
             
             updateProgress();
         }
@@ -586,9 +622,17 @@
                     updateUI();
                     
                     if (currentCardIndex < cards.length) {
+                        // Add a smooth transition effect
+                        const flashcard = document.getElementById('flashcard');
+                        flashcard.style.opacity = '0.7';
+                        flashcard.style.transform = 'scale(0.95)';
+                        
                         setTimeout(() => {
                             loadCurrentCard();
-                        }, 500);
+                            // Restore full opacity and scale
+                            flashcard.style.opacity = '1';
+                            flashcard.style.transform = 'scale(1)';
+                        }, 300);
                     } else {
                         completeSession();
                     }
@@ -642,6 +686,8 @@
                 
                 if (data.success) {
                     showSessionComplete(data);
+                    // Add a note about refreshing stats
+                    console.log('✅ Session completed successfully! Stats should update on dashboard.');
                 } else {
                     showError('Failed to complete session: ' + data.message);
                 }
@@ -653,15 +699,24 @@
 
         // Show session complete screen
         function showSessionComplete(data) {
+            // Hide card container and show session complete
             document.getElementById('card-container').style.display = 'none';
             document.getElementById('session-complete').style.display = 'block';
             
-            const accuracy = Math.round((sessionStats.correct / sessionStats.total) * 100);
+            // Calculate and display final stats
+            const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
             
             document.getElementById('final-cards').textContent = sessionStats.total;
             document.getElementById('final-accuracy').textContent = accuracy + '%';
             document.getElementById('final-xp').textContent = data.xp_earned || 0;
-            document.getElementById('final-duration').textContent = data.duration_minutes || 0 + 'm';
+            document.getElementById('final-duration').textContent = (data.duration_minutes || 0) + 'm';
+            
+            // Debug: Log session completion
+            console.log('Session completed:', {
+                cards_reviewed: sessionStats.total,
+                accuracy: accuracy,
+                xp_earned: data.xp_earned || 0
+            });
         }
 
         // Show no cards message
@@ -679,9 +734,64 @@
             `;
         }
 
+        // Reset UI to initial state
+        function resetUI() {
+            // Reset progress indicators
+            document.getElementById('current-card').textContent = '1';
+            document.getElementById('total-cards').textContent = '0';
+            document.getElementById('correct-count').textContent = '0';
+            document.getElementById('incorrect-count').textContent = '0';
+            document.getElementById('accuracy').textContent = '0%';
+            document.getElementById('progress-fill').style.width = '0%';
+            
+            // Reset card display
+            const flashcard = document.getElementById('flashcard');
+            const cardFront = document.getElementById('card-front');
+            const cardBack = document.getElementById('card-back');
+            const ratingButtons = document.getElementById('rating-buttons');
+            
+            flashcard.classList.remove('flipped');
+            cardFront.textContent = '';
+            cardBack.textContent = '';
+            ratingButtons.style.display = 'none';
+            
+            // Reset card styles
+            flashcard.style.opacity = '1';
+            flashcard.style.transform = 'scale(1)';
+            
+            // Show card container, hide session complete
+            document.getElementById('card-container').style.display = 'flex';
+            document.getElementById('session-complete').style.display = 'none';
+        }
+
         // Start new session
         function startNewSession() {
-            window.location.reload();
+            // Show loading state
+            const cardContainer = document.getElementById('card-container');
+            cardContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 1.5rem; margin-bottom: 1rem;">🔄 Starting New Session...</div>
+                    <div style="color: var(--text-secondary);">Loading your cards...</div>
+                </div>
+            `;
+            
+            // Reset all session variables
+            currentSession = null;
+            currentCardIndex = 0;
+            cards = [];
+            sessionStats = {
+                correct: 0,
+                incorrect: 0,
+                total: 0
+            };
+            sessionStartTime = null;
+            isCardFlipped = false;
+            
+            // Reset UI to initial state
+            resetUI();
+            
+            // Initialize new session
+            initializeSession();
         }
 
         // Keyboard shortcuts
