@@ -753,6 +753,367 @@
             font-size: 0.9rem;
         }
 
+        /* Pricing Section */
+        .pricing {
+            padding: 8rem 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-60px); }
+        }
+
+        .referral-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .banner-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .banner-icon {
+            color: white;
+            opacity: 0.9;
+        }
+
+        .banner-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .banner-highlight {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .banner-main {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            opacity: 0.95;
+        }
+
+        .banner-decoration {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .sparkle {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 2s infinite;
+        }
+
+        .sparkle:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .sparkle:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-2xl);
+            overflow: hidden;
+            transition: all var(--transition-normal);
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .pro-card {
+            border: 2px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .pro-card:hover {
+            transform: scale(1.05) translateY(-8px);
+        }
+
+        .pro-badge {
+            position: absolute;
+            top: -1px;
+            right: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            font-size: 0.875rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .card-header {
+            padding: 2rem 2rem 1rem;
+            text-align: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .plan-badge.free {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .plan-badge.pro {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .plan-price {
+            margin-bottom: 1rem;
+        }
+
+        .currency {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .amount {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .period {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .plan-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .card-body {
+            padding: 0 2rem 1rem;
+        }
+
+        .card-body .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .card-body .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-body .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .card-body .feature-item span {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .card-footer {
+            padding: 1.5rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .pricing-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all var(--transition-normal);
+            border: none;
+            cursor: pointer;
+        }
+
+        .free-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid #e2e8f0;
+        }
+
+        .free-btn:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .pro-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .pro-btn:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .trial-info {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .pricing-footer {
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .guarantee {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .support-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .support-info a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        /* Responsive Design for Pricing */
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .pro-card {
+                transform: none;
+            }
+
+            .pro-card:hover {
+                transform: translateY(-8px);
+            }
+
+            .referral-banner {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .banner-decoration {
+                justify-content: center;
+            }
+
+            .plan-name {
+                font-size: 1.25rem;
+            }
+
+            .amount {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pricing {
+                padding: 6rem 0;
+            }
+
+            .card-header,
+            .card-body,
+            .card-footer {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+
+            .amount {
+                font-size: 2rem;
+            }
+
+            .banner-highlight {
+                font-size: 1.25rem;
+            }
+
+            .banner-main {
+                font-size: 1rem;
+            }
+        }
+
         /* FAQ Section */
         .faq {
             padding: 6rem 0;
@@ -1686,8 +2047,154 @@
             </div>
         </section>
 
+        <!-- Pricing Section -->
+        <section class="pricing" id="pricing">
+            <div class="container">
+                <!-- Referral Banner -->
+                <div class="referral-banner fade-in">
+                    <div class="banner-content">
+                        <div class="banner-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="banner-text">
+                            <span class="banner-highlight">50% OFF</span>
+                            <span class="banner-main">with a referral code</span>
+                        </div>
+                    </div>
+                    <div class="banner-decoration">
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                    </div>
+                </div>
+
+                <div class="section-header fade-in">
+                    <h2 class="section-title">Choose Your Plan</h2>
+                    <p class="section-subtitle">Start free, upgrade when you're ready to unlock the full potential of AI-powered studying</p>
+                </div>
+
+                <div class="pricing-grid">
+                    <!-- Free Plan -->
+                    <div class="pricing-card fade-in">
+                        <div class="card-header">
+                            <div class="plan-badge free">Free</div>
+                            <h3 class="plan-name">Free Plan</h3>
+                            <div class="plan-price">
+                                <span class="currency">£</span>
+                                <span class="amount">0</span>
+                                <span class="period">/month</span>
+                            </div>
+                            <p class="plan-description">Perfect for getting started with AI-powered studying</p>
+                        </div>
+                        <div class="card-body">
+                            <ul class="feature-list">
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Create up to 3 study hubs</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Basic AI study tools</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Limited AI interactions</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Community support</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer">
+                            <a href="/signup" class="pricing-btn free-btn">Get Started Free</a>
+                        </div>
+                    </div>
+
+                    <!-- Pro Plan -->
+                    <div class="pricing-card pro-card fade-in">
+                        <div class="pro-badge">Most Popular</div>
+                        <div class="card-header">
+                            <div class="plan-badge pro">Pro</div>
+                            <h3 class="plan-name">Pro Plan</h3>
+                            <div class="plan-price">
+                                <span class="currency">£</span>
+                                <span class="amount">5.99</span>
+                                <span class="period">/month</span>
+                            </div>
+                            <p class="plan-description">Unlock unlimited AI-powered studying potential</p>
+                        </div>
+                        <div class="card-body">
+                            <ul class="feature-list">
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Unlimited study hubs</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Advanced AI study tools</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Unlimited AI interactions</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Priority support</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Advanced analytics</span>
+                                </li>
+                                <li class="feature-item">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
+                                    </svg>
+                                    <span>Export capabilities</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer">
+                            <a href="/create-checkout-session" class="pricing-btn pro-btn">Start Pro Trial</a>
+                            <p class="trial-info">7-day free trial, then £5.99/month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pricing-footer fade-in">
+                    <p class="guarantee">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 1l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="#22c55e"/>
+                        </svg>
+                        <span>30-day money-back guarantee</span>
+                    </p>
+                    <p class="support-info">Need help choosing? <a href="#">Contact our support team</a></p>
+                </div>
+            </div>
+        </section>
+
         <!-- FAQ Section -->
-        <section class="faq">
+        <section class="faq" id="faq">
             <div class="container">
                 <div class="section-header fade-in">
                     <h2 class="section-title">Frequently Asked Questions</h2>
@@ -2086,6 +2593,47 @@
             ease: 'power3.out',
             scrollTrigger: {
                 trigger: '.feature-list',
+                start: 'top 90%',
+                end: 'bottom 10%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        // Pricing section animations
+        gsap.from('.referral-banner', {
+            duration: 0.8,
+            y: 50,
+            opacity: 0,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.pricing',
+                start: 'top 80%',
+                end: 'bottom 20%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        gsap.from('.pricing-card', {
+            duration: 1,
+            y: 80,
+            opacity: 0,
+            stagger: 0.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.pricing-grid',
+                start: 'top 85%',
+                end: 'bottom 15%',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        gsap.from('.pricing-footer', {
+            duration: 0.8,
+            y: 30,
+            opacity: 0,
+            ease: 'power3.out',
+            scrollTrigger: {
+                trigger: '.pricing-footer',
                 start: 'top 90%',
                 end: 'bottom 10%',
                 toggleActions: 'play none none reverse'
