@@ -6275,8 +6275,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.guideToTakeNotes = function() {
             console.log('🎯 guideToTakeNotes called');
             setTimeout(() => {
-                const takeNotesCard = document.querySelector('#pipeline-live-lecture') || 
-                                    document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
+                const takeNotesCard = document.querySelector('#pipeline-slide-notes') || 
+                                    document.querySelector('.feature-card[id="pipeline-slide-notes"]');
                 console.log('🔍 Take notes card found:', !!takeNotesCard);
                 if (takeNotesCard) {
                     const spotlight = document.getElementById('onboarding-spotlight-overlay');
@@ -6310,7 +6310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         tooltip.innerHTML = `
                             <div style="display: flex; flex-direction: column; gap: 1rem;">
                                 <p>Click on "Take notes with slides" to start interactive note-taking!</p>
-                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('#pipeline-live-lecture, .pipeline-card[data-pipeline=\\'live-lecture\\']').classList.remove('onboarding-highlight'); openLectureNotesModal();" style="align-self: flex-start;">Got it!</button>
+                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('#pipeline-slide-notes').classList.remove('onboarding-highlight');" style="align-self: flex-start;">Got it!</button>
                             </div>
                         `;
                         tooltip.className = 'onboarding-tooltip right';
@@ -6319,6 +6319,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         tooltip.style.left = `${left}px`;
                         tooltip.style.transform = `translateY(-50%) ${transform}`;
                         tooltip.classList.add('visible');
+                        
+                        // Add click handler to automatically open modal during onboarding
+                        const clickHandler = (e) => {
+                            // Check if we're in onboarding
+                            const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
+                            if (isOnboarding) {
+                                console.log('🎯 Take notes with slides clicked during onboarding, opening modal...');
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                // Remove the click handler
+                                takeNotesCard.removeEventListener('click', clickHandler);
+                                
+                                // Hide tooltip and spotlight
+                                tooltip.classList.remove('visible');
+                                spotlight.classList.remove('visible');
+                                takeNotesCard.classList.remove('onboarding-highlight');
+                                
+                                // Open modal with file pre-selected
+                                openLectureNotesModal();
+                            }
+                        };
+                        
+                        // Add the click handler
+                        takeNotesCard.addEventListener('click', clickHandler);
                     }
                 }
             }, 500);
@@ -6329,23 +6354,28 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('🎯 openLectureNotesModal called');
             setTimeout(() => {
                 // Click the lecture notes card to open the modal
-                const lectureNotesCard = document.querySelector('#pipeline-live-lecture') || 
-                                       document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
+                const lectureNotesCard = document.querySelector('#pipeline-slide-notes') || 
+                                       document.querySelector('.feature-card[id="pipeline-slide-notes"]');
                 console.log('🔍 Lecture notes card found:', !!lectureNotesCard);
                 if (lectureNotesCard) {
                     lectureNotesCard.click();
                     
-                    // Wait for modal to open, then auto-select the file
+                    // Wait for modal to open, then auto-select the file (only during onboarding)
                     setTimeout(() => {
-                        const fileCheckbox = document.querySelector('input[value*="EC131"]') || 
-                                           document.querySelector('input[value*="EC131_Week_9"]') ||
-                                           document.querySelector('input[value*="machine_learning"]') ||
-                                           document.querySelector('.file-checkbox');
-                        
-                        if (fileCheckbox) {
-                            fileCheckbox.checked = true;
-                            fileCheckbox.dispatchEvent(new Event('change'));
-                            console.log('✅ EC131 Week 9 file auto-selected for lecture notes');
+                        const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
+                        if (isOnboarding) {
+                            const fileCheckbox = document.querySelector('input[value*="EC131"]') || 
+                                               document.querySelector('input[value*="EC131_Week_9"]') ||
+                                               document.querySelector('input[value*="machine_learning"]') ||
+                                               document.querySelector('.file-checkbox');
+                            
+                            if (fileCheckbox) {
+                                fileCheckbox.checked = true;
+                                fileCheckbox.dispatchEvent(new Event('change'));
+                                console.log('✅ EC131 Week 9 file auto-selected for lecture notes during onboarding');
+                            }
+                        } else {
+                            console.log('ℹ️ Not in onboarding, file not auto-selected');
                         }
                         
                         // Show final tooltip
