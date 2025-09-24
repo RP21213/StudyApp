@@ -3390,9 +3390,10 @@
         }
         
         .onboarding-highlight.nav-tab {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.2)) !important;
-            border: 2px solid rgba(139, 92, 246, 0.6) !important;
-            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(124, 58, 237, 0.3)) !important;
+            border: 3px solid rgba(139, 92, 246, 0.8) !important;
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5) !important;
         }
         
         @keyframes onboarding-pulse {
@@ -7674,44 +7675,51 @@ Best regards,
                         continueBtn.addEventListener('click', () => {
                             hideTooltip();
                             removeHighlight();
-                            // Trigger the hubs tab click
-                            const hubsTab = document.querySelector('[data-tab="hubs"]');
-                            if (hubsTab) {
-                                hubsTab.click();
-                            }
+                            hideSpotlight();
+                            // Create demo hub and redirect instead of clicking tabs
+                            createDemoHubAndRedirect();
                         });
                         tooltip.appendChild(continueBtn);
                     }
                 }, 500);
             }
 
-            // Handle Study Hubs button click during onboarding
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('[data-tab="hubs"]') && sessionStorage.getItem('onboardingStep') === 'hub_entry') {
-                    // User clicked Study Hubs - create demo hub and redirect
-                    hideTooltip();
-                    removeHighlight();
+            // Function to create demo hub and redirect
+            async function createDemoHubAndRedirect() {
+                try {
+                    const response = await fetch('/onboarding/create_demo_hub', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                     
-                    // Create demo hub
-                    fetch('/onboarding/create_demo_hub', { method: 'POST' })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // Redirect to the demo hub
-                                window.location.href = `/hub/${data.hub_id}`;
-                            } else {
-                                console.error('Failed to create demo hub:', data.message);
-                                // Fallback to regular hub creation
-                                window.location.href = '/add_hub';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error creating demo hub:', error);
-                            // Fallback to regular hub creation
-                            window.location.href = '/add_hub';
-                        });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Redirect to the demo hub
+                        window.location.href = `/hub/${result.hub_id}`;
+                    } else {
+                        console.error('Failed to create demo hub:', result.message);
+                        // Fallback: just redirect to hubs tab
+                        const hubsTab = document.querySelector('[data-tab="hubs"]');
+                        if (hubsTab) {
+                            hubsTab.click();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error creating demo hub:', error);
+                    // Fallback: just redirect to hubs tab
+                    const hubsTab = document.querySelector('[data-tab="hubs"]');
+                    if (hubsTab) {
+                        hubsTab.click();
+                    }
                 }
-            });
+            }
+
+            function hideSpotlight() {
+                spotlight.classList.remove('visible');
+            }
+
+            // Remove the old event listener - we now handle this through the continue button
 
             // --- Celebration Modal ---
             document.getElementById('onboarding-complete-btn').addEventListener('click', () => {
