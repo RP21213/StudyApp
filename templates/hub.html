@@ -6391,12 +6391,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const fileCheckbox = document.querySelector('#slide-notes-files input[value*="EC131"]') || 
                                                    document.querySelector('#slide-notes-files input[value*="EC131_Week_9"]') ||
                                                    document.querySelector('#slide-notes-files input[value*="machine_learning"]') ||
-                                                   document.querySelector('#slide-notes-files .file-checkbox');
+                                                   document.querySelector('#slide-notes-files input[name="selected_file"]');
+                                
+                                console.log('🔍 Looking for file checkbox, found:', !!fileCheckbox);
+                                console.log('🔍 Checkbox value:', fileCheckbox ? fileCheckbox.value : 'none');
                                 
                                 if (fileCheckbox) {
                                     fileCheckbox.checked = true;
                                     fileCheckbox.dispatchEvent(new Event('change'));
-                                    console.log('✅ EC131 Week 9 file auto-selected for lecture notes during onboarding');
+                                    console.log('✅ EC131 Week 9 file auto-selected for lecture notes during onboarding, value:', fileCheckbox.value);
                                     
                                     // Show final tooltip
                                     setTimeout(() => {
@@ -6460,13 +6463,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Populate file list
+            console.log('🔍 Hub files structure:', hubFiles);
             fileListContainer.innerHTML = hubFiles.map(file => `
                 <div class="file-item">
                     <label style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;">
-                        <input type="radio" name="selected_file" value="${file.id}" class="file-checkbox" style="margin-right: 1rem;">
+                        <input type="radio" name="selected_file" value="${file.id || file.file_id || 'unknown'}" class="file-checkbox" style="margin-right: 1rem;">
                         <div style="flex: 1;">
-                            <div style="font-weight: 500;">${file.name}</div>
-                            <div style="font-size: 0.875rem; color: #888;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                            <div style="font-weight: 500;">${file.name || file.filename || file.original_filename || 'Unknown file'}</div>
+                            <div style="font-size: 0.875rem; color: #888;">${file.size ? (file.size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size'}</div>
                         </div>
                     </label>
                 </div>
