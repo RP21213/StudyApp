@@ -4088,7 +4088,10 @@
                         // Navigate to folders and reload after a short delay
                         setTimeout(() => {
                             window.location.hash = 'folders';
-                            window.location.reload();
+                            // Don't reload during onboarding to preserve Task Queue tooltip
+                            if (!isOnboarding) {
+                                window.location.reload();
+                            }
                         }, 1500);
                     } else {
                         showErrorMessage(`Error: ${result.message}`);
@@ -5543,10 +5546,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
           if (firstFolder) firstFolder.click();
           
-          // Spotlight newly created items if present
-          setTimeout(() => {
-              spotlightGeneratedItems();
-          }, 100);
+          // Old spotlight on generated items removed
       }, 300);
       
       // Old onboarding celebration removed
@@ -6092,46 +6092,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.classList.add('visible');
         }
 
-        function spotlightGeneratedItems() {
-            // Highlight the first note, flashcards, and quiz items simultaneously with one tooltip
-            const container = document.querySelector('.folder-accordion-item .folder-content');
-            if (!container) return;
-            const targets = [
-                container.querySelector('.asset-item[data-type="note"] .asset-link'),
-                container.querySelector('.asset-item[data-type="flashcards"] .asset-link'),
-                container.querySelector('.asset-item[data-type="quiz"] .asset-link')
-            ].filter(Boolean);
-            if (targets.length === 0) return;
-
-            // Add highlight class to all targets
-            targets.forEach(el => el.classList.add('onboarding-highlight'));
-
-            // Compute a bounding box that includes all three items
-            const rects = targets.map(el => el.getBoundingClientRect());
-            const bounds = rects.reduce((acc, r) => ({
-                top: Math.min(acc.top, r.top),
-                left: Math.min(acc.left, r.left),
-                right: Math.max(acc.right, r.right),
-                bottom: Math.max(acc.bottom, r.bottom)
-            }), { top: Infinity, left: Infinity, right: -Infinity, bottom: -Infinity });
-
-            const spotlight = document.getElementById('onboarding-spotlight-overlay');
-            const padding = 10;
-            const clipPath = `polygon(0% 0%, 0% 100%, ${bounds.left - padding}px 100%, ${bounds.left - padding}px ${bounds.top - padding}px, ${bounds.right + padding}px ${bounds.top - padding}px, ${bounds.right + padding}px ${bounds.bottom + padding}px, ${bounds.left - padding}px ${bounds.bottom + padding}px, ${bounds.left - padding}px 100%, 100% 100%, 100% 0%)`;
-            spotlight.style.clipPath = clipPath;
-            spotlight.classList.add('visible');
-
-            // Show a single tooltip near the bounds (no button)
-            const tooltip = document.getElementById('onboarding-tooltip');
-            tooltip.innerHTML = `<p>Here are your generated items: notes, flashcards, and a quiz.</p>`;
-            tooltip.className = 'onboarding-tooltip bottom';
-            const top = bounds.bottom + 15;
-            const left = bounds.left + (bounds.right - bounds.left) / 2;
-            tooltip.style.top = `${top}px`;
-            tooltip.style.left = `${left}px`;
-            tooltip.style.transform = 'translateX(-50%)';
-            tooltip.classList.add('visible');
-        }
+        // Old spotlightGeneratedItems function removed
 
         // Global interaction blocker functions removed - no longer needed
 
