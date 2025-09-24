@@ -5679,10 +5679,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     if (revisionModal && revisionModal.style.display !== 'none') {
                                         console.log('📄 Auto-selecting sample file...');
                                         
-                                        // Look for the sample file checkbox and check it
-                                        const sampleFileCheckbox = document.querySelector('input[value*="machine_learning_intro"]') || 
-                                                                 document.querySelector('input[value*="machine_learning"]') ||
-                                                                 document.querySelector('.file-checkbox');
+                                            // Look for the sample file checkbox and check it
+                                            const sampleFileCheckbox = document.querySelector('input[value*="EC131"]') || 
+                                                                     document.querySelector('input[value*="EC131_Week_9"]') ||
+                                                                     document.querySelector('input[value*="machine_learning_intro"]') ||
+                                                                     document.querySelector('.file-checkbox');
                                         
                                         if (sampleFileCheckbox) {
                                             sampleFileCheckbox.checked = true;

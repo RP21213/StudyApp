@@ -7669,8 +7669,8 @@ Best regards,
                         hideTooltip();
                         removeHighlight();
                         hideSpotlight();
-                        // Set onboarding step for hub entry
-                        sessionStorage.setItem('onboardingStep', 'hub_entry');
+                // Set onboarding step for hub entry
+                sessionStorage.setItem('onboardingStep', 'hub_entry');
                         createDemoHubAndShowCelebration();
                         return false;
                     };
@@ -7793,8 +7793,8 @@ Best regards,
             // Helper function to switch to hubs tab
             function switchToHubsTab() {
                 console.log('Switching to hubs tab as fallback...');
-                const hubsTab = document.querySelector('[data-tab="hubs"]');
-                if (hubsTab) {
+                    const hubsTab = document.querySelector('[data-tab="hubs"]');
+                    if (hubsTab) {
                     // Ensure the tab is active and content is shown
                     document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));

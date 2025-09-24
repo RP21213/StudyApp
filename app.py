@@ -2344,30 +2344,79 @@ def create_demo_hub():
         )
         batch.set(note_ref, sample_note.to_dict())
         
-        # Create sample file for onboarding
-        sample_file_ref = db.collection('files').document()
-        sample_file = {
-            'id': sample_file_ref.id,
-            'hub_id': hub_ref.id,
-            'filename': 'machine_learning_intro.pdf',
-            'original_filename': 'machine_learning_intro.pdf',
-            'file_path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
-            'file_size': 1024000,  # 1MB
-            'upload_date': datetime.now(timezone.utc),
-            'file_type': 'pdf',
-            'content': sample_lecture_text,
-            'is_sample': True  # Mark as sample file for onboarding
-        }
-        batch.set(sample_file_ref, sample_file)
+        # Upload the actual sample PDF file to Firebase Storage
+        import os
+        from google.cloud import storage
         
-        # Update the hub's files field to include the sample file
-        hub_ref.update({
-            'files': [{
-                'name': 'machine_learning_intro.pdf',
-                'path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
-                'size': 1024000
-            }]
-        })
+        # Initialize Firebase Storage client
+        storage_client = storage.Client()
+        bucket = storage_client.bucket('ai-study-hub-f3040.firebasestorage.app')
+        
+        # Path to the sample PDF in static directory
+        sample_pdf_path = os.path.join('static', 'EC131 Week 9.pdf')
+        
+        if os.path.exists(sample_pdf_path):
+            # Upload the PDF to Firebase Storage
+            blob_name = f'hubs/{hub_ref.id}/EC131_Week_9.pdf'
+            blob = bucket.blob(blob_name)
+            
+            with open(sample_pdf_path, 'rb') as pdf_file:
+                blob.upload_from_file(pdf_file, content_type='application/pdf')
+            
+            # Get file size
+            file_size = os.path.getsize(sample_pdf_path)
+            
+            # Create file reference in database
+            sample_file_ref = db.collection('files').document()
+            sample_file = {
+                'id': sample_file_ref.id,
+                'hub_id': hub_ref.id,
+                'filename': 'EC131_Week_9.pdf',
+                'original_filename': 'EC131 Week 9.pdf',
+                'file_path': blob_name,
+                'file_size': file_size,
+                'upload_date': datetime.now(timezone.utc),
+                'file_type': 'pdf',
+                'content': sample_lecture_text,  # Keep the text content for AI processing
+                'is_sample': True  # Mark as sample file for onboarding
+            }
+            batch.set(sample_file_ref, sample_file)
+            
+            # Update the hub's files field to include the sample file
+            hub_ref.update({
+                'files': [{
+                    'name': 'EC131 Week 9.pdf',
+                    'path': blob_name,
+                    'size': file_size
+                }]
+            })
+            
+            print(f"✅ Sample PDF uploaded successfully: {blob_name}")
+        else:
+            print(f"❌ Sample PDF not found at: {sample_pdf_path}")
+            # Fallback to the old method if file doesn't exist
+            sample_file_ref = db.collection('files').document()
+            sample_file = {
+                'id': sample_file_ref.id,
+                'hub_id': hub_ref.id,
+                'filename': 'machine_learning_intro.pdf',
+                'original_filename': 'machine_learning_intro.pdf',
+                'file_path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
+                'file_size': 1024000,  # 1MB
+                'upload_date': datetime.now(timezone.utc),
+                'file_type': 'pdf',
+                'content': sample_lecture_text,
+                'is_sample': True
+            }
+            batch.set(sample_file_ref, sample_file)
+            
+            hub_ref.update({
+                'files': [{
+                    'name': 'machine_learning_intro.pdf',
+                    'path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
+                    'size': 1024000
+                }]
+            })
         
         # Create sample flashcards
         flashcard_ref = db.collection('activities').document()
