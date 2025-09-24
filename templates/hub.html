@@ -6508,8 +6508,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Function to handle slide notes form submission
         function handleSlideNotesFormSubmission(e) {
+            console.log('🎯 handleSlideNotesFormSubmission called');
             const fileSelected = document.querySelector('#slide-notes-files input[name="selected_file"]:checked');
             const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
+            
+            console.log('🔍 File selected:', !!fileSelected, fileSelected ? fileSelected.value : 'none');
+            console.log('🔍 File uploaded:', !!fileUploaded);
             
             if (!fileSelected && !fileUploaded) {
                 e.preventDefault();
@@ -6519,6 +6523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // If a file is selected from existing files, we need to modify the form to include the file ID
             if (fileSelected && !fileUploaded) {
+                console.log('🎯 Using existing file, preventing default and submitting manually');
                 e.preventDefault();
                 
                 // Create a hidden input with the selected file ID
@@ -6529,8 +6534,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileIdInput.value = fileSelected.value;
                 form.appendChild(fileIdInput);
                 
+                // Ensure the form opens in a new tab
+                form.target = '_blank';
+                
+                console.log('🎯 Submitting form with file ID:', fileSelected.value);
                 // Submit the form
                 form.submit();
+            } else {
+                console.log('🎯 Using uploaded file, letting normal form submission handle it');
             }
             // If a file is uploaded, let the normal form submission handle it
         }

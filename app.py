@@ -3073,24 +3073,41 @@ def create_slide_notes_session(hub_id):
     try:
         if file_selected:
             # Use existing file from hub
+            print(f"Using existing file with ID: {selected_file_id}")
             file_doc = db.collection('files').document(selected_file_id).get()
             if not file_doc.exists:
+                print(f"File document not found for ID: {selected_file_id}")
                 flash("Selected file not found.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             
             file_data = file_doc.to_dict()
-            file_path = file_data['path']
-            filename = file_data['name']
+            file_path = file_data.get('file_path') or file_data.get('path')
+            filename = file_data.get('filename') or file_data.get('original_filename') or file_data.get('name')
+            print(f"File data: {file_data}")
+            print(f"Extracted: path={file_path}, name={filename}")
             
             # Get the file from Firebase Storage
             blob = bucket.blob(file_path)
             if not blob.exists():
+                print(f"Blob does not exist at path: {file_path}")
                 flash("Selected file not found in storage.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             
-            # Make it publicly accessible
-            blob.make_public()
-            pdf_url = blob.public_url
+            # Make it publicly accessible (ignore errors if already public)
+            try:
+                blob.make_public()
+                pdf_url = blob.public_url
+                print(f"Made blob public, URL: {pdf_url}")
+            except Exception as e:
+                print(f"Error making blob public: {e}")
+                # Try to get the URL anyway
+                try:
+                    pdf_url = blob.public_url
+                    print(f"Using existing public URL: {pdf_url}")
+                except Exception as e2:
+                    print(f"Error getting public URL: {e2}")
+                    flash("Error accessing selected file.", "error")
+                    return redirect(url_for('hub_page', hub_id=hub_id))
             
         else:
             # Upload new file
@@ -3123,8 +3140,10 @@ def create_slide_notes_session(hub_id):
             slides_data=[],                          # start empty
         )
         session_ref.set(new_session.to_dict())
+        print(f"Created session: {new_session.id}")
 
         # Render the workspace with the working PDF URL and the new annotated_slide_deck
+        print(f"Rendering slide_notes_workspace.html with pdf_url: {pdf_url}")
         return render_template(
             "slide_notes_workspace.html",
             session=new_session,
