@@ -2765,24 +2765,24 @@
                                     <li class="asset-item" data-id="{{ item.id }}" data-type="{{ item.type.lower() if item.type else 'note' }}">
                                         {% set item_type = item.type.lower() if item.type else 'note' %}
                                         {% if item_type == 'note' or item_type == 'notes' or (item.data and item.data.type == 'note') %}
-                                        <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link">
+                                        <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link" target="_blank">
                                             <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                                             <div class="asset-details"><h5>{{ item.title }}</h5><span>Note</span></div>
                                         </a>
                                         {% elif item_type == 'quiz' %}
                                             {% if item.status == 'graded' %}
-                                                <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link">
+                                                <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link" target="_blank">
                                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                                     <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz ({{ item.score }}%)</span></div>
                                                 </a>
                                             {% else %}
-                                                 <a href="{{ url_for('take_lecture_quiz', activity_id=item.id) }}" class="asset-link">
+                                                 <a href="{{ url_for('take_lecture_quiz', activity_id=item.id) }}" class="asset-link" target="_blank">
                                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                                     <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz (Not Taken)</span></div>
                                                 </a>
                                             {% endif %}
                                         {% elif item_type == 'flashcards' %}
-                                        <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link">
+                                        <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link" target="_blank">
                                            <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Flashcards</span></div>
                                         </a>
@@ -2810,7 +2810,7 @@
                     <ul class="asset-list">
                         {% for slide_note in all_slide_notes %}
                         <li class="asset-item" data-id="{{ slide_note.id }}" data-type="slide_notes">
-                            <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link">
+                            <a href="{{ url_for('slide_notes_workspace', session_id=slide_note.id) }}" class="asset-link" target="_blank">
                                 <div class="asset-icon asset-icon-slides"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="8" x2="22" y2="8"></line><line x1="7" y1="13" x2="7.01" y2="13"></line><line x1="7" y1="18" x2="7.01" y2="18"></line></svg></div>
                                 <div class="asset-details">
                                     <h5 id="slide_notes-title-{{ slide_note.id }}">{{ slide_note.title }}</h5>
@@ -2843,7 +2843,7 @@
                         {% for note in all_notes %}
                         <li class="asset-item" data-id="{{ note.id }}" data-type="note">
                             <input type="checkbox" class="asset-checkbox">
-                            <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link">
+                            <a href="{{ url_for('view_note', note_id=note.id) }}" class="asset-link" target="_blank">
                                 <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                                 <div class="asset-details">
                                     <h5 id="note-title-{{ note.id }}">{{ note.title }}</h5>
@@ -2876,7 +2876,7 @@
                         {% for fc_set in all_flashcards %}
                         <li class="asset-item" data-id="{{ fc_set.id }}" data-type="flashcards">
                             <input type="checkbox" class="asset-checkbox">
-                            <a href="{{ url_for('edit_flashcard_set', activity_id=fc_set.id) }}" class="asset-link">
+                            <a href="{{ url_for('edit_flashcard_set', activity_id=fc_set.id) }}" class="asset-link" target="_blank">
                                 <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                                 <div class="asset-details">
                                     <h5 id="flashcards-title-{{ fc_set.id }}">{{ fc_set.title }}</h5>
@@ -2910,7 +2910,7 @@
                         <li class="asset-item" data-id="{{ quiz.id }}" data-type="quiz">
                             <input type="checkbox" class="asset-checkbox">
                             {% if quiz.status == 'graded' %}
-                                <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link">
+                                <a href="{{ url_for('quiz_results', activity_id=quiz.id) }}" class="asset-link" target="_blank">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="asset-details">
                                         <h5 id="quiz-title-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
@@ -2922,7 +2922,7 @@
                                 </a>
                                 <div class="asset-score"><span>{{ quiz.score }}%</span></div>
                             {% else %}
-                                <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="asset-link">
+                                <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="asset-link" target="_blank">
                                     <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                                     <div class="asset-details">
                                         <h5 id="quiz-title-{{ quiz.id }}">{{ quiz.title or quiz.type }}</h5>
@@ -2932,7 +2932,7 @@
                                         <span>Ready to take</span>
                                     </div>
                                 </a>
-                                <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="button button-primary" style="padding: 0.5rem 1rem;">Take Quiz</a>
+                                <a href="{{ url_for('take_lecture_quiz', activity_id=quiz.id) }}" class="button button-primary" style="padding: 0.5rem 1rem;" target="_blank">Take Quiz</a>
                             {% endif %}
                             <button class="delete-btn delete-activity-btn" data-id="{{ quiz.id }}" title="Delete quiz">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -4025,15 +4025,50 @@
                     hideLoadingOverlay();
                     
                     if (result.success) {
-                        // Show success message
-                        showSuccessMessage('Revision pack created successfully!');
-                        
                         // Check if this is during onboarding
                         const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry' || 
                                            sessionStorage.getItem('showOnboardingCelebration') === '1' ||
                                            sessionStorage.getItem('onboardingGenerating') === '1';
                         
                         if (isOnboarding) {
+                            // Show spotlight on Task Queue with explanation
+                            setTimeout(() => {
+                                const taskQueueSection = document.querySelector('.task-queue-section');
+                                if (taskQueueSection) {
+                                    // Show spotlight on task queue
+                                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                                    const tooltip = document.getElementById('onboarding-tooltip');
+                                    
+                                    if (spotlight && tooltip) {
+                                        // Create spotlight effect around task queue
+                                        taskQueueSection.classList.add('onboarding-highlight');
+                                        const rect = taskQueueSection.getBoundingClientRect();
+                                        const padding = 10;
+                                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                                        
+                                        spotlight.style.clipPath = clipPath;
+                                        spotlight.classList.add('visible');
+                                        
+                                        // Show tooltip with explanation
+                                        tooltip.innerHTML = `<p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>`;
+                                        tooltip.className = 'onboarding-tooltip bottom';
+                                        const top = rect.bottom + 15;
+                                        const left = rect.left + (rect.right - rect.left) / 2;
+                                        tooltip.style.top = `${top}px`;
+                                        tooltip.style.left = `${left}px`;
+                                        tooltip.style.transform = 'translateX(-50%)';
+                                        tooltip.classList.add('visible');
+                                        
+                                        // Auto-hide after 5 seconds
+                                        setTimeout(() => {
+                                            spotlight.classList.remove('visible');
+                                            tooltip.classList.remove('visible');
+                                            taskQueueSection.classList.remove('onboarding-highlight');
+                                        }, 5000);
+                                    }
+                                }
+                            }, 1000);
+                            
                             // Mark onboarding as complete immediately
                             fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
                             
@@ -4042,6 +4077,9 @@
                             // Clean up onboarding flags
                             sessionStorage.removeItem('onboardingStep');
                             sessionStorage.removeItem('onboardingGenerating');
+                        } else {
+                            // Show regular success message for non-onboarding users
+                            showSuccessMessage('Revision pack created successfully!');
                         }
                         
                         // Navigate to folders and reload after a short delay

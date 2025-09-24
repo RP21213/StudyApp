@@ -39,8 +39,8 @@
                 <div>
                     <strong>{{ topic }}</strong>
                     {% if remedial_links[topic] %}
-                        <a href="{{ url_for('view_note', note_id=remedial_links[topic].note_id) }}" class="button secondary">Review Notes</a>
-                        <a href="{{ url_for('take_lecture_quiz', quiz_id=remedial_links[topic].quiz_id) }}" class="button secondary">Take Review Quiz</a>
+                        <a href="{{ url_for('view_note', note_id=remedial_links[topic].note_id) }}" class="button secondary" target="_blank">Review Notes</a>
+                        <a href="{{ url_for('take_lecture_quiz', quiz_id=remedial_links[topic].quiz_id) }}" class="button secondary" target="_blank">Take Review Quiz</a>
                     {% endif %}
                 </div>
             {% endfor %}

@@ -68,17 +68,17 @@
                     {% for item in folder_items %}
                     <li class="asset-item" data-id="{{ item.id }}" data-type="{{ 'note' if 'content_html' in item.__dict__ else item.type.lower() }}">
                         {% if 'content_html' in item.__dict__ %}
-                        <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link">
+                        <a href="{{ url_for('view_note', note_id=item.id) }}" class="asset-link" target="_blank">
                             <div class="asset-icon asset-icon-note"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                             <div class="asset-details"><h5>{{ item.title }}</h5><span>Note</span></div>
                         </a>
                         {% elif item.type == 'Quiz' %}
-                        <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link">
+                        <a href="{{ url_for('quiz_results', activity_id=item.id) }}" class="asset-link" target="_blank">
                             <div class="asset-icon asset-icon-quiz"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="m9 12 2 2 4-4"></path></svg></div>
                             <div class="asset-details"><h5>{{ item.title }}</h5><span>Quiz ({{ item.score }}%)</span></div>
                         </a>
                         {% elif item.type == 'Flashcards' %}
-                        <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link">
+                        <a href="{{ url_for('edit_flashcard_set', activity_id=item.id) }}" class="asset-link" target="_blank">
                            <div class="asset-icon asset-icon-flashcards"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
                            <div class="asset-details"><h5>{{ item.title }}</h5><span>Flashcards</span></div>
                         </a>
