@@ -3188,29 +3188,6 @@
             opacity: 0.9;
             line-height: 1.6;
         }
-        #onboarding-welcome-content .welcome-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        .welcome-feature {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .welcome-feature h3 {
-            font-size: 1.1rem;
-            margin: 0 0 0.5rem 0;
-            font-weight: 600;
-        }
-        .welcome-feature p {
-            font-size: 0.9rem;
-            margin: 0;
-            opacity: 0.8;
-        }
         #onboarding-start-btn {
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
             color: white;
@@ -3277,22 +3254,28 @@
             font-size: 1.1rem;
         }
         .personalization-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
             margin: 2rem 0;
+            flex-wrap: wrap;
         }
         .personalization-option {
-            padding: 1rem;
+            padding: 1.5rem;
             border: 2px solid var(--border-color);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--background-card);
+            color: var(--text-main);
+            min-width: 140px;
+            text-align: center;
+            flex: 0 0 auto;
         }
         .personalization-option:hover {
             border-color: var(--primary-color);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         .personalization-option.selected {
             border-color: var(--primary-color);
@@ -3302,6 +3285,7 @@
         .personalization-option h4 {
             margin: 0 0 0.5rem 0;
             font-size: 1rem;
+            font-weight: 600;
         }
         .personalization-option p {
             margin: 0;
@@ -3483,25 +3467,6 @@
         }
         
 
-        /* Confetti Animation */
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: #ff6b6b;
-            animation: confetti-fall 3s linear infinite;
-            z-index: 1006;
-        }
-        @keyframes confetti-fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
 
         /* Success Modal Styles */
         .success-modal-overlay {
@@ -4301,20 +4266,6 @@
             <h1>Welcome to FociAI! 🚀</h1>
             <p>Your AI-powered study companion that transforms lectures, notes, and assignments into powerful learning tools.</p>
             
-            <div class="welcome-features">
-                <div class="welcome-feature">
-                    <h3>🎯 Smart Study Hubs</h3>
-                    <p>Organize your modules with AI-powered study tools</p>
-                </div>
-                <div class="welcome-feature">
-                    <h3>🧠 AI Tutor</h3>
-                    <p>Ask questions and get instant explanations</p>
-                </div>
-                <div class="welcome-feature">
-                    <h3>📚 Auto Flashcards</h3>
-                    <p>Generate revision materials from your content</p>
-                </div>
-            </div>
             
             <button id="onboarding-start-btn">Let's Begin 🚀</button>
         </div>
@@ -7594,20 +7545,6 @@ Best regards,
                 document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
             }
 
-            function createConfetti() {
-                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
-                for (let i = 0; i < 50; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.left = Math.random() * 100 + '%';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.animationDelay = Math.random() * 3 + 's';
-                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                    document.body.appendChild(confetti);
-                    
-                    setTimeout(() => confetti.remove(), 5000);
-                }
-            }
 
             // --- Welcome Screen ---
             console.log('🎯 Making welcome overlay visible');
@@ -7683,15 +7620,15 @@ Best regards,
                 console.log('🎯 Starting dashboard spotlight...');
                 spotlight.classList.add('visible');
                 
-                // Highlight the entire side panel
-                const sidePanel = document.querySelector('.side-panel');
-                console.log('Side panel found:', !!sidePanel);
-                if (sidePanel) {
-                    highlightElement(sidePanel);
+                // Highlight only the Hubs tab
+                const hubsTab = document.querySelector('[data-tab="hubs"]');
+                console.log('Hubs tab found:', !!hubsTab);
+                if (hubsTab) {
+                    highlightElement(hubsTab);
                     
                     // Show tooltip explaining the dashboard
-                    console.log('🎯 Showing tooltip for side panel...');
-                    showTooltip(sidePanel, "💡 Welcome to your dashboard! Click on 'Hubs' in the side panel to create your first study hub and continue your journey!", 'right');
+                    console.log('🎯 Showing tooltip for Hubs tab...');
+                    showTooltip(hubsTab, "💡 Welcome to your dashboard! Click on 'Hubs' to create your first study hub and continue your journey!", 'right');
                     
                     // Ensure tooltip is visible
                     setTimeout(() => {
@@ -7701,15 +7638,9 @@ Best regards,
                         console.log('Tooltip position:', tooltip.style.left, tooltip.style.top);
                     }, 100);
                 } else {
-                    console.error('Side panel not found!');
+                    console.error('Hubs tab not found!');
                 }
                 
-                // Also highlight individual navigation tabs for better visibility
-                const navTabs = document.querySelectorAll('.nav-tab');
-                console.log('Found nav tabs:', navTabs.length);
-                navTabs.forEach(tab => {
-                    highlightElement(tab);
-                });
                 
                 // Set onboarding step for hub entry
                 sessionStorage.setItem('onboardingStep', 'hub_entry');

@@ -1813,20 +1813,6 @@
         .hub-intro-content p {
             font-size: 1.2rem; margin: 0 0 2rem 0; opacity: 0.9;
         }
-        .hub-intro-features {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem; margin: 2rem 0;
-        }
-        .hub-intro-feature {
-            background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 12px;
-            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .hub-intro-feature h3 {
-            font-size: 1.1rem; margin: 0 0 0.5rem 0; font-weight: 600;
-        }
-        .hub-intro-feature p {
-            font-size: 0.9rem; margin: 0; opacity: 0.8;
-        }
         #onboarding-hub-continue-btn {
             background: linear-gradient(45deg, #10b981, #34d399); color: white;
             border: none; padding: 1rem 2.5rem; font-size: 1.2rem; font-weight: 600;
@@ -1881,19 +1867,6 @@
             transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
         }
 
-        /* Done Exploring Button */
-        #onboarding-done-exploring-btn {
-            position: fixed; bottom: 2rem; right: 2rem; z-index: 1006;
-        }
-        .done-exploring-btn {
-            background: linear-gradient(45deg, #10b981, #34d399); color: white;
-            border: none; padding: 1rem 1.5rem; font-size: 1rem; font-weight: 600;
-            border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        }
-        .done-exploring-btn:hover {
-            transform: translateY(-2px); box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
-        }
 
         /* Edit functionality styles */
         .edit-button {
@@ -3258,20 +3231,6 @@
             <h1>🎉 Welcome to Your Study Hub!</h1>
             <p>Each module gets its own hub. Here, FociAI turns your lectures, notes, and assignments into powerful study tools — all in one place.</p>
             
-            <div class="hub-intro-features">
-                <div class="hub-intro-feature">
-                    <h3>📚 Upload & Organize</h3>
-                    <p>Drag and drop your lecture slides, PDFs, and documents</p>
-                </div>
-                <div class="hub-intro-feature">
-                    <h3>🤖 AI-Powered Tools</h3>
-                    <p>Generate flashcards, quizzes, and notes automatically</p>
-                </div>
-                <div class="hub-intro-feature">
-                    <h3>💬 AI Tutor</h3>
-                    <p>Ask questions and get instant explanations</p>
-                </div>
-            </div>
             
             <button id="onboarding-hub-continue-btn">Let's Explore! 🚀</button>
         </div>
@@ -3298,10 +3257,6 @@
         </div>
     </div>
 
-    <!-- Done Exploring Button (only visible during onboarding) -->
-    <div id="onboarding-done-exploring-btn" style="display: none;">
-        <button class="done-exploring-btn">Done Exploring ✅</button>
-    </div>
 
     
 
@@ -5712,18 +5667,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const tutorModal = document.getElementById('onboarding-tutor-modal');
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
-            const doneExploringBtn = document.getElementById('onboarding-done-exploring-btn');
             
             console.log('📱 Onboarding elements found:', {
                 hubIntroModal: !!hubIntroModal,
                 tutorModal: !!tutorModal,
                 spotlight: !!spotlight,
-                tooltip: !!tooltip,
-                doneExploringBtn: !!doneExploringBtn
+                tooltip: !!tooltip
             });
             
             // Check if all required elements exist
-            if (!hubIntroModal || !tutorModal || !spotlight || !tooltip || !doneExploringBtn) {
+            if (!hubIntroModal || !tutorModal || !spotlight || !tooltip) {
                 console.error('❌ Missing onboarding elements, cannot proceed');
                 return;
             }
@@ -5812,7 +5765,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (studyToolsTab) {
                     console.log('✨ Spotlighting and highlighting Study Tools tab...');
                     showSpotlight(studyToolsTab);
-                    showTooltip(studyToolsTab, "Ready for some ✨ AI magic? Click here to explore the Revision Pack Builder and create your first pack!", 'bottom');
+                    showTooltip(studyToolsTab, "Ready for some ✨ AI magic? Click here to explore the Revision Pack Builder and create your first pack!", 'right');
                     
                     // Handle click on Study Tools tab
                     studyToolsTab.addEventListener('click', async (e) => {
@@ -5895,34 +5848,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }, 500);
 
-            // Step 3: Show "Done Exploring" button after a delay
-            setTimeout(() => {
-                console.log('✅ Showing done exploring button...');
-            doneExploringBtn.style.display = 'block';
-            }, 3000);
 
-            // Handle completion
-            doneExploringBtn.querySelector('.done-exploring-btn').addEventListener('click', async () => {
-                console.log('🎉 Onboarding completed!');
-                createConfetti();
-                
-                // Complete onboarding at the very end
-                try {
-                    await fetch('/onboarding/complete', { method: 'POST' });
-                    console.log('✅ Onboarding marked as complete in database');
-                } catch (e) {
-                    console.error('Error completing onboarding:', e);
-                }
-                
-                // Clean up
-                doneExploringBtn.style.display = 'none';
-                sessionStorage.removeItem('onboardingStep');
-                sessionStorage.removeItem('onboardingGenerating');
-                
-                // Redirect to dashboard with celebration
-                sessionStorage.setItem('onboardingStep', 'celebration');
-                window.location.href = '/dashboard';
-            }, { once: true });
         }
 
         // Removed payoff animation to keep onboarding simple and fast
