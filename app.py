@@ -3061,10 +3061,11 @@ def help_center():
 def create_slide_notes_session(hub_id):
     title = request.form.get('title', 'Untitled Lecture Notes')
     selected_file_id = request.form.get('selected_file_id')
+    selected_file_name = request.form.get('selected_file_name')
     
     # Check if a file was uploaded or selected from existing files
     file_uploaded = 'slide_file' in request.files and request.files['slide_file'].filename != ''
-    file_selected = selected_file_id is not None and selected_file_id != ''
+    file_selected = (selected_file_id is not None and selected_file_id != '') or (selected_file_name is not None and selected_file_name != '')
     
     if not file_uploaded and not file_selected:
         flash("Please select a file from existing files or upload a new file.", "error")
@@ -3073,14 +3074,37 @@ def create_slide_notes_session(hub_id):
     try:
         if file_selected:
             # Use existing file from hub
-            print(f"Using existing file with ID: {selected_file_id}")
-            file_doc = db.collection('files').document(selected_file_id).get()
-            if not file_doc.exists:
-                print(f"File document not found for ID: {selected_file_id}")
+            file_doc = None
+            file_data = None
+            
+            if selected_file_id and selected_file_id != 'unknown':
+                # Try to find by file ID first
+                print(f"Using existing file with ID: {selected_file_id}")
+                file_doc = db.collection('files').document(selected_file_id).get()
+                if file_doc.exists:
+                    file_data = file_doc.to_dict()
+            
+            if not file_data and selected_file_name:
+                # Try to find by file name
+                print(f"Looking for file with name: {selected_file_name}")
+                files_query = db.collection('files').where('hub_id', '==', hub_id).where('filename', '==', selected_file_name).limit(1)
+                files = list(files_query.stream())
+                if not files:
+                    # Try original_filename
+                    files_query = db.collection('files').where('hub_id', '==', hub_id).where('original_filename', '==', selected_file_name).limit(1)
+                    files = list(files_query.stream())
+                
+                if files:
+                    file_data = files[0].to_dict()
+                    print(f"Found file by name: {selected_file_name}")
+                else:
+                    print(f"No file found with name: {selected_file_name}")
+            
+            if not file_data:
+                print(f"File not found - ID: {selected_file_id}, Name: {selected_file_name}")
                 flash("Selected file not found.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             
-            file_data = file_doc.to_dict()
             file_path = file_data.get('file_path') or file_data.get('path')
             filename = file_data.get('filename') or file_data.get('original_filename') or file_data.get('name')
             print(f"File data: {file_data}")

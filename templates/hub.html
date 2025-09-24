@@ -6464,17 +6464,25 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Populate file list
             console.log('🔍 Hub files structure:', hubFiles);
-            fileListContainer.innerHTML = hubFiles.map(file => `
-                <div class="file-item">
-                    <label style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;">
-                        <input type="radio" name="selected_file" value="${file.id || file.file_id || 'unknown'}" class="file-checkbox" style="margin-right: 1rem;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 500;">${file.name || file.filename || file.original_filename || 'Unknown file'}</div>
-                            <div style="font-size: 0.875rem; color: #888;">${file.size ? (file.size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size'}</div>
-                        </div>
-                    </label>
-                </div>
-            `).join('');
+            
+            // Get the actual file documents from the database to get the correct IDs
+            // For now, let's use the file names as identifiers and fetch the actual IDs
+            fileListContainer.innerHTML = hubFiles.map((file, index) => {
+                // Use a combination of name and index as a temporary ID
+                const tempId = `file_${index}_${(file.name || file.filename || file.original_filename || 'unknown').replace(/[^a-zA-Z0-9]/g, '_')}`;
+                console.log(`🔍 File ${index}:`, file, 'tempId:', tempId);
+                return `
+                    <div class="file-item">
+                        <label style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;">
+                            <input type="radio" name="selected_file" value="${tempId}" class="file-checkbox" data-file-index="${index}" style="margin-right: 1rem;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500;">${file.name || file.filename || file.original_filename || 'Unknown file'}</div>
+                                <div style="font-size: 0.875rem; color: #888;">${file.size ? (file.size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size'}</div>
+                            </div>
+                        </label>
+                    </div>
+                `;
+            }).join('');
             
             // Add click handlers for file selection
             fileListContainer.querySelectorAll('.file-checkbox').forEach(checkbox => {
@@ -6530,18 +6538,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('🎯 Using existing file, preventing default and submitting manually');
                 e.preventDefault();
                 
-                // Create a hidden input with the selected file ID
+                // Get the file index and find the actual file data
+                const fileIndex = fileSelected.dataset.fileIndex;
+                const hubFiles = window.hubFiles || [];
+                const selectedFile = hubFiles[fileIndex];
+                
+                console.log('🔍 File index:', fileIndex, 'Selected file:', selectedFile);
+                
+                if (!selectedFile) {
+                    console.error('❌ No file found for index:', fileIndex);
+                    showNotification('Error: Could not find selected file.', NOTIFICATION_TYPES.ERROR);
+                    return;
+                }
+                
+                // We need to find the actual file ID from the database
+                // For now, let's use the file name to identify it in the backend
+                const fileName = selectedFile.name || selectedFile.filename || selectedFile.original_filename;
+                console.log('🔍 Using file name as identifier:', fileName);
+                
+                // Create a hidden input with the file name (backend will look it up)
                 const form = e.target;
                 const fileIdInput = document.createElement('input');
                 fileIdInput.type = 'hidden';
-                fileIdInput.name = 'selected_file_id';
-                fileIdInput.value = fileSelected.value;
+                fileIdInput.name = 'selected_file_name';
+                fileIdInput.value = fileName;
                 form.appendChild(fileIdInput);
                 
                 // Ensure the form opens in a new tab
                 form.target = '_blank';
                 
-                console.log('🎯 Submitting form with file ID:', fileSelected.value);
+                console.log('🎯 Submitting form with file name:', fileName);
                 // Submit the form
                 form.submit();
             } else {
