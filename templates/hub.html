@@ -5607,57 +5607,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
             hubIntroModal.classList.remove('visible');
 
-            // Step 2: Spotlight Revision & Exams tab
-            console.log('🎯 Spotlighting revision tab...');
+            // Step 2: Spotlight Study Tools tab
+            console.log('🎯 Spotlighting Study Tools tab...');
             setTimeout(() => {
                 showSpotlight();
-                const revisionTab = document.querySelector('.nav-link[data-tab="revision"]');
-                if (revisionTab) {
-                    highlightElement(revisionTab);
-                    showTooltip(revisionTab, "Ready for some ✨ AI magic? Click here to generate a full revision pack from a single lecture.", 'bottom');
+                const studyToolsTab = document.querySelector('.nav-link[data-tab="tools"]');
+                if (studyToolsTab) {
+                    highlightElement(studyToolsTab);
+                    showTooltip(studyToolsTab, "Ready for some ✨ AI magic? Click here to explore the Revision Pack Builder and create your first pack!", 'bottom');
                     
-                    // Handle click on revision tab
-                    revisionTab.addEventListener('click', async (e) => {
+                    // Handle click on Study Tools tab
+                    studyToolsTab.addEventListener('click', async (e) => {
                         e.preventDefault();
                         hideTooltip();
                         removeHighlight();
                         hideSpotlight();
                         
-                        console.log('📚 User clicked revision tab, switching...');
+                        console.log('🔧 User clicked Study Tools tab, switching...');
                         
-                        // Switch to revision tab
-                        revisionTab.click();
+                        // Switch to Study Tools tab
+                        studyToolsTab.click();
                         
                         // Wait for content to load
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         
-                        // Look for the revision pack generation button
-                        const generateBtn = document.querySelector('#build-revision-pack-btn') || 
-                                          document.querySelector('[data-tool="revision-pack"]') ||
-                                          document.querySelector('.button[onclick*="revision"]');
-                        
-                        if (generateBtn) {
-                            console.log('⚡ Auto-generating revision pack...');
+                        // Look for the Revision & Exams category button
+                        const revisionCategoryBtn = document.querySelector('[data-target="revision-exams-tools"]');
+                        if (revisionCategoryBtn) {
+                            console.log('📋 Clicking Revision & Exams category...');
+                            revisionCategoryBtn.click();
                             
-                            // Set flag for onboarding generation
-                            sessionStorage.setItem('onboardingGenerating', '1');
+                            // Wait for revision tools to load
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                             
-                            // Click the generate button
-                            generateBtn.click();
-                            
-                            // Wait for generation to complete
-                            await new Promise(resolve => setTimeout(resolve, 5000));
-                            
-                            // Show AI Tutor intro
-                            console.log('🧠 Showing AI tutor intro...');
-                            tutorModal.classList.add('visible');
+                            // Spotlight the Revision Pack Builder tool
+                            const revisionPackTool = document.querySelector('#pipeline-revision-pack');
+                            if (revisionPackTool) {
+                                console.log('🎯 Spotlighting Revision Pack Builder...');
+                                showSpotlight();
+                                highlightElement(revisionPackTool);
+                                showTooltip(revisionPackTool, "Perfect! This is the Revision Pack Builder. Click here to create your first revision pack with the sample lecture.", 'bottom');
+                                
+                                // Handle click on revision pack tool
+                                revisionPackTool.addEventListener('click', async (e) => {
+                                    e.preventDefault();
+                                    hideTooltip();
+                                    removeHighlight();
+                                    hideSpotlight();
+                                    
+                                    console.log('📦 User clicked Revision Pack Builder...');
+                                    
+                                    // Click the tool to open the modal
+                                    revisionPackTool.click();
+                                    
+                                    // Wait for modal to open
+                                    await new Promise(resolve => setTimeout(resolve, 1000));
+                                    
+                                    // Look for the revision pack modal and auto-select the sample file
+                                    const revisionModal = document.querySelector('#revision-pack-modal');
+                                    if (revisionModal && revisionModal.style.display !== 'none') {
+                                        console.log('📄 Auto-selecting sample file...');
+                                        
+                                        // Look for the sample file checkbox and check it
+                                        const sampleFileCheckbox = document.querySelector('input[value*="machine_learning_intro"]') || 
+                                                                 document.querySelector('input[value*="machine_learning"]') ||
+                                                                 document.querySelector('.file-checkbox');
+                                        
+                                        if (sampleFileCheckbox) {
+                                            sampleFileCheckbox.checked = true;
+                                            sampleFileCheckbox.dispatchEvent(new Event('change'));
+                                            console.log('✅ Sample file selected');
+                                        }
+                                        
+                                        // Show AI Tutor intro after user can customize
+                                        setTimeout(() => {
+                                            console.log('🧠 Showing AI tutor intro...');
+                                            tutorModal.classList.add('visible');
+                                        }, 2000);
+                                    } else {
+                                        console.log('❌ Could not find revision modal, showing tutor intro anyway...');
+                                        tutorModal.classList.add('visible');
+                                    }
+                                }, { once: true });
+                            } else {
+                                console.log('❌ Could not find Revision Pack Builder tool, showing tutor intro anyway...');
+                                tutorModal.classList.add('visible');
+                            }
                         } else {
-                            console.log('❌ Could not find revision pack button, showing tutor intro anyway...');
+                            console.log('❌ Could not find Revision & Exams category, showing tutor intro anyway...');
                             tutorModal.classList.add('visible');
                         }
                     }, { once: true });
                 } else {
-                    console.log('❌ Could not find revision tab, showing tutor intro anyway...');
+                    console.log('❌ Could not find Study Tools tab, showing tutor intro anyway...');
                     tutorModal.classList.add('visible');
                 }
             }, 500);
