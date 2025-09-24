@@ -1709,13 +1709,128 @@
         .sp-player-bg-red { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
         
 /* Onboarding specific styles */
-        #onboarding-spotlight-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); z-index: 1002; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%); }
+        /* Onboarding Spotlight */
+        #onboarding-spotlight-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: rgba(17, 24, 39, 0.8); backdrop-filter: blur(4px); 
+            z-index: 1002; pointer-events: none; opacity: 0; 
+            transition: opacity 0.5s ease; 
+        }
         #onboarding-spotlight-overlay.visible { opacity: 1; }
-        #onboarding-tooltip { position: fixed; z-index: 1003; background-color: var(--background-card); color: var(--text-main); padding: 1rem 1.5rem; border-radius: 12px; box-shadow: var(--card-shadow-hover); max-width: 300px; font-weight: 500; font-size: 0.95rem; line-height: 1.6; opacity: 0; transform: translateY(10px); transition: all 0.3s ease; pointer-events: none; }
+        
+        #onboarding-tooltip { 
+            position: fixed; z-index: 1003; background-color: var(--background-card); 
+            color: var(--text-main); padding: 1rem 1.5rem; border-radius: 12px; 
+            box-shadow: var(--card-shadow-hover); max-width: 300px; font-weight: 500; 
+            font-size: 0.95rem; line-height: 1.6; opacity: 0; transform: translateY(10px); 
+            transition: all 0.3s ease; pointer-events: none; 
+        }
         #onboarding-tooltip.visible { opacity: 1; transform: translateY(0); }
-        .onboarding-highlight { position: relative; z-index: 1003; pointer-events: auto !important; }
-        #onboarding-guide-modal { position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); z-index: 1005; background-color: var(--background-card); padding: 1.5rem 2rem; border-radius: 12px; box-shadow: var(--shadow-lg); max-width: 500px; text-align: center; opacity: 0; transition: opacity 0.3s ease; visibility: hidden; }
-        #onboarding-guide-modal.visible { opacity: 1; visibility: visible; }
+        
+        .onboarding-highlight { 
+            position: relative; z-index: 1003; pointer-events: auto !important; 
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3); border-radius: 8px; 
+        }
+
+        /* Study Hub Intro Modal */
+        #onboarding-hub-intro-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1004; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.6s ease;
+        }
+        #onboarding-hub-intro-modal.visible { opacity: 1; visibility: visible; }
+        
+        .hub-intro-content {
+            text-align: center; color: white; max-width: 600px; padding: 2rem;
+        }
+        .hub-intro-content h1 {
+            font-size: 3rem; font-weight: 900; margin: 0 0 1rem 0;
+        }
+        .hub-intro-content p {
+            font-size: 1.2rem; margin: 0 0 2rem 0; opacity: 0.9;
+        }
+        .hub-intro-features {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem; margin: 2rem 0;
+        }
+        .hub-intro-feature {
+            background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 12px;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .hub-intro-feature h3 {
+            font-size: 1.1rem; margin: 0 0 0.5rem 0; font-weight: 600;
+        }
+        .hub-intro-feature p {
+            font-size: 0.9rem; margin: 0; opacity: 0.8;
+        }
+        #onboarding-hub-continue-btn {
+            background: linear-gradient(45deg, #10b981, #34d399); color: white;
+            border: none; padding: 1rem 2.5rem; font-size: 1.2rem; font-weight: 600;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        #onboarding-hub-continue-btn:hover {
+            transform: translateY(-2px); box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+        }
+
+        /* AI Tutor Modal */
+        #onboarding-tutor-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            z-index: 1005; display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.4s ease;
+        }
+        #onboarding-tutor-modal.visible { opacity: 1; visibility: visible; }
+        
+        .tutor-intro-content {
+            background: white; border-radius: 20px; padding: 3rem; max-width: 500px;
+            width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+        .tutor-intro-content h1 {
+            font-size: 2rem; font-weight: 700; margin: 0 0 1rem 0; color: var(--text-main);
+        }
+        .tutor-intro-content p {
+            color: var(--text-secondary); margin: 0 0 2rem 0; font-size: 1.1rem;
+        }
+        .tutor-demo-area {
+            background: #f8f9fa; border-radius: 12px; padding: 1.5rem; margin: 2rem 0;
+        }
+        .demo-chat {
+            text-align: left;
+        }
+        .demo-message {
+            margin: 1rem 0; padding: 0.75rem 1rem; border-radius: 8px;
+        }
+        .demo-message.user-message {
+            background: #e3f2fd; border-left: 4px solid #2196f3;
+        }
+        .demo-message.ai-message {
+            background: #f3e5f5; border-left: 4px solid #9c27b0;
+        }
+        #onboarding-tutor-continue-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e); color: white;
+            border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+        #onboarding-tutor-continue-btn:hover {
+            transform: translateY(-2px); box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Done Exploring Button */
+        #onboarding-done-exploring-btn {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 1006;
+        }
+        .done-exploring-btn {
+            background: linear-gradient(45deg, #10b981, #34d399); color: white;
+            border: none; padding: 1rem 1.5rem; font-size: 1rem; font-weight: 600;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        .done-exploring-btn:hover {
+            transform: translateY(-2px); box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+        }
 
         /* Edit functionality styles */
         .edit-button {
@@ -3051,16 +3166,61 @@
         </div>
     </div>
 
-    <!-- NEW: Onboarding Guide Modal for Hub page -->
+    <!-- NEW: Comprehensive Onboarding System for Hub Page -->
+    
+    <!-- Onboarding Spotlight Elements -->
+    <div id="onboarding-spotlight-overlay"></div>
+    <div id="onboarding-tooltip"></div>
 
-    <!-- Onboarding elements (required by runHubOnboarding) -->
-<div id="onboarding-spotlight-overlay"></div>
-<div id="onboarding-tooltip"></div>
+    <!-- Study Hub Intro Modal -->
+    <div id="onboarding-hub-intro-modal">
+        <div class="hub-intro-content">
+            <h1>🎉 Welcome to Your Study Hub!</h1>
+            <p>Each module gets its own hub. Here, FociAI turns your lectures, notes, and assignments into powerful study tools — all in one place.</p>
+            
+            <div class="hub-intro-features">
+                <div class="hub-intro-feature">
+                    <h3>📚 Upload & Organize</h3>
+                    <p>Drag and drop your lecture slides, PDFs, and documents</p>
+                </div>
+                <div class="hub-intro-feature">
+                    <h3>🤖 AI-Powered Tools</h3>
+                    <p>Generate flashcards, quizzes, and notes automatically</p>
+                </div>
+                <div class="hub-intro-feature">
+                    <h3>💬 AI Tutor</h3>
+                    <p>Ask questions and get instant explanations</p>
+                </div>
+            </div>
+            
+            <button id="onboarding-hub-continue-btn">Let's Explore! 🚀</button>
+        </div>
+    </div>
 
+    <!-- AI Tutor Exploration Modal -->
+    <div id="onboarding-tutor-modal">
+        <div class="tutor-intro-content">
+            <h1>🧠 Meet Your AI Tutor</h1>
+            <p>This is your personal AI tutor. You can ask questions about any content in this hub and get instant, detailed explanations.</p>
+            
+            <div class="tutor-demo-area">
+                <div class="demo-chat">
+                    <div class="demo-message user-message">
+                        <strong>You:</strong> "What is machine learning?"
+                    </div>
+                    <div class="demo-message ai-message">
+                        <strong>AI Tutor:</strong> "Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed..."
+                    </div>
+                </div>
+            </div>
+            
+            <button id="onboarding-tutor-continue-btn">Got it! Continue 🎯</button>
+        </div>
+    </div>
 
-    <div id="onboarding-guide-modal">
-        <h3 id="onboarding-guide-title"></h3>
-        <p id="onboarding-guide-text"></p>
+    <!-- Done Exploring Button (only visible during onboarding) -->
+    <div id="onboarding-done-exploring-btn" style="display: none;">
+        <button class="done-exploring-btn">Done Exploring ✅</button>
     </div>
 
     
@@ -5348,55 +5508,147 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         async function runHubOnboarding() {
-            const guideModal = document.getElementById('onboarding-guide-modal');
+            // Initialize onboarding elements
+            const hubIntroModal = document.getElementById('onboarding-hub-intro-modal');
+            const tutorModal = document.getElementById('onboarding-tutor-modal');
+            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+            const tooltip = document.getElementById('onboarding-tooltip');
+            const doneExploringBtn = document.getElementById('onboarding-done-exploring-btn');
 
-            function showStep(targetSelector, tooltipText, tooltipPosition = 'bottom') {
-                return new Promise(resolve => {
-                    hideOnboardingUI();
-                    const targetElement = document.querySelector(targetSelector);
-                    if (!targetElement) {
-                        console.error("Onboarding target not found:", targetSelector);
-                        resolve(); return;
-                    }
-                    showSpotlight(targetElement);
-                    showTooltip(targetElement, tooltipText, tooltipPosition);
-
-                    targetElement.addEventListener('click', function handleClick(e) {
-                        e.preventDefault(); e.stopPropagation();
-                        targetElement.removeEventListener('click', handleClick);
-                        hideOnboardingUI();
-                        resolve(targetElement);
-                    }, { once: true });
-                });
-            }
-
-            try {
-            await showStep('.nav-link[data-tab="tools"]', 'This is your command center for AI tools. Click here to see what you can do.');
-            document.querySelector('.nav-link[data-tab="tools"]').click();
-
-            await showStep('.tool-category-button[data-target="revision-exams-tools"]', 'Let\'s focus on revision tools for now. Click here.');
-            document.querySelector('.tool-category-button[data-target="revision-exams-tools"]').click();
-
-            const revisionPackCard = await showStep('#pipeline-revision-pack', "This is the fastest way to get started. Click here.");
-            revisionPackCard.click(); 
-
-            guideModal.querySelector('h3').textContent = "Step 2 of 3: Generate Your Kit";
-            guideModal.querySelector('p').textContent = "The AI has pre-selected the welcome document. Just click 'Generate Pack' and watch the magic happen.";
-            guideModal.classList.add('visible');
-            
-            const generateBtn = document.querySelector('#revision-pack-modal .button-primary');
-                if (generateBtn) {
-            generateBtn.addEventListener('click', function handleGenerate() {
-                guideModal.classList.remove('visible');
-                        // Mark that we're in the generation phase
-                        sessionStorage.setItem('onboardingGenerating', '1');
-            }, { once: true });
+            // Helper functions
+            function showTooltip(targetElement, text, position = 'bottom') {
+                const rect = targetElement.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.className = `onboarding-tooltip ${position}`;
+                
+                if (position === 'bottom') {
+                    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                    tooltip.style.top = `${rect.bottom + 10}px`;
+                } else {
+                    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                    tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
                 }
-            } catch (error) {
-                console.error('Onboarding error:', error);
-                // Clean up and hide UI if something goes wrong
-                hideOnboardingUI();
+                
+                tooltip.classList.add('visible');
             }
+
+            function hideTooltip() {
+                tooltip.classList.remove('visible');
+            }
+
+            function highlightElement(targetElement) {
+                targetElement.classList.add('onboarding-highlight');
+            }
+
+            function removeHighlight() {
+                document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
+            }
+
+            function showSpotlight() {
+                spotlight.classList.add('visible');
+            }
+
+            function hideSpotlight() {
+                spotlight.classList.remove('visible');
+            }
+
+            function createConfetti() {
+                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 5000);
+                }
+            }
+
+            // Step 1: Show hub intro with confetti
+            createConfetti();
+            hubIntroModal.classList.add('visible');
+
+            // Wait for user to click continue
+            await new Promise(resolve => {
+                document.getElementById('onboarding-hub-continue-btn').addEventListener('click', resolve, { once: true });
+            });
+
+            hubIntroModal.classList.remove('visible');
+
+            // Step 2: Spotlight Revision & Exams tab
+            setTimeout(() => {
+                showSpotlight();
+                const revisionTab = document.querySelector('.nav-link[data-tab="revision"]');
+                if (revisionTab) {
+                    highlightElement(revisionTab);
+                    showTooltip(revisionTab, "Ready for some ✨ AI magic? Click here to generate a full revision pack from a single lecture.", 'bottom');
+                    
+                    // Handle click on revision tab
+                    revisionTab.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        hideTooltip();
+                        removeHighlight();
+                        hideSpotlight();
+                        
+                        // Switch to revision tab
+                        revisionTab.click();
+                        
+                        // Wait for content to load
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // Auto-generate demo content
+                        const firstFileCheckbox = document.querySelector('.file-checkbox');
+                        if (firstFileCheckbox) {
+                            firstFileCheckbox.checked = true;
+                            firstFileCheckbox.dispatchEvent(new Event('change'));
+                        }
+                        
+                        const generateBtn = document.querySelector('#build-revision-pack-btn');
+                        if (generateBtn) {
+                            generateBtn.click();
+                            
+                            // Wait for generation
+                            await new Promise(resolve => setTimeout(resolve, 3000));
+                            
+                            // Show AI Tutor intro
+                            tutorModal.classList.add('visible');
+                        }
+                    }, { once: true });
+                }
+            }, 500);
+
+            // Step 3: AI Tutor introduction
+            await new Promise(resolve => {
+                document.getElementById('onboarding-tutor-continue-btn').addEventListener('click', resolve, { once: true });
+            });
+
+            tutorModal.classList.remove('visible');
+
+            // Step 4: Show "Done Exploring" button
+            doneExploringBtn.style.display = 'block';
+
+            // Handle completion
+            doneExploringBtn.querySelector('.done-exploring-btn').addEventListener('click', async () => {
+                createConfetti();
+                
+                // Complete onboarding
+                try {
+                    await fetch('/onboarding/complete', { method: 'POST' });
+                } catch (e) {
+                    console.error('Error completing onboarding:', e);
+                }
+                
+                // Clean up
+                doneExploringBtn.style.display = 'none';
+                sessionStorage.removeItem('onboardingStep');
+                
+                // Redirect to dashboard with celebration
+                sessionStorage.setItem('onboardingStep', 'celebration');
+                window.location.href = '/dashboard';
+            }, { once: true });
         }
 
         // Removed payoff animation to keep onboarding simple and fast

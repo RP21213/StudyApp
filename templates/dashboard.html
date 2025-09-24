@@ -3145,55 +3145,192 @@
             margin: 0.75rem 0;
         }
         
-        /* --- NEW: Onboarding Styles --- */
-        #onboarding-modal {
+        /* --- NEW: Comprehensive Onboarding Styles --- */
+        
+        /* Welcome Screen - Fullscreen Overlay */
+        #onboarding-welcome-overlay {
             position: fixed;
-            z-index: 1001;
-            background-color: var(--background-white);
-            border-radius: 16px;
-            box-shadow: var(--shadow-lg);
-            padding: 3rem;
-            text-align: center;
-            opacity: 0;
-            transform: scale(0.9);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            max-width: 600px;
-            width: 90%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            pointer-events: none;
-        }
-        #onboarding-modal.visible {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-            pointer-events: auto;
-        }
-        #onboarding-modal h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin: 0 0 1rem 0;
-        }
-        #onboarding-modal p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 450px;
-            margin: 0 auto 2rem auto;
-        }
-        #onboarding-progress-bar-container {
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 8px;
-            background-color: var(--border-color);
-            border-radius: 4px;
-            margin-top: 2rem;
-            overflow: hidden;
-        }
-        #onboarding-progress-bar {
-            width: 33.33%;
             height: 100%;
-            background-color: var(--primary-color);
-            transition: width 0.5s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        #onboarding-welcome-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #onboarding-welcome-content {
+            text-align: center;
+            color: white;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        #onboarding-welcome-content h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 0 0 1rem 0;
+            background: linear-gradient(45deg, #fff, #f0f9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #onboarding-welcome-content p {
+            font-size: 1.3rem;
+            margin: 0 0 2.5rem 0;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        #onboarding-welcome-content .welcome-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .welcome-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .welcome-feature h3 {
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+        .welcome-feature p {
+            font-size: 0.9rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+        #onboarding-start-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+        #onboarding-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Personalization Modal */
+        #onboarding-personalization-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        #onboarding-personalization-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .personalization-slide {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            transform: translateX(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+        }
+        .personalization-slide.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .personalization-slide h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+        }
+        .personalization-slide p {
+            color: var(--text-secondary);
+            margin: 0 0 2rem 0;
+            font-size: 1.1rem;
+        }
+        .personalization-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .personalization-option {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .personalization-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        .personalization-option.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+        .personalization-option h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+        .personalization-option p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .personalization-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        .personalization-progress {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-color);
+            transition: all 0.3s ease;
+        }
+        .progress-dot.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        /* Dashboard Spotlight */
         #onboarding-spotlight-overlay {
             position: fixed;
             top: 0;
@@ -3202,26 +3339,25 @@
             height: 100%;
             background-color: rgba(17, 24, 39, 0.8);
             backdrop-filter: blur(4px);
-            z-index: 1002;
+            z-index: 1003;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.5s ease;
-            clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%, 0% 0%);
         }
         #onboarding-spotlight-overlay.visible {
             opacity: 1;
         }
         #onboarding-tooltip {
             position: fixed;
-            z-index: 1003;
+            z-index: 1004;
             background-color: var(--background-white);
             color: var(--text-main);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            max-width: 300px;
+            padding: 1.5rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 350px;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 1rem;
             line-height: 1.6;
             opacity: 0;
             transform: translateY(10px);
@@ -3237,27 +3373,115 @@
             position: absolute;
             width: 0;
             height: 0;
-            border-style: solid;
-        }
-        #onboarding-tooltip.bottom::after {
-            top: -10px; left: 50%; transform: translateX(-50%);
-            border-width: 0 10px 10px 10px;
-            border-color: transparent transparent var(--background-white) transparent;
-        }
-        #onboarding-tooltip.top::after {
-            bottom: -10px; left: 50%; transform: translateX(-50%);
-            border-width: 10px 10px 0 10px;
-            border-color: var(--background-white) transparent transparent transparent;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid var(--background-white);
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
         }
         .onboarding-highlight {
             position: relative;
-            z-index: 1003; /* Above the overlay, below the tooltip */
-            pointer-events: auto !important;
-        }
-        .onboarding-final-icon {
-            position: fixed;
             z-index: 1004;
-            transition: all 1s cubic-bezier(0.5, 0, 0.75, 0); /* Ease-in */
+            pointer-events: auto !important;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
+            border-radius: 8px;
+        }
+
+        /* Celebration Modal */
+        #onboarding-celebration-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1005;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s ease;
+        }
+        #onboarding-celebration-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .celebration-content {
+            text-align: center;
+            color: white;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        .celebration-content h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 0 0 1rem 0;
+        }
+        .celebration-content p {
+            font-size: 1.2rem;
+            margin: 0 0 2rem 0;
+            opacity: 0.9;
+        }
+        .celebration-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .celebration-feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .celebration-feature h3 {
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+        .celebration-feature p {
+            font-size: 0.9rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+        #onboarding-complete-btn {
+            background: linear-gradient(45deg, #10b981, #34d399);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        #onboarding-complete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ff6b6b;
+            animation: confetti-fall 3s linear infinite;
+            z-index: 1006;
+        }
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
         }
 
         /* Success Modal Styles */
@@ -4050,17 +4274,147 @@
 </head>
 <body>
     
-    <!-- NEW: Onboarding Elements -->
+    <!-- NEW: Comprehensive Onboarding System -->
+    
+    <!-- 1. Welcome Screen - Fullscreen Overlay -->
+    <div id="onboarding-welcome-overlay">
+        <div id="onboarding-welcome-content">
+            <h1>Welcome to FociAI! 🚀</h1>
+            <p>Your AI-powered study companion that transforms lectures, notes, and assignments into powerful learning tools.</p>
+            
+            <div class="welcome-features">
+                <div class="welcome-feature">
+                    <h3>🎯 Smart Study Hubs</h3>
+                    <p>Organize your modules with AI-powered study tools</p>
+                </div>
+                <div class="welcome-feature">
+                    <h3>🧠 AI Tutor</h3>
+                    <p>Ask questions and get instant explanations</p>
+                </div>
+                <div class="welcome-feature">
+                    <h3>📚 Auto Flashcards</h3>
+                    <p>Generate revision materials from your content</p>
+                </div>
+            </div>
+            
+            <button id="onboarding-start-btn">Let's Begin 🚀</button>
+        </div>
+    </div>
+
+    <!-- 2. Personalization Modal -->
+    <div id="onboarding-personalization-modal">
+        <div class="personalization-slide active" data-slide="1">
+            <h2>What's your main study goal? 🎯</h2>
+            <p>This helps us personalize your experience</p>
+            <div class="personalization-options">
+                <div class="personalization-option" data-value="exam-prep">
+                    <h4>📝 Exam Prep</h4>
+                    <p>Focus on test preparation</p>
+                </div>
+                <div class="personalization-option" data-value="understanding">
+                    <h4>🧠 Deep Understanding</h4>
+                    <p>Master complex concepts</p>
+                </div>
+                <div class="personalization-option" data-value="efficiency">
+                    <h4>⚡ Study Efficiency</h4>
+                    <p>Optimize learning time</p>
+                </div>
+            </div>
+            <div class="personalization-nav">
+                <div class="personalization-progress">
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot"></div>
+                    <div class="progress-dot"></div>
+                </div>
+                <button class="button" id="personalization-next">Next</button>
+            </div>
+        </div>
+        
+        <div class="personalization-slide" data-slide="2">
+            <h2>What's your study style? 📚</h2>
+            <p>Choose what works best for you</p>
+            <div class="personalization-options">
+                <div class="personalization-option" data-value="visual">
+                    <h4>👁️ Visual Learner</h4>
+                    <p>Diagrams, charts, images</p>
+                </div>
+                <div class="personalization-option" data-value="textual">
+                    <h4>📖 Text-Based</h4>
+                    <p>Notes, summaries, text</p>
+                </div>
+                <div class="personalization-option" data-value="interactive">
+                    <h4>🎮 Interactive</h4>
+                    <p>Quizzes, flashcards, games</p>
+                </div>
+            </div>
+            <div class="personalization-nav">
+                <div class="personalization-progress">
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot"></div>
+                </div>
+                <button class="button" id="personalization-next">Next</button>
+            </div>
+        </div>
+        
+        <div class="personalization-slide" data-slide="3">
+            <h2>How often do you study? ⏰</h2>
+            <p>This helps us optimize your schedule</p>
+            <div class="personalization-options">
+                <div class="personalization-option" data-value="daily">
+                    <h4>📅 Daily</h4>
+                    <p>Every day, consistent</p>
+                </div>
+                <div class="personalization-option" data-value="weekly">
+                    <h4>📆 Weekly</h4>
+                    <p>Few times per week</p>
+                </div>
+                <div class="personalization-option" data-value="intensive">
+                    <h4>🔥 Intensive</h4>
+                    <p>Before exams only</p>
+                </div>
+            </div>
+            <div class="personalization-nav">
+                <div class="personalization-progress">
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot active"></div>
+                    <div class="progress-dot active"></div>
+                </div>
+                <button class="button" id="personalization-complete">Complete Setup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Dashboard Spotlight Elements -->
     <div id="onboarding-spotlight-overlay"></div>
     <div id="onboarding-tooltip"></div>
-    <div id="onboarding-modal">
-        <div id="onboarding-content">
-            <h2>Welcome, {{ current_user.display_name }}!</h2>
-            <p>Let's create your first AI study kit in 60 seconds. It's the best way to see how Foci can supercharge your learning.</p>
-            <button class="button" id="start-onboarding-btn">Let's Get Started!</button>
-            <div id="onboarding-progress-bar-container">
-                <div id="onboarding-progress-bar"></div>
+
+    <!-- 4. Celebration Modal -->
+    <div id="onboarding-celebration-modal">
+        <div class="celebration-content">
+            <h1>🎓 Well done!</h1>
+            <p>You've just taken your first steps with FociAI — from flashcards to live AI tutoring.</p>
+            
+            <div class="celebration-features">
+                <div class="celebration-feature">
+                    <h3>✅ Create Study Hubs</h3>
+                    <p>Organize your modules with AI-powered tools</p>
+                </div>
+                <div class="celebration-feature">
+                    <h3>✅ Upload Lectures</h3>
+                    <p>Transform slides into interactive content</p>
+                </div>
+                <div class="celebration-feature">
+                    <h3>✅ Build Revision Packs</h3>
+                    <p>Generate flashcards and quizzes instantly</p>
+                </div>
+                <div class="celebration-feature">
+                    <h3>✅ Ask Your Tutor</h3>
+                    <p>Get instant help with any question</p>
+                </div>
             </div>
+            
+            <button id="onboarding-complete-btn">Create My First Hub 🚀</button>
         </div>
     </div>
     
@@ -5009,6 +5363,34 @@
                             </div>
                             <div class="setting-item-action">
                                  <a href="mailto:support@fociapp.com" class="button button-secondary">Report Bug</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Development & Testing Card -->
+                <div class="settings-card">
+                    <div class="settings-card-header">
+                        <h2>Development & Testing</h2>
+                        <p>Tools for developers and testers.</p>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Restart Onboarding</h3>
+                                <p>Reset your onboarding status to test the new user experience.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button id="restart-onboarding-btn" class="button button-secondary">Restart Onboarding</button>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-item-content">
+                                <h3>Clear Demo Data</h3>
+                                <p>Remove demo hubs and content created during onboarding.</p>
+                            </div>
+                            <div class="setting-item-action">
+                                <button id="clear-demo-data-btn" class="button button-secondary">Clear Demo Data</button>
                             </div>
                         </div>
                     </div>
@@ -6368,6 +6750,82 @@ Best regards,
                         showCustomAlert("Deletion cancelled. You must type 'DELETE' to proceed.", 'Cancelled');
                     }
                 });
+
+                // --- 5. Development & Testing ---
+                const restartOnboardingBtn = document.getElementById('restart-onboarding-btn');
+                if (restartOnboardingBtn) {
+                    restartOnboardingBtn.addEventListener('click', async () => {
+                        const confirmed = confirm("This will restart the onboarding process. You'll see the welcome screen and personalization flow again. Continue?");
+                        if (confirmed) {
+                            try {
+                                restartOnboardingBtn.textContent = 'Restarting...';
+                                restartOnboardingBtn.disabled = true;
+                                
+                                const response = await fetch('/onboarding/restart', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (result.success) {
+                                    showInfo(result.message);
+                                    // Clear any onboarding state from sessionStorage
+                                    sessionStorage.removeItem('onboardingStep');
+                                    sessionStorage.removeItem('onboardingData');
+                                    // Reload the page to trigger onboarding
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    showError(result.message);
+                                }
+                            } catch (error) {
+                                console.error('Error restarting onboarding:', error);
+                                showError('An error occurred while restarting onboarding.');
+                            } finally {
+                                restartOnboardingBtn.textContent = 'Restart Onboarding';
+                                restartOnboardingBtn.disabled = false;
+                            }
+                        }
+                    });
+                }
+
+                const clearDemoDataBtn = document.getElementById('clear-demo-data-btn');
+                if (clearDemoDataBtn) {
+                    clearDemoDataBtn.addEventListener('click', async () => {
+                        const confirmed = confirm("This will delete all demo hubs and content created during onboarding. This action cannot be undone. Continue?");
+                        if (confirmed) {
+                            try {
+                                clearDemoDataBtn.textContent = 'Clearing...';
+                                clearDemoDataBtn.disabled = true;
+                                
+                                const response = await fetch('/onboarding/clear_demo_data', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+                                
+                                const result = await response.json();
+                                
+                                if (result.success) {
+                                    showInfo(result.message);
+                                    // Reload the page to refresh the hub list
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    showError(result.message);
+                                }
+                            } catch (error) {
+                                console.error('Error clearing demo data:', error);
+                                showError('An error occurred while clearing demo data.');
+                            } finally {
+                                clearDemoDataBtn.textContent = 'Clear Demo Data';
+                                clearDemoDataBtn.disabled = false;
+                            }
+                        }
+                    });
+                }
             }
 
 
@@ -7030,83 +7488,198 @@ Best regards,
 {% if needs_onboarding %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const onboardingModal = document.getElementById('onboarding-modal');
-            const startOnboardingBtn = document.getElementById('start-onboarding-btn');
+            // Initialize onboarding system
+            const welcomeOverlay = document.getElementById('onboarding-welcome-overlay');
+            const personalizationModal = document.getElementById('onboarding-personalization-modal');
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
+            const celebrationModal = document.getElementById('onboarding-celebration-modal');
+            
+            let currentSlide = 1;
+            let personalizationData = {};
 
-            // --- Helper functions for the UI ---
+            // --- Helper Functions ---
             function showTooltip(targetElement, text, position = 'bottom') {
                 const rect = targetElement.getBoundingClientRect();
                 tooltip.textContent = text;
                 tooltip.className = `onboarding-tooltip ${position}`;
-                let top, left;
+                
                 if (position === 'bottom') {
-                    top = rect.bottom + 15;
-                    left = rect.left + rect.width / 2;
-                    tooltip.style.transform = 'translateX(-50%)';
-                } else if (position === 'top') {
-                    top = rect.top - 15 - tooltip.offsetHeight;
-                    left = rect.left + rect.width / 2;
-                    tooltip.style.transform = 'translateX(-50%)';
+                    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                    tooltip.style.top = `${rect.bottom + 10}px`;
+                } else {
+                    tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                    tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
                 }
-                tooltip.style.top = `${top}px`;
-                tooltip.style.left = `${left}px`;
+                
                 tooltip.classList.add('visible');
             }
-            
-            function showSpotlight(targetElement) {
-                targetElement.classList.add('onboarding-highlight');
-                const rect = targetElement.getBoundingClientRect();
-                const padding = 10;
-                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
-                spotlight.style.clipPath = clipPath;
-                spotlight.classList.add('visible');
+
+            function hideTooltip() {
+                tooltip.classList.remove('visible');
             }
 
-            function hideOnboardingUI() {
-                spotlight.classList.remove('visible');
-                tooltip.classList.remove('visible');
+            function highlightElement(targetElement) {
+                targetElement.classList.add('onboarding-highlight');
+            }
+
+            function removeHighlight() {
                 document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
             }
 
-            // --- Onboarding Flow Logic ---
-            function startTour() {
-                const welcomeHubCard = document.querySelector('.hub-card[data-hub-name*="Welcome"]');
-
-                if (!welcomeHubCard) {
-                    console.error("Onboarding target '.hub-card[data-hub-name*=\"Welcome\"]' not found.");
-                    showWarning("It seems your 'Welcome' hub is missing. We'll mark the tour as complete for now.");
-                    fetch('/onboarding/complete', { method: 'POST' }); 
-                    return;
-                }
-
-                showSpotlight(welcomeHubCard);
-                showTooltip(welcomeHubCard, "We've created your first Hub. Click it to continue the tour.", 'bottom');
-
-                welcomeHubCard.addEventListener('click', function handleHubClick(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    sessionStorage.setItem('onboardingStep', 'hub_entry');
+            function createConfetti() {
+                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
+                for (let i = 0; i < 50; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 3 + 's';
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    document.body.appendChild(confetti);
                     
-                    // *** THIS IS THE FIX ***
-                    // We now specifically select the link with the 'hub-card-link' class
-                    const correctLink = welcomeHubCard.querySelector('a.hub-card-link').href;
-                    window.location.href = correctLink;
-
-                }, { once: true });
+                    setTimeout(() => confetti.remove(), 5000);
+                }
             }
 
-            startOnboardingBtn.addEventListener('click', () => {
-                onboardingModal.classList.remove('visible');
-                setTimeout(startTour, 500); 
+            // --- Welcome Screen ---
+            welcomeOverlay.classList.add('visible');
+
+            document.getElementById('onboarding-start-btn').addEventListener('click', () => {
+                welcomeOverlay.classList.remove('visible');
+                setTimeout(() => {
+                    personalizationModal.classList.add('visible');
+                }, 300);
             });
 
-            onboardingModal.classList.add('visible');
-        });
+            // --- Personalization Flow ---
+            const personalizationOptions = document.querySelectorAll('.personalization-option');
+            const nextBtn = document.getElementById('personalization-next');
+            const completeBtn = document.getElementById('personalization-complete');
 
+            personalizationOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove selection from siblings
+                    option.parentElement.querySelectorAll('.personalization-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    // Select current option
+                    option.classList.add('selected');
+                    
+                    // Store selection
+                    const slide = option.closest('.personalization-slide');
+                    const slideNumber = slide.dataset.slide;
+                    personalizationData[`slide${slideNumber}`] = option.dataset.value;
+                });
+            });
+
+            function nextSlide() {
+                const currentSlideEl = document.querySelector(`[data-slide="${currentSlide}"]`);
+                const nextSlideEl = document.querySelector(`[data-slide="${currentSlide + 1}"]`);
+                
+                if (nextSlideEl) {
+                    currentSlideEl.classList.remove('active');
+                    nextSlideEl.classList.add('active');
+                    currentSlide++;
+                    
+                    // Update progress dots
+                    document.querySelectorAll('.progress-dot').forEach((dot, index) => {
+                        dot.classList.toggle('active', index < currentSlide);
+                    });
+                }
+            }
+
+            nextBtn.addEventListener('click', nextSlide);
+            
+            completeBtn.addEventListener('click', () => {
+                // Save personalization data
+                fetch('/onboarding/personalization', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(personalizationData)
+                }).catch(e => console.error('Error saving personalization:', e));
+                
+                // Hide personalization modal
+                personalizationModal.classList.remove('visible');
+                
+                // Start dashboard spotlight
+                setTimeout(() => {
+                    startDashboardSpotlight();
+                }, 300);
+            });
+
+            // --- Dashboard Spotlight ---
+            function startDashboardSpotlight() {
+                spotlight.classList.add('visible');
+                
+                // Highlight Study Hubs button
+                const studyHubsBtn = document.querySelector('[data-tab="hubs"]');
+                if (studyHubsBtn) {
+                    highlightElement(studyHubsBtn);
+                    showTooltip(studyHubsBtn, "💡 This is your dashboard — the command centre where all your AI study tools live.", 'bottom');
+                    
+                    // Set onboarding step for hub entry
+                    sessionStorage.setItem('onboardingStep', 'hub_entry');
+                }
+            }
+
+            // Handle Study Hubs button click during onboarding
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('[data-tab="hubs"]') && sessionStorage.getItem('onboardingStep') === 'hub_entry') {
+                    // User clicked Study Hubs - create demo hub and redirect
+                    hideTooltip();
+                    removeHighlight();
+                    
+                    // Create demo hub
+                    fetch('/onboarding/create_demo_hub', { method: 'POST' })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Redirect to the demo hub
+                                window.location.href = `/hub/${data.hub_id}`;
+                            } else {
+                                console.error('Failed to create demo hub:', data.message);
+                                // Fallback to regular hub creation
+                                window.location.href = '/add_hub';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error creating demo hub:', error);
+                            // Fallback to regular hub creation
+                            window.location.href = '/add_hub';
+                        });
+                }
+            });
+
+            // --- Celebration Modal ---
+            document.getElementById('onboarding-complete-btn').addEventListener('click', () => {
+                // Create confetti
+                createConfetti();
+                
+                // Complete onboarding
+                fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                
+                // Hide celebration modal
+                celebrationModal.classList.remove('visible');
+                
+                // Clean up
+                setTimeout(() => {
+                    spotlight.classList.remove('visible');
+                    removeHighlight();
+                    hideTooltip();
+                    sessionStorage.removeItem('onboardingStep');
+                }, 1000);
+            });
+
+            // --- Auto-show celebration if coming from hub creation ---
+            if (sessionStorage.getItem('onboardingStep') === 'celebration') {
+                celebrationModal.classList.add('visible');
+                createConfetti();
+                sessionStorage.removeItem('onboardingStep');
+            }
+        });
     </script>
-    {% endif %}
+{% endif %}
 
     <!-- Community Tab Functionality -->
     <script>

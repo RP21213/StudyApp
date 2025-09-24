@@ -2289,6 +2289,116 @@ def add_hub():
         hub_ref.set(new_hub.to_dict())
     return redirect(url_for('dashboard'))
 
+@app.route("/onboarding/create_demo_hub", methods=["POST"])
+@login_required
+def create_demo_hub():
+    """Creates a demo hub with sample content for onboarding."""
+    try:
+        # Create the demo hub
+        hub_ref = db.collection('hubs').document()
+        demo_hub = Hub(
+            id=hub_ref.id, 
+            name="Welcome to FociAI Hub", 
+            user_id=current_user.id,
+            color="#6366f1"
+        )
+        db.collection('hubs').document(hub_ref.id).set(demo_hub.to_dict())
+        
+        # Create sample content for the demo hub
+        batch = db.batch()
+        
+        # Sample lecture content
+        sample_lecture_text = """
+        Introduction to Machine Learning
+        
+        Machine learning is a subset of artificial intelligence that focuses on the development of algorithms and statistical models that enable computer systems to improve their performance on a specific task through experience, without being explicitly programmed.
+        
+        Key Concepts:
+        1. Supervised Learning: Learning with labeled training data
+        2. Unsupervised Learning: Finding patterns in data without labels
+        3. Reinforcement Learning: Learning through interaction with an environment
+        
+        Applications:
+        - Image recognition and computer vision
+        - Natural language processing
+        - Recommendation systems
+        - Autonomous vehicles
+        - Medical diagnosis
+        
+        The machine learning process typically involves:
+        1. Data collection and preprocessing
+        2. Feature selection and engineering
+        3. Model selection and training
+        4. Model evaluation and validation
+        5. Deployment and monitoring
+        """
+        
+        # Create sample note
+        note_ref = db.collection('notes').document()
+        sample_note = Note(
+            id=note_ref.id,
+            hub_id=hub_ref.id,
+            title="Introduction to Machine Learning",
+            content_html=f"<h1>Introduction to Machine Learning</h1><p>{sample_lecture_text.replace(chr(10), '</p><p>')}</p>"
+        )
+        batch.set(note_ref, sample_note.to_dict())
+        
+        # Create sample flashcards
+        flashcard_ref = db.collection('activities').document()
+        sample_flashcards = [
+            {"front": "What is machine learning?", "back": "A subset of AI that enables computers to learn and improve from experience without explicit programming."},
+            {"front": "What is supervised learning?", "back": "Learning with labeled training data where the algorithm learns to map inputs to outputs."},
+            {"front": "What is unsupervised learning?", "back": "Finding patterns in data without labeled examples or guidance."},
+            {"front": "What is reinforcement learning?", "back": "Learning through interaction with an environment using rewards and penalties."},
+            {"front": "Name three applications of machine learning", "back": "Image recognition, natural language processing, recommendation systems, autonomous vehicles, medical diagnosis."}
+        ]
+        sample_flashcard_activity = Activity(
+            id=flashcard_ref.id,
+            hub_id=hub_ref.id,
+            type='Flashcards',
+            title='Machine Learning Basics',
+            data={'cards': sample_flashcards},
+            status='completed'
+        )
+        batch.set(flashcard_ref, sample_flashcard_activity.to_dict())
+        
+        # Create sample quiz
+        quiz_ref = db.collection('activities').document()
+        sample_quiz = Activity(
+            id=quiz_ref.id,
+            hub_id=hub_ref.id,
+            type='Quiz',
+            title='Machine Learning Quiz',
+            data={
+                'questions': [
+                    {
+                        'question': 'Which type of learning uses labeled training data?',
+                        'options': ['Supervised Learning', 'Unsupervised Learning', 'Reinforcement Learning', 'Deep Learning'],
+                        'correct_answer': 'Supervised Learning'
+                    },
+                    {
+                        'question': 'What is the main goal of machine learning?',
+                        'options': ['To replace human intelligence', 'To improve performance through experience', 'To create robots', 'To write code automatically'],
+                        'correct_answer': 'To improve performance through experience'
+                    }
+                ]
+            },
+            status='completed'
+        )
+        batch.set(quiz_ref, sample_quiz.to_dict())
+        
+        batch.commit()
+        
+        return jsonify({
+            "success": True, 
+            "hub_id": hub_ref.id,
+            "message": "Demo hub created successfully!"
+        })
+        
+    except Exception as e:
+        print(f"Error creating demo hub: {e}")
+        return jsonify({"success": False, "message": "Failed to create demo hub."}), 500
+
 
 @app.route("/hub/<hub_id>")
 @login_required
@@ -7103,8 +7213,51 @@ def stuck_on_question_evaluate_practice():
         return jsonify({"success": False, "message": "Could not evaluate the answer."}), 500
 
 # ==============================================================================
-# 13. ONBOARDING ROUTE (NEW)
+# 13. ONBOARDING ROUTES (NEW)
 # ==============================================================================
+
+@app.route('/onboarding/personalization', methods=['POST'])
+@login_required
+def save_personalization():
+    """Saves user personalization data from onboarding."""
+    try:
+        data = request.get_json()
+        user_ref = db.collection('users').document(current_user.id)
+        
+        # Map personalization data to user fields
+        personalization_updates = {}
+        
+        if 'slide1' in data:
+            goal_mapping = {
+                'exam-prep': 'Exam preparation and test-taking',
+                'understanding': 'Deep understanding of concepts',
+                'efficiency': 'Study efficiency and time optimization'
+            }
+            personalization_updates['goals'] = goal_mapping.get(data['slide1'], data['slide1'])
+        
+        if 'slide2' in data:
+            style_mapping = {
+                'visual': 'Visual learning with diagrams and charts',
+                'textual': 'Text-based learning with notes and summaries',
+                'interactive': 'Interactive learning with quizzes and games'
+            }
+            personalization_updates['study_style'] = style_mapping.get(data['slide2'], data['slide2'])
+        
+        if 'slide3' in data:
+            frequency_mapping = {
+                'daily': 'Daily study sessions',
+                'weekly': 'Weekly study sessions',
+                'intensive': 'Intensive study before exams'
+            }
+            personalization_updates['study_frequency'] = frequency_mapping.get(data['slide3'], data['slide3'])
+        
+        # Update user with personalization data
+        user_ref.update(personalization_updates)
+        
+        return jsonify({"success": True, "message": "Personalization saved successfully."})
+    except Exception as e:
+        print(f"Error saving personalization for user {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred while saving personalization."}), 500
 
 @app.route('/onboarding/complete', methods=['POST'])
 @login_required
@@ -7129,6 +7282,79 @@ def complete_onboarding():
     except Exception as e:
         print(f"Error completing onboarding for user {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
+
+@app.route('/onboarding/restart', methods=['POST'])
+@login_required
+def restart_onboarding():
+    """Restarts the onboarding process for testing purposes."""
+    try:
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({'has_completed_onboarding': False})
+        
+        # Force refresh the current_user object from database
+        user_doc = db.collection('users').document(current_user.id).get()
+        if user_doc.exists:
+            updated_user = User.from_dict(user_doc.to_dict())
+            
+            # Clear the current session and re-login
+            logout_user()
+            login_user(updated_user, remember=True)
+        
+        return jsonify({"success": True, "message": "Onboarding restarted successfully!"})
+    except Exception as e:
+        print(f"Error restarting onboarding for user {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred while restarting onboarding."}), 500
+
+@app.route('/onboarding/clear_demo_data', methods=['POST'])
+@login_required
+def clear_demo_data():
+    """Clears demo hubs and content created during onboarding."""
+    try:
+        # Find and delete demo hubs (hubs with "Welcome" in the name)
+        hubs_query = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+        demo_hub_ids = []
+        
+        for hub_doc in hubs_query:
+            hub_data = hub_doc.to_dict()
+            if 'Welcome' in hub_data.get('name', ''):
+                demo_hub_ids.append(hub_doc.id)
+        
+        # Delete demo hubs and all associated content
+        batch = db.batch()
+        for hub_id in demo_hub_ids:
+            # Delete hub
+            batch.delete(db.collection('hubs').document(hub_id))
+            
+            # Delete notes
+            notes_query = db.collection('notes').where('hub_id', '==', hub_id).stream()
+            for note_doc in notes_query:
+                batch.delete(note_doc.reference)
+            
+            # Delete activities (flashcards, quizzes)
+            activities_query = db.collection('activities').where('hub_id', '==', hub_id).stream()
+            for activity_doc in activities_query:
+                batch.delete(activity_doc.reference)
+            
+            # Delete folders
+            folders_query = db.collection('folders').where('hub_id', '==', hub_id).stream()
+            for folder_doc in folders_query:
+                batch.delete(folder_doc.reference)
+            
+            # Delete sessions
+            sessions_query = db.collection('sessions').where('hub_id', '==', hub_id).stream()
+            for session_doc in sessions_query:
+                batch.delete(session_doc.reference)
+        
+        batch.commit()
+        
+        deleted_count = len(demo_hub_ids)
+        return jsonify({
+            "success": True, 
+            "message": f"Cleared {deleted_count} demo hub(s) and all associated content."
+        })
+    except Exception as e:
+        print(f"Error clearing demo data for user {current_user.id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred while clearing demo data."}), 500
 
 # ==============================================================================
 # 8. COMMUNITY FEATURES
