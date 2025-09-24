@@ -2973,7 +2973,7 @@
     <div class="modal-overlay" id="slide-notes-modal">
         <div class="modal-content">
             <div class="modal-header"><h3>Take Notes with Slides</h3><button class="close-btn">&times;</button></div>
-            <form id="slide-notes-form" action="{{ url_for('create_slide_notes_session', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data">
+            <form id="slide-notes-form" action="{{ url_for('create_slide_notes_session', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" target="_blank">
                 <div class="modal-body">
                     <p class="modal-description">Upload your lecture slides (PDF format) to begin a new note-taking session.</p>
                     <div class="form-group">
@@ -4047,13 +4047,11 @@
                             // Set flag to show Task Queue tooltip after page reload
                             sessionStorage.setItem('showTaskQueueTooltip', '1');
                             
-                            // Mark onboarding as complete immediately
-                            fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                            // Don't complete onboarding yet - let the user finish the full flow
+                            // Keep onboardingStep for the Study Tools click handler
                             
                             // Persist a flag to show celebration after reload so folders reflect the new pack
                             sessionStorage.setItem('showOnboardingCelebration', '1');
-                            // Clean up onboarding flags
-                            sessionStorage.removeItem('onboardingStep');
                             sessionStorage.removeItem('onboardingGenerating');
                         } else {
                             // Show regular success message for non-onboarding users
@@ -5770,9 +5768,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('🎉 Onboarding completed!');
                 createConfetti();
                 
-                // Complete onboarding
+                // Complete onboarding at the very end
                 try {
                     await fetch('/onboarding/complete', { method: 'POST' });
+                    console.log('✅ Onboarding marked as complete in database');
                 } catch (e) {
                     console.error('Error completing onboarding:', e);
                 }
@@ -5791,8 +5790,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Removed payoff animation to keep onboarding simple and fast
 
         async function showOnboardingCompletionCelebration() {
-            try { await fetch('/onboarding/complete', { method: 'POST' }); } catch (_) {}
-            sessionStorage.removeItem('onboardingStep');
+            // Don't complete onboarding here - let the user finish the full flow
+            // Keep onboardingStep for the Study Tools click handler
             hideLoadingOverlay();
             
             // Show success message first
@@ -6344,7 +6343,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     tooltip.innerHTML = `
                                         <div style="display: flex; flex-direction: column; gap: 1rem;">
                                             <p>Perfect! Your EC131 Week 9 file is already selected. Just click "Start note-taking" to begin!</p>
-                                            <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible');" style="align-self: flex-start;">Perfect!</button>
+                                            <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); setupOnboardingCompletion();" style="align-self: flex-start;">Perfect!</button>
                                         </div>
                                     `;
                                     tooltip.className = 'onboarding-tooltip right';
@@ -6360,6 +6359,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 1000);
                 }
             }, 500);
+        }
+        
+        // Function to setup onboarding completion
+        function setupOnboardingCompletion() {
+            console.log('🎯 Setting up onboarding completion...');
+            
+            // Add click handler to the Start note-taking button
+            const startNoteTakingBtn = document.querySelector('#slide-notes-form button[type="submit"]');
+            if (startNoteTakingBtn) {
+                startNoteTakingBtn.addEventListener('click', () => {
+                    console.log('🚀 Start note-taking clicked during onboarding!');
+                    
+                    // Set flag to show completion modal after redirect
+                    sessionStorage.setItem('showOnboardingCompletionModal', '1');
+                    
+                    // Complete onboarding
+                    fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                    
+                    // Clean up onboarding flags
+                    sessionStorage.removeItem('onboardingStep');
+                    sessionStorage.removeItem('showOnboardingCelebration');
+                    sessionStorage.removeItem('showTaskQueueTooltip');
+                }, { once: true });
+            }
         }
 
         function hideOnboardingUI() {

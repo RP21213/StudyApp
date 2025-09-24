@@ -3481,6 +3481,85 @@
             transform: translateY(-2px);
             box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
         }
+        
+        /* Completion Modal */
+        #onboarding-completion-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1006;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s ease;
+        }
+        #onboarding-completion-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .completion-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.6s ease;
+        }
+        #onboarding-completion-modal.visible .completion-content {
+            transform: scale(1);
+        }
+        .completion-content h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0 0 1.5rem 0;
+            color: var(--text-main);
+        }
+        .completion-content p {
+            font-size: 1.1rem;
+            margin: 0 0 2.5rem 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .completion-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .completion-actions .button {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .completion-actions .button-primary {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+        }
+        .completion-actions .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+        .completion-actions .button-secondary {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+        }
+        .completion-actions .button-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
 
         /* Confetti Animation */
         .confetti {
@@ -4433,6 +4512,19 @@
             </div>
             
             <button id="onboarding-complete-btn">Create My First Hub 🚀</button>
+        </div>
+    </div>
+    
+    <!-- 5. Onboarding Completion Modal -->
+    <div id="onboarding-completion-modal">
+        <div class="completion-content">
+            <h1>🎉 Amazing!</h1>
+            <p>Great! You've explored only a couple of the dozens of features on this site to truly transform your university life. Keep exploring with this sample lecture and, when you're ready, feel free to create your very own Study Hub!</p>
+            
+            <div class="completion-actions">
+                <button id="completion-explore-btn" class="button button-primary">Keep Exploring 🚀</button>
+                <button id="completion-create-hub-btn" class="button button-secondary">Create My Own Hub</button>
+            </div>
         </div>
     </div>
     
@@ -7512,9 +7604,18 @@ Best regards,
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
             const celebrationModal = document.getElementById('onboarding-celebration-modal');
+            const completionModal = document.getElementById('onboarding-completion-modal');
             
             let currentSlide = 1;
             let personalizationData = {};
+            
+            // Check for onboarding completion modal
+            if (sessionStorage.getItem('showOnboardingCompletionModal') === '1') {
+                sessionStorage.removeItem('showOnboardingCompletionModal');
+                setTimeout(() => {
+                    showCompletionModal();
+                }, 1000);
+            }
 
             // --- Helper Functions ---
             function showTooltip(targetElement, text, position = 'bottom') {
@@ -7522,21 +7623,46 @@ Best regards,
                 tooltip.innerHTML = text; // Use innerHTML instead of textContent to support HTML
                 tooltip.className = `onboarding-tooltip ${position}`;
                 
+                // Ensure tooltip has content before positioning
+                tooltip.style.display = 'block';
+                
                 if (position === 'bottom') {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.bottom + 10}px`;
                     tooltip.style.transform = 'translateX(-50%)';
                 } else if (position === 'right') {
-                    tooltip.style.left = `${rect.right + 10}px`;
+                    // Position to the right with screen boundary check
+                    const tooltipWidth = 350; // max-width from CSS
+                    const rightEdge = rect.right + 10 + tooltipWidth;
+                    const screenWidth = window.innerWidth;
+                    
+                    if (rightEdge > screenWidth) {
+                        // Position to the left if it would go off screen
+                        tooltip.style.left = `${rect.left - 10 - tooltipWidth}px`;
+                        tooltip.style.transform = 'translateY(-50%)';
+                    } else {
+                        // Position to the right
+                        tooltip.style.left = `${rect.right + 10}px`;
+                        tooltip.style.transform = 'translateY(-50%)';
+                    }
                     tooltip.style.top = `${rect.top + rect.height / 2}px`;
-                    tooltip.style.transform = 'translateY(-50%)';
                 } else {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
-                    tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
-                    tooltip.style.transform = 'translateX(-50%)';
+                    tooltip.style.top = `${rect.top - 10}px`;
+                    tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
                 }
                 
+                // Force visibility
+                tooltip.style.opacity = '1';
+                tooltip.style.visibility = 'visible';
                 tooltip.classList.add('visible');
+                
+                console.log('Tooltip positioned:', {
+                    left: tooltip.style.left,
+                    top: tooltip.style.top,
+                    transform: tooltip.style.transform,
+                    visible: tooltip.classList.contains('visible')
+                });
             }
 
             function hideTooltip() {
@@ -7646,7 +7772,18 @@ Best regards,
                     highlightElement(sidePanel);
                     
                     // Show tooltip explaining the dashboard
+                    console.log('Showing tooltip for side panel...');
                     showTooltip(sidePanel, "💡 Welcome to your dashboard! Click on 'Hubs' in the side panel to create your first study hub and continue your journey!", 'right');
+                    
+                    // Ensure tooltip is visible
+                    setTimeout(() => {
+                        const tooltip = document.getElementById('onboarding-tooltip');
+                        console.log('Tooltip element:', tooltip);
+                        console.log('Tooltip visible class:', tooltip.classList.contains('visible'));
+                        console.log('Tooltip position:', tooltip.style.left, tooltip.style.top);
+                    }, 100);
+                } else {
+                    console.error('Side panel not found!');
                 }
                 
                 // Also highlight individual navigation tabs for better visibility
@@ -7814,6 +7951,28 @@ Best regards,
             }
 
             // Remove the old event listener - we now handle this through the continue button
+
+            // --- Completion Modal ---
+            function showCompletionModal() {
+                console.log('🎉 Showing onboarding completion modal...');
+                completionModal.classList.add('visible');
+            }
+            
+            function hideCompletionModal() {
+                completionModal.classList.remove('visible');
+            }
+            
+            // Completion modal button handlers
+            document.getElementById('completion-explore-btn').addEventListener('click', () => {
+                hideCompletionModal();
+                // User can continue exploring the dashboard
+            });
+            
+            document.getElementById('completion-create-hub-btn').addEventListener('click', () => {
+                hideCompletionModal();
+                // Redirect to hubs tab to create a new hub
+                switchToHubsTab();
+            });
 
             // --- Celebration Modal ---
             document.getElementById('onboarding-complete-btn').addEventListener('click', () => {
