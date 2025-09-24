@@ -4036,41 +4036,8 @@
                                            sessionStorage.getItem('onboardingGenerating') === '1';
                         
                         if (isOnboarding) {
-                            // Show spotlight on Task Queue with explanation
-                            setTimeout(() => {
-                                const taskQueueSection = document.querySelector('.task-queue-section');
-                                if (taskQueueSection) {
-                                    // Show spotlight on task queue
-                                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
-                                    const tooltip = document.getElementById('onboarding-tooltip');
-                                    
-                                    if (spotlight && tooltip) {
-                                        // Create spotlight effect around task queue
-                                        taskQueueSection.classList.add('onboarding-highlight');
-                                        const rect = taskQueueSection.getBoundingClientRect();
-                                        const padding = 10;
-                                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
-                                        
-                                        spotlight.style.clipPath = clipPath;
-                                        spotlight.classList.add('visible');
-                                        
-                                        // Show tooltip with explanation on the right side
-                                        tooltip.innerHTML = `
-                                            <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                                <p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>
-                                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.task-queue-section').classList.remove('onboarding-highlight');" style="align-self: flex-start;">Ok</button>
-                                            </div>
-                                        `;
-                                        tooltip.className = 'onboarding-tooltip right';
-                                        const top = rect.top + (rect.bottom - rect.top) / 2;
-                                        const left = rect.right + 15;
-                                        tooltip.style.top = `${top}px`;
-                                        tooltip.style.left = `${left}px`;
-                                        tooltip.style.transform = 'translateY(-50%)';
-                                        tooltip.classList.add('visible');
-                                    }
-                                }
-                            }, 1000);
+                            // Set flag to show Task Queue tooltip after page reload
+                            sessionStorage.setItem('showTaskQueueTooltip', '1');
                             
                             // Mark onboarding as complete immediately
                             fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
@@ -4088,10 +4055,7 @@
                         // Navigate to folders and reload after a short delay
                         setTimeout(() => {
                             window.location.hash = 'folders';
-                            // Don't reload during onboarding to preserve Task Queue tooltip
-                            if (!isOnboarding) {
-                                window.location.reload();
-                            }
+                            window.location.reload();
                         }, 1500);
                     } else {
                         showErrorMessage(`Error: ${result.message}`);
@@ -5479,6 +5443,48 @@ function ensureOnboardingNodesExist() {
 }
 document.addEventListener('DOMContentLoaded', () => {
   ensureOnboardingNodesExist();
+  
+  // Check if we should show Task Queue tooltip after page reload
+  if (sessionStorage.getItem('showTaskQueueTooltip') === '1') {
+      // Clear the flag
+      sessionStorage.removeItem('showTaskQueueTooltip');
+      
+      // Wait a bit for the page to fully load, then show the tooltip
+      setTimeout(() => {
+          const taskQueueSection = document.querySelector('.task-queue-section');
+          if (taskQueueSection) {
+              // Show spotlight on task queue
+              const spotlight = document.getElementById('onboarding-spotlight-overlay');
+              const tooltip = document.getElementById('onboarding-tooltip');
+              
+              if (spotlight && tooltip) {
+                  // Create spotlight effect around task queue
+                  taskQueueSection.classList.add('onboarding-highlight');
+                  const rect = taskQueueSection.getBoundingClientRect();
+                  const padding = 10;
+                  const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                  
+                  spotlight.style.clipPath = clipPath;
+                  spotlight.classList.add('visible');
+                  
+                  // Show tooltip with explanation on the right side
+                  tooltip.innerHTML = `
+                      <div style="display: flex; flex-direction: column; gap: 1rem;">
+                          <p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>
+                          <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.task-queue-section').classList.remove('onboarding-highlight'); showFolderContentsTooltip();" style="align-self: flex-start;">Ok</button>
+                      </div>
+                  `;
+                  tooltip.className = 'onboarding-tooltip right';
+                  const top = rect.top + (rect.bottom - rect.top) / 2;
+                  const left = rect.right + 15;
+                  tooltip.style.top = `${top}px`;
+                  tooltip.style.left = `${left}px`;
+                  tooltip.style.transform = 'translateY(-50%)';
+                  tooltip.classList.add('visible');
+              }
+          }
+      }, 1000);
+  }
           
           // Initialize slider value displays
           const flashcardsSlider = document.getElementById('num-flashcards');
@@ -6095,6 +6101,149 @@ document.addEventListener('DOMContentLoaded', () => {
         // Old spotlightGeneratedItems function removed
 
         // Global interaction blocker functions removed - no longer needed
+        
+        // Function to show folder contents tooltip
+        function showFolderContentsTooltip() {
+            // Wait a moment for the previous tooltip to disappear
+            setTimeout(() => {
+                const folderSection = document.querySelector('.folder-accordion-item') || document.querySelector('.folder-content');
+                if (folderSection) {
+                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    
+                    if (spotlight && tooltip) {
+                        // Create spotlight effect around folder
+                        folderSection.classList.add('onboarding-highlight');
+                        const rect = folderSection.getBoundingClientRect();
+                        const padding = 10;
+                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                        
+                        spotlight.style.clipPath = clipPath;
+                        spotlight.classList.add('visible');
+                        
+                        // Show tooltip with explanation
+                        tooltip.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <p>Once your tasks finish processing, have a look at the generated content in this folder!</p>
+                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.folder-accordion-item, .folder-content').classList.remove('onboarding-highlight'); guideToLectureNotes();" style="align-self: flex-start;">I've had a look, let's move on</button>
+                            </div>
+                        `;
+                        tooltip.className = 'onboarding-tooltip right';
+                        const top = rect.top + (rect.bottom - rect.top) / 2;
+                        const left = rect.right + 15;
+                        tooltip.style.top = `${top}px`;
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.transform = 'translateY(-50%)';
+                        tooltip.classList.add('visible');
+                    }
+                }
+            }, 500);
+        }
+        
+        // Function to guide user to lecture notes
+        function guideToLectureNotes() {
+            setTimeout(() => {
+                // First, switch to Study Tools tab
+                const studyToolsTab = document.querySelector('.nav-link[data-tab="tools"]');
+                if (studyToolsTab) {
+                    studyToolsTab.click();
+                    
+                    // Wait for Study Tools to load, then look for Lecture Notes
+                    setTimeout(() => {
+                        const lectureNotesCard = document.querySelector('#pipeline-live-lecture');
+                        if (lectureNotesCard) {
+                            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                            const tooltip = document.getElementById('onboarding-tooltip');
+                            
+                            if (spotlight && tooltip) {
+                                // Create spotlight effect around lecture notes card
+                                lectureNotesCard.classList.add('onboarding-highlight');
+                                const rect = lectureNotesCard.getBoundingClientRect();
+                                const padding = 10;
+                                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                                
+                                spotlight.style.clipPath = clipPath;
+                                spotlight.classList.add('visible');
+                                
+                                // Show tooltip with explanation
+                                tooltip.innerHTML = `
+                                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                        <p>Click on "Lecture Notes with Slides" to start interactive note-taking with your uploaded lecture!</p>
+                                        <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('#pipeline-live-lecture').classList.remove('onboarding-highlight'); openLectureNotesModal();" style="align-self: flex-start;">Got it!</button>
+                                    </div>
+                                `;
+                                tooltip.className = 'onboarding-tooltip right';
+                                const top = rect.top + (rect.bottom - rect.top) / 2;
+                                const left = rect.right + 15;
+                                tooltip.style.top = `${top}px`;
+                                tooltip.style.left = `${left}px`;
+                                tooltip.style.transform = 'translateY(-50%)';
+                                tooltip.classList.add('visible');
+                            }
+                        }
+                    }, 1000);
+                }
+            }, 500);
+        }
+        
+        // Function to open lecture notes modal and auto-select file
+        function openLectureNotesModal() {
+            setTimeout(() => {
+                // Click the lecture notes card to open the modal
+                const lectureNotesCard = document.querySelector('#pipeline-live-lecture');
+                if (lectureNotesCard) {
+                    lectureNotesCard.click();
+                    
+                    // Wait for modal to open, then auto-select the file
+                    setTimeout(() => {
+                        const fileCheckbox = document.querySelector('input[value*="EC131"]') || 
+                                           document.querySelector('input[value*="EC131_Week_9"]') ||
+                                           document.querySelector('input[value*="machine_learning"]') ||
+                                           document.querySelector('.file-checkbox');
+                        
+                        if (fileCheckbox) {
+                            fileCheckbox.checked = true;
+                            fileCheckbox.dispatchEvent(new Event('change'));
+                            console.log('✅ EC131 Week 9 file auto-selected for lecture notes');
+                        }
+                        
+                        // Show final tooltip
+                        setTimeout(() => {
+                            const modal = document.querySelector('#slide-notes-modal') || document.querySelector('.modal-overlay');
+                            if (modal) {
+                                const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                                const tooltip = document.getElementById('onboarding-tooltip');
+                                
+                                if (spotlight && tooltip) {
+                                    // Create spotlight effect around the modal
+                                    const rect = modal.getBoundingClientRect();
+                                    const padding = 10;
+                                    const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                                    
+                                    spotlight.style.clipPath = clipPath;
+                                    spotlight.classList.add('visible');
+                                    
+                                    // Show final tooltip
+                                    tooltip.innerHTML = `
+                                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                            <p>Perfect! Your EC131 Week 9 file is already selected. Just click "Start note-taking" to begin!</p>
+                                            <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible');" style="align-self: flex-start;">Perfect!</button>
+                                        </div>
+                                    `;
+                                    tooltip.className = 'onboarding-tooltip right';
+                                    const top = rect.top + (rect.bottom - rect.top) / 2;
+                                    const left = rect.right + 15;
+                                    tooltip.style.top = `${top}px`;
+                                    tooltip.style.left = `${left}px`;
+                                    tooltip.style.transform = 'translateY(-50%)';
+                                    tooltip.classList.add('visible');
+                                }
+                            }
+                        }, 1000);
+                    }, 1000);
+                }
+            }, 500);
+        }
 
         function hideOnboardingUI() {
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
