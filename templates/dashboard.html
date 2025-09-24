@@ -4326,7 +4326,7 @@
                     <div class="progress-dot"></div>
                     <div class="progress-dot"></div>
                 </div>
-                <button class="button" id="personalization-next">Next</button>
+                <button class="button personalization-next-btn" data-slide="1">Next</button>
             </div>
         </div>
         
@@ -4353,7 +4353,7 @@
                     <div class="progress-dot active"></div>
                     <div class="progress-dot"></div>
                 </div>
-                <button class="button" id="personalization-next">Next</button>
+                <button class="button personalization-next-btn" data-slide="2">Next</button>
             </div>
         </div>
         
@@ -7554,7 +7554,6 @@ Best regards,
 
             // --- Personalization Flow ---
             const personalizationOptions = document.querySelectorAll('.personalization-option');
-            const nextBtn = document.getElementById('personalization-next');
             const completeBtn = document.getElementById('personalization-complete');
 
             personalizationOptions.forEach(option => {
@@ -7589,7 +7588,10 @@ Best regards,
                 }
             }
 
-            nextBtn.addEventListener('click', nextSlide);
+            // Add event listeners to all Next buttons
+            document.querySelectorAll('.personalization-next-btn').forEach(btn => {
+                btn.addEventListener('click', nextSlide);
+            });
             
             completeBtn.addEventListener('click', () => {
                 // Save personalization data
