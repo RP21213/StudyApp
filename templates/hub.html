@@ -6140,48 +6140,156 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
         
-        // Function to guide user to lecture notes
+        // Function to guide user to Study Tools tab
         function guideToLectureNotes() {
             setTimeout(() => {
-                // First, switch to Study Tools tab
                 const studyToolsTab = document.querySelector('.nav-link[data-tab="tools"]');
                 if (studyToolsTab) {
-                    studyToolsTab.click();
+                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                    const tooltip = document.getElementById('onboarding-tooltip');
                     
-                    // Wait for Study Tools to load, then look for Lecture Notes
-                    setTimeout(() => {
-                        const lectureNotesCard = document.querySelector('#pipeline-live-lecture');
-                        if (lectureNotesCard) {
-                            const spotlight = document.getElementById('onboarding-spotlight-overlay');
-                            const tooltip = document.getElementById('onboarding-tooltip');
-                            
-                            if (spotlight && tooltip) {
-                                // Create spotlight effect around lecture notes card
-                                lectureNotesCard.classList.add('onboarding-highlight');
-                                const rect = lectureNotesCard.getBoundingClientRect();
-                                const padding = 10;
-                                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
-                                
-                                spotlight.style.clipPath = clipPath;
-                                spotlight.classList.add('visible');
-                                
-                                // Show tooltip with explanation
-                                tooltip.innerHTML = `
-                                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                        <p>Click on "Lecture Notes with Slides" to start interactive note-taking with your uploaded lecture!</p>
-                                        <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('#pipeline-live-lecture').classList.remove('onboarding-highlight'); openLectureNotesModal();" style="align-self: flex-start;">Got it!</button>
-                                    </div>
-                                `;
-                                tooltip.className = 'onboarding-tooltip right';
-                                const top = rect.top + (rect.bottom - rect.top) / 2;
-                                const left = rect.right + 15;
-                                tooltip.style.top = `${top}px`;
-                                tooltip.style.left = `${left}px`;
-                                tooltip.style.transform = 'translateY(-50%)';
-                                tooltip.classList.add('visible');
-                            }
+                    if (spotlight && tooltip) {
+                        // Create spotlight effect around Study Tools tab
+                        studyToolsTab.classList.add('onboarding-highlight');
+                        const rect = studyToolsTab.getBoundingClientRect();
+                        const padding = 10;
+                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                        
+                        spotlight.style.clipPath = clipPath;
+                        spotlight.classList.add('visible');
+                        
+                        // Position tooltip to the right, ensuring it stays on screen
+                        const tooltipWidth = 300; // Approximate tooltip width
+                        const rightEdge = rect.right + 15 + tooltipWidth;
+                        const screenWidth = window.innerWidth;
+                        
+                        let left, transform;
+                        if (rightEdge > screenWidth) {
+                            // Position to the left if it would go off screen
+                            left = rect.left - 15 - tooltipWidth;
+                            transform = 'translateX(0)';
+                        } else {
+                            // Position to the right
+                            left = rect.right + 15;
+                            transform = 'translateX(0)';
                         }
-                    }, 1000);
+                        
+                        // Show tooltip with explanation
+                        tooltip.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <p>Click on Study Tools to explore more features!</p>
+                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.nav-link[data-tab=\"tools\"]').classList.remove('onboarding-highlight'); guideToInLecture();" style="align-self: flex-start;">Got it!</button>
+                            </div>
+                        `;
+                        tooltip.className = 'onboarding-tooltip right';
+                        const top = rect.top + (rect.bottom - rect.top) / 2;
+                        tooltip.style.top = `${top}px`;
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.transform = `translateY(-50%) ${transform}`;
+                        tooltip.classList.add('visible');
+                    }
+                }
+            }, 500);
+        }
+        
+        // Function to guide user to "In a Lecture" button
+        function guideToInLecture() {
+            setTimeout(() => {
+                const inLectureButton = document.querySelector('button[data-target="live-lecture-tools"]') || 
+                                      document.querySelector('.category-button[data-target="live-lecture-tools"]');
+                if (inLectureButton) {
+                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    
+                    if (spotlight && tooltip) {
+                        // Create spotlight effect around In a Lecture button
+                        inLectureButton.classList.add('onboarding-highlight');
+                        const rect = inLectureButton.getBoundingClientRect();
+                        const padding = 10;
+                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                        
+                        spotlight.style.clipPath = clipPath;
+                        spotlight.classList.add('visible');
+                        
+                        // Position tooltip to the right, ensuring it stays on screen
+                        const tooltipWidth = 300;
+                        const rightEdge = rect.right + 15 + tooltipWidth;
+                        const screenWidth = window.innerWidth;
+                        
+                        let left, transform;
+                        if (rightEdge > screenWidth) {
+                            left = rect.left - 15 - tooltipWidth;
+                            transform = 'translateX(0)';
+                        } else {
+                            left = rect.right + 15;
+                            transform = 'translateX(0)';
+                        }
+                        
+                        // Show tooltip with explanation
+                        tooltip.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <p>Click on "In a Lecture" to see lecture-related tools!</p>
+                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('button[data-target=\"live-lecture-tools\"], .category-button[data-target=\"live-lecture-tools\"]').classList.remove('onboarding-highlight'); guideToTakeNotes();" style="align-self: flex-start;">Got it!</button>
+                            </div>
+                        `;
+                        tooltip.className = 'onboarding-tooltip right';
+                        const top = rect.top + (rect.bottom - rect.top) / 2;
+                        tooltip.style.top = `${top}px`;
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.transform = `translateY(-50%) ${transform}`;
+                        tooltip.classList.add('visible');
+                    }
+                }
+            }, 500);
+        }
+        
+        // Function to guide user to "Take notes with slides" feature
+        function guideToTakeNotes() {
+            setTimeout(() => {
+                const takeNotesCard = document.querySelector('#pipeline-live-lecture') || 
+                                    document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
+                if (takeNotesCard) {
+                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    
+                    if (spotlight && tooltip) {
+                        // Create spotlight effect around Take notes with slides card
+                        takeNotesCard.classList.add('onboarding-highlight');
+                        const rect = takeNotesCard.getBoundingClientRect();
+                        const padding = 10;
+                        const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                        
+                        spotlight.style.clipPath = clipPath;
+                        spotlight.classList.add('visible');
+                        
+                        // Position tooltip to the right, ensuring it stays on screen
+                        const tooltipWidth = 300;
+                        const rightEdge = rect.right + 15 + tooltipWidth;
+                        const screenWidth = window.innerWidth;
+                        
+                        let left, transform;
+                        if (rightEdge > screenWidth) {
+                            left = rect.left - 15 - tooltipWidth;
+                            transform = 'translateX(0)';
+                        } else {
+                            left = rect.right + 15;
+                            transform = 'translateX(0)';
+                        }
+                        
+                        // Show tooltip with explanation
+                        tooltip.innerHTML = `
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <p>Click on "Take notes with slides" to start interactive note-taking!</p>
+                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('#pipeline-live-lecture, .pipeline-card[data-pipeline=\"live-lecture\"]').classList.remove('onboarding-highlight'); openLectureNotesModal();" style="align-self: flex-start;">Got it!</button>
+                            </div>
+                        `;
+                        tooltip.className = 'onboarding-tooltip right';
+                        const top = rect.top + (rect.bottom - rect.top) / 2;
+                        tooltip.style.top = `${top}px`;
+                        tooltip.style.left = `${left}px`;
+                        tooltip.style.transform = `translateY(-50%) ${transform}`;
+                        tooltip.classList.add('visible');
+                    }
                 }
             }, 500);
         }
@@ -6190,7 +6298,8 @@ document.addEventListener('DOMContentLoaded', () => {
         function openLectureNotesModal() {
             setTimeout(() => {
                 // Click the lecture notes card to open the modal
-                const lectureNotesCard = document.querySelector('#pipeline-live-lecture');
+                const lectureNotesCard = document.querySelector('#pipeline-live-lecture') || 
+                                       document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
                 if (lectureNotesCard) {
                     lectureNotesCard.click();
                     
