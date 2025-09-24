@@ -2346,16 +2346,18 @@ def create_demo_hub():
         
         # Upload the actual sample PDF file to Firebase Storage
         import os
-        from google.cloud import storage
         
-        # Initialize Firebase Storage client
-        storage_client = storage.Client()
-        bucket = storage_client.bucket('ai-study-hub-f3040.firebasestorage.app')
+        # Use the existing Firebase Storage bucket
+        try:
+            bucket = storage.bucket()
+        except Exception as e:
+            print(f"Firebase Storage not available: {e}")
+            bucket = None
         
         # Path to the sample PDF in static directory
         sample_pdf_path = os.path.join('static', 'EC131 Week 9.pdf')
         
-        if os.path.exists(sample_pdf_path):
+        if os.path.exists(sample_pdf_path) and bucket:
             # Upload the PDF to Firebase Storage
             blob_name = f'hubs/{hub_ref.id}/EC131_Week_9.pdf'
             blob = bucket.blob(blob_name)
@@ -7333,8 +7335,17 @@ def save_personalization():
             }
             personalization_updates['study_frequency'] = frequency_mapping.get(data['slide3'], data['slide3'])
         
-        # Update user with personalization data
-        user_ref.update(personalization_updates)
+        # Update user with personalization data (only if there's data to update)
+        if personalization_updates:
+            user_ref.update(personalization_updates)
+        else:
+            print(f"No personalization data to save for user {current_user.id}")
+            # Set default values if no data provided
+            user_ref.update({
+                'goals': 'Study efficiency and time optimization',
+                'study_style': 'Interactive learning with quizzes and games',
+                'study_frequency': 'Weekly study sessions'
+            })
         
         return jsonify({"success": True, "message": "Personalization saved successfully."})
     except Exception as e:
