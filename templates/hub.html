@@ -2975,14 +2975,18 @@
             <div class="modal-header"><h3>Take Notes with Slides</h3><button class="close-btn">&times;</button></div>
             <form id="slide-notes-form" action="{{ url_for('create_slide_notes_session', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" target="_blank">
                 <div class="modal-body">
-                    <p class="modal-description">Upload your lecture slides (PDF format) to begin a new note-taking session.</p>
+                    <p class="modal-description">Choose from existing files in your hub or upload new lecture slides (PDF format) to begin a new note-taking session.</p>
                     <div class="form-group">
                         <label for="slide-notes-title">Session Title</label>
                         <input type="text" id="slide-notes-title" name="title" placeholder="e.g., Week 1: Intro to Business Law" required>
                     </div>
                     <div class="form-group">
-                        <label for="slide-file-upload">Select Slides (PDF)</label>
-                        <input type="file" id="slide-file-upload" name="slide_file" accept=".pdf" required>
+                        <label class="label">Select from Existing Files</label>
+                        <div id="slide-notes-files" class="modal-file-list"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="slide-file-upload">Or Upload New Slides (PDF)</label>
+                        <input type="file" id="slide-file-upload" name="slide_file" accept=".pdf">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -3260,6 +3264,10 @@
     {% endif %}
 
     <script>
+        // Hub files data for modals
+        window.hubFiles = {{ hub.files | tojson }};
+        console.log('🎯 Hub files loaded:', window.hubFiles.length);
+        
         // Universal Notification System (copied from dashboard)
         const NOTIFICATION_TYPES = {
             SUCCESS: 'success',
@@ -3396,6 +3404,18 @@
             let calendar; 
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
+            
+            // Add event listener for slide notes file upload
+            const slideFileUpload = document.getElementById('slide-file-upload');
+            if (slideFileUpload) {
+                slideFileUpload.addEventListener('change', updateSlideNotesFormValidation);
+            }
+            
+            // Add event listener for slide notes form submission
+            const slideNotesForm = document.getElementById('slide-notes-form');
+            if (slideNotesForm) {
+                slideNotesForm.addEventListener('submit', handleSlideNotesFormSubmission);
+            }
             
             // --- Task Queue System ---
             const taskQueue = {
@@ -6360,60 +6380,159 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lectureNotesCard) {
                     lectureNotesCard.click();
                     
-                    // Wait for modal to open, then auto-select the file (only during onboarding)
+                    // Wait for modal to open, then populate file list and auto-select
                     setTimeout(() => {
+                        populateSlideNotesFileList();
+                        
                         const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
                         if (isOnboarding) {
-                            const fileCheckbox = document.querySelector('input[value*="EC131"]') || 
-                                               document.querySelector('input[value*="EC131_Week_9"]') ||
-                                               document.querySelector('input[value*="machine_learning"]') ||
-                                               document.querySelector('.file-checkbox');
-                            
-                            if (fileCheckbox) {
-                                fileCheckbox.checked = true;
-                                fileCheckbox.dispatchEvent(new Event('change'));
-                                console.log('✅ EC131 Week 9 file auto-selected for lecture notes during onboarding');
-                            }
+                            // Auto-select EC131 Week 9 file during onboarding
+                            setTimeout(() => {
+                                const fileCheckbox = document.querySelector('#slide-notes-files input[value*="EC131"]') || 
+                                                   document.querySelector('#slide-notes-files input[value*="EC131_Week_9"]') ||
+                                                   document.querySelector('#slide-notes-files input[value*="machine_learning"]') ||
+                                                   document.querySelector('#slide-notes-files .file-checkbox');
+                                
+                                if (fileCheckbox) {
+                                    fileCheckbox.checked = true;
+                                    fileCheckbox.dispatchEvent(new Event('change'));
+                                    console.log('✅ EC131 Week 9 file auto-selected for lecture notes during onboarding');
+                                    
+                                    // Show final tooltip
+                                    setTimeout(() => {
+                                        const modal = document.querySelector('#slide-notes-modal');
+                                        if (modal) {
+                                            const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                                            const tooltip = document.getElementById('onboarding-tooltip');
+                                            
+                                            if (spotlight && tooltip) {
+                                                // Create spotlight effect around the modal
+                                                const rect = modal.getBoundingClientRect();
+                                                const padding = 10;
+                                                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                                                
+                                                spotlight.style.clipPath = clipPath;
+                                                spotlight.classList.add('visible');
+                                                
+                                                // Show final tooltip
+                                                tooltip.innerHTML = `
+                                                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                                        <p>Perfect! Your EC131 Week 9 file is already selected. Just click "Start note-taking" to begin!</p>
+                                                        <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); setupOnboardingCompletion();" style="align-self: flex-start;">Perfect!</button>
+                                                    </div>
+                                                `;
+                                                tooltip.className = 'onboarding-tooltip right';
+                                                const top = rect.top + (rect.bottom - rect.top) / 2;
+                                                const left = rect.right + 15;
+                                                tooltip.style.top = `${top}px`;
+                                                tooltip.style.left = `${left}px`;
+                                                tooltip.style.transform = 'translateY(-50%)';
+                                                tooltip.classList.add('visible');
+                                            }
+                                        }
+                                    }, 500);
+                                }
+                            }, 500);
                         } else {
                             console.log('ℹ️ Not in onboarding, file not auto-selected');
                         }
-                        
-                        // Show final tooltip
-                        setTimeout(() => {
-                            const modal = document.querySelector('#slide-notes-modal') || document.querySelector('.modal-overlay');
-                            if (modal) {
-                                const spotlight = document.getElementById('onboarding-spotlight-overlay');
-                                const tooltip = document.getElementById('onboarding-tooltip');
-                                
-                                if (spotlight && tooltip) {
-                                    // Create spotlight effect around the modal
-                                    const rect = modal.getBoundingClientRect();
-                                    const padding = 10;
-                                    const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
-                                    
-                                    spotlight.style.clipPath = clipPath;
-                                    spotlight.classList.add('visible');
-                                    
-                                    // Show final tooltip
-                                    tooltip.innerHTML = `
-                                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                            <p>Perfect! Your EC131 Week 9 file is already selected. Just click "Start note-taking" to begin!</p>
-                                            <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); setupOnboardingCompletion();" style="align-self: flex-start;">Perfect!</button>
-                                        </div>
-                                    `;
-                                    tooltip.className = 'onboarding-tooltip right';
-                                    const top = rect.top + (rect.bottom - rect.top) / 2;
-                                    const left = rect.right + 15;
-                                    tooltip.style.top = `${top}px`;
-                                    tooltip.style.left = `${left}px`;
-                                    tooltip.style.transform = 'translateY(-50%)';
-                                    tooltip.classList.add('visible');
-                                }
-                            }
-                        }, 1000);
-                    }, 1000);
+                    }, 500);
                 }
             }, 500);
+        }
+        
+        // Function to populate slide notes file list
+        function populateSlideNotesFileList() {
+            console.log('🎯 populateSlideNotesFileList called');
+            const fileListContainer = document.getElementById('slide-notes-files');
+            if (!fileListContainer) {
+                console.log('❌ slide-notes-files container not found');
+                return;
+            }
+            
+            // Get hub files from the global variable or fetch them
+            const hubFiles = window.hubFiles || [];
+            console.log('🔍 Hub files found:', hubFiles.length);
+            
+            if (hubFiles.length === 0) {
+                fileListContainer.innerHTML = '<p style="color: #888; font-style: italic;">No files available in this hub.</p>';
+                return;
+            }
+            
+            // Populate file list
+            fileListContainer.innerHTML = hubFiles.map(file => `
+                <div class="file-item">
+                    <label style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;">
+                        <input type="radio" name="selected_file" value="${file.id}" class="file-checkbox" style="margin-right: 1rem;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500;">${file.name}</div>
+                            <div style="font-size: 0.875rem; color: #888;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        </div>
+                    </label>
+                </div>
+            `).join('');
+            
+            // Add click handlers for file selection
+            fileListContainer.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // Uncheck all other radio buttons
+                    fileListContainer.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = false);
+                    // Check this one
+                    this.checked = true;
+                    
+                    // Update form validation
+                    updateSlideNotesFormValidation();
+                });
+            });
+            
+            console.log('✅ Slide notes file list populated');
+        }
+        
+        // Function to update form validation for slide notes
+        function updateSlideNotesFormValidation() {
+            const fileSelected = document.querySelector('#slide-notes-files input[name="selected_file"]:checked');
+            const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
+            
+            const submitBtn = document.querySelector('#slide-notes-form button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = !(fileSelected || fileUploaded);
+                if (!(fileSelected || fileUploaded)) {
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                } else {
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
+            }
+        }
+        
+        // Function to handle slide notes form submission
+        function handleSlideNotesFormSubmission(e) {
+            const fileSelected = document.querySelector('#slide-notes-files input[name="selected_file"]:checked');
+            const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
+            
+            if (!fileSelected && !fileUploaded) {
+                e.preventDefault();
+                showNotification('Please select a file from existing files or upload a new file.', NOTIFICATION_TYPES.ERROR);
+                return;
+            }
+            
+            // If a file is selected from existing files, we need to modify the form to include the file ID
+            if (fileSelected && !fileUploaded) {
+                e.preventDefault();
+                
+                // Create a hidden input with the selected file ID
+                const form = e.target;
+                const fileIdInput = document.createElement('input');
+                fileIdInput.type = 'hidden';
+                fileIdInput.name = 'selected_file_id';
+                fileIdInput.value = fileSelected.value;
+                form.appendChild(fileIdInput);
+                
+                // Submit the form
+                form.submit();
+            }
+            // If a file is uploaded, let the normal form submission handle it
         }
         
         // Function to setup onboarding completion

@@ -3059,29 +3059,58 @@ def help_center():
 @app.route("/hub/<hub_id>/create_slide_notes_session", methods=["POST"])
 @login_required
 def create_slide_notes_session(hub_id):
-    if 'slide_file' not in request.files:
-        flash("No file was selected.", "error")
-        return redirect(url_for('hub_page', hub_id=hub_id))
-    
-    file = request.files['slide_file']
     title = request.form.get('title', 'Untitled Lecture Notes')
-
-    # Only allow PDFs for now
-    if file.filename == '' or not file.filename.lower().endswith('.pdf'):
-        flash("Please select a valid PDF file.", "error")
+    selected_file_id = request.form.get('selected_file_id')
+    
+    # Check if a file was uploaded or selected from existing files
+    file_uploaded = 'slide_file' in request.files and request.files['slide_file'].filename != ''
+    file_selected = selected_file_id is not None and selected_file_id != ''
+    
+    if not file_uploaded and not file_selected:
+        flash("Please select a file from existing files or upload a new file.", "error")
         return redirect(url_for('hub_page', hub_id=hub_id))
 
     try:
-        filename = secure_filename(file.filename)
-        file_path = f"hubs/{hub_id}/slides/{uuid.uuid4()}_{filename}"
-        blob = bucket.blob(file_path)
+        if file_selected:
+            # Use existing file from hub
+            file_doc = db.collection('files').document(selected_file_id).get()
+            if not file_doc.exists:
+                flash("Selected file not found.", "error")
+                return redirect(url_for('hub_page', hub_id=hub_id))
+            
+            file_data = file_doc.to_dict()
+            file_path = file_data['path']
+            filename = file_data['name']
+            
+            # Get the file from Firebase Storage
+            blob = bucket.blob(file_path)
+            if not blob.exists():
+                flash("Selected file not found in storage.", "error")
+                return redirect(url_for('hub_page', hub_id=hub_id))
+            
+            # Make it publicly accessible
+            blob.make_public()
+            pdf_url = blob.public_url
+            
+        else:
+            # Upload new file
+            file = request.files['slide_file']
+            
+            # Only allow PDFs for now
+            if not file.filename.lower().endswith('.pdf'):
+                flash("Please select a valid PDF file.", "error")
+                return redirect(url_for('hub_page', hub_id=hub_id))
+            
+            filename = secure_filename(file.filename)
+            file_path = f"hubs/{hub_id}/slides/{uuid.uuid4()}_{filename}"
+            blob = bucket.blob(file_path)
 
-        # Upload file to Firebase
-        blob.upload_from_file(file, content_type=file.content_type)
+            # Upload file to Firebase
+            blob.upload_from_file(file, content_type=file.content_type)
 
-        # Make it publicly accessible (we use this for the initial render)
-        blob.make_public()
-        pdf_url = blob.public_url
+            # Make it publicly accessible
+            blob.make_public()
+            pdf_url = blob.public_url
 
         # IMPORTANT: create the document in annotated_slide_decks (not sessions)
         session_ref = db.collection('annotated_slide_decks').document()
