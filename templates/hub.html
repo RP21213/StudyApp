@@ -6693,16 +6693,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isOnboarding) {
                 console.log('🎯 Completing onboarding during slide notes submission...');
                 
-                // Set flag to show completion modal after redirect
-                sessionStorage.setItem('showOnboardingCompletionModal', '1');
-                
                 // Complete onboarding
-                fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
-                
-                // Clean up onboarding flags
-                sessionStorage.removeItem('onboardingStep');
-                sessionStorage.removeItem('showOnboardingCelebration');
-                sessionStorage.removeItem('showTaskQueueTooltip');
+                fetch('/onboarding/complete', { method: 'POST' }).then(() => {
+                    console.log('✅ Onboarding completion API called successfully');
+                    
+                    // Clean up onboarding flags
+                    sessionStorage.removeItem('onboardingStep');
+                    sessionStorage.removeItem('showOnboardingCelebration');
+                    sessionStorage.removeItem('showTaskQueueTooltip');
+                    
+                    // Show completion modal immediately (don't wait for page reload)
+                    setTimeout(() => {
+                        console.log('🎉 Showing completion modal immediately after onboarding completion');
+                        showCompletionModal();
+                    }, 2000); // Wait 2 seconds for the new tab to open
+                    
+                }).catch(e => console.error('Error completing onboarding:', e));
             }
             
             if (!fileSelected && !fileUploaded) {
@@ -6755,16 +6761,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isOnboarding) {
                     console.log('🎯 Completing onboarding for uploaded file...');
                     
-                    // Set flag to show completion modal after redirect
-                    sessionStorage.setItem('showOnboardingCompletionModal', '1');
-                    
                     // Complete onboarding
-                    fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
-                    
-                    // Clean up onboarding flags
-                    sessionStorage.removeItem('onboardingStep');
-                    sessionStorage.removeItem('showOnboardingCelebration');
-                    sessionStorage.removeItem('showTaskQueueTooltip');
+                    fetch('/onboarding/complete', { method: 'POST' }).then(() => {
+                        console.log('✅ Onboarding completion API called successfully for uploaded file');
+                        
+                        // Clean up onboarding flags
+                        sessionStorage.removeItem('onboardingStep');
+                        sessionStorage.removeItem('showOnboardingCelebration');
+                        sessionStorage.removeItem('showTaskQueueTooltip');
+                        
+                        // Show completion modal immediately (don't wait for page reload)
+                        setTimeout(() => {
+                            console.log('🎉 Showing completion modal immediately after onboarding completion (uploaded file)');
+                            showCompletionModal();
+                        }, 2000); // Wait 2 seconds for the new tab to open
+                        
+                    }).catch(e => console.error('Error completing onboarding:', e));
                 }
             }
             // If a file is uploaded, let the normal form submission handle it

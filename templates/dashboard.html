@@ -7563,16 +7563,22 @@ Best regards,
                     tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
                 }
                 
-                // Force visibility
+                // Force visibility with multiple approaches
                 tooltip.style.opacity = '1';
                 tooltip.style.visibility = 'visible';
+                tooltip.style.display = 'block';
+                tooltip.style.zIndex = '1004';
                 tooltip.classList.add('visible');
                 
-                console.log('Tooltip positioned:', {
+                console.log('🎯 Tooltip positioned and made visible:', {
                     left: tooltip.style.left,
                     top: tooltip.style.top,
                     transform: tooltip.style.transform,
-                    visible: tooltip.classList.contains('visible')
+                    opacity: tooltip.style.opacity,
+                    visibility: tooltip.style.visibility,
+                    display: tooltip.style.display,
+                    zIndex: tooltip.style.zIndex,
+                    hasVisibleClass: tooltip.classList.contains('visible')
                 });
             }
 
@@ -7727,8 +7733,11 @@ Best regards,
                 
                 // Add a "Continue" button to the tooltip for better UX
                 setTimeout(() => {
+                    console.log('🎯 Adding Continue to Hubs button to tooltip...');
                     const tooltip = document.getElementById('onboarding-tooltip');
+                    console.log('🔍 Tooltip element found:', !!tooltip);
                     if (tooltip && !tooltip.querySelector('.onboarding-continue-btn')) {
+                        console.log('🎯 Creating Continue to Hubs button...');
                         const continueBtn = document.createElement('button');
                         continueBtn.className = 'onboarding-continue-btn';
                         continueBtn.textContent = 'Continue to Hubs →';
@@ -7756,6 +7765,9 @@ Best regards,
                             createDemoHubAndShowCelebration();
                         });
                         tooltip.appendChild(continueBtn);
+                        console.log('✅ Continue to Hubs button added to tooltip');
+                    } else {
+                        console.log('ℹ️ Continue button already exists or tooltip not found');
                     }
                 }, 500);
             }
