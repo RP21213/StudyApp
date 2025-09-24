@@ -2675,6 +2675,10 @@ def hub_page(hub_id):
     # --- NEW: Check for Spotify connection ---
     spotify_connected_status = True if current_user.spotify_refresh_token else False
 
+    # --- NEW: Check onboarding state ---
+    needs_onboarding = not current_user.has_completed_onboarding
+    print(f"Hub: User {current_user.id} has_completed_onboarding = {current_user.has_completed_onboarding}, needs_onboarding = {needs_onboarding}")
+
     # Convert all objects to dictionaries to ensure JSON serialization
     def obj_to_dict(obj):
         """Convert object to dictionary, handling Undefined values."""
@@ -2713,7 +2717,8 @@ def hub_page(hub_id):
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
         recent_quiz_scores_json=json.dumps(recent_quiz_scores),
-        spotify_connected=spotify_connected_status # NEW: Pass this to the template
+        spotify_connected=spotify_connected_status, # NEW: Pass this to the template
+        needs_onboarding=needs_onboarding # NEW: Pass onboarding state to template
     )
 
 # ==============================================================================

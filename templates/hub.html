@@ -5473,8 +5473,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
   const isWelcomeHub = "{{ hub.name }}".includes("Welcome");
+  const needsOnboarding = {{ 'true' if needs_onboarding else 'false' }};
+  
+  console.log('🔍 Hub onboarding check:', {
+    onboardingStep: sessionStorage.getItem('onboardingStep'),
+    isWelcomeHub: isWelcomeHub,
+    needsOnboarding: needsOnboarding,
+    showCelebration: sessionStorage.getItem('showOnboardingCelebration')
+  });
+  
   // Only run onboarding if user hasn't completed it yet (server-side check)
-  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub && sessionStorage.getItem('showOnboardingCelebration') !== '1' && {{ 'true' if not current_user.has_completed_onboarding else 'false' }}) {
+  if (sessionStorage.getItem('onboardingStep') === 'hub_entry' && isWelcomeHub && sessionStorage.getItem('showOnboardingCelebration') !== '1' && needsOnboarding) {
+      console.log('🚀 Starting hub onboarding...');
       runHubOnboarding();
   }
 
@@ -5516,6 +5526,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const spotlight = document.getElementById('onboarding-spotlight-overlay');
             const tooltip = document.getElementById('onboarding-tooltip');
             const doneExploringBtn = document.getElementById('onboarding-done-exploring-btn');
+            
+            console.log('📱 Onboarding elements found:', {
+                hubIntroModal: !!hubIntroModal,
+                tutorModal: !!tutorModal,
+                spotlight: !!spotlight,
+                tooltip: !!tooltip,
+                doneExploringBtn: !!doneExploringBtn
+            });
+            
+            // Check if all required elements exist
+            if (!hubIntroModal || !tutorModal || !spotlight || !tooltip || !doneExploringBtn) {
+                console.error('❌ Missing onboarding elements, cannot proceed');
+                return;
+            }
 
             // Helper functions
             function showTooltip(targetElement, text, position = 'bottom') {

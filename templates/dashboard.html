@@ -7817,9 +7817,6 @@ Best regards,
 
             // --- Celebration Modal ---
             document.getElementById('onboarding-complete-btn').addEventListener('click', () => {
-                // Complete onboarding
-                fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
-                
                 // Hide celebration modal
                 celebrationModal.classList.remove('visible');
                 
@@ -7840,7 +7837,6 @@ Best regards,
                     spotlight.classList.remove('visible');
                     removeHighlight();
                     hideTooltip();
-                    sessionStorage.removeItem('onboardingStep');
                     sessionStorage.removeItem('createdDemoHubId');
                 }, 1000);
             });
