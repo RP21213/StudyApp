@@ -6527,6 +6527,23 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('🔍 File selected:', !!fileSelected, fileSelected ? fileSelected.value : 'none');
             console.log('🔍 File uploaded:', !!fileUploaded);
             
+            // Check if we're in onboarding and complete it
+            const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
+            if (isOnboarding) {
+                console.log('🎯 Completing onboarding during slide notes submission...');
+                
+                // Set flag to show completion modal after redirect
+                sessionStorage.setItem('showOnboardingCompletionModal', '1');
+                
+                // Complete onboarding
+                fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                
+                // Clean up onboarding flags
+                sessionStorage.removeItem('onboardingStep');
+                sessionStorage.removeItem('showOnboardingCelebration');
+                sessionStorage.removeItem('showTaskQueueTooltip');
+            }
+            
             if (!fileSelected && !fileUploaded) {
                 e.preventDefault();
                 showNotification('Please select a file from existing files or upload a new file.', NOTIFICATION_TYPES.ERROR);
@@ -6572,6 +6589,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 form.submit();
             } else {
                 console.log('🎯 Using uploaded file, letting normal form submission handle it');
+                // For uploaded files, we still need to complete onboarding
+                const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
+                if (isOnboarding) {
+                    console.log('🎯 Completing onboarding for uploaded file...');
+                    
+                    // Set flag to show completion modal after redirect
+                    sessionStorage.setItem('showOnboardingCompletionModal', '1');
+                    
+                    // Complete onboarding
+                    fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
+                    
+                    // Clean up onboarding flags
+                    sessionStorage.removeItem('onboardingStep');
+                    sessionStorage.removeItem('showOnboardingCelebration');
+                    sessionStorage.removeItem('showTaskQueueTooltip');
+                }
             }
             // If a file is uploaded, let the normal form submission handle it
         }
