@@ -3497,18 +3497,13 @@
             const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
             console.log('🔍 Is currently onboarding:', isOnboarding);
             
-            if (sessionStorage.getItem('showOnboardingCompletionModal') === '1' && !isOnboarding) {
-                console.log('🎉 Found onboarding completion modal flag in hub, showing modal...');
+            // Always clear the completion modal flag when hub loads to prevent premature display
+            if (sessionStorage.getItem('showOnboardingCompletionModal') === '1') {
+                console.log('🧹 Clearing completion modal flag on hub load to prevent premature display');
                 sessionStorage.removeItem('showOnboardingCompletionModal');
-                setTimeout(() => {
-                    showCompletionModal();
-                }, 1000);
-            } else if (sessionStorage.getItem('showOnboardingCompletionModal') === '1' && isOnboarding) {
-                console.log('ℹ️ Found completion modal flag but still onboarding, clearing it...');
-                sessionStorage.removeItem('showOnboardingCompletionModal');
-            } else {
-                console.log('ℹ️ No onboarding completion modal flag found in hub');
             }
+            
+            console.log('ℹ️ Completion modal check completed - flag cleared if present');
             
             // Completion modal button handlers
             const completionExploreBtn = document.getElementById('completion-explore-btn');
