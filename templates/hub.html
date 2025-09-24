@@ -1726,6 +1726,11 @@
             transition: all 0.3s ease; pointer-events: none; 
         }
         #onboarding-tooltip.visible { opacity: 1; transform: translateY(0); }
+        #onboarding-tooltip.right.visible { 
+            opacity: 1; 
+            transform: translateY(-50%); 
+            pointer-events: auto; 
+        }
         
         .onboarding-highlight { 
             position: relative; z-index: 1003; pointer-events: auto !important; 
@@ -4049,22 +4054,20 @@
                                         spotlight.style.clipPath = clipPath;
                                         spotlight.classList.add('visible');
                                         
-                                        // Show tooltip with explanation
-                                        tooltip.innerHTML = `<p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>`;
-                                        tooltip.className = 'onboarding-tooltip bottom';
-                                        const top = rect.bottom + 15;
-                                        const left = rect.left + (rect.right - rect.left) / 2;
+                                        // Show tooltip with explanation on the right side
+                                        tooltip.innerHTML = `
+                                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                                <p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>
+                                                <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.task-queue-section').classList.remove('onboarding-highlight');" style="align-self: flex-start;">Ok</button>
+                                            </div>
+                                        `;
+                                        tooltip.className = 'onboarding-tooltip right';
+                                        const top = rect.top + (rect.bottom - rect.top) / 2;
+                                        const left = rect.right + 15;
                                         tooltip.style.top = `${top}px`;
                                         tooltip.style.left = `${left}px`;
-                                        tooltip.style.transform = 'translateX(-50%)';
+                                        tooltip.style.transform = 'translateY(-50%)';
                                         tooltip.classList.add('visible');
-                                        
-                                        // Auto-hide after 5 seconds
-                                        setTimeout(() => {
-                                            spotlight.classList.remove('visible');
-                                            tooltip.classList.remove('visible');
-                                            taskQueueSection.classList.remove('onboarding-highlight');
-                                        }, 5000);
                                     }
                                 }
                             }, 1000);
@@ -5546,11 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }, 100);
       }, 300);
       
-      // Launch celebration
-      setTimeout(() => {
-          launchConfetti();
-          showCompletionBanner(true);
-      }, 500);
+      // Old onboarding celebration removed
   }
 });
 
@@ -5644,9 +5643,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Step 1: Show hub intro with confetti
+            // Step 1: Show hub intro
             console.log('📱 Showing hub intro modal...');
-            createConfetti();
             hubIntroModal.classList.add('visible');
 
             // Wait for user to click continue
@@ -5794,9 +5792,7 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const firstFolder = document.querySelector('.folder-accordion-item .folder-header') || document.querySelector('.folder-header');
                 if (firstFolder) firstFolder.click();
-                // Fire confetti and show completion banner
-                launchConfetti();
-                showCompletionBanner();
+                // Old onboarding logic removed - no more confetti or banner
             }, 1000);
         }
 
