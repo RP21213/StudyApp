@@ -5461,12 +5461,14 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Check if we should show Task Queue tooltip after page reload
   if (sessionStorage.getItem('showTaskQueueTooltip') === '1') {
+      console.log('🎯 Task Queue tooltip flag found, showing tooltip...');
       // Clear the flag
       sessionStorage.removeItem('showTaskQueueTooltip');
       
       // Wait a bit for the page to fully load, then show the tooltip
       setTimeout(() => {
           const taskQueueSection = document.querySelector('.task-queue-section');
+          console.log('🔍 Task Queue section found:', !!taskQueueSection);
           if (taskQueueSection) {
               // Show spotlight on task queue
               const spotlight = document.getElementById('onboarding-spotlight-overlay');
@@ -5486,7 +5488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   tooltip.innerHTML = `
                       <div style="display: flex; flex-direction: column; gap: 1rem;">
                           <p>Your tasks are now queuing, when they're done you'll be able to check them out!</p>
-                          <button class="button button-primary" onclick="this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.task-queue-section').classList.remove('onboarding-highlight'); showFolderContentsTooltip();" style="align-self: flex-start;">Ok</button>
+                          <button class="button button-primary" onclick="console.log('🎯 Task Queue Ok button clicked'); this.closest('.onboarding-tooltip').classList.remove('visible'); document.getElementById('onboarding-spotlight-overlay').classList.remove('visible'); document.querySelector('.task-queue-section').classList.remove('onboarding-highlight'); showFolderContentsTooltip();" style="align-self: flex-start;">Ok</button>
                       </div>
                   `;
                   tooltip.className = 'onboarding-tooltip right';
@@ -6120,9 +6122,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Function to show folder contents tooltip
         function showFolderContentsTooltip() {
+            console.log('🎯 showFolderContentsTooltip called');
             // Wait a moment for the previous tooltip to disappear
             setTimeout(() => {
                 const folderSection = document.querySelector('.folder-accordion-item') || document.querySelector('.folder-content');
+                console.log('🔍 Folder section found:', !!folderSection);
                 if (folderSection) {
                     const spotlight = document.getElementById('onboarding-spotlight-overlay');
                     const tooltip = document.getElementById('onboarding-tooltip');
@@ -6157,7 +6161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Function to guide user to Study Tools tab
-        function guideToLectureNotes() {
+        window.guideToLectureNotes = function() {
             console.log('🎯 guideToLectureNotes called');
             setTimeout(() => {
                 const studyToolsTab = document.querySelector('.nav-link[data-tab="tools"]');
@@ -6211,7 +6215,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Function to guide user to "In a Lecture" button
-        function guideToInLecture() {
+        window.guideToInLecture = function() {
             console.log('🎯 guideToInLecture called');
             setTimeout(() => {
                 const inLectureButton = document.querySelector('button[data-target="live-lecture-tools"]') || 
@@ -6264,10 +6268,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Function to guide user to "Take notes with slides" feature
-        function guideToTakeNotes() {
+        window.guideToTakeNotes = function() {
+            console.log('🎯 guideToTakeNotes called');
             setTimeout(() => {
                 const takeNotesCard = document.querySelector('#pipeline-live-lecture') || 
                                     document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
+                console.log('🔍 Take notes card found:', !!takeNotesCard);
                 if (takeNotesCard) {
                     const spotlight = document.getElementById('onboarding-spotlight-overlay');
                     const tooltip = document.getElementById('onboarding-tooltip');
@@ -6315,11 +6321,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Function to open lecture notes modal and auto-select file
-        function openLectureNotesModal() {
+        window.openLectureNotesModal = function() {
+            console.log('🎯 openLectureNotesModal called');
             setTimeout(() => {
                 // Click the lecture notes card to open the modal
                 const lectureNotesCard = document.querySelector('#pipeline-live-lecture') || 
                                        document.querySelector('.pipeline-card[data-pipeline="live-lecture"]');
+                console.log('🔍 Lecture notes card found:', !!lectureNotesCard);
                 if (lectureNotesCard) {
                     lectureNotesCard.click();
                     
