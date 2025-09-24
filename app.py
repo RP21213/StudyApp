@@ -2344,6 +2344,22 @@ def create_demo_hub():
         )
         batch.set(note_ref, sample_note.to_dict())
         
+        # Create sample file for onboarding
+        sample_file_ref = db.collection('files').document()
+        sample_file = {
+            'id': sample_file_ref.id,
+            'hub_id': hub_ref.id,
+            'filename': 'machine_learning_intro.pdf',
+            'original_filename': 'machine_learning_intro.pdf',
+            'file_path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
+            'file_size': 1024000,  # 1MB
+            'upload_date': datetime.now(timezone.utc),
+            'file_type': 'pdf',
+            'content': sample_lecture_text,
+            'is_sample': True  # Mark as sample file for onboarding
+        }
+        batch.set(sample_file_ref, sample_file)
+        
         # Create sample flashcards
         flashcard_ref = db.collection('activities').document()
         sample_flashcards = [

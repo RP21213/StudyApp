@@ -7669,6 +7669,8 @@ Best regards,
                         hideTooltip();
                         removeHighlight();
                         hideSpotlight();
+                        // Set onboarding step for hub entry
+                        sessionStorage.setItem('onboardingStep', 'hub_entry');
                         createDemoHubAndShowCelebration();
                         return false;
                     };
@@ -7699,6 +7701,8 @@ Best regards,
                             // Show loading state
                             continueBtn.textContent = 'Creating your hub...';
                             continueBtn.disabled = true;
+                            // Set onboarding step for hub entry
+                            sessionStorage.setItem('onboardingStep', 'hub_entry');
                             // Create demo hub and show celebration instead of direct redirect
                             createDemoHubAndShowCelebration();
                         });
@@ -7823,6 +7827,8 @@ Best regards,
                 const demoHubId = sessionStorage.getItem('createdDemoHubId');
                 if (demoHubId) {
                     console.log('Redirecting to demo hub:', demoHubId);
+                    // Set onboarding step for hub entry
+                    sessionStorage.setItem('onboardingStep', 'hub_entry');
                     window.location.href = `/hub/${demoHubId}`;
                 } else {
                     console.log('No demo hub ID found, switching to hubs tab');

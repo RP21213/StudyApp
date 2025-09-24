@@ -5508,6 +5508,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         async function runHubOnboarding() {
+            console.log('🚀 Starting hub onboarding...');
+            
             // Initialize onboarding elements
             const hubIntroModal = document.getElementById('onboarding-hub-intro-modal');
             const tutorModal = document.getElementById('onboarding-tutor-modal');
@@ -5518,15 +5520,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // Helper functions
             function showTooltip(targetElement, text, position = 'bottom') {
                 const rect = targetElement.getBoundingClientRect();
-                tooltip.textContent = text;
+                tooltip.innerHTML = text; // Use innerHTML for HTML support
                 tooltip.className = `onboarding-tooltip ${position}`;
                 
                 if (position === 'bottom') {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.bottom + 10}px`;
+                    tooltip.style.transform = 'translateX(-50%)';
                 } else {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+                    tooltip.style.transform = 'translateX(-50%)';
                 }
                 
                 tooltip.classList.add('visible');
@@ -5568,6 +5572,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Step 1: Show hub intro with confetti
+            console.log('📱 Showing hub intro modal...');
             createConfetti();
             hubIntroModal.classList.add('visible');
 
@@ -5579,6 +5584,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hubIntroModal.classList.remove('visible');
 
             // Step 2: Spotlight Revision & Exams tab
+            console.log('🎯 Spotlighting revision tab...');
             setTimeout(() => {
                 showSpotlight();
                 const revisionTab = document.querySelector('.nav-link[data-tab="revision"]');
@@ -5593,30 +5599,42 @@ document.addEventListener('DOMContentLoaded', () => {
                         removeHighlight();
                         hideSpotlight();
                         
+                        console.log('📚 User clicked revision tab, switching...');
+                        
                         // Switch to revision tab
                         revisionTab.click();
                         
                         // Wait for content to load
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         
-                        // Auto-generate demo content
-                        const firstFileCheckbox = document.querySelector('.file-checkbox');
-                        if (firstFileCheckbox) {
-                            firstFileCheckbox.checked = true;
-                            firstFileCheckbox.dispatchEvent(new Event('change'));
-                        }
+                        // Look for the revision pack generation button
+                        const generateBtn = document.querySelector('#build-revision-pack-btn') || 
+                                          document.querySelector('[data-tool="revision-pack"]') ||
+                                          document.querySelector('.button[onclick*="revision"]');
                         
-                        const generateBtn = document.querySelector('#build-revision-pack-btn');
                         if (generateBtn) {
+                            console.log('⚡ Auto-generating revision pack...');
+                            
+                            // Set flag for onboarding generation
+                            sessionStorage.setItem('onboardingGenerating', '1');
+                            
+                            // Click the generate button
                             generateBtn.click();
                             
-                            // Wait for generation
-                            await new Promise(resolve => setTimeout(resolve, 3000));
+                            // Wait for generation to complete
+                            await new Promise(resolve => setTimeout(resolve, 5000));
                             
                             // Show AI Tutor intro
+                            console.log('🧠 Showing AI tutor intro...');
+                            tutorModal.classList.add('visible');
+                        } else {
+                            console.log('❌ Could not find revision pack button, showing tutor intro anyway...');
                             tutorModal.classList.add('visible');
                         }
                     }, { once: true });
+                } else {
+                    console.log('❌ Could not find revision tab, showing tutor intro anyway...');
+                    tutorModal.classList.add('visible');
                 }
             }, 500);
 
@@ -5628,10 +5646,12 @@ document.addEventListener('DOMContentLoaded', () => {
             tutorModal.classList.remove('visible');
 
             // Step 4: Show "Done Exploring" button
+            console.log('✅ Showing done exploring button...');
             doneExploringBtn.style.display = 'block';
 
             // Handle completion
             doneExploringBtn.querySelector('.done-exploring-btn').addEventListener('click', async () => {
+                console.log('🎉 Onboarding completed!');
                 createConfetti();
                 
                 // Complete onboarding
@@ -5644,6 +5664,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clean up
                 doneExploringBtn.style.display = 'none';
                 sessionStorage.removeItem('onboardingStep');
+                sessionStorage.removeItem('onboardingGenerating');
                 
                 // Redirect to dashboard with celebration
                 sessionStorage.setItem('onboardingStep', 'celebration');
