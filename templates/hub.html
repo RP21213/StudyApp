@@ -3820,6 +3820,14 @@
                     }
                     e.preventDefault();
                     showTab(e.currentTarget.dataset.tab);
+                    
+                    // Check if we're in onboarding and clicked Study Tools
+                    if (e.currentTarget.dataset.tab === 'tools' && sessionStorage.getItem('onboardingStep') === 'hub_entry') {
+                        console.log('🎯 Study Tools clicked during onboarding, triggering next step...');
+                        setTimeout(() => {
+                            guideToInLecture();
+                        }, 500);
+                    }
                 });
             });
 
