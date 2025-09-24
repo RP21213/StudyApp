@@ -2339,7 +2339,8 @@ def create_demo_hub():
             id=note_ref.id,
             hub_id=hub_ref.id,
             title="Introduction to Machine Learning",
-            content_html=f"<h1>Introduction to Machine Learning</h1><p>{sample_lecture_text.replace(chr(10), '</p><p>')}</p>"
+            content_html=f"<h1>Introduction to Machine Learning</h1><p>{sample_lecture_text.replace(chr(10), '</p><p>')}</p>",
+            created_at=datetime.now(timezone.utc)
         )
         batch.set(note_ref, sample_note.to_dict())
         
@@ -2358,7 +2359,8 @@ def create_demo_hub():
             type='Flashcards',
             title='Machine Learning Basics',
             data={'cards': sample_flashcards},
-            status='completed'
+            status='completed',
+            created_at=datetime.now(timezone.utc)
         )
         batch.set(flashcard_ref, sample_flashcard_activity.to_dict())
         
@@ -2383,7 +2385,8 @@ def create_demo_hub():
                     }
                 ]
             },
-            status='completed'
+            status='completed',
+            created_at=datetime.now(timezone.utc)
         )
         batch.set(quiz_ref, sample_quiz.to_dict())
         

@@ -3362,7 +3362,7 @@
             opacity: 0;
             transform: translateY(10px);
             transition: all 0.3s ease;
-            pointer-events: none;
+            pointer-events: auto; /* Allow interaction with the tooltip */
         }
         #onboarding-tooltip.visible {
             opacity: 1;
@@ -3384,9 +3384,10 @@
             position: relative;
             z-index: 1004;
             pointer-events: auto !important;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.5);
             border-radius: 8px;
             animation: onboarding-pulse 2s infinite;
+            background-color: rgba(139, 92, 246, 0.1) !important;
         }
         
         .onboarding-highlight.nav-tab {
@@ -7518,12 +7519,13 @@ Best regards,
             // --- Helper Functions ---
             function showTooltip(targetElement, text, position = 'bottom') {
                 const rect = targetElement.getBoundingClientRect();
-                tooltip.textContent = text;
+                tooltip.innerHTML = text; // Use innerHTML instead of textContent to support HTML
                 tooltip.className = `onboarding-tooltip ${position}`;
                 
                 if (position === 'bottom') {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.bottom + 10}px`;
+                    tooltip.style.transform = 'translateX(-50%)';
                 } else if (position === 'right') {
                     tooltip.style.left = `${rect.right + 10}px`;
                     tooltip.style.top = `${rect.top + rect.height / 2}px`;
@@ -7637,22 +7639,40 @@ Best regards,
                 console.log('Starting dashboard spotlight...');
                 spotlight.classList.add('visible');
                 
-                // Highlight all navigation tabs in the side panel
+                // Highlight the entire side panel
+                const sidePanel = document.querySelector('.side-panel');
+                console.log('Side panel found:', !!sidePanel);
+                if (sidePanel) {
+                    highlightElement(sidePanel);
+                    
+                    // Show tooltip explaining the dashboard
+                    showTooltip(sidePanel, "💡 This is your dashboard — explore all the tabs to see your AI study tools. Click on 'Hubs' to continue!", 'right');
+                }
+                
+                // Also highlight individual navigation tabs for better visibility
                 const navTabs = document.querySelectorAll('.nav-tab');
                 console.log('Found nav tabs:', navTabs.length);
                 navTabs.forEach(tab => {
                     highlightElement(tab);
                 });
                 
-                // Show tooltip explaining the dashboard
-                const sidePanel = document.querySelector('.side-panel');
-                console.log('Side panel found:', !!sidePanel);
-                if (sidePanel) {
-                    showTooltip(sidePanel, "💡 This is your dashboard — explore all the tabs to see your AI study tools. Click on 'Hubs' to continue!", 'right');
-                }
-                
                 // Set onboarding step for hub entry
                 sessionStorage.setItem('onboardingStep', 'hub_entry');
+                
+                // Add special click handler for hubs tab during onboarding
+                const hubsTab = document.querySelector('[data-tab="hubs"]');
+                if (hubsTab) {
+                    const originalClickHandler = hubsTab.onclick;
+                    hubsTab.onclick = function(e) {
+                        e.preventDefault();
+                        console.log('Hubs tab clicked during onboarding...');
+                        hideTooltip();
+                        removeHighlight();
+                        hideSpotlight();
+                        createDemoHubAndShowCelebration();
+                        return false;
+                    };
+                }
                 
                 // Add a "Continue" button to the tooltip for better UX
                 setTimeout(() => {
@@ -7676,42 +7696,112 @@ Best regards,
                             hideTooltip();
                             removeHighlight();
                             hideSpotlight();
-                            // Create demo hub and redirect instead of clicking tabs
-                            createDemoHubAndRedirect();
+                            // Show loading state
+                            continueBtn.textContent = 'Creating your hub...';
+                            continueBtn.disabled = true;
+                            // Create demo hub and show celebration instead of direct redirect
+                            createDemoHubAndShowCelebration();
                         });
                         tooltip.appendChild(continueBtn);
                     }
                 }, 500);
             }
 
-            // Function to create demo hub and redirect
-            async function createDemoHubAndRedirect() {
+            // Function to create demo hub and show celebration
+            async function createDemoHubAndShowCelebration() {
+                console.log('Creating demo hub and showing celebration...');
                 try {
                     const response = await fetch('/onboarding/create_demo_hub', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' }
                     });
                     
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const result = await response.json();
+                    console.log('Demo hub creation response:', result);
                     
                     if (result.success) {
+                        console.log('Demo hub created successfully:', result.hub_id);
+                        // Store hub ID for later redirect
+                        sessionStorage.setItem('createdDemoHubId', result.hub_id);
+                        // Show celebration modal
+                        showCelebrationModal();
+                    } else {
+                        console.error('Failed to create demo hub:', result.message);
+                        // Fallback: just redirect to hubs tab
+                        switchToHubsTab();
+                    }
+                } catch (error) {
+                    console.error('Error creating demo hub:', error);
+                    // Fallback: just redirect to hubs tab
+                    switchToHubsTab();
+                }
+            }
+            
+            // Function to show celebration modal
+            function showCelebrationModal() {
+                console.log('Showing celebration modal...');
+                // Create confetti
+                createConfetti();
+                
+                // Show celebration modal
+                celebrationModal.classList.add('visible');
+                
+                // Set onboarding step for celebration
+                sessionStorage.setItem('onboardingStep', 'celebration');
+            }
+            
+            // Function to create demo hub and redirect (for fallback)
+            async function createDemoHubAndRedirect() {
+                console.log('Creating demo hub and redirecting...');
+                try {
+                    const response = await fetch('/onboarding/create_demo_hub', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('Demo hub creation response:', result);
+                    
+                    if (result.success) {
+                        console.log('Redirecting to demo hub:', result.hub_id);
                         // Redirect to the demo hub
                         window.location.href = `/hub/${result.hub_id}`;
                     } else {
                         console.error('Failed to create demo hub:', result.message);
                         // Fallback: just redirect to hubs tab
-                        const hubsTab = document.querySelector('[data-tab="hubs"]');
-                        if (hubsTab) {
-                            hubsTab.click();
-                        }
+                        switchToHubsTab();
                     }
                 } catch (error) {
                     console.error('Error creating demo hub:', error);
                     // Fallback: just redirect to hubs tab
-                    const hubsTab = document.querySelector('[data-tab="hubs"]');
-                    if (hubsTab) {
-                        hubsTab.click();
+                    switchToHubsTab();
+                }
+            }
+            
+            // Helper function to switch to hubs tab
+            function switchToHubsTab() {
+                console.log('Switching to hubs tab as fallback...');
+                const hubsTab = document.querySelector('[data-tab="hubs"]');
+                if (hubsTab) {
+                    // Ensure the tab is active and content is shown
+                    document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    hubsTab.classList.add('active');
+                    const hubsContent = document.getElementById('hubs');
+                    if (hubsContent) {
+                        hubsContent.classList.add('active');
                     }
+                    console.log('Successfully switched to hubs tab');
+                } else {
+                    console.error('Could not find hubs tab element');
                 }
             }
 
@@ -7723,14 +7813,21 @@ Best regards,
 
             // --- Celebration Modal ---
             document.getElementById('onboarding-complete-btn').addEventListener('click', () => {
-                // Create confetti
-                createConfetti();
-                
                 // Complete onboarding
                 fetch('/onboarding/complete', { method: 'POST' }).catch(e => console.error('Error completing onboarding:', e));
                 
                 // Hide celebration modal
                 celebrationModal.classList.remove('visible');
+                
+                // Redirect to the created demo hub
+                const demoHubId = sessionStorage.getItem('createdDemoHubId');
+                if (demoHubId) {
+                    console.log('Redirecting to demo hub:', demoHubId);
+                    window.location.href = `/hub/${demoHubId}`;
+                } else {
+                    console.log('No demo hub ID found, switching to hubs tab');
+                    switchToHubsTab();
+                }
                 
                 // Clean up
                 setTimeout(() => {
@@ -7738,6 +7835,7 @@ Best regards,
                     removeHighlight();
                     hideTooltip();
                     sessionStorage.removeItem('onboardingStep');
+                    sessionStorage.removeItem('createdDemoHubId');
                 }, 1000);
             });
 
@@ -7746,6 +7844,13 @@ Best regards,
                 celebrationModal.classList.add('visible');
                 createConfetti();
                 sessionStorage.removeItem('onboardingStep');
+            }
+            
+            // --- Auto-show celebration if coming from hub creation (alternative check) ---
+            if (sessionStorage.getItem('showOnboardingCelebration') === '1') {
+                celebrationModal.classList.add('visible');
+                createConfetti();
+                sessionStorage.removeItem('showOnboardingCelebration');
             }
         });
     </script>
