@@ -7523,9 +7523,14 @@ Best regards,
                 if (position === 'bottom') {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.bottom + 10}px`;
+                } else if (position === 'right') {
+                    tooltip.style.left = `${rect.right + 10}px`;
+                    tooltip.style.top = `${rect.top + rect.height / 2}px`;
+                    tooltip.style.transform = 'translateY(-50%)';
                 } else {
                     tooltip.style.left = `${rect.left + rect.width / 2}px`;
                     tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+                    tooltip.style.transform = 'translateX(-50%)';
                 }
                 
                 tooltip.classList.add('visible');
@@ -7628,16 +7633,19 @@ Best regards,
 
             // --- Dashboard Spotlight ---
             function startDashboardSpotlight() {
+                console.log('Starting dashboard spotlight...');
                 spotlight.classList.add('visible');
                 
                 // Highlight all navigation tabs in the side panel
                 const navTabs = document.querySelectorAll('.nav-tab');
+                console.log('Found nav tabs:', navTabs.length);
                 navTabs.forEach(tab => {
                     highlightElement(tab);
                 });
                 
                 // Show tooltip explaining the dashboard
                 const sidePanel = document.querySelector('.side-panel');
+                console.log('Side panel found:', !!sidePanel);
                 if (sidePanel) {
                     showTooltip(sidePanel, "💡 This is your dashboard — explore all the tabs to see your AI study tools. Click on 'Hubs' to continue!", 'right');
                 }
