@@ -3386,6 +3386,22 @@
             pointer-events: auto !important;
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
             border-radius: 8px;
+            animation: onboarding-pulse 2s infinite;
+        }
+        
+        .onboarding-highlight.nav-tab {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.2)) !important;
+            border: 2px solid rgba(139, 92, 246, 0.6) !important;
+            transform: scale(1.05);
+        }
+        
+        @keyframes onboarding-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.1);
+            }
         }
 
         /* Celebration Modal */
@@ -7614,15 +7630,51 @@ Best regards,
             function startDashboardSpotlight() {
                 spotlight.classList.add('visible');
                 
-                // Highlight Study Hubs button
-                const studyHubsBtn = document.querySelector('[data-tab="hubs"]');
-                if (studyHubsBtn) {
-                    highlightElement(studyHubsBtn);
-                    showTooltip(studyHubsBtn, "💡 This is your dashboard — the command centre where all your AI study tools live.", 'bottom');
-                    
-                    // Set onboarding step for hub entry
-                    sessionStorage.setItem('onboardingStep', 'hub_entry');
+                // Highlight all navigation tabs in the side panel
+                const navTabs = document.querySelectorAll('.nav-tab');
+                navTabs.forEach(tab => {
+                    highlightElement(tab);
+                });
+                
+                // Show tooltip explaining the dashboard
+                const sidePanel = document.querySelector('.side-panel');
+                if (sidePanel) {
+                    showTooltip(sidePanel, "💡 This is your dashboard — explore all the tabs to see your AI study tools. Click on 'Hubs' to continue!", 'right');
                 }
+                
+                // Set onboarding step for hub entry
+                sessionStorage.setItem('onboardingStep', 'hub_entry');
+                
+                // Add a "Continue" button to the tooltip for better UX
+                setTimeout(() => {
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    if (tooltip && !tooltip.querySelector('.onboarding-continue-btn')) {
+                        const continueBtn = document.createElement('button');
+                        continueBtn.className = 'onboarding-continue-btn';
+                        continueBtn.textContent = 'Continue to Hubs →';
+                        continueBtn.style.cssText = `
+                            margin-top: 1rem;
+                            padding: 0.75rem 1.5rem;
+                            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        `;
+                        continueBtn.addEventListener('click', () => {
+                            hideTooltip();
+                            removeHighlight();
+                            // Trigger the hubs tab click
+                            const hubsTab = document.querySelector('[data-tab="hubs"]');
+                            if (hubsTab) {
+                                hubsTab.click();
+                            }
+                        });
+                        tooltip.appendChild(continueBtn);
+                    }
+                }, 500);
             }
 
             // Handle Study Hubs button click during onboarding
