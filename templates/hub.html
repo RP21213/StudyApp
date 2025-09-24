@@ -1732,6 +1732,59 @@
             pointer-events: auto; 
         }
         
+        /* Completion Modal */
+        #onboarding-completion-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1006;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s ease;
+        }
+        #onboarding-completion-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .completion-content {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            transform: scale(0.9);
+            transition: transform 0.6s ease;
+        }
+        #onboarding-completion-modal.visible .completion-content {
+            transform: scale(1);
+        }
+        .completion-content h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0 0 1.5rem 0;
+            color: var(--text-main);
+        }
+        .completion-content p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin: 0 0 2rem 0;
+            line-height: 1.6;
+        }
+        .completion-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
         .onboarding-highlight { 
             position: relative; z-index: 1003; pointer-events: auto !important; 
             box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3); border-radius: 8px; 
@@ -3180,6 +3233,19 @@
     <!-- Onboarding Spotlight Elements -->
     <div id="onboarding-spotlight-overlay"></div>
     <div id="onboarding-tooltip"></div>
+    
+    <!-- Onboarding Completion Modal -->
+    <div id="onboarding-completion-modal">
+        <div class="completion-content">
+            <h1>🎉 Amazing!</h1>
+            <p>Great! You've explored only a couple of the dozens of features on this site to truly transform your university life. Keep exploring with this sample lecture and, when you're ready, feel free to create your very own Study Hub!</p>
+            
+            <div class="completion-actions">
+                <button id="completion-explore-btn" class="button button-primary">Keep Exploring 🚀</button>
+                <button id="completion-create-hub-btn" class="button button-secondary">Create My Own Hub</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Study Hub Intro Modal -->
     <div id="onboarding-hub-intro-modal">
@@ -3415,6 +3481,37 @@
             const slideNotesForm = document.getElementById('slide-notes-form');
             if (slideNotesForm) {
                 slideNotesForm.addEventListener('submit', handleSlideNotesFormSubmission);
+            }
+            
+            // Check for onboarding completion modal
+            console.log('🔍 Checking for onboarding completion modal flag in hub...');
+            if (sessionStorage.getItem('showOnboardingCompletionModal') === '1') {
+                console.log('🎉 Found onboarding completion modal flag in hub, showing modal...');
+                sessionStorage.removeItem('showOnboardingCompletionModal');
+                setTimeout(() => {
+                    showCompletionModal();
+                }, 1000);
+            } else {
+                console.log('ℹ️ No onboarding completion modal flag found in hub');
+            }
+            
+            // Completion modal button handlers
+            const completionExploreBtn = document.getElementById('completion-explore-btn');
+            const completionCreateHubBtn = document.getElementById('completion-create-hub-btn');
+            
+            if (completionExploreBtn) {
+                completionExploreBtn.addEventListener('click', () => {
+                    hideCompletionModal();
+                    // User can continue exploring the hub
+                });
+            }
+            
+            if (completionCreateHubBtn) {
+                completionCreateHubBtn.addEventListener('click', () => {
+                    hideCompletionModal();
+                    // Redirect to dashboard to create a new hub
+                    window.location.href = '/dashboard';
+                });
             }
             
             // --- Task Queue System ---
@@ -6630,6 +6727,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     sessionStorage.removeItem('showOnboardingCelebration');
                     sessionStorage.removeItem('showTaskQueueTooltip');
                 }, { once: true });
+            }
+        }
+        
+        // Function to show completion modal
+        function showCompletionModal() {
+            console.log('🎉 Showing onboarding completion modal...');
+            const completionModal = document.getElementById('onboarding-completion-modal');
+            if (completionModal) {
+                completionModal.classList.add('visible');
+            }
+        }
+        
+        // Function to hide completion modal
+        function hideCompletionModal() {
+            const completionModal = document.getElementById('onboarding-completion-modal');
+            if (completionModal) {
+                completionModal.classList.remove('visible');
             }
         }
 
