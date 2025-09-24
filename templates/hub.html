@@ -5572,7 +5572,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.onboarding-highlight').forEach(el => el.classList.remove('onboarding-highlight'));
             }
 
-            function showSpotlight() {
+            function showSpotlight(targetElement) {
+                if (!targetElement) {
+                    spotlight.classList.add('visible');
+                    return;
+                }
+                
+                targetElement.classList.add('onboarding-highlight');
+                const rect = targetElement.getBoundingClientRect();
+                const padding = 10;
+                const clipPath = `polygon(0% 0%, 0% 100%, ${rect.left - padding}px 100%, ${rect.left - padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.top - padding}px, ${rect.right + padding}px ${rect.bottom + padding}px, ${rect.left - padding}px ${rect.bottom + padding}px, ${rect.left - padding}px 100%, 100% 100%, 100% 0%)`;
+                
+                spotlight.style.clipPath = clipPath;
                 spotlight.classList.add('visible');
             }
 
@@ -5610,10 +5621,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Step 2: Spotlight Study Tools tab
             console.log('🎯 Spotlighting Study Tools tab...');
             setTimeout(() => {
-                showSpotlight();
                 const studyToolsTab = document.querySelector('.nav-link[data-tab="tools"]');
+                console.log('🔍 Study Tools tab found:', studyToolsTab);
                 if (studyToolsTab) {
-                    highlightElement(studyToolsTab);
+                    console.log('✨ Spotlighting and highlighting Study Tools tab...');
+                    showSpotlight(studyToolsTab);
                     showTooltip(studyToolsTab, "Ready for some ✨ AI magic? Click here to explore the Revision Pack Builder and create your first pack!", 'bottom');
                     
                     // Handle click on Study Tools tab
@@ -5644,8 +5656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const revisionPackTool = document.querySelector('#pipeline-revision-pack');
                             if (revisionPackTool) {
                                 console.log('🎯 Spotlighting Revision Pack Builder...');
-                                showSpotlight();
-                                highlightElement(revisionPackTool);
+                                showSpotlight(revisionPackTool);
                                 showTooltip(revisionPackTool, "Perfect! This is the Revision Pack Builder. Click here to create your first revision pack with the sample lecture.", 'bottom');
                                 
                                 // Handle click on revision pack tool
@@ -5679,41 +5690,29 @@ document.addEventListener('DOMContentLoaded', () => {
                                             console.log('✅ Sample file selected');
                                         }
                                         
-                                        // Show AI Tutor intro after user can customize
-                                        setTimeout(() => {
-                                            console.log('🧠 Showing AI tutor intro...');
-                                            tutorModal.classList.add('visible');
-                                        }, 2000);
+                                        // Skip AI Tutor intro for now - user can explore on their own
+                                        console.log('✅ Revision pack modal opened with sample file selected');
                                     } else {
-                                        console.log('❌ Could not find revision modal, showing tutor intro anyway...');
-                                        tutorModal.classList.add('visible');
+                                        console.log('❌ Could not find revision modal, completing onboarding...');
                                     }
                                 }, { once: true });
                             } else {
-                                console.log('❌ Could not find Revision Pack Builder tool, showing tutor intro anyway...');
-                                tutorModal.classList.add('visible');
+                                console.log('❌ Could not find Revision Pack Builder tool, completing onboarding...');
                             }
                         } else {
-                            console.log('❌ Could not find Revision & Exams category, showing tutor intro anyway...');
-                            tutorModal.classList.add('visible');
+                            console.log('❌ Could not find Revision & Exams category, completing onboarding...');
                         }
                     }, { once: true });
                 } else {
-                    console.log('❌ Could not find Study Tools tab, showing tutor intro anyway...');
-                    tutorModal.classList.add('visible');
+                    console.log('❌ Could not find Study Tools tab, completing onboarding...');
                 }
             }, 500);
 
-            // Step 3: AI Tutor introduction
-            await new Promise(resolve => {
-                document.getElementById('onboarding-tutor-continue-btn').addEventListener('click', resolve, { once: true });
-            });
-
-            tutorModal.classList.remove('visible');
-
-            // Step 4: Show "Done Exploring" button
-            console.log('✅ Showing done exploring button...');
-            doneExploringBtn.style.display = 'block';
+            // Step 3: Show "Done Exploring" button after a delay
+            setTimeout(() => {
+                console.log('✅ Showing done exploring button...');
+                doneExploringBtn.style.display = 'block';
+            }, 3000);
 
             // Handle completion
             doneExploringBtn.querySelector('.done-exploring-btn').addEventListener('click', async () => {

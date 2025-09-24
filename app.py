@@ -2360,6 +2360,15 @@ def create_demo_hub():
         }
         batch.set(sample_file_ref, sample_file)
         
+        # Update the hub's files field to include the sample file
+        hub_ref.update({
+            'files': [{
+                'name': 'machine_learning_intro.pdf',
+                'path': f'hubs/{hub_ref.id}/machine_learning_intro.pdf',
+                'size': 1024000
+            }]
+        })
+        
         # Create sample flashcards
         flashcard_ref = db.collection('activities').document()
         sample_flashcards = [
