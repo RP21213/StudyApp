@@ -7785,9 +7785,6 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             // Function to show celebration modal
             function showCelebrationModal() {
                 console.log('Showing celebration modal...');
-                // Create confetti
-                createConfetti();
-                
                 // Show celebration modal
                 celebrationModal.classList.add('visible');
                 
@@ -7882,14 +7879,12 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             // --- Auto-show celebration if coming from hub creation ---
             if (sessionStorage.getItem('onboardingStep') === 'celebration') {
                 celebrationModal.classList.add('visible');
-                createConfetti();
                 sessionStorage.removeItem('onboardingStep');
             }
             
             // --- Auto-show celebration if coming from hub creation (alternative check) ---
             if (sessionStorage.getItem('showOnboardingCelebration') === '1') {
                 celebrationModal.classList.add('visible');
-                createConfetti();
                 sessionStorage.removeItem('showOnboardingCelebration');
             }
         });
