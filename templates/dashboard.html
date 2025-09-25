@@ -4847,25 +4847,11 @@
 
         // ===== MICROANIMATIONS SYSTEM =====
         
-        // Button Click Animations
-        function addButtonAnimations() {
-            const buttons = document.querySelectorAll('.button');
-            buttons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // Add click animation
-                    this.classList.add('clicked');
-                    setTimeout(() => {
-                        this.classList.remove('clicked');
-                    }, 300);
-                    
-                    // Add ripple effect
-                    createRippleEffect(e, this);
-                });
-            });
-        }
+        // Button animations are now integrated into the main DOMContentLoaded function
         
         // Ripple Effect for Buttons
         function createRippleEffect(event, element) {
+            console.log('💧 Creating ripple effect');
             const ripple = document.createElement('span');
             const rect = element.getBoundingClientRect();
             const size = Math.max(rect.width, rect.height);
@@ -4885,9 +4871,11 @@
             element.style.position = 'relative';
             element.style.overflow = 'hidden';
             element.appendChild(ripple);
+            console.log('💧 Ripple element added to button');
             
             setTimeout(() => {
                 ripple.remove();
+                console.log('💧 Ripple element removed');
             }, 600);
         }
         
@@ -4913,38 +4901,7 @@
             };
         }
         
-        // Form Validation Animations
-        function addFormAnimations() {
-            const inputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
-            inputs.forEach(input => {
-                input.addEventListener('blur', function() {
-                    if (this.value && this.checkValidity()) {
-                        this.classList.add('success');
-                        setTimeout(() => this.classList.remove('success'), 1000);
-                    }
-                });
-                
-                input.addEventListener('invalid', function() {
-                    this.classList.add('error');
-                    setTimeout(() => this.classList.remove('error'), 1000);
-                });
-            });
-        }
-        
-        // Card Entrance Animations
-        function addCardAnimations() {
-            const cards = document.querySelectorAll('.hub-card, .community-card, .progress-card');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-        }
+        // Form and card animations are now integrated into the main DOMContentLoaded function
         
         // Sparkle Effect for Special Actions
         function createSparkleEffect(element) {
@@ -4965,20 +4922,7 @@
             }
         }
         
-        // Initialize all animations
-        document.addEventListener('DOMContentLoaded', function() {
-            addButtonAnimations();
-            addFormAnimations();
-            addCardAnimations();
-            
-            // Add sparkle effect to special buttons
-            const specialButtons = document.querySelectorAll('[data-sparkle="true"]');
-            specialButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    createSparkleEffect(this);
-                });
-            });
-        });
+        // Animation functions are now integrated into the main DOMContentLoaded function
         
         // Utility function to show success with animation
         window.showSuccess = function(element, message) {
@@ -5032,6 +4976,50 @@
                 element.classList.remove('celebrate');
             }, 800);
         };
+        
+        // Test function to manually trigger animations
+        window.testAnimations = function() {
+            console.log('🧪 Testing animations manually...');
+            
+            // Test button click animation
+            const firstButton = document.querySelector('.button');
+            if (firstButton) {
+                console.log('Testing button animation on:', firstButton.textContent.trim());
+                firstButton.classList.add('clicked');
+                setTimeout(() => firstButton.classList.remove('clicked'), 300);
+            }
+            
+            // Test card hover
+            const firstCard = document.querySelector('.hub-card, .community-card, .progress-card');
+            if (firstCard) {
+                console.log('Testing card animation on:', firstCard.className);
+                firstCard.style.transform = 'translateY(-4px)';
+                setTimeout(() => firstCard.style.transform = '', 1000);
+            }
+            
+            // Test confetti
+            console.log('Testing confetti...');
+            createConfetti();
+        };
+        
+        // Add test button to page
+        window.addEventListener('load', function() {
+            const testButton = document.createElement('button');
+            testButton.textContent = '🧪 Test Animations';
+            testButton.style.position = 'fixed';
+            testButton.style.top = '10px';
+            testButton.style.right = '10px';
+            testButton.style.zIndex = '10000';
+            testButton.style.background = '#ff6b6b';
+            testButton.style.color = 'white';
+            testButton.style.border = 'none';
+            testButton.style.padding = '10px';
+            testButton.style.borderRadius = '5px';
+            testButton.style.cursor = 'pointer';
+            testButton.onclick = testAnimations;
+            document.body.appendChild(testButton);
+            console.log('🧪 Test button added to page');
+        });
     </script>
 
     <!-- Custom Modal Functions -->
@@ -5170,9 +5158,23 @@
             
             document.body.appendChild(modal);
             
-            // Show modal with animation
+            // Show modal with enhanced animation
+            const content = modal.querySelector('.universal-notification-content');
+            content.style.transform = 'translateY(-50px) scale(0.8)';
+            content.style.opacity = '0';
+            
             setTimeout(() => {
                 modal.classList.add('visible');
+                content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                content.style.transform = 'translateY(0) scale(1)';
+                content.style.opacity = '1';
+                
+                // Add success celebration for success notifications
+                if (type === NOTIFICATION_TYPES.SUCCESS) {
+                    setTimeout(() => {
+                        createSparkleEffect(content);
+                    }, 300);
+                }
             }, 10);
             
             // Store callback for later use
@@ -5228,6 +5230,13 @@
         
         function closeUniversalNotification(button) {
             const modal = button.closest('.universal-notification-modal');
+            const content = modal.querySelector('.universal-notification-content');
+            
+            // Animate out
+            content.style.transition = 'all 0.3s ease';
+            content.style.transform = 'translateY(-20px) scale(0.9)';
+            content.style.opacity = '0';
+            
             modal.classList.remove('visible');
             setTimeout(() => {
                 if (modal.parentNode) {
@@ -6889,14 +6898,128 @@ Best regards,
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            console.log('🎬 Main DOMContentLoaded - Initializing all functionality...');
+            
+            // ===== INTEGRATED MICROANIMATIONS SYSTEM =====
+            console.log('🎬 Adding microanimations to existing elements...');
+            
+            // Add animations to all buttons
+            const buttons = document.querySelectorAll('.button');
+            console.log(`🎯 Found ${buttons.length} buttons to animate`);
+            
+            buttons.forEach((button, index) => {
+                // Store original onclick if it exists
+                const originalOnclick = button.onclick;
+                
+                button.addEventListener('click', function(e) {
+                    console.log('🔘 Button clicked:', this.textContent.trim() || this.innerHTML);
+                    
+                    // Add click animation
+                    this.classList.add('clicked');
+                    setTimeout(() => {
+                        this.classList.remove('clicked');
+                    }, 300);
+                    
+                    // Add ripple effect
+                    createRippleEffect(e, this);
+                    
+                    // Call original onclick if it exists
+                    if (originalOnclick) {
+                        originalOnclick.call(this, e);
+                    }
+                });
+            });
+            
+            // Add card animations
+            const cards = document.querySelectorAll('.hub-card, .community-card, .progress-card');
+            console.log(`🎴 Found ${cards.length} cards to animate`);
+            
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Add form animations
+            const inputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
+            console.log(`📝 Found ${inputs.length} form inputs to animate`);
+            
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value && this.checkValidity()) {
+                        this.classList.add('success');
+                        setTimeout(() => this.classList.remove('success'), 1000);
+                    }
+                });
+                
+                input.addEventListener('invalid', function() {
+                    this.classList.add('error');
+                    setTimeout(() => this.classList.remove('error'), 1000);
+                });
+            });
+            
+            // Add sparkle effects to special buttons
+            const specialButtons = document.querySelectorAll('[data-sparkle="true"]');
+            console.log(`✨ Found ${specialButtons.length} sparkle buttons`);
+            specialButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log('✨ Sparkle button clicked!');
+                    createSparkleEffect(this);
+                });
+            });
+            
+            console.log('🎬 Microanimations integrated successfully!');
+            // ===== END MICROANIMATIONS =====
+            
             // Modal functionality
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
             const modalOverlay = document.getElementById('modal-overlay');
 
-            if (openModalBtn) openModalBtn.addEventListener('click', () => modalOverlay.classList.add('visible'));
-            if(closeModalBtn) closeModalBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
-            if(modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) modalOverlay.classList.remove('visible'); });
+            if (openModalBtn) openModalBtn.addEventListener('click', () => {
+                console.log('📱 Opening modal with animation');
+                modalOverlay.classList.add('visible');
+                // Add bounce animation to modal content
+                const modalContent = modalOverlay.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        modalContent.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                        modalContent.style.transform = 'scale(1)';
+                    }, 10);
+                }
+            });
+            
+            if(closeModalBtn) closeModalBtn.addEventListener('click', () => {
+                console.log('📱 Closing modal with animation');
+                const modalContent = modalOverlay.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.style.transition = 'transform 0.2s ease';
+                    modalContent.style.transform = 'scale(0.8)';
+                    setTimeout(() => modalOverlay.classList.remove('visible'), 200);
+                } else {
+                    modalOverlay.classList.remove('visible');
+                }
+            });
+            
+            if(modalOverlay) modalOverlay.addEventListener('click', e => { 
+                if (e.target === modalOverlay) {
+                    console.log('📱 Closing modal via overlay click');
+                    const modalContent = modalOverlay.querySelector('.modal-content');
+                    if (modalContent) {
+                        modalContent.style.transition = 'transform 0.2s ease';
+                        modalContent.style.transform = 'scale(0.8)';
+                        setTimeout(() => modalOverlay.classList.remove('visible'), 200);
+                    } else {
+                        modalOverlay.classList.remove('visible');
+                    }
+                }
+            });
 
             // Share Folder Modal functionality
             const shareModalOverlay = document.getElementById('share-folder-modal');
@@ -7024,6 +7147,13 @@ Best regards,
                 if (tab.hasAttribute('data-tab')) {
                     tab.addEventListener('click', (e) => {
                         e.preventDefault();
+                        console.log('🔄 Tab switching to:', tab.getAttribute('data-tab'));
+                        
+                        // Add click animation to tab
+                        tab.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            tab.style.transform = '';
+                        }, 150);
                         
                         tabs.forEach(item => item.classList.remove('active'));
                         tab.classList.add('active');
@@ -7032,7 +7162,17 @@ Best regards,
                         tabContents.forEach(content => {
                             content.classList.remove('active');
                             if (content.id === targetId) {
+                                // Add entrance animation to new content
+                                content.style.opacity = '0';
+                                content.style.transform = 'translateY(20px)';
                                 content.classList.add('active');
+                                
+                                // Animate content in
+                                setTimeout(() => {
+                                    content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                                    content.style.opacity = '1';
+                                    content.style.transform = 'translateY(0)';
+                                }, 50);
                             }
                         });
                         history.pushState(null, '', '#' + targetId);
