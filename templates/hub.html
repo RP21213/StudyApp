@@ -2338,6 +2338,361 @@
         .universal-notification-footer .button {
             min-width: 80px;
         }
+
+        /* ===== COMPREHENSIVE ANIMATION SYSTEM ===== */
+        
+        /* Button Click Animations */
+        @keyframes buttonClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes buttonSparkle {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+            100% { opacity: 0; transform: scale(0) rotate(360deg); }
+        }
+        
+        @keyframes buttonRipple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+
+        /* Card Hover Animations */
+        @keyframes cardFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-4px); }
+        }
+        
+        @keyframes cardGlow {
+            0% { box-shadow: var(--card-shadow); }
+            100% { box-shadow: var(--card-shadow-hover); }
+        }
+
+        /* Loading Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-8px); }
+            70% { transform: translateY(-4px); }
+            90% { transform: translateY(-2px); }
+        }
+
+        /* Success Animations */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        /* Form Animations */
+        @keyframes inputFocus {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.02); }
+        }
+        
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        /* Navigation Animations */
+        @keyframes slideInFromLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInFromRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Sparkle Animation */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+
+        /* Celebration Animations */
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes wiggle {
+            0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 100% { transform: rotate(0deg); }
+            3.5% { transform: rotate(5deg); }
+            10.5% { transform: rotate(-5deg); }
+            17.5% { transform: rotate(3deg); }
+            24.5% { transform: rotate(-3deg); }
+            31.5% { transform: rotate(2deg); }
+            38.5% { transform: rotate(-2deg); }
+            45.5% { transform: rotate(1deg); }
+            52.5% { transform: rotate(-1deg); }
+            59.5% { transform: rotate(0.5deg); }
+            66.5% { transform: rotate(-0.5deg); }
+            73.5% { transform: rotate(0.2deg); }
+            80.5% { transform: rotate(-0.2deg); }
+            87.5% { transform: rotate(0.1deg); }
+            94.5% { transform: rotate(-0.1deg); }
+        }
+
+        /* Loading Shimmer */
+        @keyframes loadingShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ===== ANIMATION CLASSES ===== */
+        
+        .animate-fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .animate-slide-left {
+            animation: slideInFromLeft 0.6s ease forwards;
+        }
+        
+        .animate-slide-right {
+            animation: slideInFromRight 0.6s ease forwards;
+        }
+        
+        .animate-bounce {
+            animation: bounce 1s ease;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        .celebrate {
+            animation: bounceIn 0.8s ease;
+        }
+        
+        .wiggle {
+            animation: wiggle 1s ease;
+        }
+        
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            animation: confettiFall 3s linear forwards;
+        }
+
+        /* ===== ENHANCED BUTTON ANIMATIONS ===== */
+        
+        .button {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .button.clicked {
+            animation: buttonClick 0.3s ease;
+        }
+        
+        .button.success {
+            animation: successPulse 0.6s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+            transition: transform 0.1s ease;
+        }
+
+        /* ===== ENHANCED CARD ANIMATIONS ===== */
+        
+        .hub-card, .content-card, .file-item-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hub-card::before, .content-card::before, .file-item-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .hub-card:hover::before, .content-card:hover::before, .file-item-card:hover::before {
+            left: 100%;
+        }
+        
+        .hub-card:hover, .content-card:hover, .file-item-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        /* ===== ENHANCED FORM ANIMATIONS ===== */
+        
+        .form-group input, .form-group textarea, .form-group select {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            animation: inputFocus 0.3s ease;
+            transform: scale(1.02);
+        }
+        
+        .form-group input.error, .form-group textarea.error, .form-group select.error {
+            border-color: var(--danger-color);
+            animation: inputShake 0.5s ease;
+        }
+        
+        .form-group input.success, .form-group textarea.success, .form-group select.success {
+            border-color: var(--success-color);
+            animation: successPulse 0.6s ease;
+        }
+        
+        .form-group input.loading {
+            background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+            background-size: 200% 100%;
+            animation: loadingShimmer 1.5s infinite;
+        }
+
+        /* ===== LOADING SPINNER ===== */
+        
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .loading-spinner.large {
+            width: 40px;
+            height: 40px;
+            border-width: 4px;
+        }
+
+        /* ===== SUCCESS CHECKMARK ===== */
+        
+        .success-checkmark {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-block;
+            stroke-width: 2;
+            stroke: #22c55e;
+            stroke-miterlimit: 10;
+            box-shadow: inset 0px 0px 0px #22c55e;
+            animation: successPulse 0.6s ease;
+        }
+        
+        .success-checkmark circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #22c55e;
+            fill: none;
+            animation: checkmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        
+        .success-checkmark path {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkmark 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        /* ===== SPARKLE EFFECTS ===== */
+        
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fbbf24;
+            border-radius: 50%;
+            animation: sparkle 1s ease-in-out infinite;
+        }
+        
+        .sparkle:nth-child(1) { top: 20%; left: 20%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 80%; left: 80%; animation-delay: 0.2s; }
+        .sparkle:nth-child(3) { top: 40%; left: 70%; animation-delay: 0.4s; }
+        .sparkle:nth-child(4) { top: 70%; left: 30%; animation-delay: 0.6s; }
+        .sparkle:nth-child(5) { top: 10%; left: 60%; animation-delay: 0.8s; }
     </style>
 
     <!-- Custom Modal Functions -->
@@ -2427,6 +2782,324 @@
                 confirmationCallback(confirmationData);
             }
             closeCustomModal();
+        }
+
+        // ===== COMPREHENSIVE ANIMATION SYSTEM =====
+        
+        // Button click animations
+        function addButtonClickAnimation(button) {
+            button.addEventListener('click', function(e) {
+                // Add click animation class
+                this.classList.add('clicked');
+                
+                // Create ripple effect
+                createRippleEffect(this, e);
+                
+                // Create sparkle effect
+                createSparkleEffect(this);
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    this.classList.remove('clicked');
+                }, 300);
+            });
+        }
+        
+        // Ripple effect for buttons
+        function createRippleEffect(button, event) {
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'buttonRipple 0.6s linear';
+            ripple.style.pointerEvents = 'none';
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+        
+        // Sparkle effect for buttons
+        function createSparkleEffect(element) {
+            const sparkleContainer = document.createElement('div');
+            sparkleContainer.style.position = 'absolute';
+            sparkleContainer.style.top = '0';
+            sparkleContainer.style.left = '0';
+            sparkleContainer.style.width = '100%';
+            sparkleContainer.style.height = '100%';
+            sparkleContainer.style.pointerEvents = 'none';
+            sparkleContainer.style.overflow = 'hidden';
+            
+            // Create 5 sparkles
+            for (let i = 0; i < 5; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 0.5 + 's';
+                sparkleContainer.appendChild(sparkle);
+            }
+            
+            element.appendChild(sparkleContainer);
+            
+            setTimeout(() => {
+                sparkleContainer.remove();
+            }, 1000);
+        }
+        
+        // Card hover animations
+        function addCardHoverAnimations() {
+            const cards = document.querySelectorAll('.hub-card, .content-card, .file-item-card, .feature-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                    this.style.boxShadow = 'var(--card-shadow-hover)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'var(--card-shadow)';
+                });
+            });
+        }
+        
+        // Form input animations
+        function addFormAnimations() {
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.classList.add('focus');
+                    this.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.classList.remove('focus');
+                    this.style.transform = 'scale(1)';
+                });
+                
+                input.addEventListener('invalid', function() {
+                    this.classList.add('error');
+                    this.classList.add('animate-shake');
+                    setTimeout(() => {
+                        this.classList.remove('animate-shake');
+                    }, 500);
+                });
+            });
+        }
+        
+        // Loading animations
+        function showLoadingAnimation(element, text = 'Loading...') {
+            const originalContent = element.innerHTML;
+            element.innerHTML = `
+                <div class="loading-spinner"></div>
+                <span style="margin-left: 0.5rem;">${text}</span>
+            `;
+            element.disabled = true;
+            element.classList.add('loading');
+            
+            return () => {
+                element.innerHTML = originalContent;
+                element.disabled = false;
+                element.classList.remove('loading');
+            };
+        }
+        
+        // Success animation
+        function showSuccessAnimation(element, duration = 2000) {
+            const originalContent = element.innerHTML;
+            element.innerHTML = `
+                <svg class="success-checkmark" viewBox="0 0 52 52">
+                    <circle class="success-checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="success-checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <span style="margin-left: 0.5rem;">Success!</span>
+            `;
+            element.classList.add('success');
+            
+            setTimeout(() => {
+                element.innerHTML = originalContent;
+                element.classList.remove('success');
+            }, duration);
+        }
+        
+        // Celebration effects
+        function createConfetti() {
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            
+            const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confettiContainer.appendChild(confetti);
+            }
+            
+            document.body.appendChild(confettiContainer);
+            
+            setTimeout(() => {
+                confettiContainer.remove();
+            }, 5000);
+        }
+        
+        // Wiggle animation
+        function addWiggleAnimation(element) {
+            element.classList.add('wiggle');
+            setTimeout(() => {
+                element.classList.remove('wiggle');
+            }, 1000);
+        }
+        
+        // Bounce animation
+        function addBounceAnimation(element) {
+            element.classList.add('animate-bounce');
+            setTimeout(() => {
+                element.classList.remove('animate-bounce');
+            }, 1000);
+        }
+        
+        // Fade in animation
+        function addFadeInAnimation(element) {
+            element.classList.add('animate-fade-in');
+        }
+        
+        // Pulse animation
+        function addPulseAnimation(element) {
+            element.classList.add('animate-pulse');
+        }
+        
+        // Remove pulse animation
+        function removePulseAnimation(element) {
+            element.classList.remove('animate-pulse');
+        }
+        
+        // Initialize all animations
+        function initializeAnimations() {
+            console.log('🎨 Initializing animations...');
+            
+            // Add button animations
+            const buttons = document.querySelectorAll('.button, .btn, button:not([type="submit"]):not([type="button"])');
+            buttons.forEach(button => {
+                addButtonClickAnimation(button);
+            });
+            
+            // Add card hover animations
+            addCardHoverAnimations();
+            
+            // Add form animations
+            addFormAnimations();
+            
+            // Add fade-in animations to cards
+            const cards = document.querySelectorAll('.hub-card, .content-card, .file-item-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    addFadeInAnimation(card);
+                }, index * 100);
+            });
+            
+            console.log('✅ Animations initialized successfully');
+        }
+        
+        // Enhanced button interactions
+        function enhanceButtonInteractions() {
+            const buttons = document.querySelectorAll('.button, .btn, button');
+            buttons.forEach(button => {
+                // Add hover effect
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = 'var(--card-shadow-hover)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('clicked')) {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '';
+                    }
+                });
+                
+                // Add active state
+                button.addEventListener('mousedown', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+                
+                button.addEventListener('mouseup', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+            });
+        }
+        
+        // File upload animations
+        function enhanceFileUploadAnimations() {
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        const label = this.previousElementSibling;
+                        if (label) {
+                            showSuccessAnimation(label, 1500);
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Modal animations
+        function enhanceModalAnimations() {
+            const modals = document.querySelectorAll('.modal-overlay');
+            modals.forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        // Add fade out animation before closing
+                        this.style.opacity = '0';
+                        this.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            this.style.display = 'none';
+                            this.style.opacity = '1';
+                            this.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                });
+            });
+        }
+        
+        // Progress bar animations
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                const width = bar.style.width || bar.getAttribute('data-width') || '0%';
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease';
+                    bar.style.width = width;
+                }, 100);
+            });
+        }
+        
+        // Initialize all enhanced interactions
+        function initializeEnhancedInteractions() {
+            console.log('🎨 Initializing enhanced interactions...');
+            
+            enhanceButtonInteractions();
+            enhanceFileUploadAnimations();
+            enhanceModalAnimations();
+            animateProgressBars();
+            
+            console.log('✅ Enhanced interactions initialized');
         }
     </script>
 </head>
@@ -5774,6 +6447,25 @@
         // Spotify not connected - function exists but does nothing
         console.log('Spotify not connected - Web Playback SDK ready but not initialized');
         {% endif %}
+        
+        // Initialize animations after everything is loaded
+        console.log('🎨 Starting animation initialization...');
+        setTimeout(() => {
+            initializeAnimations();
+            initializeEnhancedInteractions();
+            
+            // Add celebration effect for successful actions
+            const successButtons = document.querySelectorAll('.button[data-success="true"]');
+            successButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    setTimeout(() => {
+                        createConfetti();
+                    }, 500);
+                });
+            });
+            
+            console.log('✅ All animations and interactions initialized successfully');
+        }, 100);
     };
     </script>
 
