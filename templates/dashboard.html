@@ -4433,7 +4433,7 @@
         </div>
         
         <div class="side-panel-footer">
-            <button id="spotify-player-toggle-btn" class="button button-secondary" style="flex-grow: 1; justify-content: center;" data-spotify-connected="{{ spotify_connected|lower }}">
+            <button id="spotify-player-toggle-btn" class="button button-secondary" style="flex-grow: 1; justify-content: center;" data-spotify-connected="{{ spotify_connected|lower }}" onclick="console.log('🎵 Button clicked via onclick');">
                 {% if spotify_connected %}
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                     <span>Music</span>
@@ -6821,24 +6821,33 @@ Best regards,
         const isSpotifyConnected = toggleBtn ? toggleBtn.dataset.spotifyConnected === 'true' : false;
         
         if (toggleBtn) {
+            console.log('🎵 Music button found:', toggleBtn);
+            console.log('🎵 Spotify connected:', isSpotifyConnected);
             toggleBtn.addEventListener('click', function() {
+                console.log('🎵 Music button clicked!');
                 if (isSpotifyConnected) {
                     // Toggle the Spotify player
                     const playerContainer = document.getElementById('spotify-player-container');
+                    console.log('🎵 Player container found:', !!playerContainer);
                     if (playerContainer) {
                         playerContainer.classList.toggle('visible');
+                        console.log('🎵 Player visibility toggled');
+                    } else {
+                        console.error('🎵 Player container not found!');
                     }
                 } else {
+                    console.log('🎵 Redirecting to Spotify login');
                     // Redirect to Spotify login
                     window.location.href = "{{ url_for('spotify_login') }}";
                 }
             });
+        } else {
+            console.error('🎵 Music button not found!');
         }
     });
 
     // Define Spotify Web Playback SDK ready function globally
     window.onSpotifyWebPlaybackSDKReady = () => {
-        // Only initialize if Spotify is connected
         {% if spotify_connected %}
         // --- Player UI Elements ---
         const playerContainer = document.getElementById('spotify-player-container');

@@ -188,7 +188,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 app.json_encoder = CustomJSONEncoder
 
-socketio = SocketIO(app, async_mode='threading') # NEW: Initialize SocketIO
+socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*") # NEW: Initialize SocketIO
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -864,7 +864,7 @@ def handle_audio_chunk(data):
         return
     
     # Check audio data size to prevent payload errors
-    if len(audio_data) > 2 * 1024 * 1024:  # 2MB limit
+    if len(audio_data) > 5 * 1024 * 1024:  # 5MB limit (base64 encoded)
         print(f"Audio chunk too large: {len(audio_data)} bytes, skipping")
         return
     
@@ -943,15 +943,24 @@ def handle_audio_chunk(data):
                 print("Connected to AssemblyAI v3 streaming service")
             except Exception as e:
                 print(f"Error connecting to AssemblyAI: {e}")
+                import traceback
+                traceback.print_exc()
                 emit('error', {'message': f'Failed to connect to transcription service: {str(e)}'})
                 return
         
         # Convert base64 audio data to bytes
         import base64
-        audio_bytes = base64.b64decode(audio_data)
-        
-        # Stream audio to AssemblyAI v3
-        streaming_client.stream(audio_bytes)
+        try:
+            audio_bytes = base64.b64decode(audio_data)
+            print(f"Decoded audio bytes: {len(audio_bytes)} bytes")
+            
+            # Stream audio to AssemblyAI v3
+            streaming_client.stream(audio_bytes)
+            print("Audio streamed to AssemblyAI successfully")
+        except Exception as decode_error:
+            print(f"Error decoding base64 audio: {decode_error}")
+            emit('error', {'message': f'Error processing audio data: {str(decode_error)}'})
+            return
         
     except Exception as e:
         print(f"Error processing audio chunk: {e}")

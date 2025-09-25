@@ -354,12 +354,19 @@
             // Socket event handlers
             socket.on('connect', () => {
                 console.log('Socket connected:', socket.id);
+                updateStatus('idle', 'Connected - Ready to start');
                 // Test the connection
                 socket.emit('test_connection', { message: 'Hello from client' });
             });
             
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');
+                updateStatus('idle', 'Disconnected - Please refresh page');
+            });
+            
+            socket.on('connect_error', (error) => {
+                console.error('Socket connection error:', error);
+                showMessage('error', 'Failed to connect to server. Please refresh the page.');
             });
             
             socket.on('test_response', (data) => {
@@ -461,12 +468,15 @@
                     isRecording = true;
                     
                     // Send audio chunks more frequently for real-time transcription
-                       const chunkInterval = setInterval(() => {
-                           if (isRecording && audioChunks.length > 0) {
-                               const audioBlob = new Blob(audioChunks.splice(0), { type: 'audio/webm' });
-                               sendAudioChunk(audioBlob);
-                           }
-                       }, 3000); // Send every 3 seconds to reduce payload size for real-time processing
+                    const chunkInterval = setInterval(() => {
+                        if (isRecording && audioChunks.length > 0) {
+                            // Create a copy of current chunks and clear the array
+                            const chunksToSend = [...audioChunks];
+                            audioChunks.length = 0; // Clear the array
+                            const audioBlob = new Blob(chunksToSend, { type: 'audio/webm' });
+                            sendAudioChunk(audioBlob);
+                        }
+                    }, 3000); // Send every 3 seconds to reduce payload size for real-time processing
                     
                     // Store interval ID for cleanup
                     mediaRecorder.chunkInterval = chunkInterval;
@@ -518,9 +528,9 @@
             function sendAudioChunk(audioBlob) {
                 console.log('Sending audio chunk, size:', audioBlob.size);
                 
-                // Skip if blob is too large (over 1MB)
-                if (audioBlob.size > 1024 * 1024) {
-                    console.log('Audio chunk too large, skipping');
+                // Skip if blob is too small (less than 1KB) or too large (over 2MB)
+                if (audioBlob.size < 1024 || audioBlob.size > 2 * 1024 * 1024) {
+                    console.log('Audio chunk size invalid, skipping. Size:', audioBlob.size);
                     return;
                 }
                 
@@ -528,13 +538,16 @@
                 const reader = new FileReader();
                 reader.onload = () => {
                     const base64Audio = reader.result.split(',')[1];
+                    console.log('Base64 audio length:', base64Audio.length);
                     try {
                         socket.emit('audio_chunk', {
                             hub_id: hubId,
                             audio_data: base64Audio
                         });
+                        console.log('Audio chunk sent successfully');
                     } catch (error) {
                         console.error('Error sending audio chunk:', error);
+                        showMessage('error', 'Failed to send audio data. Check connection.');
                     }
                 };
                 reader.onerror = function(error) {

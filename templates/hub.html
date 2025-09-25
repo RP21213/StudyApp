@@ -5267,9 +5267,10 @@
             favouritesSystem.init();
     </script>
 
-    {% if spotify_connected %}
     <script>
+    // Always define the Spotify Web Playback SDK ready function
     window.onSpotifyWebPlaybackSDKReady = () => {
+        {% if spotify_connected %}
         // --- Player UI Elements ---
         const playerContainer = document.getElementById('spotify-player-container');
         const toggleBtn = document.getElementById('spotify-player-toggle-btn-hub');
@@ -5519,9 +5520,12 @@
                 });
             }
         });
+        {% else %}
+        // Spotify not connected - function exists but does nothing
+        console.log('Spotify not connected - Web Playback SDK ready but not initialized');
+        {% endif %}
     };
     </script>
-    {% endif %}
 
     <!-- *** CORRECTED ONBOARDING SCRIPT *** -->
     <script>
