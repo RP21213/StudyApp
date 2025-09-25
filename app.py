@@ -1297,111 +1297,89 @@ def generate_full_study_session(text, duration, focus):
     )
     return response.choices[0].message.content
 
-def generate_interactive_notes_html(text, note_type="condensed"):
-    """Generates interactive study notes in HTML format using the AI."""
+def generate_key_points_html(text):
+    """Generates key points notes in HTML format using the AI."""
+    prompt = f"""
+    You are an expert study assistant creating KEY POINTS from lecture material. Your task is to extract and present the most essential concepts and main ideas with brief, clear descriptions.
+
+    **KEY POINTS REQUIREMENTS:**
+    - Extract only the most important concepts and main ideas
+    - Provide brief but clear descriptions for each key point
+    - Focus on core concepts that students must understand
+    - Keep descriptions concise but informative
+    - Organize points logically by topic or importance
+
+    **STRUCTURE:**
+    - Use clear headings for different topics
+    - Present each key point as a bullet point with a brief explanation
+    - Group related concepts together
+    - Use simple, direct language
+
+    **CONTENT FOCUS:**
+    - Main themes and central concepts
+    - Critical definitions and terms
+    - Important relationships between concepts
+    - Key takeaways that students must remember
+
+    Your response MUST be a single block of well-formed HTML.
+
+    Follow these rules precisely:
+    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
+
+    Here is the text to transform:
+    ---
+    {text}
+    """
     
-    if note_type == "key_points":
-        prompt = f"""
-        You are an expert study assistant creating KEY POINTS from lecture material. Your task is to extract and present the most essential concepts and main ideas with brief, clear descriptions.
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a concise study assistant, skilled at extracting key points and creating focused study materials."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message.content
 
-        **KEY POINTS REQUIREMENTS:**
-        - Extract only the most important concepts and main ideas
-        - Provide brief but clear descriptions for each key point
-        - Focus on core concepts that students must understand
-        - Keep descriptions concise but informative
-        - Organize points logically by topic or importance
+def generate_condensed_notes_html(text):
+    """Generates condensed study notes in HTML format using the AI."""
+    prompt = f"""
+    You are an expert study assistant creating CONDENSED STUDY NOTES from lecture material. Your task is to create comprehensive, well-organized study notes that are easy to review and understand.
 
-        **STRUCTURE:**
-        - Use clear headings for different topics
-        - Present each key point as a bullet point with a brief explanation
-        - Group related concepts together
-        - Use simple, direct language
+    **CONDENSED NOTES REQUIREMENTS:**
+    - Create comprehensive notes that are well-organized and easy to review
+    - Include essential information with clear explanations
+    - Use efficient formatting for quick reference
+    - Balance detail with conciseness for effective studying
+    - Organize content logically with clear structure
 
-        **CONTENT FOCUS:**
-        - Main themes and central concepts
-        - Critical definitions and terms
-        - Important relationships between concepts
-        - Key takeaways that students must remember
+    **WELL-ORGANIZED STRUCTURE:**
+    - Use clear hierarchical headings and subheadings
+    - Organize content logically with smooth transitions between topics
+    - Use bullet points and numbered lists for clarity
+    - Include cross-references between related concepts
 
-        Your response MUST be a single block of well-formed HTML.
+    **STUDY-FRIENDLY CONTENT:**
+    - Focus on information most relevant for learning and review
+    - Include practical examples and applications
+    - Highlight important concepts and relationships
+    - Make content accessible for revision and exam preparation
 
-        Follow these rules precisely:
-        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
-        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
-        """
-        
-    elif note_type == "detailed":
-        prompt = f"""
-        You are an expert study assistant creating COMPREHENSIVE DETAILED NOTES from lecture material. Your task is to create thorough, well-organized study notes with complete explanations, examples, and context.
+    **INTERACTIVE ELEMENTS:**
+    - Highlight key terms with definitions
+    - Emphasize important formulas and equations
+    - Include step-by-step explanations for complex processes
+    - Add notes about common misconceptions or tricky points
 
-        **DETAILED NOTES REQUIREMENTS:**
-        - Include substantial detail for each concept with full explanations
-        - Provide context and background information for concepts
-        - Include multiple examples, case studies, and practical applications
-        - Cover all important subtopics and supporting details
-        - Explain concepts thoroughly so students understand without the original source
-        - Organize content logically with smooth transitions between topics
+    At the end, include a 'Key Takeaways' section that summarizes the most critical points.
 
-        **COMPREHENSIVE COVERAGE:**
-        - Don't skip important details or assume prior knowledge
-        - Include background information where needed
-        - Cover both theoretical concepts and practical applications
-        - Address different perspectives or approaches when relevant
-        - Include step-by-step explanations for complex processes
+    Your response MUST be a single block of well-formed HTML.
 
-        **LECTURE-STYLE CONTENT:**
-        - Write as if explaining to a student in a classroom setting
-        - Include "why" explanations, not just "what" facts
-        - Add context about how concepts relate to each other
-        - Include practical implications and real-world applications
-
-        Your response MUST be a single block of well-formed HTML.
-
-        Follow these rules precisely:
-        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
-        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
-        3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
-        4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points.
-        """
-        
-    else:  # condensed (default)
-        prompt = f"""
-        You are an expert study assistant creating CONDENSED STUDY NOTES from lecture material. Your task is to create comprehensive, well-organized study notes that are easy to review and understand.
-
-        **CONDENSED NOTES REQUIREMENTS:**
-        - Create comprehensive notes that are well-organized and easy to review
-        - Include essential information with clear explanations
-        - Use efficient formatting for quick reference
-        - Balance detail with conciseness for effective studying
-        - Organize content logically with clear structure
-
-        **WELL-ORGANIZED STRUCTURE:**
-        - Use clear hierarchical headings and subheadings
-        - Organize content logically with smooth transitions between topics
-        - Use bullet points and numbered lists for clarity
-        - Include cross-references between related concepts
-
-        **STUDY-FRIENDLY CONTENT:**
-        - Focus on information most relevant for learning and review
-        - Include practical examples and applications
-        - Highlight important concepts and relationships
-        - Make content accessible for revision and exam preparation
-
-        **INTERACTIVE ELEMENTS:**
-        - Highlight key terms with definitions
-        - Emphasize important formulas and equations
-        - Include step-by-step explanations for complex processes
-        - Add notes about common misconceptions or tricky points
-
-        At the end, include a 'Key Takeaways' section that summarizes the most critical points.
-
-        Your response MUST be a single block of well-formed HTML.
-
-        Follow these rules precisely:
-        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
-        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
-        3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
-        4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
+    Follow these rules precisely:
+    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
+    3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
+    4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
 
     Here is the text to transform:
     ---
@@ -1416,6 +1394,63 @@ def generate_interactive_notes_html(text, note_type="condensed"):
         ]
     )
     return response.choices[0].message.content
+
+def generate_detailed_notes_html(text):
+    """Generates comprehensive detailed notes in HTML format using the AI."""
+    prompt = f"""
+    You are an expert study assistant creating COMPREHENSIVE DETAILED NOTES from lecture material. Your task is to create thorough, well-organized study notes with complete explanations, examples, and context.
+
+    **DETAILED NOTES REQUIREMENTS:**
+    - Include substantial detail for each concept with full explanations
+    - Provide context and background information for concepts
+    - Include multiple examples, case studies, and practical applications
+    - Cover all important subtopics and supporting details
+    - Explain concepts thoroughly so students understand without the original source
+    - Organize content logically with smooth transitions between topics
+
+    **COMPREHENSIVE COVERAGE:**
+    - Don't skip important details or assume prior knowledge
+    - Include background information where needed
+    - Cover both theoretical concepts and practical applications
+    - Address different perspectives or approaches when relevant
+    - Include step-by-step explanations for complex processes
+
+    **LECTURE-STYLE CONTENT:**
+    - Write as if explaining to a student in a classroom setting
+    - Include "why" explanations, not just "what" facts
+    - Add context about how concepts relate to each other
+    - Include practical implications and real-world applications
+
+    Your response MUST be a single block of well-formed HTML.
+
+    Follow these rules precisely:
+    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
+    3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
+    4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points.
+
+    Here is the text to transform:
+    ---
+    {text}
+    """
+    
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a comprehensive study tutor, skilled at creating detailed educational content with full explanations and context."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message.content
+
+def generate_interactive_notes_html(text, note_type="condensed"):
+    """Legacy function that calls the appropriate specific function based on note type."""
+    if note_type == "key_points":
+        return generate_key_points_html(text)
+    elif note_type == "detailed":
+        return generate_detailed_notes_html(text)
+    else:  # condensed (default)
+        return generate_condensed_notes_html(text)
 
 def generate_flashcards_from_text(text, num_cards=20):
     """Generates a specific number of flashcards from text using the AI."""

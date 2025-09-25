@@ -12,6 +12,36 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <!-- NEW: Spotify Web Playback SDK -->
+    <script>
+        // Define the Spotify Web Playback SDK ready function globally before loading the SDK
+        window.onSpotifyWebPlaybackSDKReady = function() {
+            console.log('🎵 Spotify Web Playback SDK is ready!');
+            // The actual implementation will be defined later in the page
+            if (window.spotifySDKReadyCallback) {
+                try {
+                    window.spotifySDKReadyCallback();
+                } catch (error) {
+                    console.error('🎵 Error in Spotify SDK callback:', error);
+                }
+            } else {
+                console.warn('🎵 Spotify SDK ready callback not defined yet');
+            }
+        };
+
+        // Add error handling for SDK loading
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('onSpotifyWebPlaybackSDKReady')) {
+                console.error('🎵 Spotify SDK loading error:', e.message);
+                // Retry loading the SDK
+                setTimeout(function() {
+                    console.log('🎵 Retrying Spotify SDK load...');
+                    if (window.Spotify && window.Spotify.Player && window.spotifySDKReadyCallback) {
+                        window.spotifySDKReadyCallback();
+                    }
+                }, 1000);
+            }
+        });
+    </script>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
 
     <style>
@@ -8048,8 +8078,8 @@ Best regards,
         }
     });
 
-    // Define Spotify Web Playback SDK ready function globally
-    window.onSpotifyWebPlaybackSDKReady = () => {
+    // Define the actual Spotify SDK implementation as a callback
+    window.spotifySDKReadyCallback = function() {
         {% if spotify_connected %}
         // --- Player UI Elements ---
         const playerContainer = document.getElementById('spotify-player-container');
@@ -8672,9 +8702,15 @@ Best regards,
         });
         {% else %}
         // Spotify not connected - function exists but does nothing
-        console.log('Spotify not connected - Web Playback SDK ready but not initialized');
+        console.log('🎵 Spotify not connected - Web Playback SDK ready but not initialized');
         {% endif %}
     };
+
+    // Call the callback immediately if SDK is already loaded
+    if (window.Spotify && window.Spotify.Player) {
+        console.log('🎵 Spotify SDK already loaded, calling callback immediately');
+        window.spotifySDKReadyCallback();
+    }
     </script>
 
 <!-- DEBUG: Template condition check -->
