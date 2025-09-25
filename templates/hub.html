@@ -839,20 +839,28 @@
         .file-item-card .file-info .file-icon { color: var(--primary-color); }
         .file-item-card .file-info .file-name { font-weight: 600; color: var(--text-main); }
         .file-item-card .file-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .file-item-card .file-actions .action-buttons { display: flex; align-items: center; gap: 0.25rem; }
         .file-item-card .file-actions .file-size { font-size: 0.85rem; color: var(--text-secondary); }
         
         .view-btn {
             background: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.5rem;
-            border-radius: 6px;
+            padding: 0.75rem;
+            border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            margin-right: 0.5rem;
+            margin-right: 0.25rem;
+            min-width: 44px;
+            min-height: 44px;
+        }
+        
+        .view-btn svg {
+            width: 24px;
+            height: 24px;
         }
         
         .view-btn:hover {
@@ -863,13 +871,20 @@
         .delete-btn {
             background: var(--danger-color);
             color: white;
-            padding: 0.5rem;
-            border-radius: 6px;
+            padding: 0.75rem;
+            border-radius: 8px;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+            min-width: 44px;
+            min-height: 44px;
+        }
+        
+        .delete-btn svg {
+            width: 24px;
+            height: 24px;
         }
         
         .delete-btn:hover {
@@ -2551,12 +2566,14 @@
                             </div>
                             <div class="file-actions">
                                 <span class="file-size">{{ (file.size / 1024)|round(1) }} KB</span>
-                                <button class="view-btn" title="Open file" data-file-path="{{ file.path }}" data-file-name="{{ file.name }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                </button>
-                                <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn delete-file-btn" title="Delete file" data-file-path="{{ file.path }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </a>
+                                <div class="action-buttons">
+                                    <button class="view-btn" title="Open file" data-file-path="{{ file.path }}" data-file-name="{{ file.name }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    </button>
+                                    <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn delete-file-btn" title="Delete file" data-file-path="{{ file.path }}">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         {% else %}
@@ -4077,23 +4094,108 @@
                 const emptyMessage = document.getElementById('empty-file-list-message');
                 if (emptyMessage) emptyMessage.remove();
                 const fileList = document.getElementById('main-file-list');
+                
+                // Determine file extension and create appropriate icon
+                const fileExt = fileInfo.name.split('.').pop().toLowerCase();
+                let fileIcon = '';
+                
+                if (fileExt === 'pdf') {
+                    fileIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="6" font-weight="bold">PDF</text></svg>`;
+                } else if (['docx', 'doc'].includes(fileExt)) {
+                    fileIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="5" font-weight="bold">DOC</text></svg>`;
+                } else if (['pptx', 'ppt'].includes(fileExt)) {
+                    fileIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="5" font-weight="bold">PPT</text></svg>`;
+                } else {
+                    fileIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
+                }
+                
                 const fileItemHTML = `
-                    <div class="file-item-card">
+                    <div class="file-item-card clickable-file" data-file-path="${fileInfo.path}" data-file-name="${fileInfo.name}">
                         <div class="file-info">
-                            <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                            <span class="file-name" data-path="${fileInfo.path}">${fileInfo.name}</span>
+                            <span class="file-icon">${fileIcon}</span>
+                            <span class="file-name">${fileInfo.name}</span>
                         </div>
                         <div class="file-actions">
                             <span class="file-size">${(fileInfo.size / 1024).toFixed(1)} KB</span>
-                            <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn delete-file-btn" title="Delete file" data-file-path="${fileInfo.path}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </a>
+                            <div class="action-buttons">
+                                <button class="view-btn" title="Open file" data-file-path="${fileInfo.path}" data-file-name="${fileInfo.name}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                                <a href="/hub/${hubId}/delete_file?file_path=${encodeURIComponent(fileInfo.path)}" class="delete-btn delete-file-btn" title="Delete file" data-file-path="${fileInfo.path}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>`;
                 fileList.insertAdjacentHTML('beforeend', fileItemHTML);
+                
+                // Add event listeners to the new file card
+                const newCard = fileList.lastElementChild;
+                addFileCardEventListeners(newCard);
             }
 
-            
+            function addFileCardEventListeners(fileCard) {
+                // Handle file card clicks
+                fileCard.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on buttons or links
+                    if (e.target.closest('.view-btn') || e.target.closest('.delete-btn')) {
+                        return;
+                    }
+                    
+                    const filePath = this.dataset.filePath;
+                    const fileName = this.dataset.fileName;
+                    
+                    if (filePath) {
+                        console.log('📄 Opening file:', fileName);
+                        // Open file in new tab
+                        const viewUrl = `/hub/{{ hub.id }}/view_file?file_path=${encodeURIComponent(filePath)}`;
+                        window.open(viewUrl, '_blank');
+                    }
+                });
+                
+                // Handle view button clicks
+                const viewBtn = fileCard.querySelector('.view-btn');
+                if (viewBtn) {
+                    viewBtn.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent card click
+                        
+                        const filePath = this.dataset.filePath;
+                        const fileName = this.dataset.fileName;
+                        
+                        if (filePath) {
+                            console.log('👁️ Viewing file:', fileName);
+                            // Open file in new tab
+                            const viewUrl = `/hub/{{ hub.id }}/view_file?file_path=${encodeURIComponent(filePath)}`;
+                            window.open(viewUrl, '_blank');
+                        }
+                    });
+                }
+                
+                // Handle delete button clicks with confirmation
+                const deleteBtn = fileCard.querySelector('.delete-file-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent card click
+                        e.preventDefault(); // Prevent default link behavior
+                        
+                        const filePath = this.dataset.filePath;
+                        const fileName = fileCard.dataset.fileName;
+                        
+                        if (filePath) {
+                            showCustomConfirmation(
+                                `Are you sure you want to delete "${fileName}"? This action cannot be undone.`,
+                                function() {
+                                    console.log('🗑️ Deleting file:', fileName);
+                                    // Proceed with deletion
+                                    window.location.href = this.href;
+                                },
+                                null,
+                                'Delete'
+                            );
+                        }
+                    });
+                }
+            }
 
             function populateModalFileList(containerId, fileList, { multiSelect = true, preselectPaths = [] } = {}) {
                 const container = document.getElementById(containerId);
@@ -4334,9 +4436,9 @@
             }
 
             function getAllFiles() {
-                return Array.from(document.querySelectorAll('.file-name[data-path]')).map(span => ({ 
-                    name: span.textContent.trim(), 
-                    path: span.dataset.path 
+                return Array.from(document.querySelectorAll('.file-item-card[data-file-path]')).map(card => ({ 
+                    name: card.dataset.fileName, 
+                    path: card.dataset.filePath 
                 }));
             }
             
@@ -4534,8 +4636,8 @@
             let currentToolSelection = { tool: null, callback: null };
 
             function openToolFileSelectModal(toolName) {
-                const fileSpans = Array.from(document.querySelectorAll('#main-file-list .file-name[data-path]'));
-                if (fileSpans.length === 0) {
+                const fileCards = Array.from(document.querySelectorAll('#main-file-list .file-item-card[data-file-path]'));
+                if (fileCards.length === 0) {
                     showWarning("Please upload a document first to use this tool.");
                     return;
                 }
