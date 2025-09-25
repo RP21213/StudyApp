@@ -16,15 +16,33 @@
         // Define the Spotify Web Playback SDK ready function globally before loading the SDK
         window.onSpotifyWebPlaybackSDKReady = function() {
             console.log('🎵 Spotify Web Playback SDK is ready!');
+            
+            // Store that the SDK is ready
+            window.spotifySDKReady = true;
+            
             // The actual implementation will be defined later in the page
             if (window.spotifySDKReadyCallback) {
                 try {
+                    console.log('🎵 Calling spotifySDKReadyCallback...');
                     window.spotifySDKReadyCallback();
                 } catch (error) {
                     console.error('🎵 Error in Spotify SDK callback:', error);
                 }
             } else {
-                console.warn('🎵 Spotify SDK ready callback not defined yet');
+                console.log('🎵 Spotify SDK ready callback not defined yet - will be called when defined');
+                // Set up a polling mechanism to call the callback when it becomes available
+                window.spotifySDKCallbackPolling = setInterval(function() {
+                    if (window.spotifySDKReadyCallback) {
+                        console.log('🎵 Callback now available, calling it...');
+                        try {
+                            window.spotifySDKReadyCallback();
+                        } catch (error) {
+                            console.error('🎵 Error in delayed Spotify SDK callback:', error);
+                        }
+                        clearInterval(window.spotifySDKCallbackPolling);
+                        window.spotifySDKCallbackPolling = null;
+                    }
+                }, 100); // Check every 100ms
             }
         };
 
@@ -8080,6 +8098,15 @@ Best regards,
 
     // Define the actual Spotify SDK implementation as a callback
     window.spotifySDKReadyCallback = function() {
+        console.log('🎵 spotifySDKReadyCallback defined and called');
+        
+        // Clear any polling if it exists
+        if (window.spotifySDKCallbackPolling) {
+            clearInterval(window.spotifySDKCallbackPolling);
+            window.spotifySDKCallbackPolling = null;
+            console.log('🎵 Cleared callback polling');
+        }
+        
         {% if spotify_connected %}
         // --- Player UI Elements ---
         const playerContainer = document.getElementById('spotify-player-container');
@@ -8709,6 +8736,9 @@ Best regards,
     // Call the callback immediately if SDK is already loaded
     if (window.Spotify && window.Spotify.Player) {
         console.log('🎵 Spotify SDK already loaded, calling callback immediately');
+        window.spotifySDKReadyCallback();
+    } else if (window.spotifySDKReady) {
+        console.log('🎵 Spotify SDK was ready before callback was defined, calling callback now');
         window.spotifySDKReadyCallback();
     }
     </script>

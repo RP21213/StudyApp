@@ -1299,6 +1299,7 @@ def generate_full_study_session(text, duration, focus):
 
 def generate_key_points_html(text):
     """Generates key points notes in HTML format using the AI."""
+    print("🎯 KEY POINTS function called")
     prompt = f"""
     You are an expert study assistant creating KEY POINTS from lecture material. Your task is to extract and present the most essential concepts and main ideas with brief, clear descriptions.
 
@@ -1343,6 +1344,7 @@ def generate_key_points_html(text):
 
 def generate_condensed_notes_html(text):
     """Generates condensed study notes in HTML format using the AI."""
+    print("🎯 CONDENSED NOTES function called")
     prompt = f"""
     You are an expert study assistant creating CONDENSED STUDY NOTES from lecture material. Your task is to create comprehensive, well-organized study notes that are easy to review and understand.
 
@@ -1397,6 +1399,7 @@ def generate_condensed_notes_html(text):
 
 def generate_detailed_notes_html(text):
     """Generates comprehensive detailed notes in HTML format using the AI."""
+    print("🎯 DETAILED NOTES function called")
     prompt = f"""
     You are an expert study assistant creating COMPREHENSIVE DETAILED NOTES from lecture material. Your task is to create thorough, well-organized study notes with complete explanations, examples, and context.
 
@@ -1445,11 +1448,15 @@ def generate_detailed_notes_html(text):
 
 def generate_interactive_notes_html(text, note_type="condensed"):
     """Legacy function that calls the appropriate specific function based on note type."""
+    print(f"🎯 Legacy function called with note_type: {note_type}")
     if note_type == "key_points":
+        print("🎯 Routing to KEY POINTS function")
         return generate_key_points_html(text)
     elif note_type == "detailed":
+        print("🎯 Routing to DETAILED NOTES function")
         return generate_detailed_notes_html(text)
     else:  # condensed (default)
+        print("🎯 Routing to CONDENSED NOTES function")
         return generate_condensed_notes_html(text)
 
 def generate_flashcards_from_text(text, num_cards=20):
@@ -6143,7 +6150,8 @@ def generate_individual_notes(hub_id):
     try:
         # Limit text length to prevent timeouts
         limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
-        print(f"Generating {note_type} notes with {len(limited_text)} characters of text")
+        print(f"🎯 Generating {note_type} notes with {len(limited_text)} characters of text")
+        print(f"🎯 Note type received: {note_type}")
 
         # Generate interactive notes with specified type
         interactive_html = generate_interactive_notes_html(limited_text, note_type)

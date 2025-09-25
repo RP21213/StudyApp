@@ -4440,7 +4440,11 @@
                     switch (type) {
                         case 'notes':
                             endpoint = `/hub/${hubId}/generate_individual_notes`;
-                            payload = { selected_files: files };
+                            payload = { 
+                                selected_files: files,
+                                note_type: options.note_type || 'condensed'
+                            };
+                            console.log('🎯 Notes task payload:', payload);
                             break;
                         case 'flashcards':
                             endpoint = `/hub/${hubId}/generate_individual_flashcards`;
