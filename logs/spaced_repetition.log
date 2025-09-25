@@ -821,3 +821,22 @@
 2025-09-25 17:35:21,034 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-25T16:35:21.034292+00:00"}
 2025-09-25 17:35:21,039 - werkzeug - WARNING -  * Debugger is active!
 2025-09-25 17:35:21,047 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-25 17:49:00,310 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-25 17:49:01,110 - werkzeug - INFO -  * Restarting with stat
+2025-09-25 17:49:10,131 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-25 17:49:10,131 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-25T16:49:10.131632+00:00"}
+2025-09-25 17:49:10,136 - werkzeug - WARNING -  * Debugger is active!
+2025-09-25 17:49:10,142 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-25 17:56:18,273 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-25 17:56:19,688 - werkzeug - INFO -  * Restarting with stat
+2025-09-25 17:56:31,282 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-25 17:56:31,282 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-25T16:56:31.282690+00:00"}
+2025-09-25 17:56:31,295 - werkzeug - WARNING -  * Debugger is active!
+2025-09-25 17:56:31,311 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-25 17:56:40,264 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading
+2025-09-25 17:56:42,540 - werkzeug - INFO -  * Restarting with stat
+2025-09-25 17:56:52,499 - spaced_repetition - INFO - Starting Flask application with spaced repetition system
+2025-09-25 17:56:52,500 - spaced_repetition - INFO - Application startup: {"python_version": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]", "platform": "win32", "working_directory": "C:\\Users\\Raihan\\Desktop\\studybot", "timestamp": "2025-09-25T16:56:52.500201+00:00"}
+2025-09-25 17:56:52,505 - werkzeug - WARNING -  * Debugger is active!
+2025-09-25 17:56:52,512 - werkzeug - INFO -  * Debugger PIN: 651-930-276
+2025-09-25 17:57:19,924 - werkzeug - INFO -  * Detected change in 'C:\\Users\\Raihan\\Desktop\\studybot\\app.py', reloading

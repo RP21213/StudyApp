@@ -3237,6 +3237,7 @@
             bottom: 2rem;
             right: 2rem;
             width: 420px;
+            max-height: 80vh;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -3246,9 +3247,16 @@
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
         }
         #spotify-player-container.visible {
             transform: translateY(0) scale(1);
+        }
+        
+        /* Debug: Make sure container is visible when needed */
+        #spotify-player-container.debug {
+            transform: translateY(0) scale(1) !important;
+            border: 3px solid red !important;
         }
         
         /* Mini player mode */
@@ -8062,24 +8070,40 @@ Best regards,
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('🎵 Music button clicked!');
+                console.log('🎵 Spotify connected status:', isSpotifyConnected);
                 
                 if (isSpotifyConnected) {
                     // Toggle the Spotify player
                     const playerContainer = document.getElementById('spotify-player-container');
                     console.log('🎵 Player container found:', !!playerContainer);
+                    console.log('🎵 Container display style:', playerContainer ? playerContainer.style.display : 'N/A');
+                    console.log('🎵 Container classes before:', playerContainer ? playerContainer.className : 'N/A');
+                    
                     if (playerContainer) {
                         // Show the container if it's hidden
                         if (playerContainer.style.display === 'none') {
+                            console.log('🎵 Container was hidden, showing it now');
                             playerContainer.style.display = 'block';
                         }
                         
+                        // Force container to be visible for debugging
+                        playerContainer.classList.add('debug');
+                        
                         playerContainer.classList.toggle('visible');
                         console.log('🎵 Player visibility toggled');
+                        console.log('🎵 Container classes after:', playerContainer.className);
+                        console.log('🎵 Container is now visible:', playerContainer.classList.contains('visible'));
+                        console.log('🎵 Container position:', {
+                            bottom: window.getComputedStyle(playerContainer).bottom,
+                            right: window.getComputedStyle(playerContainer).right,
+                            transform: window.getComputedStyle(playerContainer).transform
+                        });
                         
                         // Update button text based on visibility
                         const span = newToggleBtn.querySelector('span');
                         if (span) {
                             span.textContent = playerContainer.classList.contains('visible') ? 'Hide Music' : 'Music';
+                            console.log('🎵 Button text updated to:', span.textContent);
                         }
                     } else {
                         console.error('🎵 Player container not found!');

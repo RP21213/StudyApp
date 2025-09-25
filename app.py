@@ -1334,7 +1334,7 @@ def generate_key_points_html(text):
     """
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a concise study assistant, skilled at extracting key points and creating focused study materials."},
             {"role": "user", "content": prompt}
@@ -1389,7 +1389,7 @@ def generate_condensed_notes_html(text):
     """
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are an interactive content architect, skilled at creating rich HTML study materials."},
             {"role": "user", "content": prompt}
@@ -1438,7 +1438,7 @@ def generate_detailed_notes_html(text):
     """
     
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a comprehensive study tutor, skilled at creating detailed educational content with full explanations and context."},
             {"role": "user", "content": prompt}
