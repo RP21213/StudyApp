@@ -7467,10 +7467,6 @@ Best regards,
     </script>
 
 <!-- DEBUG: Template condition check -->
-<div id="debug-onboarding-status" style="position: fixed; top: 10px; right: 10px; background: red; color: white; padding: 10px; z-index: 9999; font-size: 12px;">
-    DEBUG: needs_onboarding = {{ needs_onboarding }}<br>
-    DEBUG: has_completed_onboarding = {{ current_user.has_completed_onboarding }}
-</div>
 <script>
 console.log('🔍 Template debug - needs_onboarding value:', {{ needs_onboarding|lower }});
 console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ current_user.has_completed_onboarding|lower }});
@@ -7695,10 +7691,10 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 sessionStorage.setItem('onboardingStep', 'hub_entry');
                 
                 // Add special click handler for hubs tab during onboarding
-                const hubsTab = document.querySelector('[data-tab="hubs"]');
-                if (hubsTab) {
-                    const originalClickHandler = hubsTab.onclick;
-                    hubsTab.onclick = function(e) {
+                const hubsTabClick = document.querySelector('[data-tab="hubs"]');
+                if (hubsTabClick) {
+                    const originalClickHandler = hubsTabClick.onclick;
+                    hubsTabClick.onclick = function(e) {
                         e.preventDefault();
                         console.log('Hubs tab clicked during onboarding...');
                         hideTooltip();
@@ -7834,12 +7830,12 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             // Helper function to switch to hubs tab
             function switchToHubsTab() {
                 console.log('Switching to hubs tab as fallback...');
-                    const hubsTab = document.querySelector('[data-tab="hubs"]');
-                    if (hubsTab) {
+                    const hubsTabSwitch = document.querySelector('[data-tab="hubs"]');
+                    if (hubsTabSwitch) {
                     // Ensure the tab is active and content is shown
                     document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    hubsTab.classList.add('active');
+                    hubsTabSwitch.classList.add('active');
                     const hubsContent = document.getElementById('hubs');
                     if (hubsContent) {
                         hubsContent.classList.add('active');
