@@ -18,6 +18,8 @@ import PyPDF2
 import ast
 from fpdf import FPDF
 import csv
+from docx import Document as DocxDocument
+from pptx import Presentation
 from flask import Response
 from datetime import datetime, timedelta, timezone
 from twilio.rest import Client
@@ -546,6 +548,48 @@ def pdf_to_text(pdf_file_stream):
         print(f"Error reading PDF: {e}")
         return ""
 
+def docx_to_text(docx_file_stream):
+    try:
+        doc = DocxDocument(docx_file_stream)
+        text = ""
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                text += paragraph.text + "\n"
+        return text
+    except Exception as e:
+        print(f"Error reading Word document: {e}")
+        return ""
+
+def pptx_to_text(pptx_file_stream):
+    try:
+        prs = Presentation(pptx_file_stream)
+        text = ""
+        for slide_num, slide in enumerate(prs.slides, 1):
+            text += f"\n--- Slide {slide_num} ---\n"
+            for shape in slide.shapes:
+                if hasattr(shape, "text") and shape.text.strip():
+                    text += shape.text + "\n"
+        return text
+    except Exception as e:
+        print(f"Error reading PowerPoint document: {e}")
+        return ""
+
+def extract_text_from_file(file_stream, file_extension):
+    """
+    Universal text extraction function that handles PDF, DOCX, and PPTX files.
+    """
+    file_extension = file_extension.lower()
+    
+    if file_extension == '.pdf':
+        return pdf_to_text(file_stream)
+    elif file_extension == '.docx':
+        return docx_to_text(file_stream)
+    elif file_extension == '.pptx':
+        return pptx_to_text(file_stream)
+    else:
+        print(f"Unsupported file type: {file_extension}")
+        return ""
+
 def get_text_from_hub_files(selected_files):
     combined_text = ""
     if not selected_files: return ""
@@ -553,9 +597,13 @@ def get_text_from_hub_files(selected_files):
         blob = bucket.blob(file_path)
         file_name = os.path.basename(file_path)
         try:
-            pdf_bytes = blob.download_as_bytes()
-            pdf_stream = io.BytesIO(pdf_bytes)
-            text = pdf_to_text(pdf_stream)
+            file_bytes = blob.download_as_bytes()
+            file_stream = io.BytesIO(file_bytes)
+            
+            # Get file extension to determine processing method
+            file_extension = os.path.splitext(file_name)[1].lower()
+            text = extract_text_from_file(file_stream, file_extension)
+            
             combined_text += f"--- DOCUMENT: {file_name} ---\n\n{text}\n\n"
         except Exception as e:
             print(f"Failed to process file {file_path}: {e}")
@@ -3201,17 +3249,29 @@ def create_slide_notes_session(hub_id):
             # Upload new file
             file = request.files['slide_file']
             
-            # Only allow PDFs for now
-            if not file.filename.lower().endswith('.pdf'):
-                flash("Please select a valid PDF file.", "error")
+            # Check file extension
+            filename_lower = file.filename.lower()
+            if not filename_lower.endswith((".pdf", ".docx", ".pptx")):
+                flash("Please select a valid PDF, Word document (.docx), or PowerPoint presentation (.pptx) file.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             
             filename = secure_filename(file.filename)
             file_path = f"hubs/{hub_id}/slides/{uuid.uuid4()}_{filename}"
             blob = bucket.blob(file_path)
 
+            # Determine content type based on file extension
+            file_extension = os.path.splitext(filename)[1].lower()
+            if file_extension == '.pdf':
+                content_type = 'application/pdf'
+            elif file_extension == '.docx':
+                content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            elif file_extension == '.pptx':
+                content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            else:
+                content_type = file.content_type or 'application/octet-stream'
+            
             # Upload file to Firebase
-            blob.upload_from_file(file, content_type=file.content_type)
+            blob.upload_from_file(file, content_type=content_type)
 
             # Make it publicly accessible
             blob.make_public()
@@ -3627,21 +3687,15 @@ def generate_lecture_flashcards_background(session_id, flashcard_count=10):
             session_ref.update({'flashcards_status': 'failed'})
             return
         
-        # Download PDF from Cloud Storage
+        # Download file from Cloud Storage
         blob = bucket.blob(source_file_path)
-        pdf_content = blob.download_as_bytes()
+        file_content = blob.download_as_bytes()
         
-        # Extract text from all pages
-        import PyPDF2
+        # Extract text using universal function
         import io
-        
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
-        all_text = ""
-        
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            page_text = page.extract_text()
-            all_text += f"\n--- Slide {page_num + 1} ---\n{page_text}\n"
+        file_stream = io.BytesIO(file_content)
+        file_extension = os.path.splitext(source_file_path)[1].lower()
+        all_text = extract_text_from_file(file_stream, file_extension)
         
         if len(all_text.strip()) < 50:
             session_ref.update({'flashcards_status': 'failed'})
@@ -3761,22 +3815,15 @@ def generate_lecture_quiz_background(session_id, quiz_count=10):
             session_ref.update({'quiz_status': 'failed'})
             return
         
-        # Download PDF from Cloud Storage
+        # Download file from Cloud Storage
         blob = bucket.blob(source_file_path)
-        pdf_content = blob.download_as_bytes()
+        file_content = blob.download_as_bytes()
         
-        # Extract text from all pages
-        import PyPDF2
+        # Extract text using universal function
         import io
-        
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
-        all_text = ""
-        
-        for page_num in range(len(pdf_reader.pages)):
-            page = pdf_reader.pages[page_num]
-            text = page.extract_text()
-            if text.strip():
-                all_text += f"Page {page_num + 1}:\n{text}\n\n"
+        file_stream = io.BytesIO(file_content)
+        file_extension = os.path.splitext(source_file_path)[1].lower()
+        all_text = extract_text_from_file(file_stream, file_extension)
         
         if not all_text.strip():
             session_ref.update({'quiz_status': 'failed'})
@@ -3941,42 +3988,68 @@ def process_lecture_for_ai_tutor(session_data):
         
         print(f"Fast processing PDF from path: {source_file_path}")
         
-        # Download PDF from Cloud Storage
+        # Download file from Cloud Storage
         blob = bucket.blob(source_file_path)
-        pdf_content = blob.download_as_bytes()
-        print(f"Downloaded PDF with {len(pdf_content)} bytes")
+        file_content = blob.download_as_bytes()
+        print(f"Downloaded file with {len(file_content)} bytes")
         
-        # Extract text from all pages - NO AI CALLS
-        import PyPDF2
+        # Extract text using universal function
         import io
+        file_stream = io.BytesIO(file_content)
+        file_extension = os.path.splitext(source_file_path)[1].lower()
+        all_text = extract_text_from_file(file_stream, file_extension)
         
-        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
-        total_pages = len(pdf_reader.pages)
-        print(f"PDF has {total_pages} pages")
-        
-        processed_content = {
-            'total_pages': total_pages,
-            'pages': []
-        }
-        
-        # Process all pages quickly without AI summaries
-        for page_num in range(total_pages):
-            try:
-                page = pdf_reader.pages[page_num]
-                text = page.extract_text()
-                if text.strip():
-                    # Create simple summary by taking first 200 characters
-                    simple_summary = text.strip()[:200] + "..." if len(text.strip()) > 200 else text.strip()
-                    
-                    processed_content['pages'].append({
-                        'page_number': page_num + 1,
-                        'text': text.strip(),
-                        'summary': simple_summary  # No AI call - just truncate
-                    })
-                    print(f"Processed page {page_num + 1} with {len(text)} characters")
-            except Exception as page_error:
-                print(f"Error processing page {page_num + 1}: {page_error}")
-                continue
+        # For non-PDF files, we'll treat the entire content as one "page"
+        if file_extension == '.pdf':
+            # Handle PDF with individual pages
+            import PyPDF2
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+            total_pages = len(pdf_reader.pages)
+            print(f"PDF has {total_pages} pages")
+            
+            processed_content = {
+                'total_pages': total_pages,
+                'pages': []
+            }
+            
+            # Process all pages quickly without AI summaries
+            for page_num in range(total_pages):
+                try:
+                    page = pdf_reader.pages[page_num]
+                    text = page.extract_text()
+                    if text.strip():
+                        # Create simple summary by taking first 200 characters
+                        simple_summary = text.strip()[:200] + "..." if len(text.strip()) > 200 else text.strip()
+                        
+                        processed_content['pages'].append({
+                            'page_number': page_num + 1,
+                            'text': text.strip(),
+                            'summary': simple_summary  # No AI call - just truncate
+                        })
+                        print(f"Processed page {page_num + 1} with {len(text)} characters")
+                except Exception as page_error:
+                    print(f"Error processing page {page_num + 1}: {page_error}")
+                    continue
+        else:
+            # Handle DOCX/PPTX as single page content
+            total_pages = 1
+            print(f"Document has 1 page/section")
+            
+            processed_content = {
+                'total_pages': total_pages,
+                'pages': []
+            }
+            
+            if all_text.strip():
+                # Create simple summary by taking first 200 characters
+                simple_summary = all_text.strip()[:200] + "..." if len(all_text.strip()) > 200 else all_text.strip()
+                
+                processed_content['pages'].append({
+                    'page_number': 1,
+                    'text': all_text.strip(),
+                    'summary': simple_summary
+                })
+                print(f"Processed document with {len(all_text)} characters")
         
         print(f"Successfully processed {len(processed_content['pages'])} pages in FAST mode")
         return processed_content
@@ -4816,6 +4889,60 @@ def delete_file(hub_id):
         flash("File deleted successfully.", "success")
     return redirect(url_for('hub_page', hub_id=hub_id))
 
+@app.route("/hub/<hub_id>/view_file")
+@login_required
+def view_file(hub_id):
+    """View or download a file from the hub."""
+    try:
+        file_path = request.args.get('file_path')
+        if not file_path:
+            flash("Missing file information.", "error")
+            return redirect(url_for('hub_page', hub_id=hub_id))
+        
+        # Get the hub to verify ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists or hub_doc.to_dict()['user_id'] != current_user.id:
+            flash("Hub not found or access denied.", "error")
+            return redirect(url_for('hub_page', hub_id=hub_id))
+        
+        # Get the file from Firebase Storage
+        blob = bucket.blob(file_path)
+        if not blob.exists():
+            flash("File not found.", "error")
+            return redirect(url_for('hub_page', hub_id=hub_id))
+        
+        # Get file content
+        file_content = blob.download_as_bytes()
+        filename = os.path.basename(file_path)
+        file_extension = os.path.splitext(filename)[1].lower()
+        
+        # Determine content type
+        if file_extension == '.pdf':
+            content_type = 'application/pdf'
+        elif file_extension == '.docx':
+            content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        elif file_extension == '.pptx':
+            content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        else:
+            content_type = 'application/octet-stream'
+        
+        # Create response with appropriate headers
+        response = Response(
+            file_content,
+            mimetype=content_type,
+            headers={
+                'Content-Disposition': f'inline; filename="{filename}"',
+                'Content-Type': content_type
+            }
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error viewing file {file_path}: {e}")
+        flash("Error opening file.", "error")
+        return redirect(url_for('hub_page', hub_id=hub_id))
+
 @app.route("/hub/<hub_id>/upload", methods=["POST"])
 @login_required
 def upload_file(hub_id):
@@ -4824,16 +4951,30 @@ def upload_file(hub_id):
     file = request.files['pdf']
     if file.filename == '':
         return jsonify({"success": False, "message": "No file selected."}), 400
-    if not file or not file.filename.lower().endswith(".pdf"):
-        return jsonify({"success": False, "message": "Invalid file type. Please upload a PDF."}), 400
+    
+    # Check file extension
+    filename_lower = file.filename.lower()
+    if not filename_lower.endswith((".pdf", ".docx", ".pptx")):
+        return jsonify({"success": False, "message": "Invalid file type. Please upload a PDF, Word document (.docx), or PowerPoint presentation (.pptx)."}), 400
 
     try:
         filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', file.filename)
         file_path = f"hubs/{hub_id}/{filename}"
         blob = bucket.blob(file_path)
         
+        # Determine content type based on file extension
+        file_extension = os.path.splitext(filename)[1].lower()
+        if file_extension == '.pdf':
+            content_type = 'application/pdf'
+        elif file_extension == '.docx':
+            content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        elif file_extension == '.pptx':
+            content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        else:
+            content_type = 'application/octet-stream'
+        
         file.seek(0)
-        blob.upload_from_file(file, content_type='application/pdf')
+        blob.upload_from_file(file, content_type=content_type)
         
         file.seek(0, os.SEEK_END)
         file_info = {'name': filename, 'path': file_path, 'size': file.tell()}

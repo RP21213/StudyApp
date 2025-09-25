@@ -120,7 +120,7 @@
                 {% if flashcards and flashcards|length > 0 %}
                 <div class="flashcards-grid">
                     {% for card in flashcards %}
-                    <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard" onclick="this.classList.toggle('flipped')" tabindex="0" role="button" aria-label="Flashcard: {{ card.front }}">
                         <div class="flashcard-inner">
                             <div class="flashcard-front">
                                 {{ card.front }}
@@ -278,6 +278,17 @@
                         notesContent.classList.remove('ai-loading');
                     }
                 }
+            });
+            
+            // --- Flashcard Keyboard Support ---
+            document.querySelectorAll('.flashcard').forEach(card => {
+                card.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        card.classList.toggle('flipped');
+                        console.log('🎯 Flashcard flipped with keyboard');
+                    }
+                });
             });
         });
     </script>

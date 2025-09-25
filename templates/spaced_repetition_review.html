@@ -180,7 +180,7 @@
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.1s ease;
             min-width: 120px;
             display: flex;
             flex-direction: column;
@@ -189,8 +189,13 @@
         }
         
         .rating-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .rating-btn:active {
+            transform: translateY(0);
+            transition: transform 0.05s ease;
         }
         
         .rating-btn.again {
@@ -340,6 +345,34 @@
         
         .flashcard:hover .flip-hint {
             opacity: 1;
+        }
+        
+        .keyboard-shortcuts {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.9);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+        
+        .keyboard-shortcuts:hover {
+            opacity: 1;
+        }
+        
+        .shortcut-key {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            margin: 0 0.2rem;
         }
         
         /* Loading Screen Styles */
@@ -579,6 +612,13 @@
                 <div class="flip-hint">Click card to flip</div>
             </div>
             
+            <!-- Keyboard Shortcuts Hint -->
+            <div class="keyboard-shortcuts" id="keyboard-shortcuts">
+                <div style="font-weight: 600; margin-bottom: 0.5rem;">⌨️ Keyboard Shortcuts</div>
+                <div><span class="shortcut-key">Space</span> or <span class="shortcut-key">Enter</span> - Flip card</div>
+                <div><span class="shortcut-key">1</span> Again | <span class="shortcut-key">2</span> Hard | <span class="shortcut-key">3</span> Good | <span class="shortcut-key">4</span> Easy</div>
+            </div>
+            
             <!-- Rating Buttons -->
             <div class="rating-buttons" id="rating-buttons" style="display: none;">
                 <button class="rating-btn again" onclick="rateCard(0)">
@@ -812,6 +852,12 @@
             flashcard.classList.remove('flipped');
             ratingButtons.style.display = 'none';
             
+            // Reset keyboard shortcuts hint opacity
+            const shortcutsHint = document.getElementById('keyboard-shortcuts');
+            if (shortcutsHint) {
+                shortcutsHint.style.opacity = '0.8';
+            }
+            
             // Ensure card maintains its size
             flashcard.style.width = '100%';
             flashcard.style.maxWidth = '600px';
@@ -834,6 +880,12 @@
             isCardFlipped = true;
             document.getElementById('flashcard').classList.add('flipped');
             document.getElementById('rating-buttons').style.display = 'flex';
+            
+            // Hide keyboard shortcuts hint when card is flipped
+            const shortcutsHint = document.getElementById('keyboard-shortcuts');
+            if (shortcutsHint) {
+                shortcutsHint.style.opacity = '0.3';
+            }
         }
 
         // Rate card
@@ -869,17 +921,20 @@
                     updateUI();
                     
                     if (currentCardIndex < cards.length) {
-                        // Add a smooth transition effect
+                        // Optimized transition - much faster for better responsiveness
                         const flashcard = document.getElementById('flashcard');
-                        flashcard.style.opacity = '0.7';
-                        flashcard.style.transform = 'scale(0.95)';
                         
+                        // Quick fade out
+                        flashcard.style.transition = 'opacity 0.1s ease';
+                        flashcard.style.opacity = '0.3';
+                        
+                        // Load next card almost immediately
                         setTimeout(() => {
                             loadCurrentCard();
-                            // Restore full opacity and scale
+                            // Quick fade in
+                            flashcard.style.transition = 'opacity 0.15s ease';
                             flashcard.style.opacity = '1';
-                            flashcard.style.transform = 'scale(1)';
-                        }, 300);
+                        }, 50); // Reduced from 300ms to 50ms
                     } else {
                         completeSession();
                     }
@@ -1090,26 +1145,59 @@
             initializeSession();
         }
 
-        // Keyboard shortcuts
+        // Enhanced keyboard shortcuts with better feedback
         document.addEventListener('keydown', function(event) {
+            // Don't interfere with form inputs
             if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
             
+            // Prevent default behavior for our shortcuts
             switch(event.key) {
                 case ' ':
                     event.preventDefault();
-                    flipCard();
+                    if (!isCardFlipped) {
+                        flipCard();
+                        console.log('🎯 Spacebar: Card flipped');
+                    }
                     break;
                 case '1':
-                    if (isCardFlipped) rateCard(0);
+                    if (isCardFlipped) {
+                        event.preventDefault();
+                        rateCard(0);
+                        console.log('🎯 Key 1: Rated as Again');
+                    }
                     break;
                 case '2':
-                    if (isCardFlipped) rateCard(1);
+                    if (isCardFlipped) {
+                        event.preventDefault();
+                        rateCard(1);
+                        console.log('🎯 Key 2: Rated as Hard');
+                    }
                     break;
                 case '3':
-                    if (isCardFlipped) rateCard(2);
+                    if (isCardFlipped) {
+                        event.preventDefault();
+                        rateCard(2);
+                        console.log('🎯 Key 3: Rated as Good');
+                    }
                     break;
                 case '4':
-                    if (isCardFlipped) rateCard(3);
+                    if (isCardFlipped) {
+                        event.preventDefault();
+                        rateCard(3);
+                        console.log('🎯 Key 4: Rated as Easy');
+                    }
+                    break;
+                case 'Enter':
+                    if (isCardFlipped) {
+                        event.preventDefault();
+                        // Enter defaults to "Good" rating
+                        rateCard(2);
+                        console.log('🎯 Enter: Rated as Good');
+                    } else {
+                        event.preventDefault();
+                        flipCard();
+                        console.log('🎯 Enter: Card flipped');
+                    }
                     break;
             }
         });

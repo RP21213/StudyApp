@@ -823,14 +823,59 @@
             display: flex; flex-direction: column;
             gap: 1rem;
             box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .file-item-card.clickable-file {
+            cursor: pointer;
+        }
+        
+        .file-item-card.clickable-file:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-color);
         }
         .file-item-card .file-info { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
         .file-item-card .file-info .file-icon { color: var(--primary-color); }
         .file-item-card .file-info .file-name { font-weight: 600; color: var(--text-main); }
         .file-item-card .file-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
         .file-item-card .file-actions .file-size { font-size: 0.85rem; color: var(--text-secondary); }
-        .delete-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem; border-radius: 50%; display: inline-flex; transition: color 0.2s, background-color 0.2s; }
-        .delete-btn:hover { color: var(--danger-color); background-color: #fee2e2; }
+        
+        .view-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin-right: 0.5rem;
+        }
+        
+        .view-btn:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+        
+        .delete-btn {
+            background: var(--danger-color);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
 
         /* --- ALL ORIGINAL STYLES FOR COMPONENTS --- */
         h1, h2, h3, h4, h5, .button, .tab-button, .stat-label, .upload-form .file-upload-text {
@@ -2412,7 +2457,7 @@
                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 14l5-5 5 5"></path><path d="M12 9v12"></path></svg>
                             Upload
                         </button>
-                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf" style="display:none;">
+                         <input id="pdf-upload" type="file" name="pdf" accept=".pdf,.docx,.pptx" style="display:none;">
                         <div class="notification-bell" id="notification-bell">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                             <div class="notification-dot {% if unread_notifications_count > 0 %}visible{% endif %}" id="notification-dot"></div>
@@ -2488,20 +2533,34 @@
                     </div>
                     <div class="file-list" id="main-file-list">
                         {% for file in hub.files %}
-                        <div class="file-item-card">
+                        <div class="file-item-card clickable-file" data-file-path="{{ file.path }}" data-file-name="{{ file.name }}">
                             <div class="file-info">
-                                <span class="file-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></span>
-                                <span class="file-name" data-path="{{ file.path }}">{{ file.name }}</span>
+                                <span class="file-icon">
+                                    {% set file_ext = file.name.split('.')[-1].lower() %}
+                                    {% if file_ext == 'pdf' %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="6" font-weight="bold">PDF</text></svg>
+                                    {% elif file_ext in ['docx', 'doc'] %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #2563eb;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="5" font-weight="bold">DOC</text></svg>
+                                    {% elif file_ext in ['pptx', 'ppt'] %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: #dc2626;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><text x="12" y="16" text-anchor="middle" font-family="Arial" font-size="5" font-weight="bold">PPT</text></svg>
+                                    {% else %}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    {% endif %}
+                                </span>
+                                <span class="file-name">{{ file.name }}</span>
                             </div>
                             <div class="file-actions">
                                 <span class="file-size">{{ (file.size / 1024)|round(1) }} KB</span>
+                                <button class="view-btn" title="Open file" data-file-path="{{ file.path }}" data-file-name="{{ file.name }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
                                 <a href="{{ url_for('delete_file', hub_id=hub.id, file_path=file.path) }}" class="delete-btn delete-file-btn" title="Delete file" data-file-path="{{ file.path }}">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </a>
                             </div>
                         </div>
                         {% else %}
-                        <p class="empty-state-text" id="empty-file-list-message">Upload a PDF to begin.</p>
+                        <p class="empty-state-text" id="empty-file-list-message">Upload a document (PDF, Word, or PowerPoint) to begin.</p>
                         {% endfor %}
                     </div>
                 </div>
@@ -2578,7 +2637,7 @@
                                 <div class="feature-icon-wrapper" style="background-color: #FEF3C7; color: #B45309;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg></div>
                                 <div class="feature-text">
                                     <h4>Take Notes with Slides</h4>
-                                    <p>Upload your lecture slides (PDF) to open a split-screen workspace with AI tutor, quiz generation, and flashcard creation.</p>
+                                    <p>Upload your lecture slides (PDF, Word, or PowerPoint) to open a split-screen workspace with AI tutor, quiz generation, and flashcard creation.</p>
                                 </div>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
@@ -3006,7 +3065,7 @@
             <div class="modal-header"><h3>Take Notes with Slides</h3><button class="close-btn">&times;</button></div>
             <form id="slide-notes-form" action="{{ url_for('create_slide_notes_session', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" target="_blank">
                 <div class="modal-body">
-                    <p class="modal-description">Choose from existing files in your hub or upload new lecture slides (PDF format) to begin a new note-taking session.</p>
+                    <p class="modal-description">Choose from existing files in your hub or upload new lecture slides (PDF, Word, or PowerPoint format) to begin a new note-taking session.</p>
                     <div class="form-group">
                         <label for="slide-notes-title">Session Title</label>
                         <input type="text" id="slide-notes-title" name="title" placeholder="e.g., Week 1: Intro to Business Law" required>
@@ -3016,8 +3075,8 @@
                         <div id="slide-notes-files" class="modal-file-list"></div>
                     </div>
                     <div class="form-group">
-                        <label for="slide-file-upload">Or Upload New Slides (PDF)</label>
-                        <input type="file" id="slide-file-upload" name="slide_file" accept=".pdf">
+                        <label for="slide-file-upload">Or Upload New Slides (PDF, Word, PowerPoint)</label>
+                        <input type="file" id="slide-file-upload" name="slide_file" accept=".pdf,.docx,.pptx">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -7151,6 +7210,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+        
+        // ===== FILE VIEWING FUNCTIONALITY =====
+        
+        // Handle file card clicks
+        document.querySelectorAll('.clickable-file').forEach(fileCard => {
+            fileCard.addEventListener('click', function(e) {
+                // Don't trigger if clicking on buttons or links
+                if (e.target.closest('.view-btn') || e.target.closest('.delete-btn')) {
+                    return;
+                }
+                
+                const filePath = this.dataset.filePath;
+                const fileName = this.dataset.fileName;
+                
+                if (filePath) {
+                    console.log('📄 Opening file:', fileName);
+                    // Open file in new tab
+                    const viewUrl = `/hub/{{ hub.id }}/view_file?file_path=${encodeURIComponent(filePath)}`;
+                    window.open(viewUrl, '_blank');
+                }
+            });
+        });
+        
+        // Handle view button clicks
+        document.querySelectorAll('.view-btn').forEach(viewBtn => {
+            viewBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card click
+                
+                const filePath = this.dataset.filePath;
+                const fileName = this.dataset.fileName;
+                
+                if (filePath) {
+                    console.log('👁️ Viewing file:', fileName);
+                    // Open file in new tab
+                    const viewUrl = `/hub/{{ hub.id }}/view_file?file_path=${encodeURIComponent(filePath)}`;
+                    window.open(viewUrl, '_blank');
+                }
+            });
+        });
+        
+        // Handle delete button clicks with confirmation
+        document.querySelectorAll('.delete-file-btn').forEach(deleteBtn => {
+            deleteBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent card click
+                e.preventDefault(); // Prevent default link behavior
+                
+                const filePath = this.dataset.filePath;
+                const fileName = this.closest('.file-item-card').dataset.fileName;
+                
+                if (filePath) {
+                    showCustomConfirmation(
+                        `Are you sure you want to delete "${fileName}"? This action cannot be undone.`,
+                        function() {
+                            console.log('🗑️ Deleting file:', fileName);
+                            // Proceed with deletion
+                            window.location.href = this.href;
+                        },
+                        null,
+                        'Delete'
+                    );
+                }
+            });
+        });
+        
     </script>
 
     <!-- Success Modal -->
