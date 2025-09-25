@@ -3086,7 +3086,6 @@
             </form>
         </div>
     </div>
-    <div class="modal-overlay" id="upload-options-modal"> <div class="modal-content" style="max-width: 900px;"> <div class="modal-header"> <h3 id="upload-options-title"></h3> <button class="close-btn">&times;</button> </div> <div class="modal-body"> <h4 class="preview-actions-title">What would you like to do with this document?</h4> <div class="preview-actions-grid" id="upload-options-actions"></div> </div> </div> </div>
     <div class="modal-overlay" id="revision-pack-modal"> <div class="modal-content"> <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div> <form id="revision-pack-form"> <div class="modal-body"> <p class="modal-description">Turn your documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p> <div class="form-group"> <label class="label">Select Documents</label> <div id="revision-pack-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="num-flashcards">Number of Flashcards</label> <div class="slider-group"> <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5"> <span class="slider-value" id="num-flashcards-value">20</span> </div> </div> <div class="form-group"> <label for="num-quiz-questions">Number of Quiz Questions</label> <div class="slider-group"> <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5"> <span class="slider-value" id="num-quiz-questions-value">10</span> </div> </div> <div class="form-group checkbox-group"> <label> <input type="checkbox" id="include-notes" name="include_notes" checked> Include condensed revision notes </label> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div> </form> </div> </div>
     <div class="modal-overlay" id="exam-kit-modal"> <div class="modal-content"> <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div> <form id="exam-kit-form"> <div class="modal-body"> <p class="modal-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p> <div class="form-group"> <label class="label">Select Main Lectures/Syllabi</label> <div id="exam-kit-lecture-files" class="modal-file-list"></div> </div> <div class="form-group"> <label class="label">Select Past Papers (Optional)</label> <div id="exam-kit-past-paper-files" class="modal-file-list"></div> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div> </form> </div> </div>
     <div class="modal-overlay" id="study-plan-modal"> <div class="modal-content"> <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div> <form id="study-plan-form"> <div class="modal-body"> <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p> <div class="form-group"> <label class="label">Select Syllabus Document(s)</label> <div id="study-plan-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="study-plan-deadline">Exam/Assignment Deadline</label> <input type="date" id="study-plan-deadline" name="deadline" required> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div> </form> </div> </div>
@@ -3893,7 +3892,6 @@
             const revisionModal = document.getElementById('revision-pack-modal');
             const examKitModal = document.getElementById('exam-kit-modal');
             const studyPlanModal = document.getElementById('study-plan-modal');
-            const uploadOptionsModal = document.getElementById('upload-options-modal');
             const calendarEl = document.getElementById('fullcalendar');
             const scheduleModal = document.getElementById('schedule-event-modal');
             const detailsModal = document.getElementById('event-details-modal');
@@ -4060,7 +4058,8 @@
                                 tutorInput.focus();
                             }, 500);
                         } else {
-                            populateAndShowUploadOptions(result.file_info);
+                            // Show simple success message instead of modal
+                            showMessage('success', `"${result.file_info.name}" uploaded successfully!`);
                         }
                     } else {
                         showCustomAlert(`Upload failed: ${result.message}`, 'Upload Error');
@@ -4094,40 +4093,7 @@
                 fileList.insertAdjacentHTML('beforeend', fileItemHTML);
             }
 
-            function populateAndShowUploadOptions(fileInfo) {
-                const titleEl = document.getElementById('upload-options-title');
-                const actionsContainer = document.getElementById('upload-options-actions');
-                if (!titleEl || !actionsContainer) return;
-                titleEl.textContent = `Success! "${fileInfo.name}" has been uploaded.`;
-                actionsContainer.innerHTML = `
-                    <div class="preview-action-card" data-action="revision-pack" data-path="${fileInfo.path}">
-                         <div class="pipeline-header">
-                            <div class="pipeline-icon" style="background-color: #dcfce7; color: #166534;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H7.5A2.25 2.25 0 005.25 6v13.5A2.25 2.25 0 007.5 21.75h9A2.25 2.25 0 0018.75 19.5V6A2.25 2.25 0 0016.5 3.75z" /></svg></div>
-                            <div class="pipeline-title"><h5>Build Revision Pack</h5></div>
-                         </div>
-                        <p>Generate notes, flashcards, and quizzes from this document.</p>
-                        <button class="button button-primary">Select</button>
-                    </div>
-                    <div class="preview-action-card" data-action="exam-kit" data-path="${fileInfo.path}">
-                         <div class="pipeline-header">
-                            <div class="pipeline-icon" style="background-color: #fef3c7; color: #92400e;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg></div>
-                            <div class="pipeline-title"><h5>Prepare for Exam</h5></div>
-                         </div>
-                        <p>Use this file to create cheatsheets and a mock exam.</p>
-                        <button class="button button-primary">Select</button>
-                    </div>`;
-                uploadOptionsModal.style.display = 'flex';
-            }
             
-            uploadOptionsModal.addEventListener('click', (e) => {
-                const actionCard = e.target.closest('.preview-action-card');
-                if (!actionCard) return;
-                uploadOptionsModal.style.display = 'none';
-                const action = actionCard.dataset.action;
-                const filePath = actionCard.dataset.path;
-                if (action === 'revision-pack') openRevisionPackModal([filePath]);
-                else if (action === 'exam-kit') openExamKitModal([filePath]);
-            });
 
             function populateModalFileList(containerId, fileList, { multiSelect = true, preselectPaths = [] } = {}) {
                 const container = document.getElementById(containerId);
