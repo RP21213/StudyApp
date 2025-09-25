@@ -1710,6 +1710,23 @@
             justify-content: center;
         }
         
+        /* Music button specific styles */
+        #spotify-player-toggle-btn {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        #spotify-player-toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+        
+        #spotify-player-toggle-btn:active {
+            transform: translateY(0);
+            transition: transform 0.1s ease;
+        }
+        
         /* Earn Money Banner */
         .earn-money-banner {
             margin: 1rem 0;
@@ -5468,7 +5485,7 @@
         </div>
         
         <div class="side-panel-footer">
-            <button id="spotify-player-toggle-btn" class="button button-secondary" style="flex-grow: 1; justify-content: center;" data-spotify-connected="{{ spotify_connected|lower }}" onclick="console.log('🎵 Button clicked via onclick');">
+            <button id="spotify-player-toggle-btn" class="button button-secondary" style="flex-grow: 1; justify-content: center;" data-spotify-connected="{{ spotify_connected|lower }}">
                 {% if spotify_connected %}
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
                     <span>Music</span>
@@ -6568,8 +6585,7 @@
     </div>
 
 
-    {% if spotify_connected %}
-    <div id="spotify-player-container">
+    <div id="spotify-player-container" {% if not spotify_connected %}style="display: none;"{% endif %}>
         <!-- Music Visualization Effects -->
         <div class="sp-visualization-container">
             <div class="sp-waveform" id="sp-waveform">
@@ -6681,7 +6697,6 @@
             <small>Press Space to play/pause • ← → to skip tracks • M for mini mode</small>
         </div>
     </div>
-    {% endif %}
 
     <script>
         // Global functions for referral system
@@ -7989,17 +8004,38 @@ Best regards,
         if (toggleBtn) {
             console.log('🎵 Music button found:', toggleBtn);
             console.log('🎵 Spotify connected:', isSpotifyConnected);
-            toggleBtn.addEventListener('click', function() {
+            console.log('🎵 Button dataset:', toggleBtn.dataset);
+            
+            // Remove any existing event listeners to prevent duplicates
+            const newToggleBtn = toggleBtn.cloneNode(true);
+            toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+            
+            newToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('🎵 Music button clicked!');
+                
                 if (isSpotifyConnected) {
                     // Toggle the Spotify player
                     const playerContainer = document.getElementById('spotify-player-container');
                     console.log('🎵 Player container found:', !!playerContainer);
                     if (playerContainer) {
+                        // Show the container if it's hidden
+                        if (playerContainer.style.display === 'none') {
+                            playerContainer.style.display = 'block';
+                        }
+                        
                         playerContainer.classList.toggle('visible');
                         console.log('🎵 Player visibility toggled');
+                        
+                        // Update button text based on visibility
+                        const span = newToggleBtn.querySelector('span');
+                        if (span) {
+                            span.textContent = playerContainer.classList.contains('visible') ? 'Hide Music' : 'Music';
+                        }
                     } else {
                         console.error('🎵 Player container not found!');
+                        alert('Music player not available. Please try reconnecting to Spotify.');
                     }
                 } else {
                     console.log('🎵 Redirecting to Spotify login');
