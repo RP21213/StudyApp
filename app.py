@@ -7465,7 +7465,12 @@ def restart_onboarding():
             logout_user()
             login_user(updated_user, remember=True)
         
-        return jsonify({"success": True, "message": "Onboarding restarted successfully!"})
+        # Return a redirect response to force a fresh page load with updated user state
+        return jsonify({
+            "success": True, 
+            "message": "Onboarding restarted successfully!",
+            "redirect": "/dashboard"
+        })
     except Exception as e:
         print(f"Error restarting onboarding for user {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred while restarting onboarding."}), 500

@@ -6741,13 +6741,23 @@ Best regards,
                                 
                                 if (result.success) {
                                     showInfo(result.message);
-                                    // Clear any onboarding state from sessionStorage
+                                    // Clear ALL onboarding state from sessionStorage
                                     sessionStorage.removeItem('onboardingStep');
                                     sessionStorage.removeItem('onboardingData');
-                                    // Reload the page to trigger onboarding
+                                    sessionStorage.removeItem('onboardingGenerating');
+                                    sessionStorage.removeItem('showOnboardingCompletionModal');
+                                    sessionStorage.removeItem('showTaskQueueTooltip');
+                                    sessionStorage.removeItem('hasCompletedPersonalization');
+                                    sessionStorage.removeItem('onboardingPersonalizationData');
+                                    
+                                    // Use redirect from server or fallback to dashboard
                                     setTimeout(() => {
-                                        window.location.reload();
-                                    }, 1500);
+                                        if (result.redirect) {
+                                            window.location.href = result.redirect;
+                                        } else {
+                                            window.location.href = '/dashboard';
+                                        }
+                                    }, 1000);
                                 } else {
                                     showError(result.message);
                                 }
@@ -7460,6 +7470,10 @@ Best regards,
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🎯 Dashboard onboarding starting - needs_onboarding is true');
+            console.log('🎯 Current user onboarding state:', {
+                needs_onboarding: {{ needs_onboarding|lower }},
+                has_completed_onboarding: {{ current_user.has_completed_onboarding|lower }}
+            });
             // Initialize onboarding system
             const welcomeOverlay = document.getElementById('onboarding-welcome-overlay');
             const personalizationModal = document.getElementById('onboarding-personalization-modal');
