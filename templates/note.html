@@ -55,6 +55,91 @@
         .note-content { padding: 1.5rem 2.5rem 2.5rem; font-family: 'Lora', serif; transition: opacity 0.3s ease; }
         .note-content.ai-loading { opacity: 0.6; pointer-events: none; }
         
+        /* Pagination Styles */
+        .note-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2.5rem;
+            border-top: 1px solid var(--border-color);
+            background-color: #f9fafb;
+        }
+        .pagination-info {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .pagination-btn:hover:not(:disabled) {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Note Pages */
+        .note-page {
+            display: none;
+            padding: 2rem 0;
+        }
+        .note-page.active {
+            display: block;
+        }
+        .page-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Diagram Styles */
+        .diagram-container {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary-color);
+        }
+        .diagram-title {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .diagram-title::before {
+            content: "📊";
+            font-size: 1.2rem;
+        }
+        .diagram-description p {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+        .diagram-description strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+        
         #selection-popup {
             position: absolute; display: none; background-color: var(--text-main);
             border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -115,6 +200,15 @@
             <main class="note-content" id="note-content-area">
                 {{ note.content_html|safe }}
             </main>
+            <div class="note-pagination" id="note-pagination" style="display: none;">
+                <div class="pagination-info">
+                    <span id="page-info">Page 1 of 1</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="prev-page-btn" disabled>← Previous</button>
+                    <button class="pagination-btn" id="next-page-btn" disabled>Next →</button>
+                </div>
+            </div>
         </div>
         <aside class="companion-sidebar">
             <h3>AI Companion</h3>
@@ -129,8 +223,67 @@
             if (!noteContentArea) return;
             const popup = document.getElementById('selection-popup');
             const companionContent = document.getElementById('companion-content');
+            const pagination = document.getElementById('note-pagination');
+            const pageInfo = document.getElementById('page-info');
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
             let currentSelection = null;
             let isAIThinking = false;
+            
+            // Pagination variables
+            let currentPage = 1;
+            let totalPages = 1;
+            let notePages = [];
+
+            // Initialize pagination
+            function initializePagination() {
+                notePages = Array.from(noteContentArea.querySelectorAll('.note-page'));
+                totalPages = notePages.length;
+                
+                if (totalPages > 1) {
+                    pagination.style.display = 'flex';
+                    showPage(1);
+                    updatePaginationControls();
+                } else {
+                    pagination.style.display = 'none';
+                    // Show all content if no pagination
+                    noteContentArea.style.display = 'block';
+                }
+            }
+            
+            function showPage(pageNumber) {
+                notePages.forEach((page, index) => {
+                    if (index + 1 === pageNumber) {
+                        page.classList.add('active');
+                    } else {
+                        page.classList.remove('active');
+                    }
+                });
+                currentPage = pageNumber;
+                updatePaginationControls();
+            }
+            
+            function updatePaginationControls() {
+                pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+                prevBtn.disabled = currentPage <= 1;
+                nextBtn.disabled = currentPage >= totalPages;
+            }
+            
+            // Pagination event listeners
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    showPage(currentPage - 1);
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    showPage(currentPage + 1);
+                }
+            });
+            
+            // Initialize pagination on load
+            initializePagination();
 
             function renderQuiz(quizData) {
                 companionContent.innerHTML = '';

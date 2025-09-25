@@ -1310,11 +1310,31 @@ def generate_key_points_html(text):
     - Keep descriptions concise but informative
     - Organize points logically by topic or importance
 
-    **STRUCTURE:**
-    - Use clear headings for different topics
-    - Present each key point as a bullet point with a brief explanation
-    - Group related concepts together
-    - Use simple, direct language
+    **PAGINATION STRUCTURE:**
+    - Split content into logical pages (3-5 pages maximum)
+    - Each page should focus on one main topic or theme
+    - Use `<div class="note-page" data-page="1">` to wrap each page
+    - Each page should have a clear heading: `<h2 class="page-title">Page Title</h2>`
+    - Keep each page to 3-6 key points maximum for readability
+
+    **CONTENT ORGANIZATION:**
+    - Page 1: Main concepts and overview
+    - Page 2-4: Specific topics/themes from the material
+    - Final page: Key takeaways and summary
+
+    **HTML STRUCTURE:**
+    ```html
+    <div class="note-page" data-page="1">
+        <h2 class="page-title">Main Concepts</h2>
+        <ul>
+            <li><strong>Concept Name:</strong> Brief description</li>
+        </ul>
+    </div>
+    <div class="note-page" data-page="2">
+        <h2 class="page-title">Topic Name</h2>
+        <!-- Content for this page -->
+    </div>
+    ```
 
     **CONTENT FOCUS:**
     - Main themes and central concepts
@@ -1322,11 +1342,32 @@ def generate_key_points_html(text):
     - Important relationships between concepts
     - Key takeaways that students must remember
 
-    Your response MUST be a single block of well-formed HTML.
+    **DIAGRAM EXTRACTION:**
+    - Identify any diagrams, charts, graphs, flowcharts, or visual elements mentioned in the text
+    - For each diagram, create a detailed description using `<div class="diagram-container">`
+    - Include the diagram's purpose, key components, and how it relates to the concepts
+    - Use descriptive text that helps students visualize the diagram even if they can't see it
+    - Place diagrams strategically within relevant pages where they add the most value
+
+    **DIAGRAM FORMAT:**
+    ```html
+    <div class="diagram-container">
+        <h4 class="diagram-title">Diagram: [Title]</h4>
+        <div class="diagram-description">
+            <p><strong>Purpose:</strong> [What this diagram shows]</p>
+            <p><strong>Key Components:</strong> [Main elements of the diagram]</p>
+            <p><strong>Explanation:</strong> [How it relates to the topic]</p>
+        </div>
+    </div>
+    ```
+
+    Your response MUST be a single block of well-formed HTML with proper pagination.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
     2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
+    3.  **Pagination:** Wrap each page in `<div class="note-page" data-page="X">` with sequential page numbers.
+    4.  **Diagrams:** Extract and describe any diagrams mentioned in the text using the diagram format above.
 
     Here is the text to transform:
     ---
@@ -1355,6 +1396,33 @@ def generate_condensed_notes_html(text):
     - Balance detail with conciseness for effective studying
     - Organize content logically with clear structure
 
+    **PAGINATION STRUCTURE:**
+    - Split content into logical pages (4-6 pages maximum)
+    - Each page should cover one major topic or theme
+    - Use `<div class="note-page" data-page="1">` to wrap each page
+    - Each page should have a clear heading: `<h2 class="page-title">Page Title</h2>`
+    - Keep each page to 2-3 main sections maximum for readability
+
+    **CONTENT ORGANIZATION:**
+    - Page 1: Introduction and main concepts overview
+    - Page 2-5: Detailed coverage of specific topics/themes
+    - Final page: Key takeaways, summary, and important points
+
+    **HTML STRUCTURE:**
+    ```html
+    <div class="note-page" data-page="1">
+        <h2 class="page-title">Introduction & Overview</h2>
+        <h3>Main Concepts</h3>
+        <ul>
+            <li>Concept with explanation</li>
+        </ul>
+    </div>
+    <div class="note-page" data-page="2">
+        <h2 class="page-title">Topic Name</h2>
+        <!-- Detailed content for this topic -->
+    </div>
+    ```
+
     **WELL-ORGANIZED STRUCTURE:**
     - Use clear hierarchical headings and subheadings
     - Organize content logically with smooth transitions between topics
@@ -1373,15 +1441,34 @@ def generate_condensed_notes_html(text):
     - Include step-by-step explanations for complex processes
     - Add notes about common misconceptions or tricky points
 
-    At the end, include a 'Key Takeaways' section that summarizes the most critical points.
+    **DIAGRAM EXTRACTION:**
+    - Identify any diagrams, charts, graphs, flowcharts, or visual elements mentioned in the text
+    - For each diagram, create a detailed description using `<div class="diagram-container">`
+    - Include the diagram's purpose, key components, and how it relates to the concepts
+    - Use descriptive text that helps students visualize the diagram even if they can't see it
+    - Place diagrams strategically within relevant pages where they add the most value
 
-    Your response MUST be a single block of well-formed HTML.
+    **DIAGRAM FORMAT:**
+    ```html
+    <div class="diagram-container">
+        <h4 class="diagram-title">Diagram: [Title]</h4>
+        <div class="diagram-description">
+            <p><strong>Purpose:</strong> [What this diagram shows]</p>
+            <p><strong>Key Components:</strong> [Main elements of the diagram]</p>
+            <p><strong>Explanation:</strong> [How it relates to the topic]</p>
+        </div>
+    </div>
+    ```
+
+    Your response MUST be a single block of well-formed HTML with proper pagination.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
     2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
     3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
-    4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
+    4.  **Pagination:** Wrap each page in `<div class="note-page" data-page="X">` with sequential page numbers.
+    5.  **Diagrams:** Extract and describe any diagrams mentioned in the text using the diagram format above.
+    6.  **Key Takeaways:** End the final page with a section titled "Key Takeaways" that summarizes the most important points.
 
     Here is the text to transform:
     ---
@@ -1411,6 +1498,33 @@ def generate_detailed_notes_html(text):
     - Explain concepts thoroughly so students understand without the original source
     - Organize content logically with smooth transitions between topics
 
+    **PAGINATION STRUCTURE:**
+    - Split content into logical pages (5-8 pages maximum)
+    - Each page should focus on one major topic or concept area
+    - Use `<div class="note-page" data-page="1">` to wrap each page
+    - Each page should have a clear heading: `<h2 class="page-title">Page Title</h2>`
+    - Keep each page to 2-3 main sections maximum for digestibility
+
+    **CONTENT ORGANIZATION:**
+    - Page 1: Introduction, background, and main concepts overview
+    - Page 2-7: Detailed coverage of specific topics with examples
+    - Final page: Comprehensive summary, key takeaways, and important connections
+
+    **HTML STRUCTURE:**
+    ```html
+    <div class="note-page" data-page="1">
+        <h2 class="page-title">Introduction & Background</h2>
+        <h3>Main Concepts</h3>
+        <p>Detailed explanation with context...</p>
+        <h3>Background Information</h3>
+        <p>Why this matters and how it connects...</p>
+    </div>
+    <div class="note-page" data-page="2">
+        <h2 class="page-title">Topic Name</h2>
+        <!-- Comprehensive content for this topic -->
+    </div>
+    ```
+
     **COMPREHENSIVE COVERAGE:**
     - Don't skip important details or assume prior knowledge
     - Include background information where needed
@@ -1424,13 +1538,37 @@ def generate_detailed_notes_html(text):
     - Add context about how concepts relate to each other
     - Include practical implications and real-world applications
 
-    Your response MUST be a single block of well-formed HTML.
+    **DIAGRAM EXTRACTION:**
+    - Identify any diagrams, charts, graphs, flowcharts, or visual elements mentioned in the text
+    - For each diagram, create a comprehensive description using `<div class="diagram-container">`
+    - Include the diagram's purpose, detailed components, relationships between elements, and contextual significance
+    - Use descriptive text that helps students fully understand and visualize the diagram
+    - Place diagrams strategically within relevant pages where they add the most educational value
+    - Provide step-by-step explanations of how to interpret complex diagrams
+
+    **DIAGRAM FORMAT:**
+    ```html
+    <div class="diagram-container">
+        <h4 class="diagram-title">Diagram: [Title]</h4>
+        <div class="diagram-description">
+            <p><strong>Purpose:</strong> [What this diagram shows and why it's important]</p>
+            <p><strong>Key Components:</strong> [Detailed breakdown of main elements]</p>
+            <p><strong>Relationships:</strong> [How components connect and interact]</p>
+            <p><strong>How to Read:</strong> [Step-by-step interpretation guide]</p>
+            <p><strong>Context:</strong> [How it relates to the broader topic]</p>
+        </div>
+    </div>
+    ```
+
+    Your response MUST be a single block of well-formed HTML with proper pagination.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
     2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
     3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
-    4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points.
+    4.  **Pagination:** Wrap each page in `<div class="note-page" data-page="X">` with sequential page numbers.
+    5.  **Diagrams:** Extract and describe any diagrams mentioned in the text using the comprehensive diagram format above.
+    6.  **Key Takeaways:** End the final page with a comprehensive section titled "Key Takeaways" that summarizes the most important points.
 
     Here is the text to transform:
     ---
