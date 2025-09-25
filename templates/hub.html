@@ -6718,6 +6718,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 startNoteTakingBtn.addEventListener('click', () => {
                     console.log('🚀 Start note-taking clicked during onboarding!');
                     
+                    // Close the tooltip and spotlight immediately
+                    const tooltip = document.getElementById('onboarding-tooltip');
+                    const spotlight = document.getElementById('onboarding-spotlight-overlay');
+                    if (tooltip) tooltip.classList.remove('visible');
+                    if (spotlight) spotlight.classList.remove('visible');
+                    
                     // Set flag to show completion modal after redirect
                     sessionStorage.setItem('showOnboardingCompletionModal', '1');
                     
