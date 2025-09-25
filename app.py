@@ -3054,6 +3054,61 @@ def delete_account():
         print(f"Error deleting account for user {user_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred during account deletion."}), 500
 
+@app.route("/admin/delete-user/<user_id>", methods=["POST"])
+@login_required
+def admin_delete_user(user_id):
+    """Admin function to delete any user by ID."""
+    # Add admin check - you can modify this based on your admin logic
+    if not current_user.email.endswith('@yourdomain.com'):  # Example admin check
+        return jsonify({"success": False, "message": "Unauthorized - Admin access required"}), 403
+    
+    try:
+        # Get the user to delete
+        user_doc = db.collection('users').document(user_id).get()
+        if not user_doc.exists:
+            return jsonify({"success": False, "message": "User not found"}), 404
+        
+        user_data = user_doc.to_dict()
+        
+        # Use the same deletion logic as delete_account()
+        # 1. Get all hubs owned by the user
+        hubs_query = db.collection('hubs').where('user_id', '==', user_id).stream()
+        hub_ids = [hub.id for hub in hubs_query]
+
+        # 2. Delete all content within each hub
+        for hub_id in hub_ids:
+            # Delete files from Cloud Storage
+            blobs = bucket.list_blobs(prefix=f"hubs/{hub_id}/")
+            for blob in blobs:
+                blob.delete()
+            # Delete Firestore documents
+            collections_to_delete = ['notes', 'activities', 'folders', 'sessions', 'annotated_slide_decks', 'notifications']
+            for coll in collections_to_delete:
+                docs = db.collection(coll).where('hub_id', '==', hub_id).stream()
+                for doc in docs:
+                    doc.reference.delete()
+            # Delete the hub document itself
+            db.collection('hubs').document(hub_id).delete()
+            
+        # 3. Delete user's avatar from storage
+        avatar_blobs = bucket.list_blobs(prefix=f"avatars/{user_id}/")
+        for blob in avatar_blobs:
+            blob.delete()
+            
+        # 4. Delete shared folders owned by the user
+        shared_folders_query = db.collection('shared_folders').where('owner_id', '==', user_id).stream()
+        for doc in shared_folders_query:
+            doc.reference.delete()
+
+        # 5. Delete the user document itself
+        db.collection('users').document(user_id).delete()
+        
+        return jsonify({"success": True, "message": f"User {user_data.get('email', user_id)} deleted successfully"})
+
+    except Exception as e:
+        print(f"Error deleting user {user_id}: {e}")
+        return jsonify({"success": False, "message": "An error occurred during user deletion."}), 500
+
 @app.route("/help-center")
 def help_center():
     # In a real app, you would render a full help center template.

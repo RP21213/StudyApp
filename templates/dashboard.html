@@ -42,6 +42,17 @@
         
         html[data-font-size="large"] { font-size: 18px; }
         html[data-font-size="small"] { font-size: 14px; }
+        
+        /* Responsive Typography Scale */
+        @media (max-width: 768px) {
+            html[data-font-size="large"] { font-size: 17px; }
+            html[data-font-size="small"] { font-size: 13px; }
+        }
+        
+        @media (max-width: 480px) {
+            html[data-font-size="large"] { font-size: 16px; }
+            html[data-font-size="small"] { font-size: 12px; }
+        }
         html[data-high-contrast="true"] {
             --text-main: #000000;
             --text-secondary: #111111;
@@ -106,6 +117,67 @@
             top: 0;
             box-shadow: var(--shadow-sm);
             box-sizing: border-box;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        /* Mobile sidebar toggle */
+        .side-panel.mobile-hidden {
+            transform: translateX(-100%);
+        }
+
+        /* Hamburger menu button */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: var(--primary-hover);
+            transform: scale(1.05);
+        }
+
+        .mobile-menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .hamburger-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .hamburger-line {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
         }
 
         .side-panel .logo {
@@ -132,12 +204,96 @@
             font-size: 1rem;
             color: var(--text-secondary);
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 44px; /* Minimum touch target size */
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .side-panel .nav-tab::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: var(--primary-color);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+            transform-origin: bottom;
+        }
+        
+        .side-panel .nav-tab:hover::before,
+        .side-panel .nav-tab.active::before {
+            transform: scaleY(1);
+            transform-origin: top;
+        }
+        
+        .side-panel .nav-tab:hover {
+            transform: translateX(4px);
+        }
+        
+        .side-panel .nav-tab.active {
+            transform: translateX(6px);
         }
 
         .side-panel .nav-tab:hover {
             background-color: var(--background-light);
             color: var(--text-main);
+        }
+        
+        /* Loading Spinner Styles */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .loading-spinner.large {
+            width: 32px;
+            height: 32px;
+            border-width: 3px;
+        }
+        
+        .loading-spinner.small {
+            width: 16px;
+            height: 16px;
+            border-width: 2px;
+        }
+        
+        /* Success Checkmark */
+        .success-checkmark {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            stroke-width: 2;
+            stroke: #22c55e;
+            stroke-miterlimit: 10;
+            box-shadow: inset 0px 0px 0px #22c55e;
+            animation: successPulse 0.6s ease;
+        }
+        
+        .success-checkmark circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #22c55e;
+            fill: none;
+            animation: checkmark 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        
+        .success-checkmark path {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkmark 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
         }
 
         .side-panel .nav-tab.active {
@@ -788,20 +944,474 @@
             font-size: 0.9rem;
         }
         
-        /* Responsive design */
+        /* ===== MICROANIMATIONS SYSTEM ===== */
+        
+        /* Button Click Animations */
+        @keyframes buttonClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes buttonSparkle {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+            100% { opacity: 0; transform: scale(0) rotate(360deg); }
+        }
+        
+        @keyframes buttonRipple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(4); opacity: 0; }
+        }
+        
+        /* Card Hover Animations */
+        @keyframes cardFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-4px); }
+        }
+        
+        @keyframes cardGlow {
+            0% { box-shadow: var(--shadow-md); }
+            100% { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        }
+        
+        /* Loading Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-8px); }
+            70% { transform: translateY(-4px); }
+            90% { transform: translateY(-2px); }
+        }
+        
+        /* Success Animations */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        
+        /* Form Animations */
+        @keyframes inputFocus {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.02); }
+        }
+        
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+        
+        /* Navigation Animations */
+        @keyframes slideInFromLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInFromRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Sparkle Animation */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+        
+        /* Celebration Animations */
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes wiggle {
+            0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 100% { transform: rotate(0deg); }
+            3.5% { transform: rotate(5deg); }
+            10.5% { transform: rotate(-5deg); }
+            17.5% { transform: rotate(5deg); }
+            24.5% { transform: rotate(-5deg); }
+            31.5% { transform: rotate(5deg); }
+            38.5% { transform: rotate(-5deg); }
+            45.5% { transform: rotate(5deg); }
+            52.5% { transform: rotate(-5deg); }
+            59.5% { transform: rotate(5deg); }
+            66.5% { transform: rotate(-5deg); }
+            73.5% { transform: rotate(5deg); }
+            80.5% { transform: rotate(-5deg); }
+            87.5% { transform: rotate(5deg); }
+            94.5% { transform: rotate(-5deg); }
+        }
+        
+        /* Special Animation Classes */
+        .celebrate {
+            animation: bounceIn 0.8s ease;
+        }
+        
+        .wiggle {
+            animation: wiggle 1s ease;
+        }
+        
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-color);
+            animation: confettiFall 3s linear forwards;
+        }
+        
+        /* ===== COMPREHENSIVE RESPONSIVE DESIGN ===== */
+        
+        /* Large tablets and small laptops */
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+            
+            .hub-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .community-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .progress-grid,
+            .spaced-repetition-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+        }
+
+        /* Tablets */
         @media (max-width: 768px) {
+            /* Mobile navigation */
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .side-panel {
+                width: 280px;
+                transform: translateX(-100%);
+            }
+            
+            .side-panel.mobile-visible {
+                transform: translateX(0);
+            }
+            
+            .mobile-overlay {
+                display: block;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+                padding-top: 5rem; /* Space for mobile menu button */
+            }
+            
+            /* Typography adjustments */
+            .side-panel .logo {
+                font-size: 1.5rem;
+            }
+            
+            .side-panel .nav-tab {
+                font-size: 0.95rem;
+                padding: 0.6rem 0.8rem;
+            }
+            
+            /* Grid layouts */
             .referral-code-section {
                 flex-direction: column;
-                gap: 2rem;
+                gap: 1.5rem;
             }
             
             .leaderboard-grid,
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
             
             .milestones-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .hub-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .community-grid {
+                grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                gap: 1rem;
+            }
+            
+            .progress-grid,
+            .spaced-repetition-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            /* Header adjustments */
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+            }
+            
+            /* Modal adjustments */
+            .modal-content {
+                width: 95%;
+                max-width: 400px;
+                margin: 1rem;
+            }
+            
+            .custom-modal-content {
+                width: 95%;
+                max-width: 380px;
+                margin: 1rem;
+            }
+            
+            /* Button adjustments */
+            .button {
+                min-height: 44px; /* Minimum touch target */
+                font-size: 1rem;
+            }
+            
+            /* Search and filter adjustments */
+            .search-bar {
+                min-width: 200px;
+            }
+            
+            .filter-tabs {
+                flex-wrap: wrap;
+                gap: 0.25rem;
+            }
+            
+            /* Form adjustments */
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                min-height: 44px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Mobile phones */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0.75rem;
+                padding-top: 4.5rem;
+            }
+            
+            .mobile-menu-toggle {
+                top: 0.75rem;
+                left: 0.75rem;
+                padding: 0.6rem;
+            }
+            
+            /* Typography */
+            .side-panel .logo {
+                font-size: 1.25rem;
+                margin-bottom: 2rem;
+            }
+            
+            .side-panel .nav-tab {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            /* Single column layouts */
+            .hub-grid,
+            .community-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .progress-grid,
+            .spaced-repetition-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            
+            /* Header */
+            header {
+                margin-bottom: 2rem;
+                padding-bottom: 1rem;
+            }
+            
+            .header-text h1 {
+                font-size: 1.75rem;
+            }
+            
+            .header-text p {
+                font-size: 0.9rem;
+            }
+            
+            /* Cards */
+            .hub-card,
+            .community-card,
+            .progress-card {
+                padding: 1rem;
+            }
+            
+            /* Modal adjustments */
+            .modal-content,
+            .custom-modal-content {
+                width: 98%;
+                margin: 0.5rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            /* Button groups */
+            .button-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .button-group .button {
+                width: 100%;
+            }
+            
+            /* Form improvements */
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 0.75rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            /* Stats and leaderboard */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+            
+            .stat {
+                padding: 0.5rem;
+            }
+            
+            /* Search improvements */
+            .search-bar {
+                min-width: 150px;
+            }
+            
+            .filter-tabs .button {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 360px) {
+            .main-content {
+                padding: 0.5rem;
+                padding-top: 4rem;
+            }
+            
+            .side-panel {
+                width: 100%;
+                max-width: 320px;
+            }
+            
+            .side-panel .logo {
+                font-size: 1.1rem;
+            }
+            
+            .side-panel .nav-tab {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .hub-card,
+            .community-card,
+            .progress-card {
+                padding: 0.75rem;
+            }
+            
+            .modal-content,
+            .custom-modal-content {
+                width: 100%;
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .main-content {
+                padding-top: 3rem;
+            }
+            
+            .mobile-menu-toggle {
+                top: 0.5rem;
+                left: 0.5rem;
+                padding: 0.5rem;
+            }
+            
+            .side-panel .logo {
+                margin-bottom: 1.5rem;
+                font-size: 1.25rem;
+            }
+            
+            .side-panel .nav-tab {
+                padding: 0.4rem 0.75rem;
+                font-size: 0.9rem;
             }
         }
         
@@ -810,6 +1420,27 @@
             flex-grow: 1;
             padding: 2rem;
             width: calc(100% - 260px);
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Mobile overlay for sidebar */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-overlay.active {
+            opacity: 1;
         }
         
         .tab-content { display: none; }
@@ -823,10 +1454,51 @@
         .header-text p { font-size: 1rem; color: var(--text-secondary); max-width: 650px; margin: 0; }
         
         .button {
-            background: var(--primary-color); color: white; padding: 0.75rem 1.25rem;
-            border-radius: 8px; border: 1px solid transparent; font-weight: 600; cursor: pointer;
-            box-shadow: var(--shadow-sm); transition: all 0.2s ease; display: inline-flex;
-            align-items: center; gap: 0.5rem; font-size: 1rem; text-decoration: none;
+            background: var(--primary-color); 
+            color: white; 
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px; 
+            border: 1px solid transparent; 
+            font-weight: 600; 
+            cursor: pointer;
+            box-shadow: var(--shadow-sm); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: inline-flex;
+            align-items: center; 
+            gap: 0.5rem; 
+            font-size: 1rem; 
+            text-decoration: none;
+            min-height: 44px; /* Minimum touch target size */
+            min-width: 44px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .button.clicked {
+            animation: buttonClick 0.3s ease;
+        }
+        
+        .button.success {
+            animation: successPulse 0.6s ease;
         }
         .button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .button-secondary {
@@ -850,13 +1522,68 @@
             font-size: 0.9rem;
         }
 
-        .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2rem; }
-        .hub-card {
-            background-color: var(--background-white); border-radius: 16px; border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-md); transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex; flex-direction: column; overflow: hidden;
+        .hub-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
+            gap: 2rem; 
+            width: 100%;
         }
-        .hub-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        .hub-card {
+            background-color: var(--background-white); 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .hub-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+            pointer-events: none;
+        }
+        
+        .hub-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        /* Community Card Animations */
+        .community-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .community-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Progress Card Animations */
+        .progress-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .progress-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.1), 0 8px 12px -5px rgba(0, 0, 0, 0.05);
+        }
         .card-header { height: 90px; position: relative; display: flex; padding: 1rem 1.5rem; align-items: flex-end; }
         .card-header h2 { font-size: 1.5rem; font-weight: 700; margin: 0; color: rgba(0, 0, 0, 0.7); }
         html[data-theme="dark"] .card-header h2 { color: rgba(255, 255, 255, 0.85); }
@@ -884,10 +1611,19 @@
         }
         .modal-overlay.visible { display: flex; opacity: 1; }
         .modal-content {
-            background: var(--background-white); padding: 2rem; border-radius: 12px;
-            width: 100%; max-width: 450px; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: transform 0.3s ease;
+            background: var(--background-white); 
+            padding: 2rem; 
+            border-radius: 12px;
+            width: 90%; 
+            max-width: 450px; 
+            max-height: 90vh;
+            box-shadow: var(--shadow-lg); 
+            transform: scale(0.95); 
+            transition: transform 0.3s ease;
             position: relative;
             z-index: 1001;
+            overflow-y: auto;
+            margin: 1rem;
         }
         .modal-overlay.visible .modal-content { transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
@@ -900,8 +1636,15 @@
             display: none; justify-content: center; align-items: center; z-index: 2000;
         }
         .custom-modal-content {
-            background: var(--background-card); padding: 2rem; border-radius: 12px; 
-            width: 90%; max-width: 400px; box-shadow: var(--shadow-lg);
+            background: var(--background-card); 
+            padding: 2rem; 
+            border-radius: 12px; 
+            width: 90%; 
+            max-width: 400px; 
+            max-height: 90vh;
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+            margin: 1rem;
         }
         .custom-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
         .custom-modal-header h3 { margin: 0; font-family: 'Poppins', sans-serif; }
@@ -919,12 +1662,35 @@
             box-sizing: border-box; 
             background-color: var(--background-light); 
             color: var(--text-main);
-            transition: border-color 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
         .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .form-group input.error, .form-group textarea.error, .form-group select.error {
+            border-color: var(--danger-color);
+            animation: inputShake 0.5s ease;
+        }
+        
+        .form-group input.success, .form-group textarea.success, .form-group select.success {
+            border-color: #22c55e;
+            animation: successPulse 0.6s ease;
+        }
+        
+        .form-group input.loading {
+            background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            background-size: 200% 100%;
+            animation: loadingShimmer 1.5s infinite;
+        }
+        
+        @keyframes loadingShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
         .form-group textarea { min-height: 80px; }
         .modal-content .button { width: 100%; justify-content: center; }
@@ -4018,6 +4784,254 @@
                  document.documentElement.setAttribute('data-high-contrast', 'true');
             }
         })();
+
+        // Mobile Navigation Functions
+        function toggleMobileMenu() {
+            const sidePanel = document.getElementById('side-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            const toggle = document.getElementById('mobile-menu-toggle');
+            
+            if (sidePanel.classList.contains('mobile-visible')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        }
+        
+        function openMobileMenu() {
+            const sidePanel = document.getElementById('side-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            const toggle = document.getElementById('mobile-menu-toggle');
+            
+            sidePanel.classList.add('mobile-visible');
+            overlay.classList.add('active');
+            toggle.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closeMobileMenu() {
+            const sidePanel = document.getElementById('side-panel');
+            const overlay = document.getElementById('mobile-overlay');
+            const toggle = document.getElementById('mobile-menu-toggle');
+            
+            sidePanel.classList.remove('mobile-visible');
+            overlay.classList.remove('active');
+            toggle.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+        
+        // Close mobile menu when clicking on nav tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Small delay to allow tab switching animation
+                    setTimeout(closeMobileMenu, 100);
+                });
+            });
+            
+            // Close mobile menu on window resize if screen becomes large
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeMobileMenu();
+                }
+            });
+            
+            // Close mobile menu on escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeMobileMenu();
+                }
+            });
+        });
+
+        // ===== MICROANIMATIONS SYSTEM =====
+        
+        // Button Click Animations
+        function addButtonAnimations() {
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // Add click animation
+                    this.classList.add('clicked');
+                    setTimeout(() => {
+                        this.classList.remove('clicked');
+                    }, 300);
+                    
+                    // Add ripple effect
+                    createRippleEffect(e, this);
+                });
+            });
+        }
+        
+        // Ripple Effect for Buttons
+        function createRippleEffect(event, element) {
+            const ripple = document.createElement('span');
+            const rect = element.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'buttonRipple 0.6s ease';
+            ripple.style.pointerEvents = 'none';
+            
+            element.style.position = 'relative';
+            element.style.overflow = 'hidden';
+            element.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+        
+        // Success Animation
+        function showSuccessAnimation(element, message = 'Success!') {
+            element.classList.add('success');
+            element.innerHTML = `<span class="success-checkmark"></span> ${message}`;
+            
+            setTimeout(() => {
+                element.classList.remove('success');
+            }, 2000);
+        }
+        
+        // Loading Animation
+        function showLoadingAnimation(element, text = 'Loading...') {
+            const originalContent = element.innerHTML;
+            element.innerHTML = `<span class="loading-spinner"></span> ${text}`;
+            element.disabled = true;
+            
+            return function hideLoading() {
+                element.innerHTML = originalContent;
+                element.disabled = false;
+            };
+        }
+        
+        // Form Validation Animations
+        function addFormAnimations() {
+            const inputs = document.querySelectorAll('.form-group input, .form-group textarea, .form-group select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value && this.checkValidity()) {
+                        this.classList.add('success');
+                        setTimeout(() => this.classList.remove('success'), 1000);
+                    }
+                });
+                
+                input.addEventListener('invalid', function() {
+                    this.classList.add('error');
+                    setTimeout(() => this.classList.remove('error'), 1000);
+                });
+            });
+        }
+        
+        // Card Entrance Animations
+        function addCardAnimations() {
+            const cards = document.querySelectorAll('.hub-card, .community-card, .progress-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+        
+        // Sparkle Effect for Special Actions
+        function createSparkleEffect(element) {
+            for (let i = 0; i < 6; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.innerHTML = '✨';
+                sparkle.style.position = 'absolute';
+                sparkle.style.fontSize = '16px';
+                sparkle.style.pointerEvents = 'none';
+                sparkle.style.animation = `sparkle 1s ease forwards`;
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                
+                element.style.position = 'relative';
+                element.appendChild(sparkle);
+                
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        }
+        
+        // Initialize all animations
+        document.addEventListener('DOMContentLoaded', function() {
+            addButtonAnimations();
+            addFormAnimations();
+            addCardAnimations();
+            
+            // Add sparkle effect to special buttons
+            const specialButtons = document.querySelectorAll('[data-sparkle="true"]');
+            specialButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    createSparkleEffect(this);
+                });
+            });
+        });
+        
+        // Utility function to show success with animation
+        window.showSuccess = function(element, message) {
+            showSuccessAnimation(element, message);
+        };
+        
+        // Utility function to show loading
+        window.showLoading = function(element, text) {
+            return showLoadingAnimation(element, text);
+        };
+        
+        // Utility function to create sparkles
+        window.createSparkles = function(element) {
+            createSparkleEffect(element);
+        };
+        
+        // Confetti celebration animation
+        window.createConfetti = function() {
+            const colors = ['#4f46e5', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confettiContainer.appendChild(confetti);
+            }
+            
+            setTimeout(() => {
+                confettiContainer.remove();
+            }, 5000);
+        };
+        
+        // Wiggle animation for attention
+        window.wiggleElement = function(element) {
+            element.classList.add('wiggle');
+            setTimeout(() => {
+                element.classList.remove('wiggle');
+            }, 1000);
+        };
+        
+        // Bounce in animation for new elements
+        window.bounceInElement = function(element) {
+            element.classList.add('celebrate');
+            setTimeout(() => {
+                element.classList.remove('celebrate');
+            }, 800);
+        };
     </script>
 
     <!-- Custom Modal Functions -->
@@ -4384,12 +5398,24 @@
                 </div>
             </div>
             
-            <button id="onboarding-complete-btn">Create My First Hub 🚀</button>
+            <button id="onboarding-complete-btn" data-sparkle="true">Create My First Hub 🚀</button>
         </div>
     </div>
     
     
-    <aside class="side-panel">
+    <!-- Mobile Navigation -->
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <div class="hamburger-icon">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </div>
+    </button>
+    
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileMenu()"></div>
+    
+    <aside class="side-panel" id="side-panel">
         <div class="logo">Foci</div>
         <nav class="nav-tabs">
             <a href="#" class="nav-tab active" data-tab="hubs">
@@ -4481,7 +5507,7 @@
                         <a href="{{ url_for('logout') }}" class="button button-danger">Sign Out</a>
                         <a href="{{ url_for('delete_all_hubs') }}" class="button button-danger" id="delete-all-hubs-btn">Delete All Hubs</a>
 
-                        <button class="button" id="open-modal-btn">
+                        <button class="button" id="open-modal-btn" data-sparkle="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Create New Hub
                         </button>
@@ -5092,7 +6118,7 @@
                                     <textarea id="bio" name="bio" placeholder="e.g., Computer Science student specializing in AI.">{{ current_user.bio }}</textarea>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" class="button">Save Changes</button>
+                                    <button type="submit" class="button" data-sparkle="true">Save Changes</button>
                                 </div>
                             </div>
                         </div>
