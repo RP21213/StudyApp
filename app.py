@@ -1297,61 +1297,117 @@ def generate_full_study_session(text, duration, focus):
     )
     return response.choices[0].message.content
 
-def generate_interactive_notes_html(text):
+def generate_interactive_notes_html(text, note_type="condensed"):
     """Generates interactive study notes in HTML format using the AI."""
-    prompt = f"""
-    You are an expert study assistant creating comprehensive lecture-style notes. Your task is to read the uploaded material and convert it into detailed, thorough study notes that a student would take during a lecture. The notes must be:
+    
+    if note_type == "key_points":
+        prompt = f"""
+        You are an expert study assistant creating KEY POINTS from lecture material. Your task is to extract and present the most essential concepts and main ideas with brief, clear descriptions.
 
-    **DETAILED AND COMPREHENSIVE:**
-    - Include substantial detail for each concept, not just brief summaries
-    - Explain concepts thoroughly with context and background information
-    - Include multiple examples, case studies, and practical applications
-    - Cover all important subtopics and supporting details
-    - Provide enough depth for someone to understand the material without the original source
+        **KEY POINTS REQUIREMENTS:**
+        - Extract only the most important concepts and main ideas
+        - Provide brief but clear descriptions for each key point
+        - Focus on core concepts that students must understand
+        - Keep descriptions concise but informative
+        - Organize points logically by topic or importance
 
-    **WELL-ORGANIZED STRUCTURE:**
-    - Use clear hierarchical headings and subheadings
-    - Organize content logically with smooth transitions between topics
-    - Use bullet points and numbered lists for clarity
-    - Include cross-references between related concepts
+        **STRUCTURE:**
+        - Use clear headings for different topics
+        - Present each key point as a bullet point with a brief explanation
+        - Group related concepts together
+        - Use simple, direct language
 
-    **LECTURE-STYLE CONTENT:**
-    - Write as if explaining to a student in a classroom setting
-    - Include "why" explanations, not just "what" facts
-    - Add context about how concepts relate to each other
-    - Include practical implications and real-world applications
-    - Explain the significance and importance of each topic
+        **CONTENT FOCUS:**
+        - Main themes and central concepts
+        - Critical definitions and terms
+        - Important relationships between concepts
+        - Key takeaways that students must remember
 
-    **INTERACTIVE ELEMENTS:**
-    - Highlight key terms with definitions
-    - Emphasize important formulas and equations
-    - Include step-by-step explanations for complex processes
-    - Add notes about common misconceptions or tricky points
+        Your response MUST be a single block of well-formed HTML.
 
-    **COMPREHENSIVE COVERAGE:**
-    - Don't skip important details or assume prior knowledge
-    - Include background information where needed
-    - Cover both theoretical concepts and practical applications
-    - Address different perspectives or approaches when relevant
+        Follow these rules precisely:
+        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
+        """
+        
+    elif note_type == "detailed":
+        prompt = f"""
+        You are an expert study assistant creating COMPREHENSIVE DETAILED NOTES from lecture material. Your task is to create thorough, well-organized study notes with complete explanations, examples, and context.
 
-    At the end, include a detailed 'Key Takeaways' section that summarizes the most critical points, but keep the main content substantial and detailed.
+        **DETAILED NOTES REQUIREMENTS:**
+        - Include substantial detail for each concept with full explanations
+        - Provide context and background information for concepts
+        - Include multiple examples, case studies, and practical applications
+        - Cover all important subtopics and supporting details
+        - Explain concepts thoroughly so students understand without the original source
+        - Organize content logically with smooth transitions between topics
 
-    Your response MUST be a single block of well-formed HTML.
+        **COMPREHENSIVE COVERAGE:**
+        - Don't skip important details or assume prior knowledge
+        - Include background information where needed
+        - Cover both theoretical concepts and practical applications
+        - Address different perspectives or approaches when relevant
+        - Include step-by-step explanations for complex processes
 
-    Follow these rules precisely:
-    1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
-    2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
-        - **Example:** `<span class="keyword" title="A resource with economic value that is expected to provide a future benefit and can be owned or controlled to produce positive economic value.">Asset</span>`
-    3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
-        - **Example:** `<span class="formula" data-formula="Assets = Liabilities + Equity">Assets = Liabilities + Equity</span>`
-    4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points in detail.
+        **LECTURE-STYLE CONTENT:**
+        - Write as if explaining to a student in a classroom setting
+        - Include "why" explanations, not just "what" facts
+        - Add context about how concepts relate to each other
+        - Include practical implications and real-world applications
 
-    Do not include any text, explanations, or code outside of the final HTML output.
+        Your response MUST be a single block of well-formed HTML.
+
+        Follow these rules precisely:
+        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its detailed definition.
+        3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
+        4.  **Key Takeaways:** End with a comprehensive section titled "Key Takeaways" that summarizes the most important points.
+        """
+        
+    else:  # condensed (default)
+        prompt = f"""
+        You are an expert study assistant creating CONDENSED STUDY NOTES from lecture material. Your task is to create comprehensive, well-organized study notes that are easy to review and understand.
+
+        **CONDENSED NOTES REQUIREMENTS:**
+        - Create comprehensive notes that are well-organized and easy to review
+        - Include essential information with clear explanations
+        - Use efficient formatting for quick reference
+        - Balance detail with conciseness for effective studying
+        - Organize content logically with clear structure
+
+        **WELL-ORGANIZED STRUCTURE:**
+        - Use clear hierarchical headings and subheadings
+        - Organize content logically with smooth transitions between topics
+        - Use bullet points and numbered lists for clarity
+        - Include cross-references between related concepts
+
+        **STUDY-FRIENDLY CONTENT:**
+        - Focus on information most relevant for learning and review
+        - Include practical examples and applications
+        - Highlight important concepts and relationships
+        - Make content accessible for revision and exam preparation
+
+        **INTERACTIVE ELEMENTS:**
+        - Highlight key terms with definitions
+        - Emphasize important formulas and equations
+        - Include step-by-step explanations for complex processes
+        - Add notes about common misconceptions or tricky points
+
+        At the end, include a 'Key Takeaways' section that summarizes the most critical points.
+
+        Your response MUST be a single block of well-formed HTML.
+
+        Follow these rules precisely:
+        1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
+        2.  **Keywords:** For every important keyword or key term, wrap it in a `<span>` with `class="keyword"` and a `title` attribute containing its definition.
+        3.  **Formulas:** For every mathematical or scientific formula, wrap it in a `<span>` with `class="formula"` and a `data-formula` attribute containing the exact formula as a string.
+        4.  **Key Takeaways:** End with a section titled "Key Takeaways" that summarizes the most important points.
 
     Here is the text to transform:
     ---
     {text}
     """
+    
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -5882,13 +5938,14 @@ def process_revision_pack_activities(activities_to_create, hub_text, first_file_
                 activity_ref.update({'status': 'processing'})
                 
                 if activity.type == 'Notes':
-                    # Generate notes
-                    interactive_html = generate_interactive_notes_html(limited_text)
+                    # Generate notes with specified type
+                    note_type = activity.data.get('note_type', 'condensed')
+                    interactive_html = generate_interactive_notes_html(limited_text, note_type)
                     
                     # Update activity with the generated notes content
                     activity_ref.update({
                         'status': 'completed',
-                        'data': {'content_html': interactive_html, 'type': 'note'}
+                        'data': {'content_html': interactive_html, 'type': 'note', 'note_type': note_type}
                     })
                     
                 elif activity.type == 'Flashcards':
@@ -6039,6 +6096,7 @@ def generate_individual_notes(hub_id):
     """Generate individual interactive notes from selected files."""
     data = request.get_json()
     selected_files = data.get('selected_files', [])
+    note_type = data.get('note_type', 'condensed')
 
     if not selected_files:
         return jsonify({"success": False, "message": "No files were selected."}), 400
@@ -6050,18 +6108,20 @@ def generate_individual_notes(hub_id):
     try:
         # Limit text length to prevent timeouts
         limited_text = hub_text[:8000] if len(hub_text) > 8000 else hub_text
-        print(f"Generating individual notes with {len(limited_text)} characters of text")
+        print(f"Generating {note_type} notes with {len(limited_text)} characters of text")
 
-        # Generate interactive notes
-        interactive_html = generate_interactive_notes_html(limited_text)
+        # Generate interactive notes with specified type
+        interactive_html = generate_interactive_notes_html(limited_text, note_type)
         
         # Create note in database
         note_ref = db.collection('notes').document()
-        first_file_name = os.path.basename(selected_files[0]).replace('.pdf', '')
-        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"Interactive Notes: {first_file_name}", content_html=interactive_html)
+        import re
+        first_file_name = re.sub(r'\.[^/.]+$', '', os.path.basename(selected_files[0]))
+        note_type_title = {'key_points': 'Key Points', 'condensed': 'Condensed Notes', 'detailed': 'Detailed Notes'}.get(note_type, 'Interactive Notes')
+        new_note = Note(id=note_ref.id, hub_id=hub_id, title=f"{note_type_title}: {first_file_name}", content_html=interactive_html)
         note_ref.set(new_note.to_dict())
         
-        print("Individual notes generated successfully")
+        print(f"Individual {note_type} notes generated successfully")
         return jsonify({"success": True, "redirect_url": url_for('view_note', note_id=note_ref.id)})
 
     except Exception as e:

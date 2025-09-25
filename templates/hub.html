@@ -892,6 +892,74 @@
             transform: scale(1.05);
         }
 
+        /* Note Type Options Styles */
+        .note-type-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .note-type-option {
+            display: block;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            background: var(--background-card);
+        }
+        
+        .note-type-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .note-type-option input[type="radio"] {
+            display: none;
+        }
+        
+        .note-type-option input[type="radio"]:checked + .option-content {
+            opacity: 1;
+        }
+        
+        .note-type-option:has(input[type="radio"]:checked) {
+            border-color: var(--primary-color);
+            background: rgba(var(--primary-color-rgb), 0.05);
+            box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+        }
+        
+        .option-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .option-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .option-text h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .option-text p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
         /* --- ALL ORIGINAL STYLES FOR COMPONENTS --- */
         h1, h2, h3, h4, h5, .button, .tab-button, .stat-label, .upload-form .file-upload-text {
             font-family: 'Poppins', sans-serif;
@@ -3120,7 +3188,59 @@
             </div>
             <form id="individual-notes-form">
                 <div class="modal-body">
-                    <p class="modal-description">Generate comprehensive, interactive study notes from your documents with key concepts highlighted and organized for easy revision.</p>
+                    <p class="modal-description">Choose the type of notes you'd like to generate from your documents.</p>
+                    
+                    <div class="form-group">
+                        <label class="label">Note Type</label>
+                        <div class="note-type-options">
+                            <label class="note-type-option">
+                                <input type="radio" name="note_type" value="key_points" checked>
+                                <div class="option-content">
+                                    <div class="option-icon" style="background-color: #fef3c7; color: #92400e;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                                        </svg>
+                                    </div>
+                                    <div class="option-text">
+                                        <h4>Key Points</h4>
+                                        <p>Essential concepts and main ideas with brief descriptions</p>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="note-type-option">
+                                <input type="radio" name="note_type" value="condensed">
+                                <div class="option-content">
+                                    <div class="option-icon" style="background-color: #dbeafe; color: #1e40af;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                        </svg>
+                                    </div>
+                                    <div class="option-text">
+                                        <h4>Condensed Notes</h4>
+                                        <p>Comprehensive notes that are well-organized and easy to review</p>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="note-type-option">
+                                <input type="radio" name="note_type" value="detailed">
+                                <div class="option-content">
+                                    <div class="option-icon" style="background-color: #dcfce7; color: #166534;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24" stroke-width="2" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                        </svg>
+                                    </div>
+                                    <div class="option-text">
+                                        <h4>Detailed Notes</h4>
+                                        <p>Full, comprehensive notes with complete explanations and examples</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label class="label">Select Documents</label>
                         <div id="individual-notes-files" class="modal-file-list"></div>
@@ -4336,13 +4456,16 @@
                 e.preventDefault();
                 const form = e.target;
                 const selectedFiles = Array.from(form.querySelectorAll('input[name="individual-notes-files_files"]:checked')).map(cb => cb.value);
+                const noteType = form.querySelector('input[name="note_type"]:checked').value;
+                
                 if (selectedFiles.length === 0) return showCustomAlert("Please select at least one document.", 'No Selection');
                 
                 document.getElementById('individual-notes-modal').style.display = 'none';
                 
-                // Add to task queue instead of direct generation
-                const firstFileName = selectedFiles[0].split('/').pop().replace('.pdf', '');
-                taskQueue.addTask('notes', `Interactive Notes: ${firstFileName}`, selectedFiles);
+                // Add to task queue with note type
+                const firstFileName = selectedFiles[0].split('/').pop().replace(/\.[^/.]+$/, '');
+                const taskTitle = `${noteType === 'key_points' ? 'Key Points' : noteType === 'condensed' ? 'Condensed Notes' : 'Detailed Notes'}: ${firstFileName}`;
+                taskQueue.addTask('notes', taskTitle, selectedFiles, { note_type: noteType });
             });
 
             document.getElementById('individual-flashcards-form')?.addEventListener('submit', async (e) => {
