@@ -2869,6 +2869,19 @@ def hub_page(hub_id):
             print(f"Error processing slide note {doc.id}: {e}")
             continue
 
+    # --- NEW: Fetch Files from files collection ---
+    files_query = db.collection('files').where(filter=firestore.FieldFilter('hub_id', '==', hub_id)).order_by('upload_date', direction=firestore.Query.DESCENDING).stream()
+    all_files = []
+    for doc in files_query:
+        try:
+            file_data = doc.to_dict()
+            # Clean any Undefined values from the data recursively
+            cleaned_data = clean_undefined_values(file_data)
+            all_files.append(cleaned_data)
+        except Exception as e:
+            print(f"Error processing file {doc.id}: {e}")
+            continue
+
     notes_map = {note.id: note for note in all_notes}
     activities_map = {activity.id: activity for activity in all_activities}
 
@@ -3066,6 +3079,7 @@ def hub_page(hub_id):
         today_xp=today_xp,
         all_folders=[obj_to_dict(folder) for folder in all_folders],
         all_slide_notes=[obj_to_dict(slide) for slide in all_slide_notes], # NEW: Pass slide notes to template
+        all_files=all_files, # NEW: Pass files from files collection to template
         yesterday_activities=yesterday_activities,
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
