@@ -3440,54 +3440,14 @@ def create_slide_notes_session(hub_id):
 
     try:
         if file_selected:
-            # Use existing file from hub
-            file_doc = None
-            file_data = None
+            # Use existing file from hub.files (simplified list)
+            print(f"Using existing file - Name: {selected_file_name}, Path: {selected_file_path}")
             
-            if selected_file_id and selected_file_id != 'unknown':
-                # Try to find by file ID first
-                print(f"Using existing file with ID: {selected_file_id}")
-                file_doc = db.collection('files').document(selected_file_id).get()
-                if file_doc.exists:
-                    file_data = file_doc.to_dict()
+            # Use the file path and name directly from the form
+            file_path = selected_file_path
+            filename = selected_file_name
             
-            if not file_data and selected_file_name:
-                # Try to find by file name
-                print(f"Looking for file with name: {selected_file_name}")
-                files_query = db.collection('files').where('hub_id', '==', hub_id).where('filename', '==', selected_file_name).limit(1)
-                files = list(files_query.stream())
-                if not files:
-                    # Try original_filename
-                    files_query = db.collection('files').where('hub_id', '==', hub_id).where('original_filename', '==', selected_file_name).limit(1)
-                    files = list(files_query.stream())
-                
-                if files:
-                    file_data = files[0].to_dict()
-                    print(f"Found file by name: {selected_file_name}")
-                else:
-                    print(f"No file found with name: {selected_file_name}")
-            
-            if not file_data and selected_file_path:
-                # Try to find by file path
-                print(f"Looking for file with path: {selected_file_path}")
-                files_query = db.collection('files').where('hub_id', '==', hub_id).where('file_path', '==', selected_file_path).limit(1)
-                files = list(files_query.stream())
-                
-                if files:
-                    file_data = files[0].to_dict()
-                    print(f"Found file by path: {selected_file_path}")
-                else:
-                    print(f"No file found with path: {selected_file_path}")
-            
-            if not file_data:
-                print(f"File not found - ID: {selected_file_id}, Name: {selected_file_name}, Path: {selected_file_path}")
-                flash("Selected file not found.", "error")
-                return redirect(url_for('hub_page', hub_id=hub_id))
-            
-            file_path = file_data.get('file_path') or file_data.get('path')
-            filename = file_data.get('filename') or file_data.get('original_filename') or file_data.get('name')
-            print(f"File data: {file_data}")
-            print(f"Extracted: path={file_path}, name={filename}")
+            print(f"Using file - path={file_path}, name={filename}")
             
             # Get the file from Firebase Storage
             blob = bucket.blob(file_path)
