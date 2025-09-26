@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Spinner Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="/static/js/loading-spinner.js"></script>
+    <style>
+        /* Loading Spinner Styles */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .button-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .button-loading .loading-spinner {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <h1 class="text-3xl font-bold text-center mb-8">Loading Spinner Test Page</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-semibold mb-6">Test Different Loading States</h2>
+            
+            <div class="space-y-4">
+                <!-- Test Button 1: Success Flow -->
+                <div class="flex items-center space-x-4">
+                    <button id="test-btn-1" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        <span class="btn-text">Test Success Flow</span>
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <span class="text-gray-600">Simulates successful operation</span>
+                </div>
+                
+                <!-- Test Button 2: Error Flow -->
+                <div class="flex items-center space-x-4">
+                    <button id="test-btn-2" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        <span class="btn-text">Test Error Flow</span>
+                        <i class="fas fa-exclamation-triangle ml-2"></i>
+                    </button>
+                    <span class="text-gray-600">Simulates error scenario</span>
+                </div>
+                
+                <!-- Test Button 3: Long Loading -->
+                <div class="flex items-center space-x-4">
+                    <button id="test-btn-3" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                        <span class="btn-text">Test Long Loading</span>
+                        <i class="fas fa-clock ml-2"></i>
+                    </button>
+                    <span class="text-gray-600">Simulates long operation (5 seconds)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-semibold mb-6">Usage Instructions</h2>
+            <div class="prose max-w-none">
+                <h3 class="text-lg font-semibold mb-3">How to Use the Loading Spinner:</h3>
+                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                    <li>Include the loading-spinner.js script in your HTML</li>
+                    <li>Add the CSS styles for .loading-spinner and .button-loading</li>
+                    <li>Create a LoadingSpinner instance: <code class="bg-gray-200 px-2 py-1 rounded">new LoadingSpinner('button-id')</code></li>
+                    <li>Call <code class="bg-gray-200 px-2 py-1 rounded">showLoading()</code> to start loading</li>
+                    <li>Call <code class="bg-gray-200 px-2 py-1 rounded">showSuccess()</code> or <code class="bg-gray-200 px-2 py-1 rounded">showError()</code> to finish</li>
+                </ol>
+                
+                <h3 class="text-lg font-semibold mb-3 mt-6">Features:</h3>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li>Prevents multiple clicks during loading</li>
+                    <li>Customizable loading, success, and error text</li>
+                    <li>Automatic button state management</li>
+                    <li>Reusable across different buttons</li>
+                    <li>Callback support for success actions</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize spinners for test buttons
+        const spinner1 = new LoadingSpinner('test-btn-1', {
+            loadingText: 'Processing...',
+            successText: 'Success!',
+            errorText: 'Try Again',
+            successDelay: 1500
+        });
+        
+        const spinner2 = new LoadingSpinner('test-btn-2', {
+            loadingText: 'Processing...',
+            successText: 'Success!',
+            errorText: 'Error Occurred',
+            successDelay: 1500
+        });
+        
+        const spinner3 = new LoadingSpinner('test-btn-3', {
+            loadingText: 'Loading...',
+            successText: 'Complete!',
+            errorText: 'Failed',
+            successDelay: 1000
+        });
+        
+        // Test Button 1: Success Flow
+        document.getElementById('test-btn-1').addEventListener('click', function() {
+            if (spinner1.showLoading()) {
+                // Simulate API call
+                setTimeout(() => {
+                    spinner1.showSuccess('Success!', () => {
+                        console.log('Success callback executed');
+                    });
+                }, 2000);
+            }
+        });
+        
+        // Test Button 2: Error Flow
+        document.getElementById('test-btn-2').addEventListener('click', function() {
+            if (spinner2.showLoading()) {
+                // Simulate API call that fails
+                setTimeout(() => {
+                    spinner2.showError('Error Occurred');
+                }, 2000);
+            }
+        });
+        
+        // Test Button 3: Long Loading
+        document.getElementById('test-btn-3').addEventListener('click', function() {
+            if (spinner3.showLoading()) {
+                // Simulate long operation
+                setTimeout(() => {
+                    spinner3.showSuccess('Complete!', () => {
+                        console.log('Long operation completed');
+                    });
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

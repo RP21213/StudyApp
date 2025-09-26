@@ -2309,6 +2309,11 @@ def onboarding():
         return redirect(url_for('dashboard'))
     return render_template('onboarding.html')
 
+@app.route('/test/loading-spinner')
+def loading_spinner_test():
+    """Test page for loading spinner functionality"""
+    return render_template('loading_spinner_test.html')
+
 def generate_ai_calendar(modules, study_time, hub_ids):
     """Generate a personalized study calendar using AI"""
     try:

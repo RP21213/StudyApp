@@ -6,6 +6,7 @@
     <title>Welcome to FociAI - Onboarding</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="/static/js/loading-spinner.js"></script>
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -53,6 +54,32 @@
         .theme-option.selected {
             border-color: #667eea;
             background: #f0f4ff;
+        }
+        
+        /* Loading Spinner Styles */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .button-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .button-loading .loading-spinner {
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -357,19 +384,46 @@
                         </div>
                         <h2 class="text-3xl font-bold text-gray-800 mb-4">Watch Our Demo</h2>
                         <p class="text-lg text-gray-600 mb-8">Take a quick look at how FociAI works before you start.</p>
-                        <div class="max-w-lg mx-auto">
-                            <div class="bg-gray-100 rounded-lg p-8 mb-6">
-                                <i class="fas fa-video text-4xl text-gray-400 mb-4"></i>
-                                <p class="text-gray-600 mb-4">Demo video will be embedded here</p>
-                                <p class="text-sm text-gray-500">[Placeholder for 3rd party demo link]</p>
-                                <div class="mt-4">
-                                    <a href="#" id="demo-link" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
-                                        Watch Demo Video
-                                    </a>
+                        <div class="max-w-4xl mx-auto">
+                            <div class="mb-6">
+                                <div
+                                    id="howdygo-embed"
+                                    style="width: 100%;
+                                        max-width: 2042px;
+                                        background-color: #ffffff;
+                                        border: 1px solid #e2e8f0;
+                                        border-radius: 12px;
+                                        overflow: hidden;
+                                        box-shadow:
+                                            0px 0px 1px rgba(45, 55, 72, 0.05),
+                                            0px 4px 8px rgba(45, 55, 72, 0.1);"
+                                >
+                                    <script src="https://js.howdygo.com/v1.2.1/index.js"></script>
+                                    <div
+                                        id="howdygo-wrapper"
+                                        style="position: relative;
+                                        width: 100%;
+                                        height: 0;
+                                        padding-bottom: calc(49.853085210577866% + 40px);"
+                                    >
+                                        <iframe
+                                            id="howdygo-frame"
+                                            src="https://app.howdygo.com/prescreen-embed/b1468bfe-4be6-4c8a-9fcc-a486b734ebe4?mobileStrategy=newTab&launchButton=Launch+interactive+demo"
+                                            frameborder="0"
+                                            scrolling="no"
+                                            allow="clipboard-write; autoplay"
+                                            webkitallowfullscreen
+                                            mozallowfullscreen
+                                            allowfullscreen
+                                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"
+                                        ></iframe>
+                                    </div>
                                 </div>
                             </div>
-                            <button onclick="completeOnboarding()" class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-green-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
-                                Explore Now <i class="fas fa-arrow-right ml-2"></i>
+                            <button id="explore-now-btn" onclick="completeOnboarding()" class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-green-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
+                                <span id="btn-text">Explore Now</span>
+                                <i id="btn-icon" class="fas fa-arrow-right ml-2"></i>
+                                <div id="btn-spinner" class="loading-spinner hidden"></div>
                             </button>
                         </div>
                     </div>
@@ -390,6 +444,9 @@
             specificHelp: '',
             themePreference: ''
         };
+        
+        // Initialize loading spinner for the explore button
+        let exploreSpinner;
 
         function updateProgressIndicator() {
             const indicators = document.querySelectorAll('.step-indicator');
@@ -511,6 +568,21 @@
         }
 
         function completeOnboarding() {
+            // Initialize spinner if not already done
+            if (!exploreSpinner) {
+                exploreSpinner = new LoadingSpinner('explore-now-btn', {
+                    loadingText: 'Creating Your Study Hub...',
+                    successText: 'Redirecting...',
+                    errorText: 'Try Again',
+                    successDelay: 1000
+                });
+            }
+            
+            // Show loading state
+            if (!exploreSpinner.showLoading()) {
+                return; // Already loading, prevent multiple clicks
+            }
+            
             // Collect final data
             onboardingData.name = document.getElementById('user-name').value;
             onboardingData.specificHelp = document.getElementById('specific-help').value;
@@ -526,31 +598,26 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/dashboard';
+                    // Show success and redirect
+                    exploreSpinner.showSuccess('Redirecting...', () => {
+                        window.location.href = '/dashboard';
+                    });
                 } else {
+                    // Show error
+                    exploreSpinner.showError('Error - Try Again');
                     alert('Error completing onboarding. Please try again.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                // Show error
+                exploreSpinner.showError('Error - Try Again');
                 alert('Error completing onboarding. Please try again.');
             });
         }
 
         // Initialize
         showStep(1);
-        
-        // Load demo link from configuration
-        fetch('/api/config/demo-link')
-            .then(response => response.json())
-            .then(data => {
-                if (data.demo_link) {
-                    document.getElementById('demo-link').href = data.demo_link;
-                }
-            })
-            .catch(error => {
-                console.log('Demo link not configured yet');
-            });
     </script>
 </body>
 </html>
