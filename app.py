@@ -3426,12 +3426,11 @@ def create_slide_notes_session(hub_id):
     selected_file_name = request.form.get('selected_file_name')
     selected_file_path = request.form.get('selected_file_path')
     
-    # Check if a file was uploaded or selected from existing files
-    file_uploaded = 'slide_file' in request.files and request.files['slide_file'].filename != ''
+    # Check if a file was selected from existing files
     file_selected = (selected_file_id is not None and selected_file_id != '') or (selected_file_name is not None and selected_file_name != '') or (selected_file_path is not None and selected_file_path != '')
     
-    if not file_uploaded and not file_selected:
-        flash("Please select a file from existing files or upload a new file.", "error")
+    if not file_selected:
+        flash("Please select a document to continue.", "error")
         return redirect(url_for('hub_page', hub_id=hub_id))
 
     try:
@@ -3508,37 +3507,6 @@ def create_slide_notes_session(hub_id):
                     flash("Error accessing selected file.", "error")
                     return redirect(url_for('hub_page', hub_id=hub_id))
             
-        else:
-            # Upload new file
-            file = request.files['slide_file']
-            
-            # Check file extension
-            filename_lower = file.filename.lower()
-            if not filename_lower.endswith((".pdf", ".docx", ".pptx")):
-                flash("Please select a valid PDF, Word document (.docx), or PowerPoint presentation (.pptx) file.", "error")
-                return redirect(url_for('hub_page', hub_id=hub_id))
-            
-            filename = secure_filename(file.filename)
-            file_path = f"hubs/{hub_id}/slides/{uuid.uuid4()}_{filename}"
-            blob = bucket.blob(file_path)
-
-            # Determine content type based on file extension
-            file_extension = os.path.splitext(filename)[1].lower()
-            if file_extension == '.pdf':
-                content_type = 'application/pdf'
-            elif file_extension == '.docx':
-                content_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            elif file_extension == '.pptx':
-                content_type = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-            else:
-                content_type = file.content_type or 'application/octet-stream'
-            
-            # Upload file to Firebase
-            blob.upload_from_file(file, content_type=content_type)
-
-            # Make it publicly accessible
-            blob.make_public()
-            pdf_url = blob.public_url
 
         # IMPORTANT: create the document in annotated_slide_decks (not sessions)
         session_ref = db.collection('annotated_slide_decks').document()

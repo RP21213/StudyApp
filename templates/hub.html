@@ -3823,18 +3823,14 @@
             <div class="modal-header"><h3>Take Notes with Slides</h3><button class="close-btn">&times;</button></div>
             <form id="slide-notes-form" action="{{ url_for('create_slide_notes_session', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data" target="_blank">
                 <div class="modal-body">
-                    <p class="modal-description">Choose from existing files in your hub or upload new lecture slides (PDF, Word, or PowerPoint format) to begin a new note-taking session.</p>
+                    <p class="modal-description">Select a document from your hub to begin a new note-taking session.</p>
                     <div class="form-group">
                         <label for="slide-notes-title">Session Title</label>
                         <input type="text" id="slide-notes-title" name="title" placeholder="e.g., Week 1: Intro to Business Law" required>
                     </div>
                     <div class="form-group">
-                        <label class="label">Select from Existing Files</label>
+                        <label class="label">Select Document</label>
                         <div id="slide-notes-files" class="modal-file-list"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="slide-file-upload">Or Upload New Slides (PDF, Word, PowerPoint)</label>
-                        <input type="file" id="slide-file-upload" name="slide_file" accept=".pdf,.docx,.pptx">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -5526,8 +5522,6 @@
                     if (toolId) {
                          switch (toolId) {
                             case 'pipeline-slide-notes':
-                                if(getAllFiles().length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
-                                
                                 // Use window.hubFiles instead of getAllFiles() for slide notes
                                 const slideNotesFiles = window.hubFiles || [];
                                 if (slideNotesFiles.length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
@@ -7507,13 +7501,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Function to update form validation for slide notes
         function updateSlideNotesFormValidation() {
             const fileSelected = document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]:checked');
-            const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
             
-            console.log('🔍 Form validation - fileSelected:', !!fileSelected, 'fileUploaded:', !!fileUploaded);
+            console.log('🔍 Form validation - fileSelected:', !!fileSelected);
             
             const submitBtn = document.querySelector('#slide-notes-form button[type="submit"]');
             if (submitBtn) {
-                const shouldEnable = fileSelected || fileUploaded;
+                const shouldEnable = !!fileSelected;
                 console.log('🔍 Form validation - shouldEnable:', shouldEnable);
                 submitBtn.disabled = !shouldEnable;
                 if (!shouldEnable) {
@@ -7530,10 +7523,8 @@ document.addEventListener('DOMContentLoaded', () => {
         function handleSlideNotesFormSubmission(e) {
             console.log('🎯 handleSlideNotesFormSubmission called');
             const fileSelected = document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]:checked');
-            const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
             
             console.log('🔍 File selected:', !!fileSelected, fileSelected ? fileSelected.value : 'none');
-            console.log('🔍 File uploaded:', !!fileUploaded);
             
             // Check if we're in onboarding and complete it
             const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
@@ -7558,16 +7549,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }).catch(e => console.error('Error completing onboarding:', e));
             }
             
-            if (!fileSelected && !fileUploaded) {
+            if (!fileSelected) {
                 e.preventDefault();
-                showNotification('Please select a file from existing files or upload a new file.', NOTIFICATION_TYPES.ERROR);
+                showNotification('Please select a document to continue.', NOTIFICATION_TYPES.ERROR);
                 return;
             }
             
-            // If a file is selected from existing files, we need to modify the form to include the file info
-            if (fileSelected && !fileUploaded) {
-                console.log('🎯 Using existing file, preventing default and submitting manually');
-                e.preventDefault();
+            // Handle file selection
+            console.log('🎯 Using selected file, preventing default and submitting manually');
+            e.preventDefault();
                 
                 // Get the file path from the selected radio button
                 const filePath = fileSelected.value;
@@ -7619,32 +7609,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('🎯 Submitting form with file path:', filePath, 'and file name:', fileName);
                 // Submit the form
                 form.submit();
-            } else {
-                console.log('🎯 Using uploaded file, letting normal form submission handle it');
-                // For uploaded files, we still need to complete onboarding
-                const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
-                if (isOnboarding) {
-                    console.log('🎯 Completing onboarding for uploaded file...');
-                    
-                    // Complete onboarding
-                    fetch('/onboarding/complete', { method: 'POST' }).then(() => {
-                        console.log('✅ Onboarding completion API called successfully for uploaded file');
-                        
-                        // Clean up onboarding flags
-                        sessionStorage.removeItem('onboardingStep');
-                        sessionStorage.removeItem('showOnboardingCelebration');
-                        sessionStorage.removeItem('showTaskQueueTooltip');
-                        
-                        // Show completion modal immediately (don't wait for page reload)
-                        setTimeout(() => {
-                            console.log('🎉 Showing completion modal immediately after onboarding completion (uploaded file)');
-                            showCompletionModal();
-                        }, 2000); // Wait 2 seconds for the new tab to open
-                        
-                    }).catch(e => console.error('Error completing onboarding:', e));
-                }
-            }
-            // If a file is uploaded, let the normal form submission handle it
         }
         
         // Function to setup onboarding completion
