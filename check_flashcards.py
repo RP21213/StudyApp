@@ -9,8 +9,8 @@ import os
 import json
 import base64
 
-def initialize_firebase():
-    """Initialize Firebase using the same method as the main app"""
+def check_initialize_firebase():
+    """Initialize Firebase using the same method as the main app for checking"""
     try:
         # Check if Firebase is already initialized
         if firebase_admin._apps:
@@ -47,7 +47,7 @@ def check_existing_flashcards():
     """Check what flashcards exist in the database"""
     try:
         # Initialize Firebase
-        app = initialize_firebase()
+        app = check_initialize_firebase()
         if not app:
             return 0, 0
         

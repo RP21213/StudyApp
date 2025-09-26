@@ -21,7 +21,7 @@ except ImportError as e:
     print("Please run: pip install python-pptx python-docx PyPDF2")
     sys.exit(1)
 
-def pdf_to_text(pdf_file_stream):
+def test_pdf_to_text(pdf_file_stream):
     try:
         reader = PyPDF2.PdfReader(pdf_file_stream)
         text = ""
@@ -33,7 +33,7 @@ def pdf_to_text(pdf_file_stream):
         print(f"Error reading PDF: {e}")
         return ""
 
-def docx_to_text(docx_file_stream):
+def test_docx_to_text(docx_file_stream):
     try:
         doc = DocxDocument(docx_file_stream)
         text = ""
@@ -45,7 +45,7 @@ def docx_to_text(docx_file_stream):
         print(f"Error reading Word document: {e}")
         return ""
 
-def pptx_to_text(pptx_file_stream):
+def test_pptx_to_text(pptx_file_stream):
     try:
         prs = Presentation(pptx_file_stream)
         text = ""
@@ -59,18 +59,18 @@ def pptx_to_text(pptx_file_stream):
         print(f"Error reading PowerPoint document: {e}")
         return ""
 
-def extract_text_from_file(file_stream, file_extension):
+def test_extract_text_from_file(file_stream, file_extension):
     """
     Universal text extraction function that handles PDF, DOCX, and PPTX files.
     """
     file_extension = file_extension.lower()
     
     if file_extension == '.pdf':
-        return pdf_to_text(file_stream)
+        return test_pdf_to_text(file_stream)
     elif file_extension == '.docx':
-        return docx_to_text(file_stream)
+        return test_docx_to_text(file_stream)
     elif file_extension == '.pptx':
-        return pptx_to_text(file_stream)
+        return test_pptx_to_text(file_stream)
     else:
         print(f"Unsupported file type: {file_extension}")
         return ""
@@ -98,7 +98,7 @@ def test_file_processing():
         try:
             with open(filename, 'rb') as f:
                 file_stream = io.BytesIO(f.read())
-                text = extract_text_from_file(file_stream, extension)
+                text = test_extract_text_from_file(file_stream, extension)
                 
                 if text.strip():
                     print(f"   ✅ Successfully extracted {len(text)} characters")

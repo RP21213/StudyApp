@@ -11,8 +11,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from models import User, Referral
 import random
 
-def generate_referral_code():
-    """Generate a unique 6-digit referral code"""
+def test_generate_referral_code():
+    """Generate a unique 6-digit referral code for testing"""
     return str(random.randint(100000, 999999))
 
 def test_referral_models():
@@ -74,7 +74,7 @@ def test_referral_code_generation():
     
     codes = []
     for i in range(5):
-        code = generate_referral_code()
+        code = test_generate_referral_code()
         codes.append(code)
         print(f"   Generated code {i+1}: {code}")
     

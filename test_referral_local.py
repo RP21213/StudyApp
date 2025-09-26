@@ -37,15 +37,15 @@ class TestUser(UserMixin):
 def load_user(user_id):
     return users_db.get(user_id)
 
-def generate_referral_code():
-    """Generate a unique 6-digit referral code"""
+def test_generate_referral_code():
+    """Generate a unique 6-digit referral code for testing"""
     while True:
         code = str(random.randint(100000, 999999))
         if not any(user.referral_code == code for user in users_db.values()):
             return code
 
-def validate_referral_code(code):
-    """Validate if a referral code exists and return the referrer user"""
+def test_validate_referral_code(code):
+    """Validate if a referral code exists and return the referrer user for testing"""
     if not code or len(code) != 6 or not code.isdigit():
         return None
     
@@ -56,7 +56,7 @@ def validate_referral_code(code):
 
 # Routes
 @app.route('/')
-def index():
+def test_index():
     return '''
     <h1>🧪 Referral System Test</h1>
     <p><a href="/signup">Sign Up</a> | <a href="/login">Login</a> | <a href="/dashboard">Dashboard</a></p>
@@ -64,7 +64,7 @@ def index():
     '''
 
 @app.route('/signup', methods=['GET', 'POST'])
-def signup():
+def test_signup():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -80,7 +80,7 @@ def signup():
         # Validate referral code if provided
         referred_by = None
         if referral_code:
-            referrer = validate_referral_code(referral_code)
+            referrer = test_validate_referral_code(referral_code)
             if referrer:
                 referred_by = referrer.id
                 print(f"✅ Valid referral code {referral_code} from {referrer.email}")
@@ -89,7 +89,7 @@ def signup():
         
         # Create new user
         user_id = f"user_{len(users_db) + 1}"
-        new_referral_code = generate_referral_code()
+        new_referral_code = test_generate_referral_code()
         
         user = TestUser(
             id=user_id,
@@ -114,7 +114,7 @@ def signup():
             print(f"✅ Created referral record: {referral_id}")
         
         login_user(user)
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('test_dashboard'))
     
     return '''
     <h2>Sign Up</h2>
@@ -128,7 +128,7 @@ def signup():
     '''
 
 @app.route('/login', methods=['GET', 'POST'])
-def login():
+def test_login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -142,7 +142,7 @@ def login():
         
         if user:
             login_user(user)
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('test_dashboard'))
         else:
             return "Invalid credentials", 400
     
@@ -158,7 +158,7 @@ def login():
 
 @app.route('/dashboard')
 @login_required
-def dashboard():
+def test_dashboard():
     return f'''
     <h2>Dashboard - {current_user.email}</h2>
     <p><strong>Your Referral Code:</strong> {current_user.referral_code}</p>
@@ -201,7 +201,7 @@ def simulate_pro_subscription():
             print(f"✅ Processed Pro subscription for {current_user.email} -> {referrer.email if referrer else 'Unknown'}")
             break
     
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('test_dashboard'))
 
 @app.route('/api/referrals/user-stats')
 @login_required
@@ -241,9 +241,9 @@ def api_leaderboard():
 
 @app.route('/logout')
 @login_required
-def logout():
+def test_logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('test_index'))
 
 def get_all_users_html():
     html = "<ul>"

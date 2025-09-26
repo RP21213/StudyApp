@@ -12,8 +12,8 @@ from firebase_admin import credentials, firestore
 from datetime import datetime, timezone
 from models import SpacedRepetitionCard
 
-def initialize_firebase():
-    """Initialize Firebase using the same method as the main app"""
+def migrate_initialize_firebase():
+    """Initialize Firebase using the same method as the main app for migration"""
     try:
         # Check if Firebase is already initialized
         if firebase_admin._apps:
@@ -50,7 +50,7 @@ def migrate_flashcards():
     """Migrate existing flashcards to spaced repetition system"""
     try:
         # Initialize Firebase
-        app = initialize_firebase()
+        app = migrate_initialize_firebase()
         if not app:
             return False
         
@@ -136,7 +136,7 @@ def migrate_flashcards():
 def check_migration_status():
     """Check the current status of spaced repetition cards"""
     try:
-        app = initialize_firebase()
+        app = migrate_initialize_firebase()
         if not app:
             return
         

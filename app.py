@@ -2300,18 +2300,6 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/account/delete', methods=['POST'])
-@login_required
-def delete_account():
-    """Delete user account"""
-    try:
-        # This is a placeholder - implement actual account deletion logic
-        return jsonify({"success": True, "message": "Account deletion not yet implemented"})
-        
-    except Exception as e:
-        print(f"Error deleting account: {e}")
-        return jsonify({"success": False, "message": "An error occurred deleting account"}), 500
-
 
 @app.route('/onboarding')
 @login_required
