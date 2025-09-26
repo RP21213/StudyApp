@@ -2414,7 +2414,7 @@ def complete_onboarding():
 def get_demo_link():
     """Get the demo link configuration"""
     # This is a placeholder - you can replace this with your actual demo link
-    demo_link = "https://example.com/your-demo-video"  # Replace with your actual demo link
+    demo_link = "https://app.howdygo.com/share/b1468bfe-4be6-4c8a-9fcc-a486b734ebe4"  # Replace with your actual demo link
     return jsonify({"demo_link": demo_link})
 
 @app.route('/api/theme/update', methods=['POST'])
@@ -7972,30 +7972,6 @@ def save_personalization():
         print(f"Error saving personalization for user {current_user.id}: {e}")
         return jsonify({"success": False, "message": "An error occurred while saving personalization."}), 500
 
-@app.route('/onboarding/complete', methods=['POST'])
-@login_required
-def complete_onboarding():
-    """Marks the user's onboarding as complete."""
-    try:
-        user_ref = db.collection('users').document(current_user.id)
-        user_ref.update({'has_completed_onboarding': True})
-        
-        # Force refresh the current_user object from database
-        user_doc = db.collection('users').document(current_user.id).get()
-        if user_doc.exists:
-            updated_user = User.from_dict(user_doc.to_dict())
-            print(f"Onboarding complete: Database shows has_completed_onboarding = {updated_user.has_completed_onboarding}")
-            
-            # Clear the current session and re-login
-            logout_user()
-            login_user(updated_user, remember=True)
-            print(f"Onboarding complete: After logout/login, current_user.has_completed_onboarding = {current_user.has_completed_onboarding}")
-        
-        return jsonify({"success": True, "redirect": url_for('dashboard')})
-    except Exception as e:
-        print(f"Error completing onboarding for user {current_user.id}: {e}")
-        return jsonify({"success": False, "message": "An error occurred."}), 500
-
 @app.route('/onboarding/restart', methods=['POST'])
 @login_required
 def restart_onboarding():
@@ -8016,8 +7992,8 @@ def restart_onboarding():
         # Return a redirect response to force a fresh page load with updated user state
         return jsonify({
             "success": True, 
-            "message": "Onboarding restarted successfully!",
-            "redirect": "/dashboard"
+            "message": "Onboarding restarted successfully! You'll be redirected to the onboarding flow.",
+            "redirect": "/onboarding"
         })
     except Exception as e:
         print(f"Error restarting onboarding for user {current_user.id}: {e}")
