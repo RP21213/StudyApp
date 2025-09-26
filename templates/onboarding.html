@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to FociAI - Onboarding</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-active {
+            background: #667eea;
+            color: white;
+        }
+        .step-completed {
+            background: #10b981;
+            color: white;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .module-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            border: 2px solid #c7d2fe;
+            transition: all 0.2s ease;
+        }
+        .module-tag:hover {
+            background: #c7d2fe;
+            border-color: #a5b4fc;
+        }
+        .module-tag.selected {
+            background: #3730a3;
+            color: white;
+            border-color: #3730a3;
+        }
+        .theme-option {
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s ease;
+        }
+        .theme-option:hover {
+            border-color: #667eea;
+        }
+        .theme-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Welcome to FociAI!</h1>
+            <p class="text-xl text-blue-100">Let's get you started on your personalized study journey</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="max-w-2xl mx-auto mb-8">
+            <div class="flex justify-between items-center">
+                <div class="step-indicator step-active w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                <div class="flex-1 h-1 bg-white bg-opacity-30 mx-2"></div>
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-white bg-opacity-30 text-white">2</div>
+                <div class="flex-1 h-1 bg-white bg-opacity-30 mx-2"></div>
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-white bg-opacity-30 text-white">3</div>
+                <div class="flex-1 h-1 bg-white bg-opacity-30 mx-2"></div>
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-white bg-opacity-30 text-white">4</div>
+                <div class="flex-1 h-1 bg-white bg-opacity-30 mx-2"></div>
+                <div class="step-indicator w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-white bg-opacity-30 text-white">5</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-2xl p-8">
+                
+                <!-- Step 1: Welcome -->
+                <div id="step-1" class="step-content fade-in">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-graduation-cap text-3xl text-white"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Welcome to FociAI!</h2>
+                        <p class="text-lg text-gray-600 mb-8">We're excited to help you achieve your academic goals. Let's personalize your experience.</p>
+                        <button onclick="nextStep()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                            Get Started <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Name -->
+                <div id="step-2" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-user text-2xl text-blue-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">What should we call you?</h2>
+                        <p class="text-lg text-gray-600 mb-8">This will be displayed in your profile and throughout the app.</p>
+                        <div class="max-w-md mx-auto">
+                            <input type="text" id="user-name" placeholder="Enter your name" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-lg focus:border-blue-500 focus:outline-none transition-colors">
+                        </div>
+                        <div class="mt-8">
+                            <button onclick="nextStep()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                                Continue <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Study Level -->
+                <div id="step-3" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-graduation-cap text-2xl text-green-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">What's your current level of study?</h2>
+                        <p class="text-lg text-gray-600 mb-8">This helps us tailor content and features to your needs.</p>
+                        <div class="max-w-md mx-auto space-y-4">
+                            <button onclick="selectStudyLevel('high_school')" class="study-level-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-school text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">High School</h3>
+                                        <p class="text-gray-600">Secondary education level</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectStudyLevel('undergraduate')" class="study-level-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-university text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Undergraduate</h3>
+                                        <p class="text-gray-600">Bachelor's degree level</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectStudyLevel('postgraduate')" class="study-level-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-user-graduate text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Postgraduate</h3>
+                                        <p class="text-gray-600">Master's or PhD level</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Modules/Subjects -->
+                <div id="step-4" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-book text-2xl text-purple-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">What modules/subjects are you studying?</h2>
+                        <p class="text-lg text-gray-600 mb-8">We'll create study hubs for each subject (maximum 8).</p>
+                        <div class="max-w-lg mx-auto">
+                            <div class="flex mb-4">
+                                <input type="text" id="module-input" placeholder="Enter a module/subject name" class="flex-1 px-4 py-3 border-2 border-gray-200 rounded-l-lg focus:border-blue-500 focus:outline-none">
+                                <button onclick="addModule()" class="bg-blue-500 text-white px-6 py-3 rounded-r-lg hover:bg-blue-600 transition-colors">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="modules-list" class="space-y-2 mb-6">
+                                <!-- Modules will be added here -->
+                            </div>
+                            <p class="text-sm text-gray-500 mb-6">Selected modules: <span id="module-count">0</span>/8</p>
+                            <button onclick="nextStep()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                                Continue <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Goals -->
+                <div id="step-5" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-target text-2xl text-yellow-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">What's your main goal?</h2>
+                        <p class="text-lg text-gray-600 mb-8">This helps us customize your study experience.</p>
+                        <div class="max-w-md mx-auto space-y-4">
+                            <button onclick="selectGoal('improve_grades')" class="goal-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-chart-line text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Improve Grades</h3>
+                                        <p class="text-gray-600">Focus on better academic performance</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectGoal('learn_efficiently')" class="goal-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Learn More Efficiently</h3>
+                                        <p class="text-gray-600">Optimize study time and methods</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectGoal('prepare_exams')" class="goal-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clipboard-check text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Prepare for Exams</h3>
+                                        <p class="text-gray-600">Focus on exam preparation</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectGoal('general_study')" class="goal-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-lightbulb text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">General Study Support</h3>
+                                        <p class="text-gray-600">Overall academic improvement</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Study Time -->
+                <div id="step-6" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-clock text-2xl text-indigo-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">How much time can you dedicate to studying per day?</h2>
+                        <p class="text-lg text-gray-600 mb-8">This helps us create a realistic study schedule.</p>
+                        <div class="max-w-md mx-auto space-y-4">
+                            <button onclick="selectStudyTime('30_min')" class="study-time-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">30 minutes</h3>
+                                        <p class="text-gray-600">Quick daily review</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectStudyTime('1_hour')" class="study-time-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">1 hour</h3>
+                                        <p class="text-gray-600">Focused study session</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectStudyTime('2_hours')" class="study-time-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">2 hours</h3>
+                                        <p class="text-gray-600">Comprehensive study</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectStudyTime('3_plus_hours')" class="study-time-option w-full p-4 border-2 border-gray-200 rounded-lg text-left hover:border-blue-500 transition-colors">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-2xl text-blue-600 mr-4"></i>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">3+ hours</h3>
+                                        <p class="text-gray-600">Intensive study</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 7: Specific Help -->
+                <div id="step-7" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-question-circle text-2xl text-red-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Are there any specific modules or topics you want help with?</h2>
+                        <p class="text-lg text-gray-600 mb-8">This helps us prioritize your study areas.</p>
+                        <div class="max-w-lg mx-auto">
+                            <textarea id="specific-help" placeholder="Tell us about any challenging topics or areas where you need extra support..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg h-32 resize-none focus:border-blue-500 focus:outline-none"></textarea>
+                            <div class="mt-8">
+                                <button onclick="nextStep()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-200 transform hover:scale-105">
+                                    Continue <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 8: Theme Preference -->
+                <div id="step-8" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-palette text-2xl text-gray-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Do you prefer dark or light mode?</h2>
+                        <p class="text-lg text-gray-600 mb-8">Choose your preferred interface theme.</p>
+                        <div class="max-w-md mx-auto space-y-4">
+                            <button onclick="selectTheme('light')" class="theme-option w-full p-6 rounded-lg text-left">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-8 bg-white border-2 border-gray-300 rounded mr-4"></div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Light Mode</h3>
+                                        <p class="text-gray-600">Clean and bright interface</p>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="selectTheme('dark')" class="theme-option w-full p-6 rounded-lg text-left">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-8 bg-gray-800 border-2 border-gray-300 rounded mr-4"></div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Dark Mode</h3>
+                                        <p class="text-gray-600">Easy on the eyes</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 9: Calendar Generation -->
+                <div id="step-9" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-calendar-alt text-2xl text-green-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Creating Your Study Calendar</h2>
+                        <p class="text-lg text-gray-600 mb-8">We're generating a personalized study schedule based on your preferences...</p>
+                        <div class="max-w-md mx-auto">
+                            <div class="bg-gray-100 rounded-lg p-6 mb-6">
+                                <div class="flex items-center justify-center mb-4">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                </div>
+                                <p class="text-gray-600">Setting up your study hubs and calendar...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 10: Demo -->
+                <div id="step-10" class="step-content hidden">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-play text-2xl text-blue-600"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Watch Our Demo</h2>
+                        <p class="text-lg text-gray-600 mb-8">Take a quick look at how FociAI works before you start.</p>
+                        <div class="max-w-lg mx-auto">
+                            <div class="bg-gray-100 rounded-lg p-8 mb-6">
+                                <i class="fas fa-video text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-600 mb-4">Demo video will be embedded here</p>
+                                <p class="text-sm text-gray-500">[Placeholder for 3rd party demo link]</p>
+                                <div class="mt-4">
+                                    <a href="#" id="demo-link" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                                        Watch Demo Video
+                                    </a>
+                                </div>
+                            </div>
+                            <button onclick="completeOnboarding()" class="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-green-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
+                                Explore Now <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let onboardingData = {
+            name: '',
+            studyLevel: '',
+            modules: [],
+            goal: '',
+            studyTime: '',
+            specificHelp: '',
+            themePreference: ''
+        };
+
+        function updateProgressIndicator() {
+            const indicators = document.querySelectorAll('.step-indicator');
+            indicators.forEach((indicator, index) => {
+                indicator.classList.remove('step-active', 'step-completed');
+                if (index + 1 < currentStep) {
+                    indicator.classList.add('step-completed');
+                } else if (index + 1 === currentStep) {
+                    indicator.classList.add('step-active');
+                }
+            });
+        }
+
+        function showStep(stepNumber) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.add('hidden');
+            });
+            
+            // Show current step
+            const currentStepElement = document.getElementById(`step-${stepNumber}`);
+            if (currentStepElement) {
+                currentStepElement.classList.remove('hidden');
+                currentStepElement.classList.add('fade-in');
+            }
+            
+            updateProgressIndicator();
+        }
+
+        function nextStep() {
+            if (currentStep < 10) {
+                currentStep++;
+                showStep(currentStep);
+                
+                // Special handling for calendar generation step
+                if (currentStep === 9) {
+                    generateCalendar();
+                }
+            }
+        }
+
+        function selectStudyLevel(level) {
+            onboardingData.studyLevel = level;
+            document.querySelectorAll('.study-level-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.study-level-option').classList.add('selected');
+            setTimeout(nextStep, 500);
+        }
+
+        function addModule() {
+            const input = document.getElementById('module-input');
+            const moduleName = input.value.trim();
+            
+            if (moduleName && onboardingData.modules.length < 8) {
+                onboardingData.modules.push(moduleName);
+                input.value = '';
+                updateModulesList();
+            }
+        }
+
+        function removeModule(index) {
+            onboardingData.modules.splice(index, 1);
+            updateModulesList();
+        }
+
+        function updateModulesList() {
+            const modulesList = document.getElementById('modules-list');
+            const moduleCount = document.getElementById('module-count');
+            
+            modulesList.innerHTML = '';
+            moduleCount.textContent = onboardingData.modules.length;
+            
+            onboardingData.modules.forEach((module, index) => {
+                const moduleElement = document.createElement('div');
+                moduleElement.className = 'module-tag inline-flex items-center px-3 py-2 rounded-full mr-2 mb-2';
+                moduleElement.innerHTML = `
+                    <span class="mr-2">${module}</span>
+                    <button onclick="removeModule(${index})" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                modulesList.appendChild(moduleElement);
+            });
+        }
+
+        function selectGoal(goal) {
+            onboardingData.goal = goal;
+            document.querySelectorAll('.goal-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.goal-option').classList.add('selected');
+            setTimeout(nextStep, 500);
+        }
+
+        function selectStudyTime(time) {
+            onboardingData.studyTime = time;
+            document.querySelectorAll('.study-time-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.study-time-option').classList.add('selected');
+            setTimeout(nextStep, 500);
+        }
+
+        function selectTheme(theme) {
+            onboardingData.themePreference = theme;
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.closest('.theme-option').classList.add('selected');
+            setTimeout(nextStep, 500);
+        }
+
+        function generateCalendar() {
+            // Simulate calendar generation
+            setTimeout(() => {
+                nextStep();
+            }, 3000);
+        }
+
+        function completeOnboarding() {
+            // Collect final data
+            onboardingData.name = document.getElementById('user-name').value;
+            onboardingData.specificHelp = document.getElementById('specific-help').value;
+            
+            // Send data to server
+            fetch('/api/onboarding/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(onboardingData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Error completing onboarding. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error completing onboarding. Please try again.');
+            });
+        }
+
+        // Initialize
+        showStep(1);
+        
+        // Load demo link from configuration
+        fetch('/api/config/demo-link')
+            .then(response => response.json())
+            .then(data => {
+                if (data.demo_link) {
+                    document.getElementById('demo-link').href = data.demo_link;
+                }
+            })
+            .catch(error => {
+                console.log('Demo link not configured yet');
+            });
+    </script>
+</body>
+</html>

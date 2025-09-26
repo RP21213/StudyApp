@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% if current_user and current_user.theme_preference == 'dark' %}dark{% else %}light{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <title>{% block title %}My Study Hub{% endblock %}</title>
 
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% if current_user and current_user.theme_preference == 'dark' %}bg-gray-900 text-white{% else %}bg-white text-gray-900{% endif %}">
 
     {% block content %}{% endblock %}
 
@@ -150,7 +151,42 @@
         
         // Initialize background when page loads
         document.addEventListener('DOMContentLoaded', initializeGlobalBackground);
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Update the HTML class
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(newTheme);
+            
+            // Update body classes
+            document.body.classList.remove('bg-gray-900', 'text-white', 'bg-white', 'text-gray-900');
+            if (newTheme === 'dark') {
+                document.body.classList.add('bg-gray-900', 'text-white');
+            } else {
+                document.body.classList.add('bg-white', 'text-gray-900');
+            }
+            
+            // Save to server
+            fetch('/api/theme/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ theme: newTheme })
+            }).catch(error => {
+                console.error('Error updating theme:', error);
+            });
+        }
     </script>
+    
+    <!-- Theme Toggle Button -->
+    <button onclick="toggleTheme()" class="fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors z-50">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:block"></i>
+    </button>
 
 </body>
 </html>

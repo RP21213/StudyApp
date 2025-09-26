@@ -2288,22 +2288,164 @@ def signup():
         session.pop(f'phone_verified_{phone_number}', None)
         
         login_user(new_user, remember=True)
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('onboarding'))
 
     return render_template('signup.html')
 
 
-@app.route('/logout')
+@app.route('/onboarding')
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
+def onboarding():
+    """Onboarding page for new users"""
+    if current_user.has_completed_onboarding:
+        return redirect(url_for('dashboard'))
+    return render_template('onboarding.html')
+
+def generate_ai_calendar(modules, study_time, hub_ids):
+    """Generate a personalized study calendar using AI"""
+    try:
+        # Convert study time to minutes
+        time_mapping = {
+            '30_min': 30,
+            '1_hour': 60,
+            '2_hours': 120,
+            '3_plus_hours': 180
+        }
+        daily_minutes = time_mapping.get(study_time, 60)
+        
+        # Generate calendar events for the next 30 days
+        events = []
+        start_date = datetime.now(timezone.utc)
+        
+        for day in range(30):
+            current_date = start_date + timedelta(days=day)
+            
+            # Skip weekends for now (can be made configurable)
+            if current_date.weekday() >= 5:  # Saturday = 5, Sunday = 6
+                continue
+            
+            # Distribute study time across modules
+            if modules and hub_ids:
+                time_per_module = daily_minutes // len(modules)
+                remaining_time = daily_minutes % len(modules)
+                
+                for i, module in enumerate(modules):
+                    # Add extra time to first few modules if there's remainder
+                    module_time = time_per_module + (1 if i < remaining_time else 0)
+                    
+                    if module_time >= 15:  # Only create events for 15+ minutes
+                        start_time = current_date.replace(hour=9 + i, minute=0, second=0, microsecond=0)
+                        end_time = start_time + timedelta(minutes=module_time)
+                        
+                        events.append({
+                            'hub_id': hub_ids[i] if i < len(hub_ids) else hub_ids[0],
+                            'title': f"Study {module}",
+                            'event_type': 'Study Session',
+                            'start_time': start_time,
+                            'end_time': end_time,
+                            'focus': f"Focus on {module} concepts and practice"
+                        })
+        
+        return events
+        
+    except Exception as e:
+        print(f"Error generating AI calendar: {e}")
+        return []
+
+@app.route('/api/onboarding/complete', methods=['POST'])
+@login_required
+def complete_onboarding():
+    """Complete the onboarding process"""
+    try:
+        data = request.get_json()
+        
+        # Update user profile with onboarding data
+        user_ref = db.collection('users').document(current_user.id)
+        update_data = {
+            'display_name': data.get('name', current_user.display_name),
+            'study_level': data.get('studyLevel'),
+            'modules': data.get('modules', []),
+            'goals': data.get('goal'),
+            'study_time': data.get('studyTime'),
+            'specific_help': data.get('specificHelp', ''),
+            'theme_preference': data.get('themePreference', 'light'),
+            'has_completed_onboarding': True
+        }
+        
+        user_ref.update(update_data)
+        
+        # Create study hubs for each module
+        hub_ids = []
+        for module in data.get('modules', []):
+            hub_ref = db.collection('hubs').document()
+            hub = Hub(
+                id=hub_ref.id,
+                name=module,
+                user_id=current_user.id
+            )
+            hub_ref.set(hub.to_dict())
+            hub_ids.append(hub_ref.id)
+        
+        # Generate AI calendar
+        calendar_events = generate_ai_calendar(data.get('modules', []), data.get('studyTime', '1_hour'), hub_ids)
+        
+        # Create calendar events
+        for event_data in calendar_events:
+            event_ref = db.collection('calendar_events').document()
+            event = CalendarEvent(
+                id=event_ref.id,
+                hub_id=event_data['hub_id'],
+                title=event_data['title'],
+                event_type=event_data['event_type'],
+                start_time=event_data['start_time'],
+                end_time=event_data['end_time'],
+                focus=event_data.get('focus', ''),
+                status='scheduled'
+            )
+            event_ref.set(event.to_dict())
+        
+        return jsonify({"success": True, "message": "Onboarding completed successfully"})
+        
+    except Exception as e:
+        print(f"Error completing onboarding: {e}")
+        return jsonify({"success": False, "message": "An error occurred during onboarding"}), 500
+
+@app.route('/api/config/demo-link')
+def get_demo_link():
+    """Get the demo link configuration"""
+    # This is a placeholder - you can replace this with your actual demo link
+    demo_link = "https://example.com/your-demo-video"  # Replace with your actual demo link
+    return jsonify({"demo_link": demo_link})
+
+@app.route('/api/theme/update', methods=['POST'])
+@login_required
+def update_theme():
+    """Update user's theme preference"""
+    try:
+        data = request.get_json()
+        theme = data.get('theme', 'light')
+        
+        if theme not in ['light', 'dark']:
+            return jsonify({"success": False, "message": "Invalid theme"}), 400
+        
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({'theme_preference': theme})
+        
+        return jsonify({"success": True, "message": "Theme updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating theme: {e}")
+        return jsonify({"success": False, "message": "An error occurred updating theme"}), 500
 
 # --- Main Application Routes (UPDATED) ---
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    # Check if user has completed onboarding
+    if not current_user.has_completed_onboarding:
+        return redirect(url_for('onboarding'))
+    
     # --- Part 1: Hubs List for the main dashboard view ---
     hubs_ref = db.collection('hubs').where('user_id', '==', current_user.id).stream()
     hubs_list = [Hub.from_dict(doc.to_dict()) for doc in hubs_ref]

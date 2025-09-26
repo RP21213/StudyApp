@@ -52,6 +52,7 @@ class User(UserMixin):
                  # --- NEW: Onboarding Fields ---
                  has_completed_onboarding=False,
                  referral_source=None, goals=None, email_opt_in=False, theme_preference='light',
+                 study_level=None, modules=None, study_time=None, specific_help=None,
                  # --- NEW: Phone Verification Fields ---
                  phone_number=None, phone_verified=False,
                  # --- NEW: Referral Fields ---
@@ -90,6 +91,10 @@ class User(UserMixin):
         self.goals = goals
         self.email_opt_in = email_opt_in
         self.theme_preference = theme_preference
+        self.study_level = study_level
+        self.modules = modules if modules is not None else []
+        self.study_time = study_time
+        self.specific_help = specific_help
         
         # --- NEW: Phone Verification Properties ---
         self.phone_number = phone_number
@@ -133,6 +138,10 @@ class User(UserMixin):
             'goals': self.goals,
             'email_opt_in': self.email_opt_in,
             'theme_preference': self.theme_preference,
+            'study_level': self.study_level,
+            'modules': self.modules,
+            'study_time': self.study_time,
+            'specific_help': self.specific_help,
             'phone_number': self.phone_number,
             'phone_verified': self.phone_verified,
             # --- NEW: Referral to dict ---
@@ -175,6 +184,10 @@ class User(UserMixin):
             goals=source.get('goals'),
             email_opt_in=source.get('email_opt_in', False),
             theme_preference=source.get('theme_preference', 'light'),
+            study_level=source.get('study_level'),
+            modules=source.get('modules', []),
+            study_time=source.get('study_time'),
+            specific_help=source.get('specific_help'),
             # --- NEW: Phone Verification from dict ---
             phone_number=source.get('phone_number'),
             phone_verified=source.get('phone_verified', False),
