@@ -5527,7 +5527,18 @@
                          switch (toolId) {
                             case 'pipeline-slide-notes':
                                 if(getAllFiles().length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
-                                populateModalFileList('slide-notes-files', getAllFiles(), { multiSelect: false });
+                                
+                                // Use window.hubFiles instead of getAllFiles() for slide notes
+                                const slideNotesFiles = window.hubFiles || [];
+                                if (slideNotesFiles.length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
+                                
+                                // Convert hubFiles to the format expected by populateModalFileList
+                                const filesForModal = slideNotesFiles.map(file => ({
+                                    name: file.original_filename || file.filename || 'Unknown file',
+                                    path: file.file_path || file.path
+                                }));
+                                
+                                populateModalFileList('slide-notes-files', filesForModal, { multiSelect: false });
                                 
                                 // Add event listeners for form validation
                                 const slideNotesFileInputs = document.querySelectorAll('#slide-notes-files input[name="slide-notes-files_files"]');
@@ -7562,7 +7573,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const filePath = fileSelected.value;
                 console.log('🔍 Selected file path:', filePath);
                 
-                // Find the file data from window.hubFiles instead of getAllFiles()
+                // Find the file data from window.hubFiles
                 const hubFiles = window.hubFiles || [];
                 console.log('🔍 All hub files:', hubFiles);
                 console.log('🔍 Hub files length:', hubFiles.length);
