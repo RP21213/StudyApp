@@ -3424,10 +3424,11 @@ def create_slide_notes_session(hub_id):
     title = request.form.get('title', 'Untitled Lecture Notes')
     selected_file_id = request.form.get('selected_file_id')
     selected_file_name = request.form.get('selected_file_name')
+    selected_file_path = request.form.get('selected_file_path')
     
     # Check if a file was uploaded or selected from existing files
     file_uploaded = 'slide_file' in request.files and request.files['slide_file'].filename != ''
-    file_selected = (selected_file_id is not None and selected_file_id != '') or (selected_file_name is not None and selected_file_name != '')
+    file_selected = (selected_file_id is not None and selected_file_id != '') or (selected_file_name is not None and selected_file_name != '') or (selected_file_path is not None and selected_file_path != '')
     
     if not file_uploaded and not file_selected:
         flash("Please select a file from existing files or upload a new file.", "error")
@@ -3462,8 +3463,20 @@ def create_slide_notes_session(hub_id):
                 else:
                     print(f"No file found with name: {selected_file_name}")
             
+            if not file_data and selected_file_path:
+                # Try to find by file path
+                print(f"Looking for file with path: {selected_file_path}")
+                files_query = db.collection('files').where('hub_id', '==', hub_id).where('file_path', '==', selected_file_path).limit(1)
+                files = list(files_query.stream())
+                
+                if files:
+                    file_data = files[0].to_dict()
+                    print(f"Found file by path: {selected_file_path}")
+                else:
+                    print(f"No file found with path: {selected_file_path}")
+            
             if not file_data:
-                print(f"File not found - ID: {selected_file_id}, Name: {selected_file_name}")
+                print(f"File not found - ID: {selected_file_id}, Name: {selected_file_name}, Path: {selected_file_path}")
                 flash("Selected file not found.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             

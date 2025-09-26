@@ -5526,6 +5526,15 @@
                     if (toolId) {
                          switch (toolId) {
                             case 'pipeline-slide-notes':
+                                if(getAllFiles().length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
+                                populateModalFileList('slide-notes-files', getAllFiles(), { multiSelect: false });
+                                
+                                // Add event listeners for form validation
+                                const slideNotesFileInputs = document.querySelectorAll('#slide-notes-files input[name="slide-notes-files_files"]');
+                                slideNotesFileInputs.forEach(input => {
+                                    input.addEventListener('change', updateSlideNotesFormValidation);
+                                });
+                                
                                 slideNotesModal.style.display = 'flex';
                                 break;
                             case 'pipeline-stuck-question':
@@ -7391,9 +7400,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lectureNotesCard) {
                     lectureNotesCard.click();
                     
-                    // Wait for modal to open, then populate file list and auto-select
+                    // Wait for modal to open, then auto-select file during onboarding
                     setTimeout(() => {
-                        populateSlideNotesFileList();
                         
                         const isOnboarding = sessionStorage.getItem('onboardingStep') === 'hub_entry';
                         if (isOnboarding) {
@@ -7402,7 +7410,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const fileCheckbox = document.querySelector('#slide-notes-files input[value*="EC131"]') || 
                                                    document.querySelector('#slide-notes-files input[value*="EC131_Week_9"]') ||
                                                    document.querySelector('#slide-notes-files input[value*="machine_learning"]') ||
-                                                   document.querySelector('#slide-notes-files input[name="selected_file"]');
+                                                   document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]');
                                 
                                 console.log('🔍 Looking for file checkbox, found:', !!fileCheckbox);
                                 console.log('🔍 Checkbox value:', fileCheckbox ? fileCheckbox.value : 'none');
@@ -7481,67 +7489,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
         
-        // Function to populate slide notes file list
-        function populateSlideNotesFileList() {
-            console.log('🎯 populateSlideNotesFileList called');
-            const fileListContainer = document.getElementById('slide-notes-files');
-            if (!fileListContainer) {
-                console.log('❌ slide-notes-files container not found');
-                return;
-            }
-            
-            // Get hub files from the global variable or fetch them
-            const hubFiles = window.hubFiles || [];
-            console.log('🔍 Hub files found:', hubFiles.length);
-            
-            if (hubFiles.length === 0) {
-                fileListContainer.innerHTML = '<p style="color: #888; font-style: italic;">No files available in this hub.</p>';
-                return;
-            }
-            
-            // Populate file list
-            console.log('🔍 Hub files structure:', hubFiles);
-            
-            // Use the actual file data from the files collection
-            fileListContainer.innerHTML = hubFiles.map((file, index) => {
-                // Use the actual file ID from the files collection
-                const fileId = file.id;
-                const fileName = file.original_filename || file.filename || 'Unknown file';
-                const fileSize = file.file_size ? (file.file_size / 1024 / 1024).toFixed(2) + ' MB' : 'Unknown size';
-                
-                console.log(`🔍 File ${index}:`, file, 'fileId:', fileId);
-                return `
-                    <div class="file-item">
-                        <label style="display: flex; align-items: center; width: 100%; cursor: pointer; padding: 0.5rem; border-radius: 4px; transition: background-color 0.2s;">
-                            <input type="radio" name="selected_file" value="${fileId}" class="file-checkbox" data-file-index="${index}" style="margin-right: 1rem;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 500;">${fileName}</div>
-                                <div style="font-size: 0.875rem; color: #888;">${fileSize}</div>
-                            </div>
-                        </label>
-                    </div>
-                `;
-            }).join('');
-            
-            // Add click handlers for file selection
-            fileListContainer.querySelectorAll('.file-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    // Uncheck all other radio buttons
-                    fileListContainer.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = false);
-                    // Check this one
-                    this.checked = true;
-                    
-                    // Update form validation
-                    updateSlideNotesFormValidation();
-                });
-            });
-            
-            console.log('✅ Slide notes file list populated');
-        }
         
         // Function to update form validation for slide notes
         function updateSlideNotesFormValidation() {
-            const fileSelected = document.querySelector('#slide-notes-files input[name="selected_file"]:checked');
+            const fileSelected = document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]:checked');
             const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
             
             const submitBtn = document.querySelector('#slide-notes-form button[type="submit"]');
@@ -7560,7 +7511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Function to handle slide notes form submission
         function handleSlideNotesFormSubmission(e) {
             console.log('🎯 handleSlideNotesFormSubmission called');
-            const fileSelected = document.querySelector('#slide-notes-files input[name="selected_file"]:checked');
+            const fileSelected = document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]:checked');
             const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
             
             console.log('🔍 File selected:', !!fileSelected, fileSelected ? fileSelected.value : 'none');
@@ -7595,36 +7546,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // If a file is selected from existing files, we need to modify the form to include the file ID
+            // If a file is selected from existing files, we need to modify the form to include the file info
             if (fileSelected && !fileUploaded) {
                 console.log('🎯 Using existing file, preventing default and submitting manually');
                 e.preventDefault();
                 
-                // Get the file index and find the actual file data
-                const fileIndex = fileSelected.dataset.fileIndex;
-                const hubFiles = window.hubFiles || [];
-                const selectedFile = hubFiles[fileIndex];
+                // Get the file path from the selected radio button
+                const filePath = fileSelected.value;
+                console.log('🔍 Selected file path:', filePath);
                 
-                console.log('🔍 File index:', fileIndex, 'Selected file:', selectedFile);
+                // Find the file data from getAllFiles() to get the file name
+                const allFiles = getAllFiles();
+                const selectedFile = allFiles.find(file => file.path === filePath);
                 
                 if (!selectedFile) {
-                    console.error('❌ No file found for index:', fileIndex);
+                    console.error('❌ No file found for path:', filePath);
                     showNotification('Error: Could not find selected file.', NOTIFICATION_TYPES.ERROR);
                     return;
                 }
                 
-                // Use the actual file ID from the files collection
-                const fileId = selectedFile.id;
-                const fileName = selectedFile.original_filename || selectedFile.filename;
-                console.log('🔍 Using file ID:', fileId, 'and file name:', fileName);
+                const fileName = selectedFile.name;
+                console.log('🔍 Using file path:', filePath, 'and file name:', fileName);
                 
-                // Create hidden inputs with the file ID and name
+                // Create hidden inputs with the file path and name
                 const form = e.target;
-                const fileIdInput = document.createElement('input');
-                fileIdInput.type = 'hidden';
-                fileIdInput.name = 'selected_file_id';
-                fileIdInput.value = fileId;
-                form.appendChild(fileIdInput);
+                const filePathInput = document.createElement('input');
+                filePathInput.type = 'hidden';
+                filePathInput.name = 'selected_file_path';
+                filePathInput.value = filePath;
+                form.appendChild(filePathInput);
                 
                 const fileNameInput = document.createElement('input');
                 fileNameInput.type = 'hidden';
@@ -7635,7 +7585,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ensure the form opens in a new tab
                 form.target = '_blank';
                 
-                console.log('🎯 Submitting form with file ID:', fileId, 'and file name:', fileName);
+                console.log('🎯 Submitting form with file path:', filePath, 'and file name:', fileName);
                 // Submit the form
                 form.submit();
             } else {
