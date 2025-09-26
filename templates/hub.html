@@ -7564,10 +7564,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Find the file data from window.hubFiles instead of getAllFiles()
                 const hubFiles = window.hubFiles || [];
-                const selectedFile = hubFiles.find(file => file.file_path === filePath);
+                console.log('🔍 All hub files:', hubFiles);
+                console.log('🔍 Hub files length:', hubFiles.length);
+                console.log('🔍 Looking for file with path:', filePath);
+                
+                // Try different field names in case the structure is different
+                let selectedFile = hubFiles.find(file => file.file_path === filePath);
+                if (!selectedFile) {
+                    selectedFile = hubFiles.find(file => file.path === filePath);
+                }
+                if (!selectedFile) {
+                    selectedFile = hubFiles.find(file => file.filePath === filePath);
+                }
                 
                 if (!selectedFile) {
                     console.error('❌ No file found for path:', filePath);
+                    console.error('❌ Available file paths:', hubFiles.map(f => f.file_path || f.path || f.filePath));
+                    console.error('❌ First file structure:', hubFiles[0]);
                     showNotification('Error: Could not find selected file.', NOTIFICATION_TYPES.ERROR);
                     return;
                 }
