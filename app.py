@@ -2878,9 +2878,12 @@ def hub_page(hub_id):
             # Clean any Undefined values from the data recursively
             cleaned_data = clean_undefined_values(file_data)
             all_files.append(cleaned_data)
+            print(f"DEBUG: Found file - ID: {doc.id}, Name: {cleaned_data.get('filename', 'N/A')}, Path: {cleaned_data.get('file_path', 'N/A')}")
         except Exception as e:
             print(f"Error processing file {doc.id}: {e}")
             continue
+    
+    print(f"DEBUG: Total files found in files collection: {len(all_files)}")
 
     notes_map = {note.id: note for note in all_notes}
     activities_map = {activity.id: activity for activity in all_activities}
@@ -3425,6 +3428,8 @@ def create_slide_notes_session(hub_id):
     selected_file_id = request.form.get('selected_file_id')
     selected_file_name = request.form.get('selected_file_name')
     selected_file_path = request.form.get('selected_file_path')
+    
+    print(f"DEBUG: Slide notes form data - Title: {title}, ID: {selected_file_id}, Name: {selected_file_name}, Path: {selected_file_path}")
     
     # Check if a file was selected from existing files
     file_selected = (selected_file_id is not None and selected_file_id != '') or (selected_file_name is not None and selected_file_name != '') or (selected_file_path is not None and selected_file_path != '')
