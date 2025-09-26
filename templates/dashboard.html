@@ -5050,49 +5050,6 @@
             }, 800);
         };
         
-        // Test function to manually trigger animations
-        window.testAnimations = function() {
-            console.log('🧪 Testing animations manually...');
-            
-            // Test button click animation
-            const firstButton = document.querySelector('.button');
-            if (firstButton) {
-                console.log('Testing button animation on:', firstButton.textContent.trim());
-                firstButton.classList.add('clicked');
-                setTimeout(() => firstButton.classList.remove('clicked'), 300);
-            }
-            
-            // Test card hover
-            const firstCard = document.querySelector('.hub-card, .community-card, .progress-card');
-            if (firstCard) {
-                console.log('Testing card animation on:', firstCard.className);
-                firstCard.style.transform = 'translateY(-4px)';
-                setTimeout(() => firstCard.style.transform = '', 1000);
-            }
-            
-            // Test confetti
-            console.log('Testing confetti...');
-            createConfetti();
-        };
-        
-        // Add test button to page
-        window.addEventListener('load', function() {
-            const testButton = document.createElement('button');
-            testButton.textContent = '🧪 Test Animations';
-            testButton.style.position = 'fixed';
-            testButton.style.top = '10px';
-            testButton.style.right = '10px';
-            testButton.style.zIndex = '10000';
-            testButton.style.background = '#ff6b6b';
-            testButton.style.color = 'white';
-            testButton.style.border = 'none';
-            testButton.style.padding = '10px';
-            testButton.style.borderRadius = '5px';
-            testButton.style.cursor = 'pointer';
-            testButton.onclick = testAnimations;
-            document.body.appendChild(testButton);
-            console.log('🧪 Test button added to page');
-        });
     </script>
 
     <!-- Custom Modal Functions -->
