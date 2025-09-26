@@ -2300,31 +2300,6 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/settings/update', methods=['POST'])
-@login_required
-def update_settings():
-    """Update user settings"""
-    try:
-        data = request.get_json()
-        user_ref = db.collection('users').document(current_user.id)
-        
-        update_data = {}
-        if 'profile_visible' in data:
-            update_data['profile_visible'] = data['profile_visible']
-        if 'activity_visible' in data:
-            update_data['activity_visible'] = data['activity_visible']
-        if 'font_size_preference' in data:
-            update_data['font_size_preference'] = data['font_size_preference']
-        if 'high_contrast_mode' in data:
-            update_data['high_contrast_mode'] = data['high_contrast_mode']
-        
-        user_ref.update(update_data)
-        return jsonify({"success": True, "message": "Settings updated successfully"})
-        
-    except Exception as e:
-        print(f"Error updating settings: {e}")
-        return jsonify({"success": False, "message": "An error occurred updating settings"}), 500
-
 @app.route('/account/delete', methods=['POST'])
 @login_required
 def delete_account():
