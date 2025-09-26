@@ -5535,6 +5535,9 @@
                                     input.addEventListener('change', updateSlideNotesFormValidation);
                                 });
                                 
+                                // Update form validation when modal opens
+                                updateSlideNotesFormValidation();
+                                
                                 slideNotesModal.style.display = 'flex';
                                 break;
                             case 'pipeline-stuck-question':
@@ -7495,10 +7498,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const fileSelected = document.querySelector('#slide-notes-files input[name="slide-notes-files_files"]:checked');
             const fileUploaded = document.querySelector('#slide-file-upload').files.length > 0;
             
+            console.log('🔍 Form validation - fileSelected:', !!fileSelected, 'fileUploaded:', !!fileUploaded);
+            
             const submitBtn = document.querySelector('#slide-notes-form button[type="submit"]');
             if (submitBtn) {
-                submitBtn.disabled = !(fileSelected || fileUploaded);
-                if (!(fileSelected || fileUploaded)) {
+                const shouldEnable = fileSelected || fileUploaded;
+                console.log('🔍 Form validation - shouldEnable:', shouldEnable);
+                submitBtn.disabled = !shouldEnable;
+                if (!shouldEnable) {
                     submitBtn.style.opacity = '0.5';
                     submitBtn.style.cursor = 'not-allowed';
                 } else {
@@ -7555,9 +7562,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const filePath = fileSelected.value;
                 console.log('🔍 Selected file path:', filePath);
                 
-                // Find the file data from getAllFiles() to get the file name
-                const allFiles = getAllFiles();
-                const selectedFile = allFiles.find(file => file.path === filePath);
+                // Find the file data from window.hubFiles instead of getAllFiles()
+                const hubFiles = window.hubFiles || [];
+                const selectedFile = hubFiles.find(file => file.file_path === filePath);
                 
                 if (!selectedFile) {
                     console.error('❌ No file found for path:', filePath);
@@ -7565,7 +7572,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                const fileName = selectedFile.name;
+                const fileName = selectedFile.original_filename || selectedFile.filename;
                 console.log('🔍 Using file path:', filePath, 'and file name:', fileName);
                 
                 // Create hidden inputs with the file path and name
