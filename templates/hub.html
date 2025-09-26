@@ -5233,7 +5233,7 @@
                 } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
             }
 
-            function getAllFiles() {
+            window.getAllFiles = function() {
                 return Array.from(document.querySelectorAll('.file-item-card[data-file-path]')).map(card => ({ 
                     name: card.dataset.fileName, 
                     path: card.dataset.filePath 
