@@ -2337,13 +2337,6 @@ def delete_account():
         print(f"Error deleting account: {e}")
         return jsonify({"success": False, "message": "An error occurred deleting account"}), 500
 
-@app.route('/spotify/login')
-@login_required
-def spotify_login():
-    """Redirect to Spotify login"""
-    # This is a placeholder - implement Spotify OAuth flow
-    return redirect(url_for('dashboard'))
-
 
 @app.route('/onboarding')
 @login_required
