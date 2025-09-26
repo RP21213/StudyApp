@@ -4157,6 +4157,8 @@
         // Hub files data for modals
         window.hubFiles = {{ all_files | tojson }};
         console.log('🎯 Hub files loaded:', window.hubFiles.length);
+        console.log('🎯 Hub files data:', window.hubFiles);
+        console.log('🎯 First file structure:', window.hubFiles[0]);
         
         // Universal Notification System (copied from dashboard)
         const NOTIFICATION_TYPES = {
@@ -5524,6 +5526,9 @@
                             case 'pipeline-slide-notes':
                                 // Use window.hubFiles instead of getAllFiles() for slide notes
                                 const slideNotesFiles = window.hubFiles || [];
+                                console.log('🔍 Slide notes modal - window.hubFiles:', window.hubFiles);
+                                console.log('🔍 Slide notes modal - slideNotesFiles:', slideNotesFiles);
+                                console.log('🔍 Slide notes modal - slideNotesFiles.length:', slideNotesFiles.length);
                                 if (slideNotesFiles.length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
                                 
                                 // Convert hubFiles to the format expected by populateModalFileList
