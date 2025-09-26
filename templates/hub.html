@@ -5524,20 +5524,8 @@
                     if (toolId) {
                          switch (toolId) {
                             case 'pipeline-slide-notes':
-                                // Use window.hubFiles instead of getAllFiles() for slide notes
-                                const slideNotesFiles = window.hubFiles || [];
-                                console.log('🔍 Slide notes modal - window.hubFiles:', window.hubFiles);
-                                console.log('🔍 Slide notes modal - slideNotesFiles:', slideNotesFiles);
-                                console.log('🔍 Slide notes modal - slideNotesFiles.length:', slideNotesFiles.length);
-                                if (slideNotesFiles.length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
-                                
-                                // Convert hubFiles to the format expected by populateModalFileList
-                                const filesForModal = slideNotesFiles.map(file => ({
-                                    name: file.original_filename || file.filename || 'Unknown file',
-                                    path: file.file_path || file.path
-                                }));
-                                
-                                populateModalFileList('slide-notes-files', filesForModal, { multiSelect: false });
+                                if(getAllFiles().length === 0) return showCustomAlert("Please upload at least one document first.", 'No Documents');
+                                populateModalFileList('slide-notes-files', getAllFiles(), { multiSelect: false });
                                 
                                 // Add event listeners for form validation
                                 const slideNotesFileInputs = document.querySelectorAll('#slide-notes-files input[name="slide-notes-files_files"]');
@@ -7568,30 +7556,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const filePath = fileSelected.value;
                 console.log('🔍 Selected file path:', filePath);
                 
-                // Find the file data from window.hubFiles
-                const hubFiles = window.hubFiles || [];
-                console.log('🔍 All hub files:', hubFiles);
-                console.log('🔍 Hub files length:', hubFiles.length);
+                // Find the file data from getAllFiles()
+                const allFiles = getAllFiles();
+                console.log('🔍 All files from getAllFiles():', allFiles);
                 console.log('🔍 Looking for file with path:', filePath);
                 
-                // Try different field names in case the structure is different
-                let selectedFile = hubFiles.find(file => file.file_path === filePath);
-                if (!selectedFile) {
-                    selectedFile = hubFiles.find(file => file.path === filePath);
-                }
-                if (!selectedFile) {
-                    selectedFile = hubFiles.find(file => file.filePath === filePath);
-                }
+                // Find the file in the list
+                const selectedFile = allFiles.find(file => file.path === filePath);
                 
                 if (!selectedFile) {
                     console.error('❌ No file found for path:', filePath);
-                    console.error('❌ Available file paths:', hubFiles.map(f => f.file_path || f.path || f.filePath));
-                    console.error('❌ First file structure:', hubFiles[0]);
+                    console.error('❌ Available file paths:', allFiles.map(f => f.path));
                     showNotification('Error: Could not find selected file.', NOTIFICATION_TYPES.ERROR);
                     return;
                 }
                 
-                const fileName = selectedFile.original_filename || selectedFile.filename;
+                const fileName = selectedFile.name;
                 console.log('🔍 Using file path:', filePath, 'and file name:', fileName);
                 
                 // Create hidden inputs with the file path and name
