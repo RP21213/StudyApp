@@ -155,6 +155,69 @@
             gap: 1.5rem;
             border: 1px solid var(--border-color);
             height: fit-content;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .sidebar.collapsed {
+            width: 60px;
+            padding: 1rem 0.5rem;
+        }
+        
+        .sidebar.collapsed .sidebar-section {
+            display: none;
+        }
+        
+        .sidebar.collapsed .sidebar-toggle {
+            margin-bottom: 0;
+        }
+        
+        .sidebar.collapsed::after {
+            content: "Click to expand";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-90deg);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 1rem;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar-toggle:hover {
+            background: var(--primary-hover);
+            transform: scale(1.1);
+        }
+        
+        .sidebar.collapsed .sidebar-toggle .toggle-icon {
+            transform: rotate(180deg);
+        }
+        
+        .sidebar-toggle .toggle-icon {
+            transition: transform 0.3s ease;
         }
         
         .sidebar-section {
@@ -190,6 +253,8 @@
             transition: all 0.2s ease;
             font-size: 0.9rem;
             color: var(--text-main);
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .sidebar-tool-btn:hover {
@@ -228,6 +293,8 @@
             font-size: 0.9rem;
             font-weight: 600;
             width: 100%;
+            box-sizing: border-box;
+            text-align: left;
         }
         
         .sidebar-settings-btn:hover {
@@ -268,6 +335,37 @@
             color: var(--text-main);
             white-space: pre-wrap;
             word-wrap: break-word;
+            cursor: text;
+            position: relative;
+        }
+        
+        .transcription-content.editing {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .transcription-content:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .editing-indicator {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .editing-indicator.show {
+            opacity: 1;
         }
         
         .controls-panel {
@@ -698,6 +796,37 @@
             border: 1px solid var(--primary-color);
         }
         
+        .structure-tag {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid var(--primary-color);
+        }
+        
+        .template-preview {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            line-height: 1.4;
+            background: var(--background-interactive-hover);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .template-preview strong {
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .template-preview br {
+            margin-bottom: 0.25rem;
+        }
+        
         .template-apply-btn {
             width: 100%;
             background: var(--primary-color);
@@ -1102,6 +1231,83 @@
             font-style: italic;
         }
         
+        /* Voice Commands Modal Styles */
+        .voice-commands-modal {
+            max-width: 800px !important;
+        }
+        
+        .voice-commands-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .commands-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .commands-section h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .commands-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .command-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--background-interactive-hover);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .command-item:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .command-trigger {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .command-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: right;
+            max-width: 60%;
+        }
+        
+        .help-tip {
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .help-tip p {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
         .form-group {
             display: flex;
             flex-direction: column;
@@ -1257,109 +1463,20 @@
                             ❓ Help
                         </button>
                         <button id="clear-button" class="button button-secondary" disabled>
-                            🗑️ Clear Text
+                            Clear Text
                         </button>
                         <button id="copy-button" class="button button-secondary" disabled>
-                            📋 Copy Text
+                            Copy Text
                         </button>
                         <button id="export-essay-button" class="button button-primary" disabled>
-                            📄 Export Essay
+                            Export Essay
                         </button>
                         <button id="save-button" class="button button-primary" disabled>
-                            💾 Save as Note
+                            Save as Note
                         </button>
                     </div>
                 </div>
                 
-                <!-- Voice Commands Help -->
-                <div class="voice-commands-help" id="voice-commands-help" style="display: none;">
-                    <h4>🎯 Voice Commands</h4>
-                    <div class="commands-grid">
-                        <div class="command-item">
-                            <span class="command-trigger">"New paragraph"</span>
-                            <span class="command-description">Start a new paragraph</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Citation"</span>
-                            <span class="command-description">Add citation placeholder</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Reference"</span>
-                            <span class="command-description">Add reference placeholder</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Quote"</span>
-                            <span class="command-description">Add quotation marks</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Emphasis"</span>
-                            <span class="command-description">Add emphasis/italics</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Bold"</span>
-                            <span class="command-description">Add bold formatting</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Introduction"</span>
-                            <span class="command-description">Add introduction section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Conclusion"</span>
-                            <span class="command-description">Add conclusion section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Main point"</span>
-                            <span class="command-description">Add main argument</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"First argument"</span>
-                            <span class="command-description">Add first argument section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Second argument"</span>
-                            <span class="command-description">Add second argument section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Third argument"</span>
-                            <span class="command-description">Add third argument section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Counterargument"</span>
-                            <span class="command-description">Add counterargument section</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Evidence"</span>
-                            <span class="command-description">Add evidence formatting</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Analysis"</span>
-                            <span class="command-description">Add analysis formatting</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Transition"</span>
-                            <span class="command-description">Add section divider</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Comma"</span>
-                            <span class="command-description">Add comma punctuation</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Period"</span>
-                            <span class="command-description">Add period punctuation</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Question mark"</span>
-                            <span class="command-description">Add question mark</span>
-                        </div>
-                        <div class="command-item">
-                            <span class="command-trigger">"Exclamation"</span>
-                            <span class="command-description">Add exclamation mark</span>
-                        </div>
-                    </div>
-                    <div class="help-footer">
-                        <p><strong>💡 Tip:</strong> Say these commands naturally while speaking. For example: "The research shows citation that climate change is real period"</p>
-                    </div>
-                </div>
             </div>
 
             <div class="transcription-area">
@@ -1370,8 +1487,9 @@
                         <span id="status-text">Ready</span>
                     </div>
                 </div>
-                <div id="transcription-content" class="transcription-content empty">
+                <div id="transcription-content" class="transcription-content empty" contenteditable="true" spellcheck="true">
                     Your transcribed speech will appear here...
+                    <div class="editing-indicator" id="editing-indicator">✏️ Editing</div>
                 </div>
                 <div class="transcription-stats">
                     <div class="essay-stats">
@@ -1422,7 +1540,12 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
+            <!-- Sidebar Toggle Button -->
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
+                <span class="toggle-icon">←</span>
+            </button>
+            
             <!-- Essay Tools Section -->
             <div class="sidebar-section">
                 <h3>📝 Essay Tools</h3>
@@ -1567,6 +1690,147 @@
                 </button>
                 <button class="button button-primary" onclick="saveSettings()">
                     💾 Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Voice Commands Help Modal -->
+    <div id="voice-commands-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content voice-commands-modal">
+            <div class="modal-header">
+                <h3>🎯 Voice Commands</h3>
+                <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">Say these commands naturally while speaking to control your essay structure</p>
+                <button class="modal-close" onclick="closeVoiceCommandsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="voice-commands-sections">
+                    <!-- Paragraph & Line Commands -->
+                    <div class="commands-section">
+                        <h4>📝 Paragraphs & Lines</h4>
+                        <div class="commands-list">
+                            <div class="command-item">
+                                <span class="command-trigger">"New paragraph"</span>
+                                <span class="command-description">Start a new paragraph (double line break)</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"New line"</span>
+                                <span class="command-description">Start a new line (single line break)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Citations & References -->
+                    <div class="commands-section">
+                        <h4>📚 Citations & References</h4>
+                        <div class="commands-list">
+                            <div class="command-item">
+                                <span class="command-trigger">"Citation"</span>
+                                <span class="command-description">Add citation placeholder</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Reference"</span>
+                                <span class="command-description">Add reference placeholder</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Quote"</span>
+                                <span class="command-description">Add quotation marks</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formatting -->
+                    <div class="commands-section">
+                        <h4>🎨 Formatting</h4>
+                        <div class="commands-list">
+                            <div class="command-item">
+                                <span class="command-trigger">"Emphasis"</span>
+                                <span class="command-description">Add emphasis/italics</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Bold"</span>
+                                <span class="command-description">Add bold formatting</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Essay Structure -->
+                    <div class="commands-section">
+                        <h4>📋 Essay Structure</h4>
+                        <div class="commands-list">
+                            <div class="command-item">
+                                <span class="command-trigger">"Introduction"</span>
+                                <span class="command-description">Add introduction section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Conclusion"</span>
+                                <span class="command-description">Add conclusion section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Main point"</span>
+                                <span class="command-description">Add main argument</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"First argument"</span>
+                                <span class="command-description">Add first argument section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Second argument"</span>
+                                <span class="command-description">Add second argument section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Third argument"</span>
+                                <span class="command-description">Add third argument section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Counterargument"</span>
+                                <span class="command-description">Add counterargument section</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Evidence"</span>
+                                <span class="command-description">Add evidence formatting</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Analysis"</span>
+                                <span class="command-description">Add analysis formatting</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Transition"</span>
+                                <span class="command-description">Add section divider</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Punctuation -->
+                    <div class="commands-section">
+                        <h4>✏️ Punctuation</h4>
+                        <div class="commands-list">
+                            <div class="command-item">
+                                <span class="command-trigger">"Comma"</span>
+                                <span class="command-description">Add comma punctuation</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Period"</span>
+                                <span class="command-description">Add period punctuation</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Question mark"</span>
+                                <span class="command-description">Add question mark</span>
+                            </div>
+                            <div class="command-item">
+                                <span class="command-trigger">"Exclamation"</span>
+                                <span class="command-description">Add exclamation mark</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="help-tip">
+                    <p><strong>💡 Tip:</strong> Say these commands naturally while speaking. For example: "The research shows citation that climate change is real period"</p>
+                </div>
+                <button class="button button-primary" onclick="closeVoiceCommandsModal()">
+                    Got it!
                 </button>
             </div>
         </div>
@@ -1724,6 +1988,12 @@
                     settingsBtn.addEventListener('click', () => this.openSettings());
                 }
                 
+                // Inline editing functionality
+                this.setupInlineEditing();
+                
+                // Sidebar toggle functionality
+                this.setupSidebarToggle();
+                
                 // Settings changes
                 this.languageSelect.addEventListener('change', () => {
                     if (this.recognition) {
@@ -1743,10 +2013,10 @@
             }
             
             toggleHelp() {
-                const isVisible = this.voiceCommandsHelp.style.display !== 'none';
-                this.voiceCommandsHelp.style.display = isVisible ? 'none' : 'block';
-                this.helpButton.textContent = isVisible ? '❓ Help' : '❌ Hide Help';
-                this.helpButton.title = isVisible ? 'Show voice commands help' : 'Hide voice commands help';
+                const modal = document.getElementById('voice-commands-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
             }
             
             addNewReference() {
@@ -1942,7 +2212,7 @@
                 // Voice commands (case insensitive)
                 const commands = {
                     'new paragraph': () => '\n\n',
-                    'next line': () => '\n\n',
+                    'new line': () => '\n',
                     'citation': () => this.addCitationPlaceholder(),
                     'reference': () => this.addReferencePlaceholder(),
                     'quote': () => '"',
@@ -2042,12 +2312,17 @@
             updateTranscriptionDisplay() {
                 if (this.transcribedText || this.interimText) {
                     this.transcriptionContent.className = 'transcription-content';
-                    this.transcriptionContent.innerHTML = 
-                        `<span class="final">${this.transcribedText}</span>` +
-                        (this.interimText ? `<span class="interim">${this.interimText}</span>` : '');
+                    
+                    // Only update if user is not currently editing
+                    if (document.activeElement !== this.transcriptionContent) {
+                        const displayText = this.transcribedText + (this.interimText ? this.interimText : '');
+                        this.transcriptionContent.textContent = displayText;
+                    }
                 } else {
                     this.transcriptionContent.className = 'transcription-content empty';
-                    this.transcriptionContent.textContent = 'Your transcribed speech will appear here...';
+                    if (document.activeElement !== this.transcriptionContent) {
+                        this.transcriptionContent.textContent = 'Your transcribed speech will appear here...';
+                    }
                 }
             }
             
@@ -2236,6 +2511,103 @@
                 document.body.appendChild(modal);
             }
             
+            setupInlineEditing() {
+                const editingIndicator = document.getElementById('editing-indicator');
+                let editingTimeout;
+                
+                // Handle focus events
+                this.transcriptionContent.addEventListener('focus', () => {
+                    this.transcriptionContent.classList.add('editing');
+                    editingIndicator.classList.add('show');
+                });
+                
+                // Handle blur events
+                this.transcriptionContent.addEventListener('blur', () => {
+                    clearTimeout(editingTimeout);
+                    editingTimeout = setTimeout(() => {
+                        this.transcriptionContent.classList.remove('editing');
+                        editingIndicator.classList.remove('show');
+                    }, 1000); // Hide indicator after 1 second
+                });
+                
+                // Handle input events (when user types)
+                this.transcriptionContent.addEventListener('input', () => {
+                    this.transcribedText = this.transcriptionContent.textContent;
+                    this.updateStats();
+                    this.updateButtons();
+                    
+                    // Show editing indicator briefly
+                    editingIndicator.classList.add('show');
+                    clearTimeout(editingTimeout);
+                    editingTimeout = setTimeout(() => {
+                        editingIndicator.classList.remove('show');
+                    }, 2000);
+                });
+                
+                // Handle paste events
+                this.transcriptionContent.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const text = e.clipboardData.getData('text/plain');
+                    document.execCommand('insertText', false, text);
+                });
+                
+                // Handle keyboard shortcuts
+                this.transcriptionContent.addEventListener('keydown', (e) => {
+                    // Ctrl+S to save
+                    if (e.ctrlKey && e.key === 's') {
+                        e.preventDefault();
+                        this.saveAsNote();
+                    }
+                    
+                    // Ctrl+A to select all
+                    if (e.ctrlKey && e.key === 'a') {
+                        e.preventDefault();
+                        this.transcriptionContent.select();
+                    }
+                    
+                    // Escape to stop editing
+                    if (e.key === 'Escape') {
+                        this.transcriptionContent.blur();
+                    }
+                });
+            }
+            
+            setupSidebarToggle() {
+                const sidebar = document.getElementById('sidebar');
+                const toggleButton = document.getElementById('sidebar-toggle');
+                
+                if (!sidebar || !toggleButton) return;
+                
+                // Load saved state from localStorage
+                const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+                if (isCollapsed) {
+                    sidebar.classList.add('collapsed');
+                }
+                
+                // Toggle functionality
+                toggleButton.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    
+                    // Save state to localStorage
+                    const isNowCollapsed = sidebar.classList.contains('collapsed');
+                    localStorage.setItem('sidebar-collapsed', isNowCollapsed.toString());
+                    
+                    // Update toggle icon
+                    const toggleIcon = toggleButton.querySelector('.toggle-icon');
+                    if (toggleIcon) {
+                        toggleIcon.textContent = isNowCollapsed ? '→' : '←';
+                    }
+                });
+                
+                // Keyboard shortcut (Ctrl+B to toggle sidebar)
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'b') {
+                        e.preventDefault();
+                        toggleButton.click();
+                    }
+                });
+            }
+            
             openSettings() {
                 const modal = document.getElementById('settings-modal');
                 if (modal) {
@@ -2248,63 +2620,192 @@
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.innerHTML = `
-                    <div class="modal-content essay-templates-modal" style="max-width: 800px;">
+                    <div class="modal-content essay-templates-modal" style="max-width: 1200px;">
                         <div class="modal-header">
-                            <h3>📋 Choose Your Essay Template</h3>
+                            <h3>📋 Advanced Essay Templates</h3>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">Choose a template to get started with structured content and helpful prompts</p>
                             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
                         </div>
                         <div class="modal-body">
                             <div class="templates-grid">
-                                <div class="template-card" onclick="applyTemplate('argumentative')">
+                                <div class="template-card">
                                     <div class="template-icon">⚖️</div>
                                     <h4>Argumentative Essay</h4>
-                                    <p>Present arguments for and against a topic with evidence and analysis</p>
+                                    <p>Classic 5-paragraph structure with introduction, three body paragraphs, and conclusion.</p>
                                     <div class="template-structure">
-                                        <span class="structure-item">Introduction</span>
-                                        <span class="structure-item">Pro Arguments</span>
-                                        <span class="structure-item">Counterarguments</span>
-                                        <span class="structure-item">Conclusion</span>
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Body 1</span>
+                                        <span class="structure-tag">Body 2</span>
+                                        <span class="structure-tag">Body 3</span>
+                                        <span class="structure-tag">Conclusion</span>
                                     </div>
-                                    <button class="template-apply-btn">Apply Template</button>
+                                    <div class="template-preview">
+                                        <strong>Sample Structure:</strong><br>
+                                        • Hook: Start with a compelling question or statistic<br>
+                                        • Thesis: Clear position statement<br>
+                                        • Evidence: Support each argument with citations<br>
+                                        • Counterargument: Address opposing views<br>
+                                        • Conclusion: Restate thesis and call to action
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('argumentative')">Apply Template</button>
                                 </div>
                                 
-                                <div class="template-card" onclick="applyTemplate('persuasive')">
+                                <div class="template-card">
+                                    <div class="template-icon">🔬</div>
+                                    <h4>Research Paper</h4>
+                                    <p>Comprehensive research structure with literature review and methodology sections.</p>
+                                    <div class="template-structure">
+                                        <span class="structure-tag">Abstract</span>
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Literature Review</span>
+                                        <span class="structure-tag">Methodology</span>
+                                        <span class="structure-tag">Results</span>
+                                        <span class="structure-tag">Discussion</span>
+                                        <span class="structure-tag">Conclusion</span>
+                                    </div>
+                                    <div class="template-preview">
+                                        <strong>Research Focus:</strong><br>
+                                        • Abstract: 150-250 word summary<br>
+                                        • Literature Review: Previous research analysis<br>
+                                        • Methodology: Research design and methods<br>
+                                        • Results: Data presentation and analysis<br>
+                                        • Discussion: Interpretation and implications
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('research')">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card">
+                                    <div class="template-icon">📊</div>
+                                    <h4>Compare & Contrast</h4>
+                                    <p>Structured comparison between two or more subjects with clear analysis.</p>
+                                    <div class="template-structure">
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Subject A</span>
+                                        <span class="structure-tag">Subject B</span>
+                                        <span class="structure-tag">Comparison</span>
+                                        <span class="structure-tag">Conclusion</span>
+                                    </div>
+                                    <div class="template-preview">
+                                        <strong>Comparison Methods:</strong><br>
+                                        • Point-by-point: Compare specific aspects<br>
+                                        • Block method: Discuss each subject fully<br>
+                                        • Venn diagram approach: Similarities and differences<br>
+                                        • Criteria-based: Evaluate against standards<br>
+                                        • Synthesis: Draw meaningful conclusions
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('compare')">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card">
                                     <div class="template-icon">🎯</div>
                                     <h4>Persuasive Essay</h4>
-                                    <p>Convince readers to adopt your viewpoint through compelling arguments</p>
+                                    <p>Focused on convincing the reader with strong arguments and evidence.</p>
                                     <div class="template-structure">
-                                        <span class="structure-item">Hook</span>
-                                        <span class="structure-item">Thesis</span>
-                                        <span class="structure-item">Supporting Points</span>
-                                        <span class="structure-item">Call to Action</span>
+                                        <span class="structure-tag">Hook</span>
+                                        <span class="structure-tag">Thesis</span>
+                                        <span class="structure-tag">Argument 1</span>
+                                        <span class="structure-tag">Argument 2</span>
+                                        <span class="structure-tag">Counterargument</span>
+                                        <span class="structure-tag">Rebuttal</span>
+                                        <span class="structure-tag">Conclusion</span>
                                     </div>
-                                    <button class="template-apply-btn">Apply Template</button>
+                                    <div class="template-preview">
+                                        <strong>Persuasion Techniques:</strong><br>
+                                        • Emotional appeals: Pathos and personal stories<br>
+                                        • Logical appeals: Facts, statistics, citations<br>
+                                        • Ethical appeals: Credibility and authority<br>
+                                        • Call to action: Specific steps for readers<br>
+                                        • Anticipate objections: Address concerns
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('persuasive')">Apply Template</button>
                                 </div>
                                 
-                                <div class="template-card" onclick="applyTemplate('expository')">
+                                <div class="template-card">
+                                    <div class="template-icon">📈</div>
+                                    <h4>Cause & Effect</h4>
+                                    <p>Analyzes the relationship between causes and their effects.</p>
+                                    <div class="template-structure">
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Cause 1</span>
+                                        <span class="structure-tag">Cause 2</span>
+                                        <span class="structure-tag">Effects</span>
+                                        <span class="structure-tag">Conclusion</span>
+                                    </div>
+                                    <div class="template-preview">
+                                        <strong>Analysis Framework:</strong><br>
+                                        • Immediate vs. long-term effects<br>
+                                        • Primary vs. secondary causes<br>
+                                        • Chain reaction analysis<br>
+                                        • Correlation vs. causation<br>
+                                        • Multiple causation factors
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('cause-effect')">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card">
                                     <div class="template-icon">📚</div>
-                                    <h4>Expository Essay</h4>
-                                    <p>Explain and inform readers about a topic with clear analysis</p>
+                                    <h4>Literary Analysis</h4>
+                                    <p>Deep analysis of literary works with textual evidence and interpretation.</p>
                                     <div class="template-structure">
-                                        <span class="structure-item">Introduction</span>
-                                        <span class="structure-item">Main Points</span>
-                                        <span class="structure-item">Examples</span>
-                                        <span class="structure-item">Summary</span>
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Plot Analysis</span>
+                                        <span class="structure-tag">Character Analysis</span>
+                                        <span class="structure-tag">Theme Analysis</span>
+                                        <span class="structure-tag">Conclusion</span>
                                     </div>
-                                    <button class="template-apply-btn">Apply Template</button>
+                                    <div class="template-preview">
+                                        <strong>Analysis Elements:</strong><br>
+                                        • Close reading: Detailed text examination<br>
+                                        • Literary devices: Symbolism, metaphor, imagery<br>
+                                        • Character development: Motivation and growth<br>
+                                        • Theme exploration: Central messages<br>
+                                        • Historical context: Author's background
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('literary')">Apply Template</button>
                                 </div>
                                 
-                                <div class="template-card" onclick="applyTemplate('compare-contrast')">
-                                    <div class="template-icon">⚖️</div>
-                                    <h4>Compare & Contrast</h4>
-                                    <p>Analyze similarities and differences between two or more subjects</p>
+                                <div class="template-card">
+                                    <div class="template-icon">🎓</div>
+                                    <h4>Academic Essay</h4>
+                                    <p>Formal academic writing with rigorous analysis and scholarly tone.</p>
                                     <div class="template-structure">
-                                        <span class="structure-item">Introduction</span>
-                                        <span class="structure-item">Similarities</span>
-                                        <span class="structure-item">Differences</span>
-                                        <span class="structure-item">Analysis</span>
+                                        <span class="structure-tag">Introduction</span>
+                                        <span class="structure-tag">Literature Review</span>
+                                        <span class="structure-tag">Analysis</span>
+                                        <span class="structure-tag">Discussion</span>
+                                        <span class="structure-tag">Conclusion</span>
                                     </div>
-                                    <button class="template-apply-btn">Apply Template</button>
+                                    <div class="template-preview">
+                                        <strong>Academic Standards:</strong><br>
+                                        • Formal tone and academic language<br>
+                                        • Extensive citation and referencing<br>
+                                        • Critical analysis and evaluation<br>
+                                        • Objective perspective<br>
+                                        • Scholarly argumentation
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('academic')">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card">
+                                    <div class="template-icon">💼</div>
+                                    <h4>Business Report</h4>
+                                    <p>Professional business writing with executive summary and recommendations.</p>
+                                    <div class="template-structure">
+                                        <span class="structure-tag">Executive Summary</span>
+                                        <span class="structure-tag">Background</span>
+                                        <span class="structure-tag">Analysis</span>
+                                        <span class="structure-tag">Recommendations</span>
+                                        <span class="structure-tag">Conclusion</span>
+                                    </div>
+                                    <div class="template-preview">
+                                        <strong>Business Focus:</strong><br>
+                                        • Executive summary: Key findings<br>
+                                        • Data-driven analysis<br>
+                                        • Actionable recommendations<br>
+                                        • Risk assessment<br>
+                                        • Implementation timeline
+                                    </div>
+                                    <button class="template-apply-btn" onclick="applyTemplate('business')">Apply Template</button>
                                 </div>
                             </div>
                         </div>
@@ -2558,6 +3059,13 @@
         // Global functions for settings modal
         function closeSettingsModal() {
             const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        function closeVoiceCommandsModal() {
+            const modal = document.getElementById('voice-commands-modal');
             if (modal) {
                 modal.style.display = 'none';
             }
