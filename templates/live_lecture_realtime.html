@@ -156,7 +156,6 @@
             border-radius: 12px;
             padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            height: fit-content;
         }
         
         .panel h3 {
@@ -165,81 +164,145 @@
             font-size: 1.25rem;
         }
         
-        .transcript-panel {
-            max-height: 500px;
-            overflow-y: auto;
+        .transcription-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+        
+        .transcription-toggle {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .transcription-toggle:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .transcription-toggle.active {
+            background-color: var(--success-color);
+        }
+        
+        .transcription-toggle.disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        
+        .transcription-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        .transcription-stats span {
+            padding: 0.25rem 0.5rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
         
         .transcript-content {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #374151;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        
-        .notes-panel {
-            max-height: 600px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 200px;
+            max-height: 400px;
             overflow-y: auto;
-        }
-        
-        .notes-content {
-            font-size: 0.95rem;
+            font-family: 'Poppins', sans-serif;
             line-height: 1.6;
-            color: #374151;
         }
         
-        .notes-content h1, .notes-content h2, .notes-content h3 {
-            color: #1f2937;
-            margin-top: 1.5rem;
+        .transcript-content.transcribing {
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+        }
+        
+        .transcript-text {
             margin-bottom: 0.5rem;
         }
         
-        .notes-content h1:first-child {
-            margin-top: 0;
-        }
-        
-        .notes-content ul, .notes-content ol {
-            margin: 0.5rem 0;
-            padding-left: 1.5rem;
-        }
-        
-        .notes-content li {
-            margin: 0.25rem 0;
-        }
-        
-        .notes-content strong {
-            color: var(--primary-color);
-        }
-        
-        .notes-timestamp {
-            font-size: 0.8rem;
+        .transcript-interim {
             color: var(--text-muted);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+            font-style: italic;
         }
         
-        .live-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--danger-color);
+        .transcript-final {
+            color: #1f2937;
+            font-weight: 500;
+        }
+        
+        .notes-content {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+        }
+        
+        .notes-content.generating {
+            border-color: var(--warning-color);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+        }
+        
+        .note-item {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .note-timestamp {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .note-content {
+            color: #374151;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
             color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
         }
         
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: white;
-            animation: pulse 1s infinite;
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background-color: var(--success-color);
+        }
+        
+        .notification.error {
+            background-color: var(--danger-color);
+        }
+        
+        .notification.info {
+            background-color: var(--primary-color);
         }
         
         .error-message {
@@ -258,17 +321,6 @@
             padding: 1rem;
             border-radius: 8px;
             margin: 1rem 0;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
         }
     </style>
 </head>
@@ -297,15 +349,22 @@
         <div class="main-content">
             <div class="panel transcript-panel">
                 <h3>Live Transcript</h3>
+                <div class="transcription-controls">
+                    <button id="transcription-toggle" class="transcription-toggle">🎤 Start Transcription</button>
+                    <div class="transcription-stats">
+                        <span id="word-count">Words: 0</span>
+                        <span id="session-time">Time: 00:00</span>
+                    </div>
+                </div>
                 <div id="transcript-content" class="transcript-content">
-                    Transcript will appear here as you speak...
+                    Click "Start Transcription" to begin real-time speech recognition...
                 </div>
             </div>
             
             <div class="panel notes-panel">
                 <h3>Live Notes</h3>
                 <div id="notes-content" class="notes-content">
-                    <p><em>Notes will be generated in real-time as the lecture progresses...</em></p>
+                    <p><em>Notes will be generated automatically from the transcript...</em></p>
                 </div>
             </div>
         </div>
@@ -313,29 +372,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM loaded, initializing live lecture...');
+            console.log('DOM loaded, initializing live lecture with transcription...');
+            
+            // Get DOM elements
             const startBtn = document.getElementById('start-btn');
             const stopBtn = document.getElementById('stop-btn');
             const saveBtn = document.getElementById('save-btn');
             const testModeBtn = document.getElementById('test-mode-btn');
+            const transcriptionToggle = document.getElementById('transcription-toggle');
             const statusDot = document.getElementById('status-dot');
             const statusText = document.getElementById('status-text');
             const titleInput = document.getElementById('lecture-title');
             const transcriptContent = document.getElementById('transcript-content');
             const notesContent = document.getElementById('notes-content');
+            const wordCountSpan = document.getElementById('word-count');
+            const sessionTimeSpan = document.getElementById('session-time');
             const hubId = '{{ hub_id }}';
-            
-            console.log('Elements found:', {
-                startBtn: !!startBtn,
-                stopBtn: !!stopBtn,
-                saveBtn: !!saveBtn,
-                statusDot: !!statusDot,
-                statusText: !!statusText,
-                titleInput: !!titleInput,
-                transcriptContent: !!transcriptContent,
-                notesContent: !!notesContent,
-                hubId: hubId
-            });
             
             // Initialize Socket.IO connection
                const socket = io({
@@ -344,336 +396,364 @@
                    rememberUpgrade: true
                });
             
+            // Transcription state
+            let recognition = null;
+            let isTranscribing = false;
+            let transcribedText = '';
+            let interimText = '';
+            let sessionStartTime = null;
+            let sessionTimer = null;
+            let notes = [];
             let mediaRecorder;
             let audioStream;
             let isRecording = false;
-            let transcriptBuffer = '';
-            let finalNotes = '';
-            let fullTranscript = '';
+            
+            // Initialize speech recognition
+            function initializeSpeechRecognition() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    showNotification('Speech recognition is not supported in this browser.', 'error');
+                    return false;
+                }
+                
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+                
+                recognition.onstart = () => {
+                    isTranscribing = true;
+                    updateTranscriptionUI();
+                    showNotification('Speech recognition started', 'success');
+                };
+                
+                recognition.onresult = (event) => {
+                    handleRecognitionResult(event);
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    showNotification('Speech recognition error: ' + event.error, 'error');
+                };
+                
+                recognition.onend = () => {
+                    isTranscribing = false;
+                    updateTranscriptionUI();
+                    // Restart recognition if it was manually stopped
+                    if (isTranscribing) {
+                        setTimeout(() => {
+                            if (isTranscribing) {
+                                recognition.start();
+                            }
+                        }, 100);
+                    }
+                };
+                
+                return true;
+            }
+            
+            // Handle speech recognition results
+            function handleRecognitionResult(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (finalTranscript) {
+                    transcribedText += processText(finalTranscript);
+                    interimText = '';
+                    generateNoteFromText(finalTranscript);
+                } else {
+                    interimText = interimTranscript;
+                }
+                
+                updateTranscriptDisplay();
+                updateStats();
+            }
+            
+            // Process transcribed text
+            function processText(text) {
+                // Capitalize first letter of sentences
+                text = text.charAt(0).toUpperCase() + text.slice(1);
+                
+                // Capitalize after periods, exclamation marks, and question marks
+                text = text.replace(/([.!?]\s+)([a-z])/g, (match, punctuation, letter) => {
+                    return punctuation + letter.toUpperCase();
+                });
+                
+                return text;
+            }
+            
+            // Generate notes from transcribed text
+            function generateNoteFromText(text) {
+                if (!text.trim()) return;
+                
+                const timestamp = new Date().toLocaleTimeString();
+                const note = {
+                    timestamp: timestamp,
+                    content: text.trim(),
+                    type: 'transcript'
+                };
+                
+                notes.push(note);
+                updateNotesDisplay();
+            }
+            
+            // Update transcript display
+            function updateTranscriptDisplay() {
+                let displayText = transcribedText;
+                if (interimText) {
+                    displayText += '<span class="transcript-interim">' + interimText + '</span>';
+                }
+                
+                transcriptContent.innerHTML = displayText || 'Click "Start Transcription" to begin...';
+                
+                // Auto-scroll to bottom
+                transcriptContent.scrollTop = transcriptContent.scrollHeight;
+            }
+            
+            // Update notes display
+            function updateNotesDisplay() {
+                if (notes.length === 0) {
+                    notesContent.innerHTML = '<p><em>Notes will be generated automatically from the transcript...</em></p>';
+                    return;
+                }
+                
+                let notesHTML = '';
+                notes.forEach(note => {
+                    notesHTML += `
+                        <div class="note-item">
+                            <div class="note-timestamp">${note.timestamp}</div>
+                            <div class="note-content">${note.content}</div>
+                        </div>
+                    `;
+                });
+                
+                notesContent.innerHTML = notesHTML;
+                notesContent.scrollTop = notesContent.scrollHeight;
+            }
+            
+            // Update transcription UI
+            function updateTranscriptionUI() {
+                if (isTranscribing) {
+                    transcriptionToggle.textContent = '🛑 Stop Transcription';
+                    transcriptionToggle.classList.add('active');
+                    transcriptContent.classList.add('transcribing');
+                } else {
+                    transcriptionToggle.textContent = '🎤 Start Transcription';
+                    transcriptionToggle.classList.remove('active');
+                    transcriptContent.classList.remove('transcribing');
+                }
+            }
+            
+            // Update statistics
+            function updateStats() {
+                const wordCount = transcribedText.split(/\s+/).filter(word => word.length > 0).length;
+                wordCountSpan.textContent = `Words: ${wordCount}`;
+                
+                if (sessionStartTime) {
+                    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    sessionTimeSpan.textContent = `Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }
+            
+            // Start session timer
+            function startSessionTimer() {
+                sessionStartTime = Date.now();
+                sessionTimer = setInterval(updateStats, 1000);
+            }
+            
+            // Stop session timer
+            function stopSessionTimer() {
+                if (sessionTimer) {
+                    clearInterval(sessionTimer);
+                    sessionTimer = null;
+                }
+            }
+            
+            // Show notification
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+            
+            // Update status
+            function updateStatus(status, text) {
+                statusDot.className = `status-dot ${status}`;
+                statusText.textContent = text;
+            }
+            
+            // Transcription toggle event
+            transcriptionToggle.addEventListener('click', () => {
+                if (!isTranscribing) {
+                    if (!recognition) {
+                        if (!initializeSpeechRecognition()) {
+                            return;
+                        }
+                    }
+                    recognition.start();
+                    startSessionTimer();
+                } else {
+                    recognition.stop();
+                    stopSessionTimer();
+                }
+            });
             
             // Socket event handlers
             socket.on('connect', () => {
                 console.log('Socket connected:', socket.id);
                 updateStatus('idle', 'Connected - Ready to start');
-                // Test the connection
-                socket.emit('test_connection', { message: 'Hello from client' });
             });
             
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');
-                updateStatus('idle', 'Disconnected - Please refresh page');
-            });
-            
-            socket.on('connect_error', (error) => {
-                console.error('Socket connection error:', error);
-                showMessage('error', 'Failed to connect to server. Please refresh the page.');
-            });
-            
-            socket.on('test_response', (data) => {
-                console.log('Test response received:', data);
-            });
-            
-            socket.on('lecture_started', (data) => {
-                console.log('Lecture started:', data);
-                updateStatus('recording', 'Recording in progress...');
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-                titleInput.disabled = true;
-                
-                // Initialize notes with the provided structure
-                notesContent.innerHTML = data.initial_notes;
-            });
-            
-            socket.on('notes_updated', (data) => {
-                console.log('Notes updated:', data);
-                notesContent.innerHTML = data.notes_html;
-                
-                // Add new transcript chunk
-                transcriptBuffer += data.transcript_chunk + ' ';
-                transcriptContent.textContent = transcriptBuffer;
-                
-                // Scroll to bottom of transcript
-                transcriptContent.scrollTop = transcriptContent.scrollHeight;
-            });
-            
-            socket.on('test_mode_enabled', (data) => {
-                console.log('Test mode enabled:', data);
-                showMessage('success', data.message);
-            });
-            
-            socket.on('lecture_stopped', (data) => {
-                console.log('Lecture stopped:', data);
-                updateStatus('idle', 'Lecture completed - Ready to save');
-                startBtn.style.display = 'block';
-                stopBtn.style.display = 'none';
-                saveBtn.style.display = 'block';
-                titleInput.disabled = false;
-                
-                // Store final data
-                finalNotes = data.final_notes;
-                fullTranscript = data.full_transcript;
-                
-                // Show final notes
-                notesContent.innerHTML = data.final_notes;
-                
-                // Show success message
-                showMessage('success', 'Lecture captured successfully! Click "Save Notes" to save to your hub.');
+                updateStatus('idle', 'Disconnected');
             });
             
             socket.on('error', (data) => {
                 console.error('Socket error:', data);
-                showMessage('error', data.message);
-                resetUI();
+                showNotification('Connection error: ' + data.message, 'error');
             });
             
-            // Audio recording functions
-            async function startRecording() {
-                console.log('Start recording clicked');
+            socket.on('transcript_update', (data) => {
+                console.log('Transcript update received:', data);
+                if (data.transcript) {
+                    transcribedText += data.transcript + ' ';
+                    updateTranscriptDisplay();
+                    updateStats();
+                }
+            });
+            
+            socket.on('notes_update', (data) => {
+                console.log('Notes update received:', data);
+                if (data.notes) {
+                    notes.push({
+                        timestamp: new Date().toLocaleTimeString(),
+                        content: data.notes,
+                        type: 'generated'
+                    });
+                    updateNotesDisplay();
+                }
+            });
+            
+            // Start/Stop recording functionality (existing)
+            startBtn.addEventListener('click', async () => {
                 try {
-                    console.log('Requesting microphone access...');
-                    audioStream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: {
-                            sampleRate: 16000,
-                            channelCount: 1,
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            autoGainControl: true
-                        } 
-                    });
-                    console.log('Microphone access granted');
-                    
-                    mediaRecorder = new MediaRecorder(audioStream, {
-                        mimeType: 'audio/webm;codecs=opus'
-                    });
-                    console.log('MediaRecorder created');
+                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(audioStream);
                     
                     const audioChunks = [];
-                    
-                    mediaRecorder.ondataavailable = (event) => {
-                        if (event.data.size > 0) {
+                    mediaRecorder.ondataavailable = event => {
                             audioChunks.push(event.data);
-                        }
                     };
                     
                     mediaRecorder.onstop = () => {
-                        // Send final audio chunk if any
-                        if (audioChunks.length > 0) {
                             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                            sendAudioChunk(audioBlob);
-                        }
+                        socket.emit('audio_data', {
+                            hub_id: hubId,
+                            title: titleInput.value,
+                            audio: audioBlob
+                        });
                     };
                     
-                    // Start recording with small time slices for real-time processing
-                    mediaRecorder.start(500); // 500ms chunks for better real-time performance
+                    mediaRecorder.start();
                     isRecording = true;
                     
-                    // Send audio chunks more frequently for real-time transcription
-                    const chunkInterval = setInterval(() => {
-                        if (isRecording && audioChunks.length > 0) {
-                            // Create a copy of current chunks and clear the array
-                            const chunksToSend = [...audioChunks];
-                            audioChunks.length = 0; // Clear the array
-                            const audioBlob = new Blob(chunksToSend, { type: 'audio/webm' });
-                            sendAudioChunk(audioBlob);
-                        }
-                    }, 3000); // Send every 3 seconds to reduce payload size for real-time processing
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'block';
+                    titleInput.disabled = true;
+                    updateStatus('recording', 'Recording...');
                     
-                    // Store interval ID for cleanup
-                    mediaRecorder.chunkInterval = chunkInterval;
+                    showNotification('Recording started', 'success');
                     
-                    // Start the lecture session
-                    console.log('Emitting start_live_lecture event...');
-                    socket.emit('start_live_lecture', {
-                        hub_id: hubId,
-                        title: titleInput.value
-                    });
-                    console.log('start_live_lecture event emitted');
-                    
-                } catch (err) {
-                    console.error('Error accessing microphone:', err);
-                    showMessage('error', 'Could not access microphone. Please check permissions.');
+                } catch (error) {
+                    console.error('Error starting recording:', error);
+                    showNotification('Could not access microphone', 'error');
                 }
-            }
+            });
             
-            function stopRecording() {
-                if (mediaRecorder && isRecording) {
-                    isRecording = false;
+            stopBtn.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
                     mediaRecorder.stop();
+                    audioStream.getTracks().forEach(track => track.stop());
                     
-                    // Clear the chunk interval
-                    if (mediaRecorder.chunkInterval) {
-                        clearInterval(mediaRecorder.chunkInterval);
-                    }
+                    isRecording = false;
+                    stopBtn.style.display = 'none';
+                    saveBtn.style.display = 'block';
+                    updateStatus('processing', 'Processing...');
                     
-                    // Stop all audio tracks
-                    if (audioStream) {
-                        audioStream.getTracks().forEach(track => track.stop());
-                    }
-                    
-                    // Notify server that lecture has stopped
-                    socket.emit('stop_live_lecture', {
-                        hub_id: hubId
-                    });
+                    showNotification('Processing audio...', 'info');
                 }
-            }
+            });
             
-            function enableTestMode() {
-                console.log('Enabling test mode...');
-                socket.emit('enable_test_mode', {});
-                testModeBtn.textContent = 'Test Mode Active';
-                testModeBtn.style.backgroundColor = '#10b981';
-                showMessage('success', 'Test mode enabled! Start recording to see simulated speech.');
-            }
-            
-            function sendAudioChunk(audioBlob) {
-                console.log('Sending audio chunk, size:', audioBlob.size);
-                
-                // Skip if blob is too small (less than 1KB) or too large (over 2MB)
-                if (audioBlob.size < 1024 || audioBlob.size > 2 * 1024 * 1024) {
-                    console.log('Audio chunk size invalid, skipping. Size:', audioBlob.size);
-                    return;
-                }
-                
-                // Convert blob to base64 for transmission
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const base64Audio = reader.result.split(',')[1];
-                    console.log('Base64 audio length:', base64Audio.length);
-                    try {
-                        socket.emit('audio_chunk', {
-                            hub_id: hubId,
-                            audio_data: base64Audio
-                        });
-                        console.log('Audio chunk sent successfully');
-                    } catch (error) {
-                        console.error('Error sending audio chunk:', error);
-                        showMessage('error', 'Failed to send audio data. Check connection.');
-                    }
-                };
-                reader.onerror = function(error) {
-                    console.error('Error reading audio blob:', error);
-                };
-                reader.readAsDataURL(audioBlob);
-            }
-            
-            function updateStatus(type, text) {
-                statusDot.className = `status-dot ${type}`;
-                statusText.textContent = text;
-            }
-            
-            function showMessage(type, message) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `${type}-message`;
-                messageDiv.textContent = message;
-                
-                // Insert after the controls
-                const controls = document.querySelector('.controls');
-                controls.parentNode.insertBefore(messageDiv, controls.nextSibling);
-                
-                // Remove after 5 seconds
-                setTimeout(() => {
-                    messageDiv.remove();
-                }, 5000);
-            }
-            
-            async function saveNotes() {
-                if (!finalNotes) {
-                    showMessage('error', 'No notes to save. Please record a lecture first.');
-                    return;
-                }
-                
+            // Save notes functionality
+            saveBtn.addEventListener('click', async () => {
                 try {
-                    const formData = new FormData();
-                    formData.append('title', titleInput.value);
-                    formData.append('notes_html', finalNotes);
-                    formData.append('full_transcript', fullTranscript);
-                    
                     const response = await fetch(`/hub/${hubId}/save_live_lecture_notes`, {
                         method: 'POST',
-                        body: formData
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            title: titleInput.value,
+                            transcript: transcribedText,
+                            notes: notes.map(note => note.content).join('\n\n'),
+                            word_count: transcribedText.split(/\s+/).filter(word => word.length > 0).length
+                        })
                     });
                     
                     const result = await response.json();
                     
                     if (result.success) {
-                        showMessage('success', 'Notes saved successfully! Redirecting to hub...');
-                        setTimeout(() => {
-                            window.location.href = `/hub/${hubId}`;
-                        }, 2000);
+                        showNotification('Notes saved successfully!', 'success');
+                        saveBtn.style.display = 'none';
+                        startBtn.style.display = 'block';
+                        titleInput.disabled = false;
+                        updateStatus('idle', 'Ready to start');
+                        
+                        // Reset state
+                        transcribedText = '';
+                        interimText = '';
+                        notes = [];
+                        updateTranscriptDisplay();
+                        updateNotesDisplay();
+                        updateStats();
+                        
                     } else {
-                        showMessage('error', result.message || 'Failed to save notes');
+                        showNotification('Failed to save: ' + result.message, 'error');
                     }
                 } catch (error) {
                     console.error('Error saving notes:', error);
-                    showMessage('error', 'Failed to save notes. Please try again.');
-                }
-            }
-            
-            function resetUI() {
-                startBtn.style.display = 'block';
-                stopBtn.style.display = 'none';
-                saveBtn.style.display = 'none';
-                titleInput.disabled = false;
-                updateStatus('idle', 'Ready to start');
-                
-                // Clear content
-                transcriptContent.textContent = 'Transcript will appear here as you speak...';
-                notesContent.innerHTML = '<p><em>Notes will be generated in real-time as the lecture progresses...</em></p>';
-                
-                // Reset variables
-                transcriptBuffer = '';
-                finalNotes = '';
-                fullTranscript = '';
-                
-                if (mediaRecorder && mediaRecorder.chunkInterval) {
-                    clearInterval(mediaRecorder.chunkInterval);
-                }
-                
-                if (audioStream) {
-                    audioStream.getTracks().forEach(track => track.stop());
-                }
-            }
-            
-            // Event listeners
-            console.log('Setting up event listeners...');
-            console.log('Start button:', startBtn);
-            console.log('Stop button:', stopBtn);
-            console.log('Save button:', saveBtn);
-            
-            startBtn.addEventListener('click', (e) => {
-                console.log('Start button clicked!', e);
-                startRecording();
-            });
-            stopBtn.addEventListener('click', (e) => {
-                console.log('Stop button clicked!', e);
-                stopRecording();
-            });
-            testModeBtn.addEventListener('click', (e) => {
-                console.log('Test mode button clicked!', e);
-                enableTestMode();
-            });
-            saveBtn.addEventListener('click', (e) => {
-                console.log('Save button clicked!', e);
-                saveNotes();
-            });
-            
-            console.log('Event listeners set up successfully');
-            
-            // Test if button is clickable
-            startBtn.style.cursor = 'pointer';
-            console.log('Start button cursor set to pointer');
-            
-            // Add a simple test click handler
-            startBtn.onclick = function(e) {
-                console.log('Direct onclick handler triggered!', e);
-            };
-            
-            // Cleanup on page unload
-            window.addEventListener('beforeunload', () => {
-                if (isRecording) {
-                    stopRecording();
+                    showNotification('Failed to save notes', 'error');
                 }
             });
+            
+            // Test mode functionality
+            testModeBtn.addEventListener('click', () => {
+                socket.emit('test_mode', { hub_id: hubId });
+                showNotification('Test mode enabled', 'info');
+            });
+            
+            console.log('Live lecture with transcription initialized successfully');
         });
     </script>
 </body>
