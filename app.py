@@ -10,7 +10,7 @@ import random
 import traceback
 import sys
 from datetime import datetime, timezone
-from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify, session
+from flask import Flask, request, render_template, redirect, url_for, Response, send_file, flash, jsonify, session, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from openai import OpenAI
@@ -7148,6 +7148,193 @@ def save_voice_transcription(hub_id):
     except Exception as e:
         print(f"Error saving voice transcription: {e}")
         return jsonify({"success": False, "message": "Failed to save transcription"}), 500
+
+@app.route("/hub/<hub_id>/export_essay", methods=["POST"])
+@login_required
+def export_essay(hub_id):
+    """Export essay with proper formatting and citations."""
+    try:
+        data = request.get_json()
+        title = data.get('title', 'Essay')
+        content = data.get('content', '')
+        citation_style = data.get('citation_style', 'apa')
+        references = data.get('references', [])
+        word_count = data.get('word_count', 0)
+        
+        if not content.strip():
+            return jsonify({"success": False, "message": "No content to export"}), 400
+        
+        # Process citations and references
+        processed_content = process_citations(content, references, citation_style)
+        
+        # Generate formatted essay
+        formatted_essay = format_essay(title, processed_content, references, citation_style, word_count)
+        
+        # Save essay to database
+        essay_ref = db.collection('essays').document()
+        essay_data = {
+            'id': essay_ref.id,
+            'hub_id': hub_id,
+            'user_id': current_user.id,
+            'title': title,
+            'content': processed_content,
+            'formatted_content': formatted_essay,
+            'citation_style': citation_style,
+            'references': references,
+            'word_count': word_count,
+            'created_at': datetime.now(timezone.utc),
+            'updated_at': datetime.now(timezone.utc)
+        }
+        essay_ref.set(essay_data)
+        
+        # Generate download URL
+        return jsonify({
+            "success": True, 
+            "message": "Essay exported successfully",
+            "download_url": f"/hub/{hub_id}/download_essay/{essay_ref.id}",
+            "essay_id": essay_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error exporting essay: {e}")
+        return jsonify({"success": False, "message": "Failed to export essay"}), 500
+
+@app.route("/hub/<hub_id>/download_essay/<essay_id>")
+@login_required
+def download_essay(hub_id, essay_id):
+    """Download essay as formatted document."""
+    try:
+        essay_doc = db.collection('essays').document(essay_id).get()
+        if not essay_doc.exists:
+            return "Essay not found", 404
+        
+        essay_data = essay_doc.to_dict()
+        if essay_data.get('user_id') != current_user.id:
+            return "Access denied", 403
+        
+        # Generate HTML document
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>{essay_data['title']}</title>
+            <style>
+                body {{ font-family: 'Times New Roman', serif; line-height: 1.6; margin: 40px; }}
+                h1 {{ text-align: center; margin-bottom: 30px; }}
+                .essay-content {{ margin-bottom: 40px; }}
+                .references {{ margin-top: 40px; }}
+                .references h2 {{ margin-bottom: 20px; }}
+                .reference-item {{ margin-bottom: 10px; }}
+                .word-count {{ text-align: right; font-style: italic; color: #666; }}
+            </style>
+        </head>
+        <body>
+            <h1>{essay_data['title']}</h1>
+            <div class="essay-content">
+                {essay_data['formatted_content']}
+            </div>
+            <div class="references">
+                <h2>References</h2>
+                {format_references_list(essay_data['references'], essay_data['citation_style'])}
+            </div>
+            <div class="word-count">
+                Word Count: {essay_data['word_count']}
+            </div>
+        </body>
+        </html>
+        """
+        
+        response = make_response(html_content)
+        response.headers['Content-Type'] = 'text/html'
+        response.headers['Content-Disposition'] = f'attachment; filename="{essay_data["title"]}.html"'
+        return response
+        
+    except Exception as e:
+        print(f"Error downloading essay: {e}")
+        return "Error downloading essay", 500
+
+def process_citations(content, references, citation_style):
+    """Process citations in content and replace placeholders with proper citations."""
+    import re
+    processed_content = content
+    
+    # Replace citation placeholders with proper citations
+    citation_pattern = r'\[CITATION (\d+)\]'
+    def replace_citation(match):
+        citation_id = int(match.group(1))
+        if citation_id <= len(references):
+            ref = references[citation_id - 1]
+            return format_citation(ref, citation_style)
+        return match.group(0)
+    
+    processed_content = re.sub(citation_pattern, replace_citation, processed_content)
+    
+    # Replace reference placeholders
+    ref_pattern = r'\[REF (\d+)\]'
+    def replace_reference(match):
+        ref_id = int(match.group(1))
+        if ref_id <= len(references):
+            ref = references[ref_id - 1]
+            return format_reference(ref, citation_style)
+        return match.group(0)
+    
+    processed_content = re.sub(ref_pattern, replace_reference, processed_content)
+    
+    return processed_content
+
+def format_citation(reference, style):
+    """Format a single citation based on the citation style."""
+    if style == 'apa':
+        return f"({reference['authors']}, {reference['year']})"
+    elif style == 'mla':
+        return f"({reference['authors']} {reference['year']})"
+    elif style == 'chicago':
+        return f"({reference['authors']} {reference['year']})"
+    elif style == 'harvard':
+        return f"({reference['authors']} {reference['year']})"
+    elif style == 'ieee':
+        return f"[{reference.get('number', '1')}]"
+    else:
+        return f"({reference['authors']}, {reference['year']})"
+
+def format_reference(reference, style):
+    """Format a single reference based on the citation style."""
+    if style == 'apa':
+        return f"{reference['authors']} ({reference['year']}). {reference['title']}. {reference.get('source', '')}."
+    elif style == 'mla':
+        return f"{reference['authors']}. \"{reference['title']}.\" {reference.get('source', '')}, {reference['year']}."
+    elif style == 'chicago':
+        return f"{reference['authors']}. \"{reference['title']}.\" {reference.get('source', '')} ({reference['year']})."
+    elif style == 'harvard':
+        return f"{reference['authors']} {reference['year']}, {reference['title']}, {reference.get('source', '')}."
+    elif style == 'ieee':
+        return f"{reference['authors']}, \"{reference['title']},\" {reference.get('source', '')}, {reference['year']}."
+    else:
+        return f"{reference['authors']} ({reference['year']}). {reference['title']}. {reference.get('source', '')}."
+
+def format_references_list(references, style):
+    """Format the references list."""
+    if not references:
+        return "<p>No references available.</p>"
+    
+    formatted_refs = []
+    for i, ref in enumerate(references, 1):
+        formatted_ref = format_reference(ref, style)
+        formatted_refs.append(f'<div class="reference-item">{i}. {formatted_ref}</div>')
+    
+    return ''.join(formatted_refs)
+
+def format_essay(title, content, references, citation_style, word_count):
+    """Format the essay content with proper structure."""
+    # Convert line breaks to paragraphs
+    paragraphs = content.split('\n\n')
+    formatted_paragraphs = []
+    
+    for para in paragraphs:
+        if para.strip():
+            formatted_paragraphs.append(f'<p>{para.strip()}</p>')
+    
+    return '\n'.join(formatted_paragraphs)
 
 @app.route("/hub/<hub_id>/generate_assignment_plan", methods=["POST"])
 @login_required

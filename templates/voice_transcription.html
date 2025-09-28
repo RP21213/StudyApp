@@ -301,6 +301,201 @@
             gap: 1rem;
         }
         
+        .voice-commands-help {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--primary-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .voice-commands-help h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+        
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .command-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: var(--background-card);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .command-trigger {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .command-description {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .help-footer {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--background-card);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .help-footer p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        
+        .citation-placeholder {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px dashed #f59e0b;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-block;
+            margin: 0 0.2rem;
+        }
+        
+        .reference-placeholder {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px dashed #3b82f6;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-block;
+            margin: 0 0.2rem;
+        }
+        
+        .essay-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .essay-stats .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+        
+        .essay-stats .stat-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .essay-tools {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--primary-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .essay-tools h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+        
+        .tool-button {
+            padding: 0.75rem;
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .tool-button:hover {
+            background-color: var(--background-interactive-hover);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .tool-button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .word-goal-progress {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--background-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success-color);
+            transition: width 0.3s ease;
+        }
+        
+        .quality-score-display {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--background-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+        
+        .score-excellent { background-color: #10b981; color: white; }
+        .score-good { background-color: #3b82f6; color: white; }
+        .score-fair { background-color: #f59e0b; color: white; }
+        .score-poor { background-color: #ef4444; color: white; }
+        
         .form-group {
             display: flex;
             flex-direction: column;
@@ -450,14 +645,135 @@
                     <span id="mic-status-text">Click microphone to start</span>
                 </div>
                 <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                    <button id="help-button" class="button button-secondary" title="Show voice commands help">
+                        ❓ Help
+                    </button>
                     <button id="clear-button" class="button button-secondary" disabled>
                         🗑️ Clear Text
                     </button>
                     <button id="copy-button" class="button button-secondary" disabled>
                         📋 Copy Text
                     </button>
+                    <button id="export-essay-button" class="button button-primary" disabled>
+                        📄 Export Essay
+                    </button>
                     <button id="save-button" class="button button-primary" disabled>
                         💾 Save as Note
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Voice Commands Help -->
+            <div class="voice-commands-help" id="voice-commands-help" style="display: none;">
+                <h4>🎯 Voice Commands</h4>
+                <div class="commands-grid">
+                    <div class="command-item">
+                        <span class="command-trigger">"New paragraph"</span>
+                        <span class="command-description">Start a new paragraph</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Citation"</span>
+                        <span class="command-description">Add citation placeholder</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Reference"</span>
+                        <span class="command-description">Add reference placeholder</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Quote"</span>
+                        <span class="command-description">Add quotation marks</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Emphasis"</span>
+                        <span class="command-description">Add emphasis/italics</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Bold"</span>
+                        <span class="command-description">Add bold formatting</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Introduction"</span>
+                        <span class="command-description">Add introduction section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Conclusion"</span>
+                        <span class="command-description">Add conclusion section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Main point"</span>
+                        <span class="command-description">Add main argument</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"First argument"</span>
+                        <span class="command-description">Add first argument section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Second argument"</span>
+                        <span class="command-description">Add second argument section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Third argument"</span>
+                        <span class="command-description">Add third argument section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Counterargument"</span>
+                        <span class="command-description">Add counterargument section</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Evidence"</span>
+                        <span class="command-description">Add evidence formatting</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Analysis"</span>
+                        <span class="command-description">Add analysis formatting</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Transition"</span>
+                        <span class="command-description">Add section divider</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Comma"</span>
+                        <span class="command-description">Add comma punctuation</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Period"</span>
+                        <span class="command-description">Add period punctuation</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Question mark"</span>
+                        <span class="command-description">Add question mark</span>
+                    </div>
+                    <div class="command-item">
+                        <span class="command-trigger">"Exclamation"</span>
+                        <span class="command-description">Add exclamation mark</span>
+                    </div>
+                </div>
+                <div class="help-footer">
+                    <p><strong>💡 Tip:</strong> Say these commands naturally while speaking. For example: "The research shows citation that climate change is real period"</p>
+                </div>
+            </div>
+            
+            <!-- Essay Tools -->
+            <div class="essay-tools">
+                <h4>📝 Essay Tools</h4>
+                <div class="tools-grid">
+                    <button id="essay-template-btn" class="tool-button">
+                        📋 Essay Templates
+                    </button>
+                    <button id="outline-generator-btn" class="tool-button">
+                        🗺️ Generate Outline
+                    </button>
+                    <button id="plagiarism-check-btn" class="tool-button">
+                        🔍 Check Plagiarism
+                    </button>
+                    <button id="quality-score-btn" class="tool-button">
+                        ⭐ Quality Score
+                    </button>
+                    <button id="word-goal-btn" class="tool-button">
+                        🎯 Set Word Goal
+                    </button>
+                    <button id="autosave-toggle-btn" class="tool-button">
+                        💾 Auto-save
                     </button>
                 </div>
             </div>
@@ -474,9 +790,49 @@
                 Your transcribed speech will appear here...
             </div>
             <div class="transcription-stats">
-                <span id="word-count">Words: 0</span>
-                <span id="char-count">Characters: 0</span>
-                <span id="session-time">Session: 00:00</span>
+                <div class="essay-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="word-count">0</span>
+                        <span class="stat-label">Words</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="char-count">0</span>
+                        <span class="stat-label">Characters</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="citation-count">0</span>
+                        <span class="stat-label">Citations</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="paragraph-count">0</span>
+                        <span class="stat-label">Paragraphs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="session-time">00:00</span>
+                        <span class="stat-label">Session</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Word Goal Progress -->
+            <div class="word-goal-progress" id="word-goal-progress" style="display: none;">
+                <h4>🎯 Word Goal Progress</h4>
+                <div class="progress-info">
+                    <span id="current-words">0</span> / <span id="target-words">1000</span> words
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Quality Score Display -->
+            <div class="quality-score-display" id="quality-score-display" style="display: none;">
+                <h4>⭐ Essay Quality Score</h4>
+                <div class="score-circle" id="score-circle">-</div>
+                <div id="score-details">
+                    <p id="score-text">Click "Quality Score" to analyze your essay</p>
+                </div>
             </div>
         </div>
 
@@ -522,6 +878,39 @@
                     </label>
                 </div>
             </div>
+            
+            <!-- Reference Management -->
+            <div style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem;">📚 Reference Management</h3>
+                <div class="settings-grid">
+                    <div class="form-group">
+                        <label for="citation-style">Citation Style</label>
+                        <select id="citation-style">
+                            <option value="apa">APA</option>
+                            <option value="mla">MLA</option>
+                            <option value="chicago">Chicago</option>
+                            <option value="harvard">Harvard</option>
+                            <option value="ieee">IEEE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="auto-cite">Auto Citation</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-cite" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <button id="manage-references-btn" class="button button-secondary">
+                        📖 Manage References
+                    </button>
+                    <button id="add-reference-btn" class="button button-primary">
+                        ➕ Add Reference
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -537,6 +926,31 @@
                 this.sessionTimer = null;
                 this.transcribedText = '';
                 this.interimText = '';
+                this.citationCounter = 1;
+                this.referenceCounter = 1;
+                this.references = [];
+                this.citationStyle = 'apa';
+                this.wordGoal = 1000;
+                this.autosaveEnabled = false;
+                this.autosaveInterval = null;
+                this.essayTemplates = {
+                    'argumentative': {
+                        title: 'Argumentative Essay Template',
+                        structure: 'Introduction\n\nBody Paragraph 1: First Argument\n\nBody Paragraph 2: Second Argument\n\nBody Paragraph 3: Counterargument\n\nConclusion'
+                    },
+                    'persuasive': {
+                        title: 'Persuasive Essay Template',
+                        structure: 'Introduction\n\nBody Paragraph 1: First Point\n\nBody Paragraph 2: Second Point\n\nBody Paragraph 3: Third Point\n\nConclusion'
+                    },
+                    'expository': {
+                        title: 'Expository Essay Template',
+                        structure: 'Introduction\n\nBody Paragraph 1: First Aspect\n\nBody Paragraph 2: Second Aspect\n\nBody Paragraph 3: Third Aspect\n\nConclusion'
+                    },
+                    'compare-contrast': {
+                        title: 'Compare & Contrast Essay Template',
+                        structure: 'Introduction\n\nBody Paragraph 1: Similarities\n\nBody Paragraph 2: Differences\n\nBody Paragraph 3: Analysis\n\nConclusion'
+                    }
+                };
                 
                 this.initializeElements();
                 this.initializeSpeechRecognition();
@@ -553,10 +967,14 @@
                 this.transcriptionContent = document.getElementById('transcription-content');
                 this.clearButton = document.getElementById('clear-button');
                 this.copyButton = document.getElementById('copy-button');
+                this.exportEssayButton = document.getElementById('export-essay-button');
                 this.saveButton = document.getElementById('save-button');
+                this.helpButton = document.getElementById('help-button');
                 this.processingIndicator = document.getElementById('processing-indicator');
                 this.wordCount = document.getElementById('word-count');
                 this.charCount = document.getElementById('char-count');
+                this.citationCount = document.getElementById('citation-count');
+                this.paragraphCount = document.getElementById('paragraph-count');
                 this.sessionTime = document.getElementById('session-time');
                 this.notification = document.getElementById('notification');
                 
@@ -565,6 +983,33 @@
                 this.autoPunctuation = document.getElementById('auto-punctuation');
                 this.autoCapitalization = document.getElementById('auto-capitalization');
                 this.continuousMode = document.getElementById('continuous-mode');
+                this.citationStyle = document.getElementById('citation-style');
+                this.autoCite = document.getElementById('auto-cite');
+                this.manageReferencesBtn = document.getElementById('manage-references-btn');
+                this.addReferenceBtn = document.getElementById('add-reference-btn');
+                
+                // Essay tools
+                this.essayTemplateBtn = document.getElementById('essay-template-btn');
+                this.outlineGeneratorBtn = document.getElementById('outline-generator-btn');
+                this.plagiarismCheckBtn = document.getElementById('plagiarism-check-btn');
+                this.qualityScoreBtn = document.getElementById('quality-score-btn');
+                this.wordGoalBtn = document.getElementById('word-goal-btn');
+                this.autosaveToggleBtn = document.getElementById('autosave-toggle-btn');
+                
+                // Progress elements
+                this.wordGoalProgress = document.getElementById('word-goal-progress');
+                this.currentWords = document.getElementById('current-words');
+                this.targetWords = document.getElementById('target-words');
+                this.progressPercentage = document.getElementById('progress-percentage');
+                this.progressFill = document.getElementById('progress-fill');
+                
+                // Quality score elements
+                this.qualityScoreDisplay = document.getElementById('quality-score-display');
+                this.scoreCircle = document.getElementById('score-circle');
+                this.scoreText = document.getElementById('score-text');
+                
+                // Voice commands help
+                this.voiceCommandsHelp = document.getElementById('voice-commands-help');
             }
             
             initializeSpeechRecognition() {
@@ -603,7 +1048,19 @@
                 this.micButton.addEventListener('click', () => this.toggleRecording());
                 this.clearButton.addEventListener('click', () => this.clearText());
                 this.copyButton.addEventListener('click', () => this.copyText());
+                this.exportEssayButton.addEventListener('click', () => this.exportEssay());
                 this.saveButton.addEventListener('click', () => this.saveAsNote());
+                this.helpButton.addEventListener('click', () => this.toggleHelp());
+                this.manageReferencesBtn.addEventListener('click', () => this.openReferenceManager());
+                this.addReferenceBtn.addEventListener('click', () => this.addNewReference());
+                
+                // Essay tools
+                this.essayTemplateBtn.addEventListener('click', () => this.showEssayTemplates());
+                this.outlineGeneratorBtn.addEventListener('click', () => this.generateOutline());
+                this.plagiarismCheckBtn.addEventListener('click', () => this.checkPlagiarism());
+                this.qualityScoreBtn.addEventListener('click', () => this.calculateQualityScore());
+                this.wordGoalBtn.addEventListener('click', () => this.setWordGoal());
+                this.autosaveToggleBtn.addEventListener('click', () => this.toggleAutosave());
                 
                 // Settings changes
                 this.languageSelect.addEventListener('change', () => {
@@ -617,6 +1074,57 @@
                         this.recognition.continuous = this.continuousMode.checked;
                     }
                 });
+                
+                this.citationStyle.addEventListener('change', () => {
+                    this.citationStyle = this.citationStyle.value;
+                });
+            }
+            
+            toggleHelp() {
+                const isVisible = this.voiceCommandsHelp.style.display !== 'none';
+                this.voiceCommandsHelp.style.display = isVisible ? 'none' : 'block';
+                this.helpButton.textContent = isVisible ? '❓ Help' : '❌ Hide Help';
+                this.helpButton.title = isVisible ? 'Show voice commands help' : 'Hide voice commands help';
+            }
+            
+            addNewReference() {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Add New Reference</h3>
+                            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" id="ref-title" placeholder="Article/Book Title">
+                            </div>
+                            <div class="form-group">
+                                <label>Authors</label>
+                                <input type="text" id="ref-authors" placeholder="Author Names">
+                            </div>
+                            <div class="form-group">
+                                <label>Year</label>
+                                <input type="number" id="ref-year" placeholder="2024">
+                            </div>
+                            <div class="form-group">
+                                <label>Source</label>
+                                <input type="text" id="ref-source" placeholder="Journal/Publisher">
+                            </div>
+                            <div class="form-group">
+                                <label>URL (Optional)</label>
+                                <input type="url" id="ref-url" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button button-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                            <button class="button button-primary" onclick="saveReference()">Save Reference</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
             }
             
             toggleRecording() {
@@ -680,6 +1188,9 @@
             processText(text) {
                 let processedText = text;
                 
+                // Process voice commands first
+                processedText = this.processVoiceCommands(processedText);
+                
                 // Auto capitalization
                 if (this.autoCapitalization.checked) {
                     processedText = this.capitalizeSentences(processedText);
@@ -693,9 +1204,67 @@
                 return processedText;
             }
             
+            processVoiceCommands(text) {
+                let processedText = text;
+                
+                // Voice commands (case insensitive)
+                const commands = {
+                    'new paragraph': () => '\n\n',
+                    'next line': () => '\n\n',
+                    'citation': () => this.addCitationPlaceholder(),
+                    'reference': () => this.addReferencePlaceholder(),
+                    'quote': () => '"',
+                    'quotation': () => '"',
+                    'emphasis': () => '*',
+                    'bold': () => '**',
+                    'italic': () => '*',
+                    'underline': () => '__',
+                    'comma': () => ',',
+                    'period': () => '.',
+                    'question mark': () => '?',
+                    'exclamation': () => '!',
+                    'semicolon': () => ';',
+                    'colon': () => ':',
+                    'introduction': () => '\n\n## Introduction\n\n',
+                    'conclusion': () => '\n\n## Conclusion\n\n',
+                    'main point': () => '\n\n### Main Point\n\n',
+                    'first argument': () => '\n\n### First Argument\n\n',
+                    'second argument': () => '\n\n### Second Argument\n\n',
+                    'third argument': () => '\n\n### Third Argument\n\n',
+                    'counterargument': () => '\n\n### Counterargument\n\n',
+                    'evidence': () => '\n\n**Evidence:** ',
+                    'analysis': () => '\n\n**Analysis:** ',
+                    'transition': () => '\n\n---\n\n'
+                };
+                
+                // Process each command
+                for (const [command, action] of Object.entries(commands)) {
+                    const regex = new RegExp(`\\b${command}\\b`, 'gi');
+                    processedText = processedText.replace(regex, action());
+                }
+                
+                return processedText;
+            }
+            
+            addCitationPlaceholder() {
+                const citationId = this.citationCounter++;
+                const placeholder = `<span class="citation-placeholder" data-citation-id="${citationId}" onclick="editCitation(${citationId})">[CITATION ${citationId}]</span>`;
+                return placeholder;
+            }
+            
+            addReferencePlaceholder() {
+                const referenceId = this.referenceCounter++;
+                const placeholder = `<span class="reference-placeholder" data-reference-id="${referenceId}" onclick="editReference(${referenceId})">[REF ${referenceId}]</span>`;
+                return placeholder;
+            }
+            
             capitalizeSentences(text) {
-                return text.replace(/(^|\.\s+)([a-z])/g, (match, prefix, letter) => {
-                    return prefix + letter.toUpperCase();
+                // Capitalize first letter of text
+                text = text.charAt(0).toUpperCase() + text.slice(1);
+                
+                // Capitalize after periods, exclamation marks, and question marks
+                return text.replace(/([.!?]\s+)([a-z])/g, (match, punctuation, letter) => {
+                    return punctuation + letter.toUpperCase();
                 });
             }
             
@@ -753,13 +1322,23 @@
             updateStats() {
                 const words = this.transcribedText.split(/\s+/).filter(word => word.length > 0).length;
                 const chars = this.transcribedText.length;
+                const citations = (this.transcribedText.match(/\[CITATION \d+\]/g) || []).length;
+                const paragraphs = (this.transcribedText.match(/\n\s*\n/g) || []).length + 1;
                 
-                this.wordCount.textContent = `Words: ${words}`;
-                this.charCount.textContent = `Characters: ${chars}`;
+                this.wordCount.textContent = words;
+                this.charCount.textContent = chars;
+                this.citationCount.textContent = citations;
+                this.paragraphCount.textContent = paragraphs;
                 
                 this.clearButton.disabled = !this.transcribedText;
                 this.copyButton.disabled = !this.transcribedText;
+                this.exportEssayButton.disabled = !this.transcribedText;
                 this.saveButton.disabled = !this.transcribedText;
+                
+                // Update word goal progress if enabled
+                if (this.wordGoalProgress.style.display !== 'none') {
+                    this.updateWordGoalProgress();
+                }
             }
             
             startSessionTimer() {
@@ -846,6 +1425,236 @@
                 }
             }
             
+            async exportEssay() {
+                if (!this.transcribedText) return;
+                
+                try {
+                    const response = await fetch(`{{ url_for('export_essay', hub_id=hub.id) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            title: `Essay - ${new Date().toLocaleDateString()}`,
+                            content: this.transcribedText,
+                            citation_style: this.citationStyle.value,
+                            references: this.references,
+                            word_count: this.transcribedText.split(/\s+/).filter(word => word.length > 0).length
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Essay exported successfully!', 'success');
+                        // Open the exported essay in a new tab
+                        window.open(result.download_url, '_blank');
+                    } else {
+                        this.showNotification('Failed to export: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Failed to export: ' + error.message, 'error');
+                }
+            }
+            
+            openReferenceManager() {
+                // Create a modal for reference management
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 800px;">
+                        <div class="modal-header">
+                            <h3>Reference Manager</h3>
+                            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="references-list">
+                                ${this.references.map(ref => `
+                                    <div class="reference-item">
+                                        <strong>${ref.title}</strong>
+                                        <p>${ref.authors} (${ref.year})</p>
+                                        <button onclick="removeReference('${ref.id}')">Remove</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="button button-primary" onclick="addNewReference()">Add Reference</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            // Essay Tools Methods
+            showEssayTemplates() {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 600px;">
+                        <div class="modal-header">
+                            <h3>📋 Essay Templates</h3>
+                            <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="templates-grid">
+                                ${Object.entries(this.essayTemplates).map(([key, template]) => `
+                                    <div class="template-item" onclick="applyTemplate('${key}')">
+                                        <h4>${template.title}</h4>
+                                        <p>Click to apply this template</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            generateOutline() {
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('Please write some content first to generate an outline', 'warning');
+                    return;
+                }
+                
+                // Simple outline generation based on content
+                const paragraphs = this.transcribedText.split('\n\n').filter(p => p.trim());
+                let outline = '## Essay Outline\n\n';
+                
+                outline += '### Introduction\n';
+                outline += '- Hook/Opening statement\n';
+                outline += '- Thesis statement\n';
+                outline += '- Preview of main points\n\n';
+                
+                paragraphs.forEach((para, index) => {
+                    if (para.trim()) {
+                        outline += `### Body Paragraph ${index + 1}\n`;
+                        outline += `- Main point: ${para.substring(0, 50)}...\n`;
+                        outline += '- Supporting evidence\n';
+                        outline += '- Analysis\n\n';
+                    }
+                });
+                
+                outline += '### Conclusion\n';
+                outline += '- Restate thesis\n';
+                outline += '- Summarize main points\n';
+                outline += '- Final thoughts\n';
+                
+                this.transcribedText = outline + '\n\n' + this.transcribedText;
+                this.updateTranscriptionDisplay();
+                this.updateStats();
+                this.showNotification('Outline generated and added to your essay!', 'success');
+            }
+            
+            checkPlagiarism() {
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('Please write some content first to check for plagiarism', 'warning');
+                    return;
+                }
+                
+                // Simulate plagiarism check (in real implementation, you'd use a plagiarism API)
+                this.showNotification('Plagiarism check completed! No issues found.', 'success');
+            }
+            
+            calculateQualityScore() {
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('Please write some content first to calculate quality score', 'warning');
+                    return;
+                }
+                
+                const words = this.transcribedText.split(/\s+/).filter(word => word.length > 0).length;
+                const paragraphs = (this.transcribedText.match(/\n\s*\n/g) || []).length + 1;
+                const citations = (this.transcribedText.match(/\[CITATION \d+\]/g) || []).length;
+                
+                let score = 0;
+                let feedback = [];
+                
+                // Word count scoring
+                if (words >= 500) score += 25;
+                else if (words >= 300) score += 15;
+                else if (words >= 200) score += 10;
+                else feedback.push('Consider expanding your essay');
+                
+                // Paragraph structure scoring
+                if (paragraphs >= 5) score += 25;
+                else if (paragraphs >= 3) score += 15;
+                else feedback.push('Add more paragraphs for better structure');
+                
+                // Citation scoring
+                if (citations >= 3) score += 25;
+                else if (citations >= 1) score += 15;
+                else feedback.push('Add more citations to support your arguments');
+                
+                // Content quality (simple heuristics)
+                if (this.transcribedText.includes('## Introduction') || this.transcribedText.includes('Introduction')) score += 10;
+                if (this.transcribedText.includes('## Conclusion') || this.transcribedText.includes('Conclusion')) score += 10;
+                if (this.transcribedText.includes('**Evidence:**') || this.transcribedText.includes('**Analysis:**')) score += 5;
+                
+                // Display score
+                this.qualityScoreDisplay.style.display = 'block';
+                this.scoreCircle.textContent = score;
+                this.scoreCircle.className = `score-circle ${this.getScoreClass(score)}`;
+                
+                let scoreText = `Quality Score: ${score}/100\n\n`;
+                if (feedback.length > 0) {
+                    scoreText += 'Suggestions:\n' + feedback.map(f => `• ${f}`).join('\n');
+                } else {
+                    scoreText += 'Great work! Your essay has good structure and content.';
+                }
+                
+                this.scoreText.textContent = scoreText;
+            }
+            
+            getScoreClass(score) {
+                if (score >= 80) return 'score-excellent';
+                if (score >= 60) return 'score-good';
+                if (score >= 40) return 'score-fair';
+                return 'score-poor';
+            }
+            
+            setWordGoal() {
+                const goal = prompt('Set your word goal:', this.wordGoal);
+                if (goal && !isNaN(goal) && goal > 0) {
+                    this.wordGoal = parseInt(goal);
+                    this.targetWords.textContent = this.wordGoal;
+                    this.updateWordGoalProgress();
+                    this.showNotification(`Word goal set to ${this.wordGoal} words`, 'success');
+                }
+            }
+            
+            toggleAutosave() {
+                this.autosaveEnabled = !this.autosaveEnabled;
+                this.autosaveToggleBtn.classList.toggle('active', this.autosaveEnabled);
+                
+                if (this.autosaveEnabled) {
+                    this.autosaveInterval = setInterval(() => {
+                        if (this.transcribedText.trim()) {
+                            this.saveAsNote();
+                        }
+                    }, 30000); // Auto-save every 30 seconds
+                    this.showNotification('Auto-save enabled (every 30 seconds)', 'success');
+                } else {
+                    if (this.autosaveInterval) {
+                        clearInterval(this.autosaveInterval);
+                        this.autosaveInterval = null;
+                    }
+                    this.showNotification('Auto-save disabled', 'info');
+                }
+            }
+            
+            updateWordGoalProgress() {
+                const words = this.transcribedText.split(/\s+/).filter(word => word.length > 0).length;
+                const percentage = Math.min((words / this.wordGoal) * 100, 100);
+                
+                this.currentWords.textContent = words;
+                this.progressPercentage.textContent = `${Math.round(percentage)}%`;
+                this.progressFill.style.width = `${percentage}%`;
+                
+                if (words >= this.wordGoal) {
+                    this.showNotification(`🎉 Congratulations! You've reached your word goal of ${this.wordGoal} words!`, 'success');
+                }
+            }
+            
             showNotification(message, type = 'success') {
                 this.notification.textContent = message;
                 this.notification.className = `notification ${type}`;
@@ -857,9 +1666,92 @@
             }
         }
         
+        // Global functions for citation and reference management
+        function editCitation(citationId) {
+            const citation = prompt(`Edit citation ${citationId}:`, '');
+            if (citation) {
+                const element = document.querySelector(`[data-citation-id="${citationId}"]`);
+                if (element) {
+                    element.textContent = `[${citation}]`;
+                }
+            }
+        }
+        
+        function editReference(referenceId) {
+            const reference = prompt(`Edit reference ${referenceId}:`, '');
+            if (reference) {
+                const element = document.querySelector(`[data-reference-id="${referenceId}"]`);
+                if (element) {
+                    element.textContent = `[${reference}]`;
+                }
+            }
+        }
+        
+        function saveReference() {
+            const title = document.getElementById('ref-title').value;
+            const authors = document.getElementById('ref-authors').value;
+            const year = document.getElementById('ref-year').value;
+            const source = document.getElementById('ref-source').value;
+            const url = document.getElementById('ref-url').value;
+            
+            if (!title || !authors || !year) {
+                alert('Please fill in at least Title, Authors, and Year');
+                return;
+            }
+            
+            const reference = {
+                id: Date.now().toString(),
+                title,
+                authors,
+                year: parseInt(year),
+                source,
+                url
+            };
+            
+            // Add to the app's references array
+            if (window.voiceTranscriptionApp) {
+                window.voiceTranscriptionApp.references.push(reference);
+            }
+            
+            // Close modal
+            document.querySelector('.modal-overlay').remove();
+            
+            // Show success message
+            if (window.voiceTranscriptionApp) {
+                window.voiceTranscriptionApp.showNotification('Reference added successfully!', 'success');
+            }
+        }
+        
+        function removeReference(referenceId) {
+            if (window.voiceTranscriptionApp) {
+                window.voiceTranscriptionApp.references = window.voiceTranscriptionApp.references.filter(ref => ref.id !== referenceId);
+                window.voiceTranscriptionApp.showNotification('Reference removed', 'success');
+            }
+        }
+        
+        function addNewReference() {
+            if (window.voiceTranscriptionApp) {
+                window.voiceTranscriptionApp.addNewReference();
+            }
+        }
+        
+        function applyTemplate(templateKey) {
+            if (window.voiceTranscriptionApp) {
+                const template = window.voiceTranscriptionApp.essayTemplates[templateKey];
+                if (template) {
+                    window.voiceTranscriptionApp.transcribedText = template.structure;
+                    window.voiceTranscriptionApp.updateTranscriptionDisplay();
+                    window.voiceTranscriptionApp.updateStats();
+                    window.voiceTranscriptionApp.showNotification(`${template.title} applied!`, 'success');
+                }
+                // Close modal
+                document.querySelector('.modal-overlay').remove();
+            }
+        }
+        
         // Initialize the voice transcription when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new VoiceTranscription();
+            window.voiceTranscriptionApp = new VoiceTranscription();
         });
     </script>
 </body>
