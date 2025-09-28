@@ -152,7 +152,7 @@
             </div>
         </div>
 
-        <form action="{{ url_for('update_flashcard_set', activity_id=activity.id) }}" method="POST">
+        <form action="{% if is_lecture_flashcards %}{{ url_for('update_lecture_flashcards', session_id=session_id) }}{% else %}{{ url_for('update_flashcard_set', activity_id=activity.id) }}{% endif %}" method="POST">
             <div class="flashcard-grid" id="flashcard-grid">
                 {% for card in activity.data.cards %}
                 <div class="flashcard-editor">

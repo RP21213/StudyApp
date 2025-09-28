@@ -1762,7 +1762,7 @@
             </div>
         </section>
 
-        <!-- Watch Demo Section -->
+        <!-- Interactive Demo Section -->
         <section class="watch-demo">
             <div class="container">
                 <div class="demo-header">
@@ -1776,57 +1776,48 @@
                                 <text x="20" y="32" text-anchor="middle" fill="white" font-size="6" font-weight="bold">DEMO</text>
                             </svg>
                         </div>
-                        <h2>Watch a Demo</h2>
+                        <h2>Try Interactive Demo</h2>
                     </div>
                 </div>
                 
                 <div class="demo-video-container">
-                    <div class="video-player">
-                        <div class="video-placeholder">
-                            <div class="play-button">
-                                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="30" cy="30" r="30" fill="rgba(255, 255, 255, 0.9)"/>
-                                    <path d="M23 20l16 10-16 10V20z" fill="#667eea"/>
-                                </svg>
-                            </div>
-                            <div class="video-overlay">
-                                <p class="video-title">See how Foci transforms your study materials</p>
-                                <p class="video-subtitle">Watch our demo to see the magic in action</p>
-                            </div>
-                        </div>
-                        <div class="video-controls">
-                            <div class="video-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill"></div>
-                                </div>
-                            </div>
-                            <div class="control-buttons">
-                                <button class="control-btn play-pause">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polygon points="5,3 19,12 5,21"></polygon>
-                                    </svg>
-                                </button>
-                                <div class="volume-control">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polygon points="11,5 6,9 2,9 2,15 6,15 11,19"></polygon>
-                                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                                    </svg>
-                                </div>
-                                <div class="time-display">
-                                    <span class="current-time">0:00</span> / <span class="total-time">2:30</span>
-                                </div>
-                                <button class="control-btn fullscreen">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+                    <div
+                      id="howdygo-embed"
+                      style="width: 100%;
+                        max-width: 2133px;
+                        background-color: #ffffff;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow:
+                          0px 0px 1px rgba(45, 55, 72, 0.05),
+                          0px 4px 8px rgba(45, 55, 72, 0.1);"
+                    >
+                      <script src="https://js.howdygo.com/v1.2.1/index.js" ></script>
+                      <div
+                        id="howdygo-wrapper"
+                        style="position: relative;
+                        width: 100%;
+                        height: 0;
+                        padding-bottom: calc(49.83591186122832% + 40px);"
+                      >
+                        <iframe
+                          id="howdygo-frame"
+                          src="https://app.howdygo.com/embed/81f57741-b9a4-467c-a382-83befe3f99d0"
+                          frameborder="0"
+                          scrolling="no"
+                          allow="clipboard-write; autoplay"
+                          webkitallowfullscreen
+                          mozallowfullscreen
+                          allowfullscreen
+                          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"
+                        ></iframe>
+                      </div>
                     </div>
                 </div>
                 
                 <div class="demo-description">
-                    <p>See how Foci can transform your course materials into interactive study tools in just seconds. Our AI-powered platform makes studying more engaging and effective.</p>
+                    <p>Experience Foci firsthand with our interactive demo. See how our AI transforms your course materials into engaging study tools in real-time.</p>
                 </div>
             </div>
         </section>

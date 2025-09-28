@@ -2427,7 +2427,7 @@ def complete_onboarding():
 def get_demo_link():
     """Get the demo link configuration"""
     # This is a placeholder - you can replace this with your actual demo link
-    demo_link = "https://app.howdygo.com/share/b1468bfe-4be6-4c8a-9fcc-a486b734ebe4"  # Replace with your actual demo link
+    demo_link = "https://app.howdygo.com/share/81f57741-b9a4-467c-a382-83befe3f99d0"  # Replace with your actual demo link
     return jsonify({"demo_link": demo_link})
 
 @app.route('/api/theme/update', methods=['POST'])
@@ -4070,7 +4070,22 @@ def generate_lecture_flashcards_background(session_id, flashcard_count=10):
             'flashcards_status': 'completed'
         })
         
-        print(f"Successfully generated {len(parsed_cards)} flashcards for session {session_id}")
+        # Also create an Activity for hub visibility
+        activity_ref = db.collection('activities').document()
+        new_activity = Activity(
+            id=activity_ref.id,
+            hub_id=session_data.get('hub_id'),
+            type='Flashcards',
+            title=f"Flashcards - {session_data.get('title', 'Untitled')}",
+            data={'cards': parsed_cards},
+            status='completed'
+        )
+        activity_ref.set(new_activity.to_dict())
+        
+        # Update session with activity ID for future updates
+        session_ref.update({'flashcards_activity_id': activity_ref.id})
+        
+        print(f"Successfully generated {len(parsed_cards)} flashcards for session {session_id} and created Activity {activity_ref.id}")
         
     except Exception as e:
         print(f"Error generating flashcards in background: {e}")
@@ -4536,6 +4551,71 @@ def view_lecture_flashcards(session_id):
         print(f"Error viewing lecture flashcards: {e}")
         flash("An error occurred while loading flashcards.", "error")
         return redirect(url_for("dashboard"))
+
+
+@app.route("/slide_notes/<session_id>/update_flashcards", methods=["POST"])
+@login_required
+def update_lecture_flashcards(session_id):
+    """Update flashcards for a specific lecture session."""
+    try:
+        # Verify session ownership
+        session_doc = db.collection('annotated_slide_decks').document(session_id).get()
+        if not session_doc.exists:
+            flash("Session not found", "error")
+            return redirect(url_for("dashboard"))
+        
+        session_data = session_doc.to_dict()
+        if session_data.get('user_id') != current_user.id:
+            flash("You do not have permission to edit this.", "error")
+            return redirect(url_for('dashboard'))
+        
+        # Parse form data
+        form_data = request.form
+        new_cards = []
+        i = 0
+        while f'front_{i}' in form_data:
+            front = form_data.get(f'front_{i}')
+            back = form_data.get(f'back_{i}')
+            if front and back and front.strip() and back.strip():
+                new_cards.append({'front': front.strip(), 'back': back.strip()})
+            i += 1
+        
+        # Update flashcards in the session
+        session_ref = db.collection('annotated_slide_decks').document(session_id)
+        session_ref.update({'flashcards_data': new_cards})
+        
+        # Also update/create the corresponding Activity for hub visibility
+        activity_id = session_data.get('flashcards_activity_id')
+        if activity_id:
+            # Update existing activity
+            activity_ref = db.collection('activities').document(activity_id)
+            activity_ref.update({
+                'data.cards': new_cards,
+                'title': f"Flashcards - {session_data.get('title', 'Untitled')}"
+            })
+        else:
+            # Create new activity for hub visibility
+            activity_ref = db.collection('activities').document()
+            new_activity = Activity(
+                id=activity_ref.id,
+                hub_id=session_data.get('hub_id'),
+                type='Flashcards',
+                title=f"Flashcards - {session_data.get('title', 'Untitled')}",
+                data={'cards': new_cards},
+                status='completed'
+            )
+            activity_ref.set(new_activity.to_dict())
+            
+            # Update session with activity ID
+            session_ref.update({'flashcards_activity_id': activity_ref.id})
+        
+        flash("Flashcards updated successfully!", "success")
+        return redirect(url_for('view_lecture_flashcards', session_id=session_id))
+        
+    except Exception as e:
+        print(f"Error updating lecture flashcards: {e}")
+        flash(f"An error occurred: {e}", "error")
+        return redirect(url_for('view_lecture_flashcards', session_id=session_id))
 
 
 # ==============================================================================
