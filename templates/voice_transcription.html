@@ -132,12 +132,142 @@
         }
         
         .main-content {
+            display: flex;
+            gap: 1rem;
+            height: calc(100vh - 120px);
+            padding: 1rem;
+        }
+        
+        .writing-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 2rem;
-            gap: 2rem;
-            overflow: hidden;
+            min-width: 0;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: var(--background-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            border: 1px solid var(--border-color);
+            height: fit-content;
+        }
+        
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .sidebar-section h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-main);
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-tools {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--background-interactive-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+        
+        .sidebar-tool-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .sidebar-tool-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .tool-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .tool-text {
+            font-weight: 500;
+        }
+        
+        .sidebar-settings-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .sidebar-settings-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        .settings-icon {
+            font-size: 1.2rem;
+        }
+        
+        .settings-text {
+            font-weight: 500;
+        }
+        
+        .transcription-area {
+            flex: 1;
+            background: var(--background-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .transcription-content {
+            flex: 1;
+            min-height: 400px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
         
         .controls-panel {
@@ -496,6 +626,482 @@
         .score-fair { background-color: #f59e0b; color: white; }
         .score-poor { background-color: #ef4444; color: white; }
         
+        /* Essay Templates Modal Styles */
+        .essay-templates-modal {
+            max-width: 900px !important;
+        }
+        
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .template-card {
+            background: var(--background-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .template-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+        }
+        
+        .template-card:active {
+            transform: translateY(0);
+        }
+        
+        .template-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .template-card h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+            text-align: center;
+        }
+        
+        .template-card p {
+            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .template-structure {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+        
+        .structure-item {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid var(--primary-color);
+        }
+        
+        .template-apply-btn {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+        }
+        
+        .template-apply-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        .template-tip {
+            margin: 0;
+            padding: 1rem;
+            background: var(--primary-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-main);
+            text-align: center;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: var(--background-card);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-main);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .modal-close:hover {
+            background: var(--background-interactive-hover);
+            color: var(--text-main);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Reference Modal Styles */
+        .reference-modal {
+            max-width: 650px !important;
+        }
+        
+        .reference-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .reference-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .reference-form label {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .reference-form input {
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: var(--background-card);
+        }
+        
+        .reference-form input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .reference-form input:invalid {
+            border-color: #ef4444;
+        }
+        
+        .reference-form input:valid {
+            border-color: #10b981;
+        }
+        
+        .form-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+        
+        .reference-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--primary-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .reference-preview h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        
+        .preview-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+        
+        .preview-content em {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .preview-content strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .modal-footer .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        
+        .modal-footer .button-secondary {
+            background: var(--background-interactive-hover);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        
+        .modal-footer .button-secondary:hover {
+            background: var(--border-color);
+        }
+        
+        .modal-footer .button-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .modal-footer .button-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        
+        /* Settings Modal Styles */
+        .settings-modal {
+            max-width: 600px !important;
+        }
+        
+        .settings-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .settings-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .settings-section h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .settings-grid .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .settings-grid label {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+        
+        .settings-grid select {
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--background-card);
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+        
+        .settings-grid select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Improved Manage References Modal */
+        .references-modal {
+            max-width: 800px !important;
+        }
+        
+        .references-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-body);
+        }
+        
+        .reference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+        
+        .reference-item:last-child {
+            border-bottom: none;
+        }
+        
+        .reference-item:hover {
+            background: var(--background-interactive-hover);
+        }
+        
+        .reference-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .reference-title {
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+        
+        .reference-authors {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        
+        .reference-year {
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .reference-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .reference-action-btn {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--background-card);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+        
+        .reference-action-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+        
+        .reference-action-btn.delete:hover {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+        
+        .no-references {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
         .form-group {
             display: flex;
             flex-direction: column;
@@ -635,286 +1241,336 @@
     </div>
 
     <div class="main-content">
-        <div class="controls-panel">
-            <div class="controls-row">
-                <button id="mic-button" class="mic-button idle" title="Click to start/stop recording">
-                    🎤
-                </button>
-                <div class="status-indicator">
-                    <span class="status-dot" id="mic-status-dot"></span>
-                    <span id="mic-status-text">Click microphone to start</span>
-                </div>
-                <div style="margin-left: auto; display: flex; gap: 0.5rem;">
-                    <button id="help-button" class="button button-secondary" title="Show voice commands help">
-                        ❓ Help
+        <!-- Main Writing Area -->
+        <div class="writing-area">
+            <div class="controls-panel">
+                <div class="controls-row">
+                    <button id="mic-button" class="mic-button idle" title="Click to start/stop recording">
+                        🎤
                     </button>
-                    <button id="clear-button" class="button button-secondary" disabled>
-                        🗑️ Clear Text
-                    </button>
-                    <button id="copy-button" class="button button-secondary" disabled>
-                        📋 Copy Text
-                    </button>
-                    <button id="export-essay-button" class="button button-primary" disabled>
-                        📄 Export Essay
-                    </button>
-                    <button id="save-button" class="button button-primary" disabled>
-                        💾 Save as Note
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Voice Commands Help -->
-            <div class="voice-commands-help" id="voice-commands-help" style="display: none;">
-                <h4>🎯 Voice Commands</h4>
-                <div class="commands-grid">
-                    <div class="command-item">
-                        <span class="command-trigger">"New paragraph"</span>
-                        <span class="command-description">Start a new paragraph</span>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="mic-status-dot"></span>
+                        <span id="mic-status-text">Click microphone to start</span>
                     </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Citation"</span>
-                        <span class="command-description">Add citation placeholder</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Reference"</span>
-                        <span class="command-description">Add reference placeholder</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Quote"</span>
-                        <span class="command-description">Add quotation marks</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Emphasis"</span>
-                        <span class="command-description">Add emphasis/italics</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Bold"</span>
-                        <span class="command-description">Add bold formatting</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Introduction"</span>
-                        <span class="command-description">Add introduction section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Conclusion"</span>
-                        <span class="command-description">Add conclusion section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Main point"</span>
-                        <span class="command-description">Add main argument</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"First argument"</span>
-                        <span class="command-description">Add first argument section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Second argument"</span>
-                        <span class="command-description">Add second argument section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Third argument"</span>
-                        <span class="command-description">Add third argument section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Counterargument"</span>
-                        <span class="command-description">Add counterargument section</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Evidence"</span>
-                        <span class="command-description">Add evidence formatting</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Analysis"</span>
-                        <span class="command-description">Add analysis formatting</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Transition"</span>
-                        <span class="command-description">Add section divider</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Comma"</span>
-                        <span class="command-description">Add comma punctuation</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Period"</span>
-                        <span class="command-description">Add period punctuation</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Question mark"</span>
-                        <span class="command-description">Add question mark</span>
-                    </div>
-                    <div class="command-item">
-                        <span class="command-trigger">"Exclamation"</span>
-                        <span class="command-description">Add exclamation mark</span>
-                    </div>
-                </div>
-                <div class="help-footer">
-                    <p><strong>💡 Tip:</strong> Say these commands naturally while speaking. For example: "The research shows citation that climate change is real period"</p>
-                </div>
-            </div>
-            
-            <!-- Essay Tools -->
-            <div class="essay-tools">
-                <h4>📝 Essay Tools</h4>
-                <div class="tools-grid">
-                    <button id="essay-template-btn" class="tool-button">
-                        📋 Essay Templates
-                    </button>
-                    <button id="outline-generator-btn" class="tool-button">
-                        🗺️ Generate Outline
-                    </button>
-                    <button id="plagiarism-check-btn" class="tool-button">
-                        🔍 Check Plagiarism
-                    </button>
-                    <button id="quality-score-btn" class="tool-button">
-                        ⭐ Quality Score
-                    </button>
-                    <button id="word-goal-btn" class="tool-button">
-                        🎯 Set Word Goal
-                    </button>
-                    <button id="autosave-toggle-btn" class="tool-button">
-                        💾 Auto-save
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="transcription-area">
-            <div class="transcription-header">
-                <h3>Transcribed Text</h3>
-                <div class="status-indicator">
-                    <span id="processing-indicator" style="display: none;">Processing...</span>
-                </div>
-            </div>
-            <div id="transcription-content" class="transcription-content empty">
-                Your transcribed speech will appear here...
-            </div>
-            <div class="transcription-stats">
-                <div class="essay-stats">
-                    <div class="stat-item">
-                        <span class="stat-value" id="word-count">0</span>
-                        <span class="stat-label">Words</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="char-count">0</span>
-                        <span class="stat-label">Characters</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="citation-count">0</span>
-                        <span class="stat-label">Citations</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="paragraph-count">0</span>
-                        <span class="stat-label">Paragraphs</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value" id="session-time">00:00</span>
-                        <span class="stat-label">Session</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Word Goal Progress -->
-            <div class="word-goal-progress" id="word-goal-progress" style="display: none;">
-                <h4>🎯 Word Goal Progress</h4>
-                <div class="progress-info">
-                    <span id="current-words">0</span> / <span id="target-words">1000</span> words
-                    <span id="progress-percentage">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-                </div>
-            </div>
-            
-            <!-- Quality Score Display -->
-            <div class="quality-score-display" id="quality-score-display" style="display: none;">
-                <h4>⭐ Essay Quality Score</h4>
-                <div class="score-circle" id="score-circle">-</div>
-                <div id="score-details">
-                    <p id="score-text">Click "Quality Score" to analyze your essay</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="settings-panel">
-            <h3 style="margin-bottom: 1rem;">Settings</h3>
-            <div class="settings-grid">
-                <div class="form-group">
-                    <label for="language-select">Language</label>
-                    <select id="language-select">
-                        <option value="en-US">English (US)</option>
-                        <option value="en-GB">English (UK)</option>
-                        <option value="en-AU">English (Australia)</option>
-                        <option value="es-ES">Spanish</option>
-                        <option value="fr-FR">French</option>
-                        <option value="de-DE">German</option>
-                        <option value="it-IT">Italian</option>
-                        <option value="pt-BR">Portuguese (Brazil)</option>
-                        <option value="ru-RU">Russian</option>
-                        <option value="ja-JP">Japanese</option>
-                        <option value="ko-KR">Korean</option>
-                        <option value="zh-CN">Chinese (Simplified)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="auto-punctuation">Auto Punctuation</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="auto-punctuation" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label for="auto-capitalization">Auto Capitalization</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="auto-capitalization" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="form-group">
-                    <label for="continuous-mode">Continuous Mode</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="continuous-mode">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <!-- Reference Management -->
-            <div style="margin-top: 2rem;">
-                <h3 style="margin-bottom: 1rem;">📚 Reference Management</h3>
-                <div class="settings-grid">
-                    <div class="form-group">
-                        <label for="citation-style">Citation Style</label>
-                        <select id="citation-style">
-                            <option value="apa">APA</option>
-                            <option value="mla">MLA</option>
-                            <option value="chicago">Chicago</option>
-                            <option value="harvard">Harvard</option>
-                            <option value="ieee">IEEE</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="auto-cite">Auto Citation</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="auto-cite" checked>
-                            <span class="slider"></span>
-                        </label>
+                    <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                        <button id="help-button" class="button button-secondary" title="Show voice commands help">
+                            ❓ Help
+                        </button>
+                        <button id="clear-button" class="button button-secondary" disabled>
+                            🗑️ Clear Text
+                        </button>
+                        <button id="copy-button" class="button button-secondary" disabled>
+                            📋 Copy Text
+                        </button>
+                        <button id="export-essay-button" class="button button-primary" disabled>
+                            📄 Export Essay
+                        </button>
+                        <button id="save-button" class="button button-primary" disabled>
+                            💾 Save as Note
+                        </button>
                     </div>
                 </div>
                 
-                <div style="margin-top: 1rem;">
-                    <button id="manage-references-btn" class="button button-secondary">
-                        📖 Manage References
+                <!-- Voice Commands Help -->
+                <div class="voice-commands-help" id="voice-commands-help" style="display: none;">
+                    <h4>🎯 Voice Commands</h4>
+                    <div class="commands-grid">
+                        <div class="command-item">
+                            <span class="command-trigger">"New paragraph"</span>
+                            <span class="command-description">Start a new paragraph</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Citation"</span>
+                            <span class="command-description">Add citation placeholder</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Reference"</span>
+                            <span class="command-description">Add reference placeholder</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Quote"</span>
+                            <span class="command-description">Add quotation marks</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Emphasis"</span>
+                            <span class="command-description">Add emphasis/italics</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Bold"</span>
+                            <span class="command-description">Add bold formatting</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Introduction"</span>
+                            <span class="command-description">Add introduction section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Conclusion"</span>
+                            <span class="command-description">Add conclusion section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Main point"</span>
+                            <span class="command-description">Add main argument</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"First argument"</span>
+                            <span class="command-description">Add first argument section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Second argument"</span>
+                            <span class="command-description">Add second argument section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Third argument"</span>
+                            <span class="command-description">Add third argument section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Counterargument"</span>
+                            <span class="command-description">Add counterargument section</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Evidence"</span>
+                            <span class="command-description">Add evidence formatting</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Analysis"</span>
+                            <span class="command-description">Add analysis formatting</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Transition"</span>
+                            <span class="command-description">Add section divider</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Comma"</span>
+                            <span class="command-description">Add comma punctuation</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Period"</span>
+                            <span class="command-description">Add period punctuation</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Question mark"</span>
+                            <span class="command-description">Add question mark</span>
+                        </div>
+                        <div class="command-item">
+                            <span class="command-trigger">"Exclamation"</span>
+                            <span class="command-description">Add exclamation mark</span>
+                        </div>
+                    </div>
+                    <div class="help-footer">
+                        <p><strong>💡 Tip:</strong> Say these commands naturally while speaking. For example: "The research shows citation that climate change is real period"</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transcription-area">
+                <div class="transcription-header">
+                    <h3>Transcribed Text</h3>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span id="status-text">Ready</span>
+                    </div>
+                </div>
+                <div id="transcription-content" class="transcription-content empty">
+                    Your transcribed speech will appear here...
+                </div>
+                <div class="transcription-stats">
+                    <div class="essay-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="word-count">0</span>
+                            <span class="stat-label">Words</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="char-count">0</span>
+                            <span class="stat-label">Characters</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="citation-count">0</span>
+                            <span class="stat-label">Citations</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="paragraph-count">0</span>
+                            <span class="stat-label">Paragraphs</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="session-time">00:00</span>
+                            <span class="stat-label">Session</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Word Goal Progress -->
+                <div class="word-goal-progress" id="word-goal-progress" style="display: none;">
+                    <h4>🎯 Word Goal Progress</h4>
+                    <div class="progress-info">
+                        <span id="current-words">0</span> / <span id="target-words">1000</span> words
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- Quality Score Display -->
+                <div class="quality-score-display" id="quality-score-display" style="display: none;">
+                    <h4>⭐ Essay Quality Score</h4>
+                    <div class="score-circle" id="score-circle">-</div>
+                    <div id="score-details">
+                        <p id="score-text">Click "Quality Score" to analyze your essay</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Essay Tools Section -->
+            <div class="sidebar-section">
+                <h3>📝 Essay Tools</h3>
+                <div class="sidebar-tools">
+                    <button id="essay-template-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">📋</span>
+                        <span class="tool-text">Templates</span>
                     </button>
-                    <button id="add-reference-btn" class="button button-primary">
-                        ➕ Add Reference
+                    <button id="outline-generator-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">🗺️</span>
+                        <span class="tool-text">Outline</span>
+                    </button>
+                    <button id="plagiarism-check-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">🔍</span>
+                        <span class="tool-text">Plagiarism</span>
+                    </button>
+                    <button id="quality-score-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">⭐</span>
+                        <span class="tool-text">Quality Score</span>
+                    </button>
+                    <button id="word-goal-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">🎯</span>
+                        <span class="tool-text">Word Goal</span>
+                    </button>
+                    <button id="autosave-toggle-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">💾</span>
+                        <span class="tool-text">Auto-save</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- Reference Management Section -->
+            <div class="sidebar-section">
+                <h3>📚 References</h3>
+                <div class="sidebar-tools">
+                    <button id="manage-references-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">📖</span>
+                        <span class="tool-text">Manage</span>
+                    </button>
+                    <button id="add-reference-btn" class="sidebar-tool-btn">
+                        <span class="tool-icon">➕</span>
+                        <span class="tool-text">Add New</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="sidebar-section">
+                <h3>⚙️ Settings</h3>
+                <button id="settings-btn" class="sidebar-settings-btn">
+                    <span class="settings-icon">⚙️</span>
+                    <span class="settings-text">Open Settings</span>
+                </button>
             </div>
         </div>
     </div>
 
     <div id="notification" class="notification"></div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content settings-modal">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-sections">
+                    <!-- Speech Recognition Settings -->
+                    <div class="settings-section">
+                        <h4>🎤 Speech Recognition</h4>
+                        <div class="settings-grid">
+                            <div class="form-group">
+                                <label for="language-select">Language</label>
+                                <select id="language-select">
+                                    <option value="en-US">English (US)</option>
+                                    <option value="en-GB">English (UK)</option>
+                                    <option value="en-AU">English (Australia)</option>
+                                    <option value="es-ES">Spanish</option>
+                                    <option value="fr-FR">French</option>
+                                    <option value="de-DE">German</option>
+                                    <option value="it-IT">Italian</option>
+                                    <option value="pt-BR">Portuguese (Brazil)</option>
+                                    <option value="ru-RU">Russian</option>
+                                    <option value="ja-JP">Japanese</option>
+                                    <option value="ko-KR">Korean</option>
+                                    <option value="zh-CN">Chinese (Simplified)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="auto-punctuation">Auto Punctuation</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="auto-punctuation" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="auto-capitalization">Auto Capitalization</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="auto-capitalization" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label for="continuous-mode">Continuous Mode</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="continuous-mode">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reference Management Settings -->
+                    <div class="settings-section">
+                        <h4>📚 Reference Management</h4>
+                        <div class="settings-grid">
+                            <div class="form-group">
+                                <label for="citation-style">Citation Style</label>
+                                <select id="citation-style">
+                                    <option value="apa">APA</option>
+                                    <option value="mla">MLA</option>
+                                    <option value="chicago">Chicago</option>
+                                    <option value="harvard">Harvard</option>
+                                    <option value="ieee">IEEE</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="auto-cite">Auto Citation</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="auto-cite" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary" onclick="closeSettingsModal()">
+                    Cancel
+                </button>
+                <button class="button button-primary" onclick="saveSettings()">
+                    💾 Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         class VoiceTranscription {
@@ -1062,6 +1718,12 @@
                 this.wordGoalBtn.addEventListener('click', () => this.setWordGoal());
                 this.autosaveToggleBtn.addEventListener('click', () => this.toggleAutosave());
                 
+                // Settings button
+                const settingsBtn = document.getElementById('settings-btn');
+                if (settingsBtn) {
+                    settingsBtn.addEventListener('click', () => this.openSettings());
+                }
+                
                 // Settings changes
                 this.languageSelect.addEventListener('change', () => {
                     if (this.recognition) {
@@ -1091,40 +1753,110 @@
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.innerHTML = `
-                    <div class="modal-content">
+                    <div class="modal-content reference-modal" style="max-width: 600px;">
                         <div class="modal-header">
-                            <h3>Add New Reference</h3>
+                            <h3>📖 Add New Reference</h3>
                             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div class="form-group">
-                                <label>Title</label>
-                                <input type="text" id="ref-title" placeholder="Article/Book Title">
-                            </div>
-                            <div class="form-group">
-                                <label>Authors</label>
-                                <input type="text" id="ref-authors" placeholder="Author Names">
-                            </div>
-                            <div class="form-group">
-                                <label>Year</label>
-                                <input type="number" id="ref-year" placeholder="2024">
-                            </div>
-                            <div class="form-group">
-                                <label>Source</label>
-                                <input type="text" id="ref-source" placeholder="Journal/Publisher">
-                            </div>
-                            <div class="form-group">
-                                <label>URL (Optional)</label>
-                                <input type="url" id="ref-url" placeholder="https://...">
+                            <div class="reference-form">
+                                <div class="form-group">
+                                    <label for="ref-title">📄 Title *</label>
+                                    <input type="text" id="ref-title" placeholder="Enter the article or book title" required>
+                                    <small class="form-hint">The main title of the source</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ref-authors">👥 Authors *</label>
+                                    <input type="text" id="ref-authors" placeholder="e.g., Smith, J., & Johnson, A." required>
+                                    <small class="form-hint">Separate multiple authors with commas</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ref-year">📅 Year *</label>
+                                    <input type="number" id="ref-year" placeholder="2024" min="1900" max="2030" required>
+                                    <small class="form-hint">Publication year</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ref-source">🏢 Source</label>
+                                    <input type="text" id="ref-source" placeholder="Journal name, publisher, or website">
+                                    <small class="form-hint">Where the source was published</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="ref-url">🔗 URL (Optional)</label>
+                                    <input type="url" id="ref-url" placeholder="https://example.com">
+                                    <small class="form-hint">Link to the online source</small>
+                                </div>
+                                
+                                <div class="reference-preview">
+                                    <h4>📋 Preview</h4>
+                                    <div class="preview-content" id="reference-preview">
+                                        <em>Fill in the fields above to see a preview of your reference</em>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="button button-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                            <button class="button button-primary" onclick="saveReference()">Save Reference</button>
+                            <button class="button button-secondary" onclick="this.closest('.modal-overlay').remove()">
+                                Cancel
+                            </button>
+                            <button class="button button-primary" onclick="saveReference()">
+                                💾 Save Reference
+                            </button>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(modal);
+                
+                // Add real-time preview functionality
+                this.setupReferencePreview();
+            }
+            
+            setupReferencePreview() {
+                const titleInput = document.getElementById('ref-title');
+                const authorsInput = document.getElementById('ref-authors');
+                const yearInput = document.getElementById('ref-year');
+                const sourceInput = document.getElementById('ref-source');
+                const previewDiv = document.getElementById('reference-preview');
+                
+                const updatePreview = () => {
+                    const title = titleInput.value.trim();
+                    const authors = authorsInput.value.trim();
+                    const year = yearInput.value.trim();
+                    const source = sourceInput.value.trim();
+                    
+                    if (!title || !authors || !year) {
+                        previewDiv.innerHTML = '<em>Fill in the required fields above to see a preview of your reference</em>';
+                        return;
+                    }
+                    
+                    // Generate preview based on current citation style
+                    const citationStyle = this.citationStyle.value || 'apa';
+                    let preview = '';
+                    
+                    if (citationStyle === 'apa') {
+                        preview = `${authors} (${year}). ${title}. ${source ? source + '.' : ''}`;
+                    } else if (citationStyle === 'mla') {
+                        preview = `${authors}. "${title}." ${source ? source + ', ' : ''}${year}.`;
+                    } else if (citationStyle === 'chicago') {
+                        preview = `${authors}. "${title}." ${source ? source + ' ' : ''}(${year}).`;
+                    } else if (citationStyle === 'harvard') {
+                        preview = `${authors} ${year}, ${title}, ${source ? source + '.' : ''}`;
+                    } else if (citationStyle === 'ieee') {
+                        preview = `${authors}, "${title}," ${source ? source + ', ' : ''}${year}.`;
+                    } else {
+                        preview = `${authors} (${year}). ${title}. ${source ? source + '.' : ''}`;
+                    }
+                    
+                    previewDiv.innerHTML = `<strong>${preview}</strong>`;
+                };
+                
+                titleInput.addEventListener('input', updatePreview);
+                authorsInput.addEventListener('input', updatePreview);
+                yearInput.addEventListener('input', updatePreview);
+                sourceInput.addEventListener('input', updatePreview);
             }
             
             toggleRecording() {
@@ -1462,28 +2194,53 @@
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.innerHTML = `
-                    <div class="modal-content" style="max-width: 800px;">
+                    <div class="modal-content references-modal">
                         <div class="modal-header">
-                            <h3>Reference Manager</h3>
+                            <h3>📚 Manage References</h3>
                             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
                         </div>
                         <div class="modal-body">
-                            <div id="references-list">
-                                ${this.references.map(ref => `
-                                    <div class="reference-item">
-                                        <strong>${ref.title}</strong>
-                                        <p>${ref.authors} (${ref.year})</p>
-                                        <button onclick="removeReference('${ref.id}')">Remove</button>
-                                    </div>
-                                `).join('')}
+                            <div class="references-list">
+                                ${this.references.length === 0 ? 
+                                    '<div class="no-references">📖 No references added yet<br><small>Click "Add New Reference" to get started</small></div>' :
+                                    this.references.map((ref, index) => `
+                                        <div class="reference-item">
+                                            <div class="reference-content">
+                                                <div class="reference-title">${ref.title}</div>
+                                                <div class="reference-authors">${ref.authors}</div>
+                                                <div class="reference-year">${ref.year}${ref.source ? ` • ${ref.source}` : ''}</div>
+                                            </div>
+                                            <div class="reference-actions">
+                                                <button class="reference-action-btn" onclick="editReference(${index})" title="Edit reference">
+                                                    ✏️ Edit
+                                                </button>
+                                                <button class="reference-action-btn delete" onclick="removeReference(${index})" title="Remove reference">
+                                                    🗑️ Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="button button-primary" onclick="addNewReference()">Add Reference</button>
+                            <button class="button button-secondary" onclick="this.closest('.modal-overlay').remove()">
+                                Close
+                            </button>
+                            <button class="button button-primary" onclick="this.closest('.modal-overlay').remove(); addNewReference()">
+                                ➕ Add New Reference
+                            </button>
                         </div>
                     </div>
                 `;
                 document.body.appendChild(modal);
+            }
+            
+            openSettings() {
+                const modal = document.getElementById('settings-modal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
             }
             
             // Essay Tools Methods
@@ -1491,20 +2248,68 @@
                 const modal = document.createElement('div');
                 modal.className = 'modal-overlay';
                 modal.innerHTML = `
-                    <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-content essay-templates-modal" style="max-width: 800px;">
                         <div class="modal-header">
-                            <h3>📋 Essay Templates</h3>
+                            <h3>📋 Choose Your Essay Template</h3>
                             <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
                         </div>
                         <div class="modal-body">
                             <div class="templates-grid">
-                                ${Object.entries(this.essayTemplates).map(([key, template]) => `
-                                    <div class="template-item" onclick="applyTemplate('${key}')">
-                                        <h4>${template.title}</h4>
-                                        <p>Click to apply this template</p>
+                                <div class="template-card" onclick="applyTemplate('argumentative')">
+                                    <div class="template-icon">⚖️</div>
+                                    <h4>Argumentative Essay</h4>
+                                    <p>Present arguments for and against a topic with evidence and analysis</p>
+                                    <div class="template-structure">
+                                        <span class="structure-item">Introduction</span>
+                                        <span class="structure-item">Pro Arguments</span>
+                                        <span class="structure-item">Counterarguments</span>
+                                        <span class="structure-item">Conclusion</span>
                                     </div>
-                                `).join('')}
+                                    <button class="template-apply-btn">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card" onclick="applyTemplate('persuasive')">
+                                    <div class="template-icon">🎯</div>
+                                    <h4>Persuasive Essay</h4>
+                                    <p>Convince readers to adopt your viewpoint through compelling arguments</p>
+                                    <div class="template-structure">
+                                        <span class="structure-item">Hook</span>
+                                        <span class="structure-item">Thesis</span>
+                                        <span class="structure-item">Supporting Points</span>
+                                        <span class="structure-item">Call to Action</span>
+                                    </div>
+                                    <button class="template-apply-btn">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card" onclick="applyTemplate('expository')">
+                                    <div class="template-icon">📚</div>
+                                    <h4>Expository Essay</h4>
+                                    <p>Explain and inform readers about a topic with clear analysis</p>
+                                    <div class="template-structure">
+                                        <span class="structure-item">Introduction</span>
+                                        <span class="structure-item">Main Points</span>
+                                        <span class="structure-item">Examples</span>
+                                        <span class="structure-item">Summary</span>
+                                    </div>
+                                    <button class="template-apply-btn">Apply Template</button>
+                                </div>
+                                
+                                <div class="template-card" onclick="applyTemplate('compare-contrast')">
+                                    <div class="template-icon">⚖️</div>
+                                    <h4>Compare & Contrast</h4>
+                                    <p>Analyze similarities and differences between two or more subjects</p>
+                                    <div class="template-structure">
+                                        <span class="structure-item">Introduction</span>
+                                        <span class="structure-item">Similarities</span>
+                                        <span class="structure-item">Differences</span>
+                                        <span class="structure-item">Analysis</span>
+                                    </div>
+                                    <button class="template-apply-btn">Apply Template</button>
+                                </div>
                             </div>
+                        </div>
+                        <div class="modal-footer">
+                            <p class="template-tip">💡 <strong>Tip:</strong> Choose a template that matches your assignment type. You can always modify the structure as you write!</p>
                         </div>
                     </div>
                 `;
@@ -1750,6 +2555,23 @@
         }
         
         // Initialize the voice transcription when the page loads
+        // Global functions for settings modal
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        function saveSettings() {
+            // Settings are already saved automatically via event listeners
+            closeSettingsModal();
+            if (window.voiceTranscriptionApp) {
+                window.voiceTranscriptionApp.showNotification('Settings saved successfully!', 'success');
+            }
+        }
+        
+        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             window.voiceTranscriptionApp = new VoiceTranscription();
         });
