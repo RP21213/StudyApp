@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Transcription</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --background-body: #f9fafb;
+            --background-card: #ffffff;
+            --background-interactive-hover: #f3f4f6;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        
+        html[data-theme="dark"] {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-light: #312e81;
+            --text-main: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --background-body: #111827;
+            --background-card: #1f2937;
+            --background-interactive-hover: #374151;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-body);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: var(--background-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .button-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .button-secondary {
+            background-color: var(--background-interactive-hover);
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+        
+        .button-secondary:hover {
+            background-color: var(--border-color);
+        }
+        
+        .button-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .button-success:hover {
+            background-color: #059669;
+        }
+        
+        .button-danger {
+            background-color: var(--error-color);
+            color: white;
+        }
+        
+        .button-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            gap: 2rem;
+            overflow: hidden;
+        }
+        
+        .controls-panel {
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mic-button.idle {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .mic-button.listening {
+            background-color: var(--error-color);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .mic-button.processing {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+        }
+        
+        .status-dot.listening {
+            background-color: var(--error-color);
+            animation: blink 1s infinite;
+        }
+        
+        .status-dot.processing {
+            background-color: var(--warning-color);
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .transcription-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .transcription-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--background-interactive-hover);
+        }
+        
+        .transcription-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .transcription-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            font-family: 'Lora', serif;
+            font-size: 1.1rem;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .transcription-content.empty {
+            color: var(--text-secondary);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .transcription-content .interim {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        
+        .transcription-content .final {
+            color: var(--text-main);
+        }
+        
+        .transcription-stats {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--background-interactive-hover);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .settings-panel {
+            background-color: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+        
+        .form-group select,
+        .form-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--background-card);
+            color: var(--text-main);
+            font-family: inherit;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background-color: var(--success-color);
+        }
+        
+        .notification.error {
+            background-color: var(--error-color);
+        }
+        
+        .notification.warning {
+            background-color: var(--warning-color);
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .mic-button {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎤 Voice Transcription</h1>
+        <div class="header-actions">
+            <span id="connection-status" class="status-indicator">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Ready</span>
+            </span>
+            <a href="{{ url_for('hub_page', hub_id=hub.id) }}" class="button button-secondary">
+                ← Back to Hub
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="controls-panel">
+            <div class="controls-row">
+                <button id="mic-button" class="mic-button idle" title="Click to start/stop recording">
+                    🎤
+                </button>
+                <div class="status-indicator">
+                    <span class="status-dot" id="mic-status-dot"></span>
+                    <span id="mic-status-text">Click microphone to start</span>
+                </div>
+                <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                    <button id="clear-button" class="button button-secondary" disabled>
+                        🗑️ Clear Text
+                    </button>
+                    <button id="copy-button" class="button button-secondary" disabled>
+                        📋 Copy Text
+                    </button>
+                    <button id="save-button" class="button button-primary" disabled>
+                        💾 Save as Note
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="transcription-area">
+            <div class="transcription-header">
+                <h3>Transcribed Text</h3>
+                <div class="status-indicator">
+                    <span id="processing-indicator" style="display: none;">Processing...</span>
+                </div>
+            </div>
+            <div id="transcription-content" class="transcription-content empty">
+                Your transcribed speech will appear here...
+            </div>
+            <div class="transcription-stats">
+                <span id="word-count">Words: 0</span>
+                <span id="char-count">Characters: 0</span>
+                <span id="session-time">Session: 00:00</span>
+            </div>
+        </div>
+
+        <div class="settings-panel">
+            <h3 style="margin-bottom: 1rem;">Settings</h3>
+            <div class="settings-grid">
+                <div class="form-group">
+                    <label for="language-select">Language</label>
+                    <select id="language-select">
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="en-AU">English (Australia)</option>
+                        <option value="es-ES">Spanish</option>
+                        <option value="fr-FR">French</option>
+                        <option value="de-DE">German</option>
+                        <option value="it-IT">Italian</option>
+                        <option value="pt-BR">Portuguese (Brazil)</option>
+                        <option value="ru-RU">Russian</option>
+                        <option value="ja-JP">Japanese</option>
+                        <option value="ko-KR">Korean</option>
+                        <option value="zh-CN">Chinese (Simplified)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="auto-punctuation">Auto Punctuation</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-punctuation" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="auto-capitalization">Auto Capitalization</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-capitalization" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="continuous-mode">Continuous Mode</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="continuous-mode">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        class VoiceTranscription {
+            constructor() {
+                this.recognition = null;
+                this.isListening = false;
+                this.isProcessing = false;
+                this.sessionStartTime = null;
+                this.sessionTimer = null;
+                this.transcribedText = '';
+                this.interimText = '';
+                
+                this.initializeElements();
+                this.initializeSpeechRecognition();
+                this.bindEvents();
+                this.updateUI();
+            }
+            
+            initializeElements() {
+                this.micButton = document.getElementById('mic-button');
+                this.micStatusDot = document.getElementById('mic-status-dot');
+                this.micStatusText = document.getElementById('mic-status-text');
+                this.statusDot = document.getElementById('status-dot');
+                this.statusText = document.getElementById('status-text');
+                this.transcriptionContent = document.getElementById('transcription-content');
+                this.clearButton = document.getElementById('clear-button');
+                this.copyButton = document.getElementById('copy-button');
+                this.saveButton = document.getElementById('save-button');
+                this.processingIndicator = document.getElementById('processing-indicator');
+                this.wordCount = document.getElementById('word-count');
+                this.charCount = document.getElementById('char-count');
+                this.sessionTime = document.getElementById('session-time');
+                this.notification = document.getElementById('notification');
+                
+                // Settings
+                this.languageSelect = document.getElementById('language-select');
+                this.autoPunctuation = document.getElementById('auto-punctuation');
+                this.autoCapitalization = document.getElementById('auto-capitalization');
+                this.continuousMode = document.getElementById('continuous-mode');
+            }
+            
+            initializeSpeechRecognition() {
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    this.showNotification('Speech recognition is not supported in this browser.', 'error');
+                    return;
+                }
+                
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                this.recognition = new SpeechRecognition();
+                
+                this.recognition.continuous = false;
+                this.recognition.interimResults = true;
+                this.recognition.lang = this.languageSelect.value;
+                
+                this.recognition.onstart = () => {
+                    this.isListening = true;
+                    this.updateUI();
+                };
+                
+                this.recognition.onresult = (event) => {
+                    this.handleRecognitionResult(event);
+                };
+                
+                this.recognition.onerror = (event) => {
+                    this.handleRecognitionError(event);
+                };
+                
+                this.recognition.onend = () => {
+                    this.isListening = false;
+                    this.updateUI();
+                };
+            }
+            
+            bindEvents() {
+                this.micButton.addEventListener('click', () => this.toggleRecording());
+                this.clearButton.addEventListener('click', () => this.clearText());
+                this.copyButton.addEventListener('click', () => this.copyText());
+                this.saveButton.addEventListener('click', () => this.saveAsNote());
+                
+                // Settings changes
+                this.languageSelect.addEventListener('change', () => {
+                    if (this.recognition) {
+                        this.recognition.lang = this.languageSelect.value;
+                    }
+                });
+                
+                this.continuousMode.addEventListener('change', () => {
+                    if (this.recognition) {
+                        this.recognition.continuous = this.continuousMode.checked;
+                    }
+                });
+            }
+            
+            toggleRecording() {
+                if (!this.recognition) {
+                    this.showNotification('Speech recognition not available', 'error');
+                    return;
+                }
+                
+                if (this.isListening) {
+                    this.stopRecording();
+                } else {
+                    this.startRecording();
+                }
+            }
+            
+            startRecording() {
+                try {
+                    this.sessionStartTime = Date.now();
+                    this.startSessionTimer();
+                    this.recognition.start();
+                    this.showNotification('Recording started', 'success');
+                } catch (error) {
+                    this.showNotification('Failed to start recording: ' + error.message, 'error');
+                }
+            }
+            
+            stopRecording() {
+                try {
+                    this.recognition.stop();
+                    this.showNotification('Recording stopped', 'success');
+                } catch (error) {
+                    this.showNotification('Failed to stop recording: ' + error.message, 'error');
+                }
+            }
+            
+            handleRecognitionResult(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (finalTranscript) {
+                    this.transcribedText += this.processText(finalTranscript);
+                    this.interimText = '';
+                } else {
+                    this.interimText = interimTranscript;
+                }
+                
+                this.updateTranscriptionDisplay();
+                this.updateStats();
+            }
+            
+            processText(text) {
+                let processedText = text;
+                
+                // Auto capitalization
+                if (this.autoCapitalization.checked) {
+                    processedText = this.capitalizeSentences(processedText);
+                }
+                
+                // Auto punctuation
+                if (this.autoPunctuation.checked) {
+                    processedText = this.addPunctuation(processedText);
+                }
+                
+                return processedText;
+            }
+            
+            capitalizeSentences(text) {
+                return text.replace(/(^|\.\s+)([a-z])/g, (match, prefix, letter) => {
+                    return prefix + letter.toUpperCase();
+                });
+            }
+            
+            addPunctuation(text) {
+                // Add periods at the end of sentences if missing
+                text = text.replace(/([^.!?])\s*$/gm, '$1.');
+                
+                // Add commas before conjunctions
+                text = text.replace(/\s+(and|but|or|so|yet|for|nor)\s+/gi, ', $1 ');
+                
+                // Add commas after introductory phrases
+                text = text.replace(/(^|\.\s+)(First|Second|Third|Finally|However|Therefore|Moreover|Furthermore|In addition|On the other hand)\s+/gi, '$1$2, ');
+                
+                return text;
+            }
+            
+            handleRecognitionError(event) {
+                console.error('Speech recognition error:', event.error);
+                
+                let errorMessage = 'Speech recognition error: ';
+                switch (event.error) {
+                    case 'no-speech':
+                        errorMessage = 'No speech detected. Please try again.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = 'Microphone not found or not accessible.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = 'Microphone permission denied.';
+                        break;
+                    case 'network':
+                        errorMessage = 'Network error occurred.';
+                        break;
+                    default:
+                        errorMessage += event.error;
+                }
+                
+                this.showNotification(errorMessage, 'error');
+                this.isListening = false;
+                this.updateUI();
+            }
+            
+            updateTranscriptionDisplay() {
+                if (this.transcribedText || this.interimText) {
+                    this.transcriptionContent.className = 'transcription-content';
+                    this.transcriptionContent.innerHTML = 
+                        `<span class="final">${this.transcribedText}</span>` +
+                        (this.interimText ? `<span class="interim">${this.interimText}</span>` : '');
+                } else {
+                    this.transcriptionContent.className = 'transcription-content empty';
+                    this.transcriptionContent.textContent = 'Your transcribed speech will appear here...';
+                }
+            }
+            
+            updateStats() {
+                const words = this.transcribedText.split(/\s+/).filter(word => word.length > 0).length;
+                const chars = this.transcribedText.length;
+                
+                this.wordCount.textContent = `Words: ${words}`;
+                this.charCount.textContent = `Characters: ${chars}`;
+                
+                this.clearButton.disabled = !this.transcribedText;
+                this.copyButton.disabled = !this.transcribedText;
+                this.saveButton.disabled = !this.transcribedText;
+            }
+            
+            startSessionTimer() {
+                this.sessionTimer = setInterval(() => {
+                    if (this.sessionStartTime) {
+                        const elapsed = Date.now() - this.sessionStartTime;
+                        const minutes = Math.floor(elapsed / 60000);
+                        const seconds = Math.floor((elapsed % 60000) / 1000);
+                        this.sessionTime.textContent = `Session: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                }, 1000);
+            }
+            
+            stopSessionTimer() {
+                if (this.sessionTimer) {
+                    clearInterval(this.sessionTimer);
+                    this.sessionTimer = null;
+                }
+            }
+            
+            updateUI() {
+                // Update microphone button
+                if (this.isListening) {
+                    this.micButton.className = 'mic-button listening';
+                    this.micButton.textContent = '⏹️';
+                    this.micStatusDot.className = 'status-dot listening';
+                    this.micStatusText.textContent = 'Listening...';
+                } else {
+                    this.micButton.className = 'mic-button idle';
+                    this.micButton.textContent = '🎤';
+                    this.micStatusDot.className = 'status-dot';
+                    this.micStatusText.textContent = 'Click microphone to start';
+                }
+                
+                // Update connection status
+                this.statusDot.className = 'status-dot';
+                this.statusText.textContent = this.isListening ? 'Recording' : 'Ready';
+            }
+            
+            clearText() {
+                this.transcribedText = '';
+                this.interimText = '';
+                this.updateTranscriptionDisplay();
+                this.updateStats();
+                this.showNotification('Text cleared', 'success');
+            }
+            
+            copyText() {
+                if (this.transcribedText) {
+                    navigator.clipboard.writeText(this.transcribedText).then(() => {
+                        this.showNotification('Text copied to clipboard', 'success');
+                    }).catch(() => {
+                        this.showNotification('Failed to copy text', 'error');
+                    });
+                }
+            }
+            
+            async saveAsNote() {
+                if (!this.transcribedText) return;
+                
+                try {
+                    const response = await fetch(`{{ url_for('save_voice_transcription', hub_id=hub.id) }}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            title: `Voice Transcription - ${new Date().toLocaleDateString()}`,
+                            content: this.transcribedText,
+                            word_count: this.transcribedText.split(/\s+/).filter(word => word.length > 0).length
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.showNotification('Transcription saved as note!', 'success');
+                        this.clearText();
+                    } else {
+                        this.showNotification('Failed to save: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    this.showNotification('Failed to save: ' + error.message, 'error');
+                }
+            }
+            
+            showNotification(message, type = 'success') {
+                this.notification.textContent = message;
+                this.notification.className = `notification ${type}`;
+                this.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        // Initialize the voice transcription when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new VoiceTranscription();
+        });
+    </script>
+</body>
+</html>

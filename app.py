@@ -7102,17 +7102,52 @@ def draft_assignment_section_with_ai(assignment_details, section_plan, context_t
     return response.choices[0].message.content
 
 
-@app.route("/hub/<hub_id>/start_assignment")
+@app.route("/hub/<hub_id>/voice_transcription")
 @login_required
-def start_assignment(hub_id):
-    if current_user.subscription_tier not in ['pro', 'admin']:
-        flash("The Assignment Writer is a Pro feature. Please upgrade to access.", "warning")
-        return redirect(url_for('hub_page', hub_id=hub_id))
+def voice_transcription(hub_id):
+    """Voice transcription page - replaces Assignment Assistant."""
     hub_doc = db.collection('hubs').document(hub_id).get()
     if not hub_doc.exists:
         return "Hub not found", 404
     hub = Hub.from_dict(hub_doc.to_dict())
-    return render_template("create_assignment.html", hub=hub)
+    return render_template("voice_transcription.html", hub=hub)
+
+
+@app.route("/hub/<hub_id>/save_voice_transcription", methods=["POST"])
+@login_required
+def save_voice_transcription(hub_id):
+    """Save voice transcription as a note."""
+    try:
+        data = request.get_json()
+        title = data.get('title', 'Voice Transcription')
+        content = data.get('content', '')
+        word_count = data.get('word_count', 0)
+        
+        if not content.strip():
+            return jsonify({"success": False, "message": "No content to save"}), 400
+        
+        # Create a new note
+        note_ref = db.collection('notes').document()
+        new_note = Note(
+            id=note_ref.id,
+            hub_id=hub_id,
+            title=title,
+            content=content,
+            word_count=word_count,
+            created_at=datetime.now(timezone.utc)
+        )
+        
+        note_ref.set(new_note.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "message": "Transcription saved successfully",
+            "note_id": note_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error saving voice transcription: {e}")
+        return jsonify({"success": False, "message": "Failed to save transcription"}), 500
 
 @app.route("/hub/<hub_id>/generate_assignment_plan", methods=["POST"])
 @login_required
