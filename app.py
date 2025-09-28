@@ -7132,8 +7132,7 @@ def save_voice_transcription(hub_id):
             id=note_ref.id,
             hub_id=hub_id,
             title=title,
-            content=content,
-            word_count=word_count,
+            content_html=content,  # Use content_html parameter
             created_at=datetime.now(timezone.utc)
         )
         

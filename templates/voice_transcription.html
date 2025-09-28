@@ -2506,12 +2506,12 @@
             
             showExportFormatModal() {
                 const modal = document.createElement('div');
-                modal.className = 'modal';
+                modal.className = 'modal-overlay';
                 modal.innerHTML = `
                     <div class="modal-content">
                         <div class="modal-header">
                             <h2>📄 Export Essay</h2>
-                            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                            <span class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</span>
                         </div>
                         <div class="modal-body">
                             <p>Choose your preferred export format:</p>
@@ -2548,7 +2548,7 @@
             
             async exportAsFormat(format) {
                 // Close the modal
-                const modal = document.querySelector('.modal');
+                const modal = document.querySelector('.modal-overlay');
                 if (modal) modal.remove();
                 
                 if (!this.transcribedText.trim()) {
