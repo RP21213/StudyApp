@@ -7160,6 +7160,7 @@ def export_essay(hub_id):
         citation_style = data.get('citation_style', 'apa')
         references = data.get('references', [])
         word_count = data.get('word_count', 0)
+        export_format = data.get('format', 'html')
         
         if not content.strip():
             return jsonify({"success": False, "message": "No content to export"}), 400
@@ -7182,16 +7183,29 @@ def export_essay(hub_id):
             'citation_style': citation_style,
             'references': references,
             'word_count': word_count,
+            'export_format': export_format,
             'created_at': datetime.now(timezone.utc),
             'updated_at': datetime.now(timezone.utc)
         }
         essay_ref.set(essay_data)
         
-        # Generate download URL
+        # Generate filename
+        safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        filename = f"{safe_title}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Generate download URL based on format
+        if export_format == 'pdf':
+            download_url = f"/hub/{hub_id}/download_essay_pdf/{essay_ref.id}"
+        elif export_format == 'docx':
+            download_url = f"/hub/{hub_id}/download_essay_docx/{essay_ref.id}"
+        else:  # html
+            download_url = f"/hub/{hub_id}/download_essay/{essay_ref.id}"
+        
         return jsonify({
             "success": True, 
             "message": "Essay exported successfully",
-            "download_url": f"/hub/{hub_id}/download_essay/{essay_ref.id}",
+            "download_url": download_url,
+            "filename": filename,
             "essay_id": essay_ref.id
         })
         
@@ -7252,6 +7266,119 @@ def download_essay(hub_id, essay_id):
     except Exception as e:
         print(f"Error downloading essay: {e}")
         return "Error downloading essay", 500
+
+@app.route("/hub/<hub_id>/download_essay_pdf/<essay_id>")
+@login_required
+def download_essay_pdf(hub_id, essay_id):
+    """Download essay as PDF document."""
+    try:
+        essay_doc = db.collection('essays').document(essay_id).get()
+        if not essay_doc.exists:
+            return "Essay not found", 404
+        
+        essay_data = essay_doc.to_dict()
+        if essay_data.get('user_id') != current_user.id:
+            return "Access denied", 403
+        
+        # Create PDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font('Arial', 'B', 16)
+        
+        # Title
+        pdf.cell(0, 10, essay_data['title'], 0, 1, 'C')
+        pdf.ln(10)
+        
+        # Content
+        pdf.set_font('Arial', '', 12)
+        content_lines = essay_data['formatted_content'].split('\n')
+        for line in content_lines:
+            if line.strip():
+                # Handle long lines by wrapping
+                pdf.cell(0, 6, line.strip(), 0, 1)
+            else:
+                pdf.ln(3)
+        
+        pdf.ln(10)
+        
+        # References
+        if essay_data['references']:
+            pdf.set_font('Arial', 'B', 14)
+            pdf.cell(0, 10, 'References', 0, 1)
+            pdf.set_font('Arial', '', 12)
+            
+            for ref in essay_data['references']:
+                ref_text = format_reference(ref, essay_data['citation_style'])
+                pdf.cell(0, 6, ref_text, 0, 1)
+                pdf.ln(2)
+        
+        # Word count
+        pdf.ln(10)
+        pdf.set_font('Arial', 'I', 10)
+        pdf.cell(0, 6, f'Word Count: {essay_data["word_count"]}', 0, 1, 'R')
+        
+        # Generate response
+        pdf_output = pdf.output(dest='S').encode('latin1')
+        response = make_response(pdf_output)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename="{essay_data["title"]}.pdf"'
+        return response
+        
+    except Exception as e:
+        print(f"Error downloading PDF: {e}")
+        return "Error downloading PDF", 500
+
+@app.route("/hub/<hub_id>/download_essay_docx/<essay_id>")
+@login_required
+def download_essay_docx(hub_id, essay_id):
+    """Download essay as Word document."""
+    try:
+        essay_doc = db.collection('essays').document(essay_id).get()
+        if not essay_doc.exists:
+            return "Essay not found", 404
+        
+        essay_data = essay_doc.to_dict()
+        if essay_data.get('user_id') != current_user.id:
+            return "Access denied", 403
+        
+        # Create Word document
+        doc = DocxDocument()
+        
+        # Title
+        title = doc.add_heading(essay_data['title'], 0)
+        title.alignment = 1  # Center alignment
+        
+        # Content
+        content_paragraphs = essay_data['formatted_content'].split('\n')
+        for para_text in content_paragraphs:
+            if para_text.strip():
+                para = doc.add_paragraph(para_text.strip())
+                para.alignment = 0  # Left alignment
+        
+        # References
+        if essay_data['references']:
+            doc.add_heading('References', level=1)
+            for ref in essay_data['references']:
+                ref_text = format_reference(ref, essay_data['citation_style'])
+                doc.add_paragraph(ref_text, style='List Bullet')
+        
+        # Word count
+        doc.add_paragraph(f'Word Count: {essay_data["word_count"]}', style='Caption')
+        
+        # Save to BytesIO
+        from io import BytesIO
+        doc_buffer = BytesIO()
+        doc.save(doc_buffer)
+        doc_buffer.seek(0)
+        
+        response = make_response(doc_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        response.headers['Content-Disposition'] = f'attachment; filename="{essay_data["title"]}.docx"'
+        return response
+        
+    except Exception as e:
+        print(f"Error downloading Word document: {e}")
+        return "Error downloading Word document", 500
 
 def process_citations(content, references, citation_style):
     """Process citations in content and replace placeholders with proper citations."""

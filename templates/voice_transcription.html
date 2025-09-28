@@ -163,6 +163,7 @@
         .sidebar.collapsed {
             width: 60px;
             padding: 1rem 0.5rem;
+            min-height: 200px;
         }
         
         .sidebar.collapsed .sidebar-section {
@@ -170,7 +171,7 @@
         }
         
         .sidebar.collapsed .sidebar-toggle {
-            margin-bottom: 0;
+            right: -15px;
         }
         
         .sidebar.collapsed::after {
@@ -184,6 +185,7 @@
             white-space: nowrap;
             opacity: 0.7;
             pointer-events: none;
+            font-weight: 500;
         }
         
         .sidebar-toggle {
@@ -200,7 +202,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: bold;
             transition: all 0.3s ease;
             z-index: 10;
@@ -212,12 +214,17 @@
             transform: scale(1.1);
         }
         
+        .sidebar.collapsed .sidebar-toggle {
+            right: -15px;
+        }
+        
         .sidebar.collapsed .sidebar-toggle .toggle-icon {
             transform: rotate(180deg);
         }
         
         .sidebar-toggle .toggle-icon {
             transition: transform 0.3s ease;
+            font-size: 0.8rem;
         }
         
         .sidebar-section {
@@ -1308,6 +1315,51 @@
             line-height: 1.4;
         }
         
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--background-card);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            width: 100%;
+        }
+        
+        .export-option:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        .export-icon {
+            font-size: 2rem;
+            min-width: 3rem;
+            text-align: center;
+        }
+        
+        .export-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+        
+        .export-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
         .form-group {
             display: flex;
             flex-direction: column;
@@ -1652,7 +1704,7 @@
                             <div class="form-group">
                                 <label for="continuous-mode">Continuous Mode</label>
                                 <label class="toggle-switch">
-                                    <input type="checkbox" id="continuous-mode">
+                                    <input type="checkbox" id="continuous-mode" checked>
                                     <span class="slider"></span>
                                 </label>
                             </div>
@@ -1941,7 +1993,7 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 this.recognition = new SpeechRecognition();
                 
-                this.recognition.continuous = false;
+                this.recognition.continuous = this.continuousMode.checked;
                 this.recognition.interimResults = true;
                 this.recognition.lang = this.languageSelect.value;
                 
@@ -2261,8 +2313,10 @@
             }
             
             capitalizeSentences(text) {
-                // Capitalize first letter of text
-                text = text.charAt(0).toUpperCase() + text.slice(1);
+                // If this is the first text or the previous text ends with punctuation, capitalize the first letter
+                if (this.transcribedText === '' || /[.!?]\s*$/.test(this.transcribedText)) {
+                    text = text.charAt(0).toUpperCase() + text.slice(1);
+                }
                 
                 // Capitalize after periods, exclamation marks, and question marks
                 return text.replace(/([.!?]\s+)([a-z])/g, (match, punctuation, letter) => {
@@ -2404,7 +2458,10 @@
             }
             
             async saveAsNote() {
-                if (!this.transcribedText) return;
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('No content to save', 'error');
+                    return;
+                }
                 
                 try {
                     const response = await fetch(`{{ url_for('save_voice_transcription', hub_id=hub.id) }}`, {
@@ -2419,21 +2476,85 @@
                         })
                     });
                     
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
                     const result = await response.json();
                     
                     if (result.success) {
                         this.showNotification('Transcription saved as note!', 'success');
                         this.clearText();
                     } else {
-                        this.showNotification('Failed to save: ' + result.message, 'error');
+                        this.showNotification('Failed to save: ' + (result.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
+                    console.error('Save error:', error);
                     this.showNotification('Failed to save: ' + error.message, 'error');
                 }
             }
             
             async exportEssay() {
-                if (!this.transcribedText) return;
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('No content to export', 'error');
+                    return;
+                }
+                
+                // Show format selection modal
+                this.showExportFormatModal();
+            }
+            
+            showExportFormatModal() {
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>📄 Export Essay</h2>
+                            <span class="close" onclick="this.closest('.modal').remove()">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <p>Choose your preferred export format:</p>
+                            <div class="export-options">
+                                <button class="export-option" onclick="voiceTranscription.exportAsFormat('pdf')">
+                                    <span class="export-icon">📄</span>
+                                    <div class="export-info">
+                                        <h3>PDF Document</h3>
+                                        <p>Professional PDF format with proper formatting</p>
+                                    </div>
+                                </button>
+                                <button class="export-option" onclick="voiceTranscription.exportAsFormat('docx')">
+                                    <span class="export-icon">📝</span>
+                                    <div class="export-info">
+                                        <h3>Word Document</h3>
+                                        <p>Editable .docx format for Microsoft Word</p>
+                                    </div>
+                                </button>
+                                <button class="export-option" onclick="voiceTranscription.exportAsFormat('html')">
+                                    <span class="export-icon">🌐</span>
+                                    <div class="export-info">
+                                        <h3>HTML Document</h3>
+                                        <p>Web-friendly format for online viewing</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+            }
+            
+            async exportAsFormat(format) {
+                // Close the modal
+                const modal = document.querySelector('.modal');
+                if (modal) modal.remove();
+                
+                if (!this.transcribedText.trim()) {
+                    this.showNotification('No content to export', 'error');
+                    return;
+                }
                 
                 try {
                     const response = await fetch(`{{ url_for('export_essay', hub_id=hub.id) }}`, {
@@ -2446,20 +2567,31 @@
                             content: this.transcribedText,
                             citation_style: this.citationStyle.value,
                             references: this.references,
-                            word_count: this.transcribedText.split(/\s+/).filter(word => word.length > 0).length
+                            word_count: this.transcribedText.split(/\s+/).filter(word => word.length > 0).length,
+                            format: format
                         })
                     });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
                     
                     const result = await response.json();
                     
                     if (result.success) {
-                        this.showNotification('Essay exported successfully!', 'success');
-                        // Open the exported essay in a new tab
-                        window.open(result.download_url, '_blank');
+                        this.showNotification(`${format.toUpperCase()} essay exported successfully!`, 'success');
+                        // Download the file
+                        const link = document.createElement('a');
+                        link.href = result.download_url;
+                        link.download = `${result.filename || 'essay'}.${format}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
                     } else {
-                        this.showNotification('Failed to export: ' + result.message, 'error');
+                        this.showNotification('Failed to export: ' + (result.message || 'Unknown error'), 'error');
                     }
                 } catch (error) {
+                    console.error('Export error:', error);
                     this.showNotification('Failed to export: ' + error.message, 'error');
                 }
             }
@@ -2576,16 +2708,26 @@
                 const sidebar = document.getElementById('sidebar');
                 const toggleButton = document.getElementById('sidebar-toggle');
                 
-                if (!sidebar || !toggleButton) return;
+                if (!sidebar || !toggleButton) {
+                    console.log('Sidebar elements not found');
+                    return;
+                }
                 
                 // Load saved state from localStorage
                 const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
                 if (isCollapsed) {
                     sidebar.classList.add('collapsed');
+                    const toggleIcon = toggleButton.querySelector('.toggle-icon');
+                    if (toggleIcon) {
+                        toggleIcon.textContent = '→';
+                    }
                 }
                 
                 // Toggle functionality
-                toggleButton.addEventListener('click', () => {
+                toggleButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
                     sidebar.classList.toggle('collapsed');
                     
                     // Save state to localStorage
@@ -2597,6 +2739,8 @@
                     if (toggleIcon) {
                         toggleIcon.textContent = isNowCollapsed ? '→' : '←';
                     }
+                    
+                    console.log('Sidebar toggled:', isNowCollapsed ? 'collapsed' : 'expanded');
                 });
                 
                 // Keyboard shortcut (Ctrl+B to toggle sidebar)
