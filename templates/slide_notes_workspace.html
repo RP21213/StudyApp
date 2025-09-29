@@ -100,11 +100,61 @@
             align-items: center;
             padding: 2rem;
             overflow: auto;
+            position: relative;
         }
         #pdf-canvas {
             max-width: 100%;
             max-height: 100%;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        #drawing-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+        .drawing-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .drawing-controls button {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .drawing-controls button:hover {
+            background: var(--background-interactive-hover);
+        }
+        .drawing-controls button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .drawing-controls input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .drawing-controls input[type="range"] {
+            width: 60px;
         }
         .slide-controls {
             display: flex;
@@ -541,6 +591,14 @@
         <div class="slide-pane">
             <div class="slide-viewer" id="slide-viewer">
                 <canvas id="pdf-canvas"></canvas>
+                <canvas id="drawing-canvas"></canvas>
+                <div class="drawing-controls">
+                    <button id="pen-tool" class="active" title="Pen Tool">✏️</button>
+                    <button id="erase-tool" title="Eraser">🧽</button>
+                    <input type="color" id="pen-color" value="#ff0000" title="Pen Color">
+                    <input type="range" id="pen-size" min="1" max="20" value="3" title="Pen Size">
+                    <span id="pen-size-display">3px</span>
+                </div>
             </div>
             <div class="slide-controls">
                 <button id="prev-page">Previous</button>
@@ -751,12 +809,21 @@
         const pdfUrl = "{{ pdf_url }}";
         const canvas = document.getElementById('pdf-canvas');
         const ctx = canvas.getContext('2d');
+        const drawingCanvas = document.getElementById('drawing-canvas');
+        const drawingCtx = drawingCanvas.getContext('2d');
         const prevPageBtn = document.getElementById('prev-page');
         const nextPageBtn = document.getElementById('next-page');
         const pageNumEl = document.getElementById('page-num');
         const pageCountEl = document.getElementById('page-count');
         const saveBtn = document.getElementById('save-notes-btn');
         const saveStatus = document.getElementById('save-status');
+        
+        // Drawing tool elements
+        const penTool = document.getElementById('pen-tool');
+        const eraseTool = document.getElementById('erase-tool');
+        const penColor = document.getElementById('pen-color');
+        const penSize = document.getElementById('pen-size');
+        const penSizeDisplay = document.getElementById('pen-size-display');
 
         // --- State Management ---
         let pdfDoc = null;
@@ -765,6 +832,13 @@
         let pageNumPending = null;
         let scale = 1.5;
         let slideNotesData = {}; // Object to store notes HTML for each slide, e.g., { 1: "<p>...</p>", 2: "<p>...</p>" }
+        let slideDrawingsData = {}; // Object to store drawing data for each slide
+        
+        // Drawing state
+        let isDrawing = false;
+        let currentTool = 'pen';
+        let lastX = 0;
+        let lastY = 0;
 
         // --- Quill Editor Setup ---
         const quill = new Quill('#notes-editor-container', {
@@ -787,6 +861,10 @@
             const viewport = page.getViewport({ scale: scale });
             canvas.height = viewport.height;
             canvas.width = viewport.width;
+            
+            // Set drawing canvas to same size and position as PDF canvas
+            drawingCanvas.height = viewport.height;
+            drawingCanvas.width = viewport.width;
 
             const renderContext = { canvasContext: ctx, viewport: viewport };
             await page.render(renderContext).promise;
@@ -818,17 +896,35 @@
         }
 
         function syncAndSwitchPage(newPagenum) {
-            // 1. Save current notes
+            // 1. Save current notes and drawings
             slideNotesData[pageNum] = quill.root.innerHTML;
+            slideDrawingsData[pageNum] = drawingCanvas.toDataURL();
 
             // 2. Switch page
             pageNum = newPagenum;
             pageNumEl.textContent = pageNum;
             queueRenderPage(pageNum);
 
-            // 3. Load new notes
+            // 3. Load new notes and drawings
             const newNotes = slideNotesData[pageNum] || '<p><br></p>';
             quill.root.innerHTML = newNotes;
+            
+            // Load drawings for the new page
+            loadDrawingsForPage(pageNum);
+        }
+        
+        function loadDrawingsForPage(pageNum) {
+            const drawingData = slideDrawingsData[pageNum];
+            if (drawingData) {
+                const img = new Image();
+                img.onload = function() {
+                    drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                    drawingCtx.drawImage(img, 0, 0);
+                };
+                img.src = drawingData;
+            } else {
+                drawingCtx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            }
         }
         
         // --- Save and AI Functions ---
@@ -836,13 +932,15 @@ async function saveNotes() {
     saveStatus.textContent = "Saving...";
     saveBtn.disabled = true;
 
-    // Capture current slide notes
+    // Capture current slide notes and drawings
     slideNotesData[pageNum] = quill.root.innerHTML;
+    slideDrawingsData[pageNum] = drawingCanvas.toDataURL();
 
     // Convert to array for backend
     const dataToSave = Object.entries(slideNotesData).map(([slideNum, notesHtml]) => ({
         slide_number: parseInt(slideNum, 10),
-        notes_html: notesHtml
+        notes_html: notesHtml,
+        drawing_data: slideDrawingsData[slideNum] || null
     }));
 
     try {
@@ -1242,6 +1340,65 @@ async function saveNotes() {
         // Make function globally accessible for onclick handlers
         window.sendAiTutorMessage = sendAiTutorMessage;
         
+        // --- Drawing Functions ---
+        function getMousePos(e) {
+            const rect = drawingCanvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getMousePos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const pos = getMousePos(e);
+            
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(lastX, lastY);
+            drawingCtx.lineTo(pos.x, pos.y);
+            
+            if (currentTool === 'pen') {
+                drawingCtx.strokeStyle = penColor.value;
+                drawingCtx.lineWidth = penSize.value;
+                drawingCtx.lineCap = 'round';
+                drawingCtx.stroke();
+            } else if (currentTool === 'erase') {
+                drawingCtx.globalCompositeOperation = 'destination-out';
+                drawingCtx.lineWidth = penSize.value * 2; // Make eraser bigger
+                drawingCtx.lineCap = 'round';
+                drawingCtx.stroke();
+                drawingCtx.globalCompositeOperation = 'source-over'; // Reset
+            }
+            
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function switchTool(tool) {
+            currentTool = tool;
+            penTool.classList.toggle('active', tool === 'pen');
+            eraseTool.classList.toggle('active', tool === 'erase');
+            
+            // Update cursor
+            if (tool === 'pen') {
+                drawingCanvas.style.cursor = 'crosshair';
+            } else if (tool === 'erase') {
+                drawingCanvas.style.cursor = 'grab';
+            }
+        }
+
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             try {
@@ -1251,21 +1408,69 @@ async function saveNotes() {
                 pageCountEl.textContent = pdfDoc.numPages;
                 pageNumEl.textContent = pageNum;
                 
-                // Load existing notes from the session
+                // Load existing notes and drawings from the session
                 const existingNotes = {{ slides_data | tojson }};
                 if (existingNotes && existingNotes.length > 0) {
                     existingNotes.forEach(note => {
                         slideNotesData[note.slide_number] = note.notes_html;
+                        if (note.drawing_data) {
+                            slideDrawingsData[note.slide_number] = note.drawing_data;
+                        }
                     });
                 }
                 
                 quill.root.innerHTML = slideNotesData[1] || '<p><br></p>';
 
                 renderPage(pageNum);
+                
+                // Load drawings for the first page
+                loadDrawingsForPage(pageNum);
 
                 prevPageBtn.addEventListener('click', onPrevPage);
                 nextPageBtn.addEventListener('click', onNextPage);
                 saveBtn.addEventListener('click', saveNotes);
+                
+                // Drawing event listeners
+                drawingCanvas.addEventListener('mousedown', startDrawing);
+                drawingCanvas.addEventListener('mousemove', draw);
+                drawingCanvas.addEventListener('mouseup', stopDrawing);
+                drawingCanvas.addEventListener('mouseout', stopDrawing);
+                
+                // Touch events for mobile
+                drawingCanvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousedown', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    drawingCanvas.dispatchEvent(mouseEvent);
+                });
+                
+                drawingCanvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const mouseEvent = new MouseEvent('mousemove', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    });
+                    drawingCanvas.dispatchEvent(mouseEvent);
+                });
+                
+                drawingCanvas.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    const mouseEvent = new MouseEvent('mouseup', {});
+                    drawingCanvas.dispatchEvent(mouseEvent);
+                });
+                
+                // Drawing tool controls
+                penTool.addEventListener('click', () => switchTool('pen'));
+                eraseTool.addEventListener('click', () => switchTool('erase'));
+                
+                // Pen size display update
+                penSize.addEventListener('input', () => {
+                    penSizeDisplay.textContent = penSize.value + 'px';
+                });
                 
                 document.querySelectorAll('.ai-assist-bar button').forEach(btn => {
                     if (btn.dataset.action) {

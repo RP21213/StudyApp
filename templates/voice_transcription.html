@@ -2242,8 +2242,16 @@
             processText(text) {
                 let processedText = text;
                 
+                // Debug: Log original text
+                console.log('Processing text:', text);
+                
                 // Process voice commands first
                 processedText = this.processVoiceCommands(processedText);
+                
+                // Debug: Log after voice command processing
+                if (processedText !== text) {
+                    console.log('Text changed after voice commands:', processedText);
+                }
                 
                 // Auto capitalization
                 if (this.autoCapitalization.checked) {
@@ -2261,40 +2269,45 @@
             processVoiceCommands(text) {
                 let processedText = text;
                 
-                // Voice commands (case insensitive)
-                const commands = {
-                    'new paragraph': () => '\n\n',
-                    'new line': () => '\n',
-                    'citation': () => this.addCitationPlaceholder(),
-                    'reference': () => this.addReferencePlaceholder(),
-                    'quote': () => '"',
-                    'quotation': () => '"',
-                    'emphasis': () => '*',
-                    'bold': () => '**',
-                    'italic': () => '*',
-                    'underline': () => '__',
-                    'comma': () => ',',
-                    'period': () => '.',
-                    'question mark': () => '?',
-                    'exclamation': () => '!',
-                    'semicolon': () => ';',
-                    'colon': () => ':',
-                    'introduction': () => '\n\n## Introduction\n\n',
-                    'conclusion': () => '\n\n## Conclusion\n\n',
-                    'main point': () => '\n\n### Main Point\n\n',
-                    'first argument': () => '\n\n### First Argument\n\n',
-                    'second argument': () => '\n\n### Second Argument\n\n',
-                    'third argument': () => '\n\n### Third Argument\n\n',
-                    'counterargument': () => '\n\n### Counterargument\n\n',
-                    'evidence': () => '\n\n**Evidence:** ',
-                    'analysis': () => '\n\n**Analysis:** ',
-                    'transition': () => '\n\n---\n\n'
-                };
+                // Voice commands (case insensitive) - ordered by length to process longer phrases first
+                const commands = [
+                    ['new paragraph', () => '\n\n'],
+                    ['new line', () => '\n'],
+                    ['question mark', () => '?'],
+                    ['first argument', () => '\n\n### First Argument\n\n'],
+                    ['second argument', () => '\n\n### Second Argument\n\n'],
+                    ['third argument', () => '\n\n### Third Argument\n\n'],
+                    ['main point', () => '\n\n### Main Point\n\n'],
+                    ['counterargument', () => '\n\n### Counterargument\n\n'],
+                    ['introduction', () => '\n\n## Introduction\n\n'],
+                    ['conclusion', () => '\n\n## Conclusion\n\n'],
+                    ['quotation', () => '"'],
+                    ['citation', () => this.addCitationPlaceholder()],
+                    ['reference', () => this.addReferencePlaceholder()],
+                    ['emphasis', () => '*'],
+                    ['exclamation', () => '!'],
+                    ['semicolon', () => ';'],
+                    ['quote', () => '"'],
+                    ['bold', () => '**'],
+                    ['italic', () => '*'],
+                    ['underline', () => '__'],
+                    ['comma', () => ','],
+                    ['period', () => '.'],
+                    ['colon', () => ':'],
+                    ['evidence', () => '\n\n**Evidence:** '],
+                    ['analysis', () => '\n\n**Analysis:** '],
+                    ['transition', () => '\n\n---\n\n']
+                ];
                 
-                // Process each command
-                for (const [command, action] of Object.entries(commands)) {
-                    const regex = new RegExp(`\\b${command}\\b`, 'gi');
-                    processedText = processedText.replace(regex, action());
+                // Process commands in order (longer phrases first to avoid partial matches)
+                for (const [command, action] of commands) {
+                    // Use a more flexible regex that handles phrases better
+                    const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b${escapedCommand}\\b`, 'gi');
+                    processedText = processedText.replace(regex, (match) => {
+                        console.log(`Voice command detected: "${match}" -> processing`);
+                        return action();
+                    });
                 }
                 
                 return processedText;
