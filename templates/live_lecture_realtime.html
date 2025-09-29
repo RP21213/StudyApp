@@ -407,6 +407,7 @@
             let mediaRecorder;
             let audioStream;
             let isRecording = false;
+            let notesProcessingTimer = null;
             
             // Initialize speech recognition
             function initializeSpeechRecognition() {
@@ -497,15 +498,179 @@
             function generateNoteFromText(text) {
                 if (!text.trim()) return;
                 
+                // Process the text to create meaningful notes
+                const processedNote = processTextForNotes(text.trim());
+                if (!processedNote) return;
+                
                 const timestamp = new Date().toLocaleTimeString();
                 const note = {
                     timestamp: timestamp,
-                    content: text.trim(),
-                    type: 'transcript'
+                    content: processedNote,
+                    type: 'intelligent',
+                    originalText: text.trim()
                 };
                 
                 notes.push(note);
                 updateNotesDisplay();
+            }
+            
+            // Process text to create intelligent notes
+            function processTextForNotes(text) {
+                // Remove filler words and clean up the text
+                const cleanedText = text
+                    .replace(/\b(um|uh|like|you know|so|well|actually|basically|literally)\b/gi, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                
+                if (cleanedText.length < 10) return null; // Skip very short segments
+                
+                // Extract key concepts and create structured notes
+                const noteContent = createStructuredNote(cleanedText);
+                return noteContent;
+            }
+            
+            // Create structured notes from text
+            function createStructuredNote(text) {
+                // Look for key patterns and create structured notes
+                const patterns = {
+                    definition: /(?:is|are|means?|refers to|defined as)\s+(.+)/i,
+                    example: /(?:for example|such as|like|including)\s+(.+)/i,
+                    important: /(?:important|key|main|primary|essential|critical)\s+(.+)/i,
+                    question: /(?:what|how|why|when|where|who)\s+(.+)\?/i,
+                    conclusion: /(?:in conclusion|to summarize|overall|therefore|so)\s+(.+)/i,
+                    step: /(?:first|second|third|next|then|finally|step \d+)\s+(.+)/i
+                };
+                
+                // Check for patterns and format accordingly
+                for (const [type, pattern] of Object.entries(patterns)) {
+                    const match = text.match(pattern);
+                    if (match) {
+                        return formatNoteByType(type, match[1], text);
+                    }
+                }
+                
+                // If no specific pattern, create a general note
+                return createGeneralNote(text);
+            }
+            
+            // Format notes based on type
+            function formatNoteByType(type, content, fullText) {
+                const icons = {
+                    definition: '📖',
+                    example: '💡',
+                    important: '⭐',
+                    question: '❓',
+                    conclusion: '📝',
+                    step: '🔢'
+                };
+                
+                const labels = {
+                    definition: 'Definition',
+                    example: 'Example',
+                    important: 'Key Point',
+                    question: 'Question',
+                    conclusion: 'Summary',
+                    step: 'Step'
+                };
+                
+                return `${icons[type]} **${labels[type]}**: ${content.trim()}`;
+            }
+            
+            // Create general notes for unstructured text
+            function createGeneralNote(text) {
+                // Extract key phrases and create bullet points
+                const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+                
+                if (sentences.length === 1) {
+                    return `📝 ${sentences[0].trim()}`;
+                } else if (sentences.length > 1) {
+                    // Create bullet points for multiple sentences
+                    const bullets = sentences.map(sentence => 
+                        `• ${sentence.trim()}`
+                    ).join('\n');
+                    return `📋 **Multiple Points**:\n${bullets}`;
+                }
+                
+                return `📝 ${text}`;
+            }
+            
+            // Batch process notes for better organization
+            function processBatchNotes() {
+                if (notes.length < 3) return; // Need at least 3 notes to batch process
+                
+                // Group related notes
+                const recentNotes = notes.slice(-5); // Last 5 notes
+                const groupedNotes = groupRelatedNotes(recentNotes);
+                
+                if (groupedNotes.length < recentNotes.length) {
+                    // Replace recent notes with grouped ones
+                    notes.splice(-5, 5, ...groupedNotes);
+                    updateNotesDisplay();
+                }
+            }
+            
+            // Group related notes together
+            function groupRelatedNotes(notesToGroup) {
+                const groups = [];
+                let currentGroup = [];
+                
+                notesToGroup.forEach(note => {
+                    if (currentGroup.length === 0) {
+                        currentGroup.push(note);
+                    } else {
+                        const lastNote = currentGroup[currentGroup.length - 1];
+                        if (areNotesRelated(lastNote.content, note.content)) {
+                            currentGroup.push(note);
+                        } else {
+                            if (currentGroup.length > 1) {
+                                groups.push(createGroupedNote(currentGroup));
+                            } else {
+                                groups.push(currentGroup[0]);
+                            }
+                            currentGroup = [note];
+                        }
+                    }
+                });
+                
+                // Add remaining group
+                if (currentGroup.length > 0) {
+                    if (currentGroup.length > 1) {
+                        groups.push(createGroupedNote(currentGroup));
+                    } else {
+                        groups.push(currentGroup[0]);
+                    }
+                }
+                
+                return groups;
+            }
+            
+            // Check if two notes are related
+            function areNotesRelated(note1, note2) {
+                const words1 = note1.toLowerCase().split(/\s+/);
+                const words2 = note2.toLowerCase().split(/\s+/);
+                
+                // Check for common words (excluding common words)
+                const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'];
+                const meaningfulWords1 = words1.filter(w => w.length > 3 && !commonWords.includes(w));
+                const meaningfulWords2 = words2.filter(w => w.length > 3 && !commonWords.includes(w));
+                
+                const commonMeaningfulWords = meaningfulWords1.filter(w => meaningfulWords2.includes(w));
+                return commonMeaningfulWords.length > 0;
+            }
+            
+            // Create a grouped note from multiple related notes
+            function createGroupedNote(notesGroup) {
+                const timestamp = notesGroup[0].timestamp;
+                const content = notesGroup.map(note => 
+                    note.content.replace(/^[📖💡⭐❓📝🔢📋]\s*/, '• ')
+                ).join('\n');
+                
+                return {
+                    timestamp: timestamp,
+                    content: `📋 **Related Points**:\n${content}`,
+                    type: 'grouped',
+                    originalText: notesGroup.map(n => n.originalText).join(' ')
+                };
             }
             
             // Update transcript display
@@ -530,10 +695,15 @@
                 
                 let notesHTML = '';
                 notes.forEach(note => {
+                    // Format the content with proper line breaks and styling
+                    const formattedContent = note.content
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\n/g, '<br>');
+                    
                     notesHTML += `
                         <div class="note-item">
                             <div class="note-timestamp">${note.timestamp}</div>
-                            <div class="note-content">${note.content}</div>
+                            <div class="note-content">${formattedContent}</div>
                         </div>
                     `;
                 });
@@ -582,6 +752,19 @@
                 }
             }
             
+            // Start notes processing timer
+            function startNotesProcessingTimer() {
+                notesProcessingTimer = setInterval(processBatchNotes, 10000); // Process every 10 seconds
+            }
+            
+            // Stop notes processing timer
+            function stopNotesProcessingTimer() {
+                if (notesProcessingTimer) {
+                    clearInterval(notesProcessingTimer);
+                    notesProcessingTimer = null;
+                }
+            }
+            
             // Show notification
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
@@ -612,9 +795,11 @@
                     }
                     recognition.start();
                     startSessionTimer();
+                    startNotesProcessingTimer();
                 } else {
                     recognition.stop();
                     stopSessionTimer();
+                    stopNotesProcessingTimer();
                 }
             });
             
