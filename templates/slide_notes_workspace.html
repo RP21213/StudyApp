@@ -595,6 +595,7 @@
                 <div class="drawing-controls">
                     <button id="pen-tool" class="active" title="Pen Tool">✏️</button>
                     <button id="erase-tool" title="Eraser">🧽</button>
+                    <button id="select-tool" title="Select Tool">👆</button>
                     <input type="color" id="pen-color" value="#ff0000" title="Pen Color">
                     <input type="range" id="pen-size" min="1" max="20" value="3" title="Pen Size">
                     <span id="pen-size-display">3px</span>
@@ -821,6 +822,7 @@
         // Drawing tool elements
         const penTool = document.getElementById('pen-tool');
         const eraseTool = document.getElementById('erase-tool');
+        const selectTool = document.getElementById('select-tool');
         const penColor = document.getElementById('pen-color');
         const penSize = document.getElementById('pen-size');
         const penSizeDisplay = document.getElementById('pen-size-display');
@@ -1350,6 +1352,7 @@ async function saveNotes() {
         }
 
         function startDrawing(e) {
+            if (currentTool === 'select') return;
             isDrawing = true;
             const pos = getMousePos(e);
             lastX = pos.x;
@@ -1357,7 +1360,7 @@ async function saveNotes() {
         }
 
         function draw(e) {
-            if (!isDrawing) return;
+            if (!isDrawing || currentTool === 'select') return;
             
             const pos = getMousePos(e);
             
@@ -1390,12 +1393,18 @@ async function saveNotes() {
             currentTool = tool;
             penTool.classList.toggle('active', tool === 'pen');
             eraseTool.classList.toggle('active', tool === 'erase');
+            selectTool.classList.toggle('active', tool === 'select');
             
             // Update cursor
             if (tool === 'pen') {
                 drawingCanvas.style.cursor = 'crosshair';
+                drawingCanvas.style.pointerEvents = 'auto';
             } else if (tool === 'erase') {
                 drawingCanvas.style.cursor = 'grab';
+                drawingCanvas.style.pointerEvents = 'auto';
+            } else if (tool === 'select') {
+                drawingCanvas.style.cursor = 'default';
+                drawingCanvas.style.pointerEvents = 'none';
             }
         }
 
@@ -1466,6 +1475,7 @@ async function saveNotes() {
                 // Drawing tool controls
                 penTool.addEventListener('click', () => switchTool('pen'));
                 eraseTool.addEventListener('click', () => switchTool('erase'));
+                selectTool.addEventListener('click', () => switchTool('select'));
                 
                 // Pen size display update
                 penSize.addEventListener('input', () => {
