@@ -376,6 +376,152 @@
             background-image: linear-gradient(to right, #3b82f6, #1d4ed8); /* blue gradient */
         }
         
+        /* --- NEW: Flashcard Review Button Styles --- */
+        .flashcard-review-button {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            border: none;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flashcard-review-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .flashcard-review-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .flashcard-review-button:hover::before {
+            left: 100%;
+        }
+        
+        .flashcard-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .flashcard-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .flashcard-text {
+            flex: 1;
+        }
+        
+        .flashcard-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            line-height: 1.2;
+        }
+        
+        .flashcard-count {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+        
+        .flashcard-count span {
+            font-weight: 600;
+            color: #ffd700;
+        }
+        
+        .flashcard-review-btn {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .flashcard-review-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-1px);
+        }
+        
+        .flashcard-arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .flashcard-review-btn:hover .flashcard-arrow {
+            transform: translateX(2px);
+        }
+        
+        /* Mobile responsive styles for flashcard button */
+        @media (max-width: 768px) {
+            .flashcard-review-button {
+                margin: 0.75rem 0;
+                padding: 0.75rem;
+            }
+            
+            .flashcard-content {
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .flashcard-icon {
+                font-size: 1.25rem;
+            }
+            
+            .flashcard-title {
+                font-size: 0.85rem;
+            }
+            
+            .flashcard-count {
+                font-size: 0.75rem;
+            }
+            
+            .flashcard-review-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .flashcard-review-button {
+                margin: 0.5rem 0;
+                padding: 0.5rem;
+            }
+            
+            .flashcard-title {
+                font-size: 0.8rem;
+            }
+            
+            .flashcard-count {
+                font-size: 0.7rem;
+            }
+        }
+        
         /* My Values Tab - Crisis Support */
         .values-section {
             margin-top: 2rem;
@@ -5483,6 +5629,25 @@
             </a>
         </nav>
         
+        <!-- Flashcard Review Button -->
+        <div class="flashcard-review-button" id="flashcard-review-button">
+            <div class="flashcard-content">
+                <div class="flashcard-icon">
+                    <span>🧠</span>
+                </div>
+                <div class="flashcard-text">
+                    <div class="flashcard-title">Complete your daily flashcards!</div>
+                    <div class="flashcard-count">
+                        You have <span id="flashcard-count-number">0</span> to review! Complete them to keep up to date.
+                    </div>
+                </div>
+            </div>
+            <button class="flashcard-review-btn" onclick="goToFlashcardReview()">
+                <span>Review</span>
+                <svg class="flashcard-arrow" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+        
         <!-- Earn Money Banner -->
         <div class="earn-money-banner">
             <div class="banner-content">
@@ -6870,6 +7035,87 @@
             });
         }
         
+        // Go to Flashcard Review function
+        function goToFlashcardReview() {
+            // Switch to spaced repetition tab
+            const tabs = document.querySelectorAll('.nav-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Remove active class from all tabs
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to spaced-repetition tab
+            const spacedRepTab = document.querySelector('.nav-tab[data-tab="spaced-repetition"]');
+            if (spacedRepTab) {
+                spacedRepTab.classList.add('active');
+            }
+            
+            // Hide all tab contents and show spaced-repetition content
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === 'spaced-repetition') {
+                    content.classList.add('active');
+                }
+            });
+            
+            // Scroll to the Quick Start panel within the spaced repetition tab
+            setTimeout(() => {
+                const quickStartPanel = document.querySelector('.quick-start-panel');
+                if (quickStartPanel) {
+                    quickStartPanel.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            }, 100);
+        }
+        
+        // Update flashcard count in sidebar
+        async function updateFlashcardCount() {
+            try {
+                // Get user's hubs from the page data
+                const hubsData = { success: true, hubs: {{ hubs_for_json|tojson }} };
+                
+                if (!hubsData.success || !hubsData.hubs || hubsData.hubs.length === 0) {
+                    document.getElementById('flashcard-count-number').textContent = '0';
+                    return;
+                }
+                
+                let totalDueCards = 0;
+                
+                // Get due cards count for each hub
+                for (const hub of hubsData.hubs) {
+                    try {
+                        const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`, {
+                            credentials: 'include'
+                        });
+                        if (dueResponse.ok) {
+                            const dueData = await dueResponse.json();
+                            if (dueData.success) {
+                                totalDueCards += dueData.total_due;
+                            }
+                        }
+                    } catch (error) {
+                        console.log(`Error fetching due cards for hub ${hub.id}:`, error);
+                    }
+                }
+                
+                // Update the count in the sidebar
+                const countElement = document.getElementById('flashcard-count-number');
+                if (countElement) {
+                    countElement.textContent = totalDueCards;
+                }
+                
+            } catch (error) {
+                console.error('Error updating flashcard count:', error);
+                // Set to 0 if there's an error
+                const countElement = document.getElementById('flashcard-count-number');
+                if (countElement) {
+                    countElement.textContent = '0';
+                }
+            }
+        }
+        
         // Global claim reward function
         function claimReward(milestone) {
             const rewards = {
@@ -7003,6 +7249,9 @@ Best regards,
             
             console.log('🎬 Microanimations integrated successfully!');
             // ===== END MICROANIMATIONS =====
+            
+            // Initialize flashcard count in sidebar
+            updateFlashcardCount();
             
             // Modal functionality
             const openModalBtn = document.getElementById('open-modal-btn');
