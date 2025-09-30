@@ -750,6 +750,242 @@
             font-size: 0.9rem;
         }
 
+        /* Feature Tabs */
+        .feature-tabs-container {
+            margin-top: 3rem;
+        }
+
+        .feature-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            background: white;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-sm);
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        .tab-button:hover {
+            border-color: var(--primary-gradient);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .tab-button.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tab-button i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .tab-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .youtube-placeholder {
+            position: relative;
+            width: 100%;
+            height: 450px;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .youtube-placeholder:hover {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .placeholder-content {
+            text-align: center;
+            color: white;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .play-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            transition: all var(--transition-normal);
+            backdrop-filter: blur(10px);
+        }
+
+        .youtube-placeholder:hover .play-icon {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .play-icon i {
+            width: 32px;
+            height: 32px;
+            margin-left: 4px;
+        }
+
+        .placeholder-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .placeholder-content p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .video-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            backdrop-filter: blur(10px);
+        }
+
+        .video-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .video-duration {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        /* Responsive Design for Tabs */
+        @media (max-width: 768px) {
+            .feature-tabs {
+                gap: 0.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                min-width: 140px;
+            }
+
+            .tab-button span {
+                display: none;
+            }
+
+            .youtube-placeholder {
+                height: 300px;
+            }
+
+            .placeholder-content h3 {
+                font-size: 1.25rem;
+            }
+
+            .placeholder-content p {
+                font-size: 0.9rem;
+            }
+
+            .play-icon {
+                width: 60px;
+                height: 60px;
+                margin-bottom: 1.5rem;
+            }
+
+            .play-icon i {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .feature-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tab-button {
+                width: 100%;
+                max-width: 200px;
+                justify-content: flex-start;
+                gap: 1rem;
+            }
+
+            .tab-button span {
+                display: block;
+            }
+
+            .youtube-placeholder {
+                height: 250px;
+            }
+
+            .placeholder-content {
+                padding: 1rem;
+            }
+
+            .placeholder-content h3 {
+                font-size: 1.1rem;
+            }
+
+            .placeholder-content p {
+                font-size: 0.85rem;
+            }
+        }
+
         /* Pricing Section */
         .pricing {
             padding: 8rem 0;
@@ -1822,162 +2058,134 @@
             </div>
         </section>
 
-        <!-- Feature Highlights Section -->
-        <section class="feature-highlights" id="features">
+        <!-- Feature Exploration Section -->
+        <section class="feature-exploration" id="features">
             <div class="container">
-                <!-- First Feature Block -->
-                <div class="feature-block">
-                    <div class="feature-content">
-                        <div class="feature-image">
-                            <img src="/static/images/features/study-tools-dashboard.png" alt="Foci Study Tools Dashboard - Comprehensive AI Study Solution" class="feature-screenshot">
-                            <div class="image-overlay">
-                                <div class="overlay-content">
-                                    <h4>Study Tools Dashboard</h4>
-                                    <p>Complete suite of AI-powered study tools</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-text">
-                        <h2 class="feature-title">Complete Study Tools Suite</h2>
-                        <p class="feature-description">Access our comprehensive collection of 9+ AI-powered study tools designed to cover every aspect of your learning journey. From interactive notes and flashcards to exam builders and study planners - everything you need in one place.</p>
-                        <div class="feature-list">
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Interactive Notes, Flashcards & Practice Quizzes</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Revision Packs, Cheat Sheets & Study Planners</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Exam Builders, Assignment Help & Predictors</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>PRO features with advanced AI capabilities</span>
-                            </div>
-                        </div>
-                        <div class="cta-container">
-                            <a href="/signup" class="cta-button">Start Free Trial</a>
-                        </div>
-                    </div>
+                <div class="section-header fade-in">
+                    <h2 class="section-title">Explore the key features now</h2>
+                    <p class="section-subtitle">Discover how Foci's AI-powered tools can transform your learning experience</p>
                 </div>
-
-                <!-- Second Feature Block -->
-                <div class="feature-block reverse">
-                    <div class="feature-text">
-                        <h2 class="feature-title">Live Learning & Interactive Study</h2>
-                        <p class="feature-description">Experience the future of studying with our advanced live lecture capture and interactive note-taking tools. Record lectures in real-time and create structured notes automatically, or upload slides for split-screen AI tutoring and quiz generation.</p>
-                        <div class="feature-list">
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Live Lecture Capture PRO: Real-time recording with AI note generation</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Take Notes with Slides NEW: Split-screen workspace with AI tutor</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Automatic Quiz & Flashcard Generation from uploaded content</span>
-                            </div>
-                        </div>
+                
+                <!-- Feature Tabs -->
+                <div class="feature-tabs-container">
+                    <div class="feature-tabs fade-in">
+                        <button class="tab-button active" data-tab="lecture-slides">
+                            <i data-lucide="presentation"></i>
+                            <span>Lecture with Slides</span>
+                        </button>
+                        <button class="tab-button" data-tab="interactive-notes">
+                            <i data-lucide="file-text"></i>
+                            <span>Interactive Notes</span>
+                        </button>
+                        <button class="tab-button" data-tab="flashcards">
+                            <i data-lucide="brain"></i>
+                            <span>Flashcards</span>
+                        </button>
+                        <button class="tab-button" data-tab="voice-essay">
+                            <i data-lucide="mic"></i>
+                            <span>Voice Essay Writer</span>
+                        </button>
+                        <button class="tab-button" data-tab="question-help">
+                            <i data-lucide="help-circle"></i>
+                            <span>Stuck on a Question</span>
+                        </button>
                     </div>
-                    <div class="feature-content">
-                        <div class="feature-image">
-                            <img src="/static/images/features/study-tools-workflow.png" alt="Foci Study Tools Workflow - Live Lecture Capture and Note-taking Features" class="feature-screenshot">
-                            <div class="image-overlay">
-                                <div class="overlay-content">
-                                    <h4>Advanced Study Workflow</h4>
-                                    <p>Live capture and interactive note-taking</p>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content fade-in">
+                        <!-- Lecture with Slides Tab -->
+                        <div class="tab-panel active" id="lecture-slides">
+                            <div class="video-container">
+                                <div class="youtube-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="play-icon">
+                                            <i data-lucide="play"></i>
+                                        </div>
+                                        <h3>Lecture with Slides Demo</h3>
+                                        <p>Watch how Foci transforms your lecture slides into interactive learning experiences</p>
+                                        <div class="video-info">
+                                            <span class="video-label">YouTube Video Placeholder</span>
+                                            <span class="video-duration">2:30</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Third Feature Block -->
-                <div class="feature-block">
-                    <div class="feature-content">
-                        <div class="feature-image">
-                            <img src="/static/images/features/progress-dashboard.png" alt="Foci Progress Dashboard - Track Study Habits and Performance" class="feature-screenshot">
-                            <div class="image-overlay">
-                                <div class="overlay-content">
-                                    <h4>Progress Dashboard</h4>
-                                    <p>Gamified learning with XP, streaks & mastery tracking</p>
+                        
+                        <!-- Interactive Notes Tab -->
+                        <div class="tab-panel" id="interactive-notes">
+                            <div class="video-container">
+                                <div class="youtube-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="play-icon">
+                                            <i data-lucide="play"></i>
+                                        </div>
+                                        <h3>Interactive Notes Demo</h3>
+                                        <p>See how our AI creates smart, interactive notes from your study materials</p>
+                                        <div class="video-info">
+                                            <span class="video-label">YouTube Video Placeholder</span>
+                                            <span class="video-duration">3:15</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="feature-text">
-                        <h2 class="feature-title">Gamified Learning Experience</h2>
-                        <p class="feature-description">Transform your study journey into an engaging experience with our gamified progress dashboard. Track XP, maintain study streaks, monitor topic mastery, and level up as you learn with personalized insights and performance analytics.</p>
-                        <div class="feature-list">
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
+                        
+                        <!-- Flashcards Tab -->
+                        <div class="tab-panel" id="flashcards">
+                            <div class="video-container">
+                                <div class="youtube-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="play-icon">
+                                            <i data-lucide="play"></i>
+                                        </div>
+                                        <h3>Smart Flashcards Demo</h3>
+                                        <p>Experience AI-generated flashcards that adapt to your learning pace</p>
+                                        <div class="video-info">
+                                            <span class="video-label">YouTube Video Placeholder</span>
+                                            <span class="video-duration">2:45</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span>XP System & Study Streaks for motivation</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Topic Mastery tracking with visual progress bars</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Level Progress & Scholar achievements</span>
-                            </div>
-                            <div class="feature-item">
-                                <div class="checkmark">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" fill="#22c55e"/>
-                                    </svg>
-                                </div>
-                                <span>Smart Review recommendations & quiz performance</span>
                             </div>
                         </div>
-                        <div class="cta-container">
-                            <a href="/signup" class="cta-button">Start Your Learning Journey</a>
+                        
+                        <!-- Voice Essay Writer Tab -->
+                        <div class="tab-panel" id="voice-essay">
+                            <div class="video-container">
+                                <div class="youtube-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="play-icon">
+                                            <i data-lucide="play"></i>
+                                        </div>
+                                        <h3>Voice Essay Writer Demo</h3>
+                                        <p>Watch how our AI helps you write essays through voice interaction</p>
+                                        <div class="video-info">
+                                            <span class="video-label">YouTube Video Placeholder</span>
+                                            <span class="video-duration">4:20</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stuck on a Question Tab -->
+                        <div class="tab-panel" id="question-help">
+                            <div class="video-container">
+                                <div class="youtube-placeholder">
+                                    <div class="placeholder-content">
+                                        <div class="play-icon">
+                                            <i data-lucide="play"></i>
+                                        </div>
+                                        <h3>Question Help Demo</h3>
+                                        <p>See how our AI tutor helps you solve difficult questions step by step</p>
+                                        <div class="video-info">
+                                            <span class="video-label">YouTube Video Placeholder</span>
+                                            <span class="video-duration">3:50</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2724,6 +2932,40 @@
         
         // Start typing animation
         typeWriter();
+
+        // Feature Tabs Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and panels
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabPanels.forEach(panel => panel.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding panel
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+
+            // YouTube placeholder click functionality
+            const youtubePlaceholders = document.querySelectorAll('.youtube-placeholder');
+            youtubePlaceholders.forEach(placeholder => {
+                placeholder.addEventListener('click', function() {
+                    // Here you can add functionality to open actual YouTube videos
+                    // For now, we'll just show an alert
+                    const title = this.querySelector('h3').textContent;
+                    console.log(`Opening YouTube video for: ${title}`);
+                    
+                    // Example: You can replace this with actual YouTube embed functionality
+                    // window.open('YOUR_YOUTUBE_URL_HERE', '_blank');
+                });
+            });
+        });
     </script>
 
 </body>
