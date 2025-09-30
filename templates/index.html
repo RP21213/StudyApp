@@ -2592,12 +2592,20 @@
     </footer>
 
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
+        // Initialize Lucide icons with error handling
+        try {
+            lucide.createIcons();
+        } catch (error) {
+            console.warn('Lucide icons initialization failed:', error);
+        }
         
         // Re-initialize icons after tab changes (in case new icons are added)
         function reinitializeIcons() {
-            lucide.createIcons();
+            try {
+                lucide.createIcons();
+            } catch (error) {
+                console.warn('Lucide icons re-initialization failed:', error);
+            }
         }
 
         // Nav scroll effect
@@ -2610,15 +2618,20 @@
             }
         });
 
-        // Demo animation
+        // Demo animation (only run if demo steps exist)
         let currentStep = 1;
         const demoSteps = document.querySelectorAll('.demo-step');
         
-        setInterval(() => {
-            demoSteps.forEach(step => step.classList.remove('active'));
-            currentStep = currentStep === 3 ? 1 : currentStep + 1;
-            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
-        }, 3000);
+        if (demoSteps.length > 0) {
+            setInterval(() => {
+                demoSteps.forEach(step => step.classList.remove('active'));
+                currentStep = currentStep === 3 ? 1 : currentStep + 1;
+                const nextStep = document.querySelector(`[data-step="${currentStep}"]`);
+                if (nextStep) {
+                    nextStep.classList.add('active');
+                }
+            }, 3000);
+        }
 
         // Intersection Observer for animations
         const observerOptions = {
@@ -2656,7 +2669,7 @@
         // Initialize GSAP animations
         gsap.registerPlugin(ScrollTrigger);
 
-        // Demo Video Functionality
+        // Demo Video Functionality (only run if elements exist)
         const videoPlayer = document.querySelector('.video-player');
         const playButton = document.querySelector('.play-button');
         const videoPlaceholder = document.querySelector('.video-placeholder');
@@ -2676,20 +2689,28 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
         
-        // Update time display
+        // Update time display (only if elements exist)
         function updateTimeDisplay() {
-            currentTimeDisplay.textContent = formatTime(currentTime);
-            totalTimeDisplay.textContent = formatTime(totalTime);
+            if (currentTimeDisplay) {
+                currentTimeDisplay.textContent = formatTime(currentTime);
+            }
+            if (totalTimeDisplay) {
+                totalTimeDisplay.textContent = formatTime(totalTime);
+            }
         }
         
-        // Update progress bar
+        // Update progress bar (only if element exists)
         function updateProgress() {
-            const progress = (currentTime / totalTime) * 100;
-            progressFill.style.width = `${progress}%`;
+            if (progressFill) {
+                const progress = (currentTime / totalTime) * 100;
+                progressFill.style.width = `${progress}%`;
+            }
         }
         
-        // Play/pause functionality
+        // Play/pause functionality (only run if elements exist)
         function togglePlay() {
+            if (!playButton) return;
+            
             isPlaying = !isPlaying;
             
             if (isPlaying) {
@@ -2715,7 +2736,9 @@
                 } else {
                     // Video ended
                     isPlaying = false;
-                    playButton.style.display = 'block';
+                    if (playButton) {
+                        playButton.style.display = 'block';
+                    }
                     currentTime = 0;
                     updateTimeDisplay();
                     updateProgress();
@@ -2752,8 +2775,10 @@
             });
         }
         
-        // Initialize time display
-        updateTimeDisplay();
+        // Initialize time display (only if elements exist)
+        if (currentTimeDisplay || totalTimeDisplay) {
+            updateTimeDisplay();
+        }
         
         // Demo section animation
         gsap.from('.watch-demo .demo-header', {
@@ -2940,47 +2965,65 @@
 
         // Feature Tabs Functionality
         function initializeTabs() {
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabPanels = document.querySelectorAll('.tab-panel');
+            try {
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const tabPanels = document.querySelectorAll('.tab-panel');
 
-            console.log('Initializing tabs. Found buttons:', tabButtons.length, 'panels:', tabPanels.length);
+                console.log('Initializing tabs. Found buttons:', tabButtons.length, 'panels:', tabPanels.length);
 
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const targetTab = this.getAttribute('data-tab');
-                    console.log('Tab clicked:', targetTab);
+                if (tabButtons.length === 0) {
+                    console.warn('No tab buttons found');
+                    return;
+                }
+
+                tabButtons.forEach((button, index) => {
+                    // Remove any existing event listeners by cloning the element
+                    const newButton = button.cloneNode(true);
+                    button.parentNode.replaceChild(newButton, button);
                     
-                    // Remove active class from all buttons and panels
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    tabPanels.forEach(panel => panel.classList.remove('active'));
-                    
-                    // Add active class to clicked button and corresponding panel
-                    this.classList.add('active');
-                    const targetPanel = document.getElementById(targetTab);
-                    if (targetPanel) {
-                        targetPanel.classList.add('active');
-                        console.log('Activated tab:', targetTab);
-                        // Re-initialize icons for the new tab content
-                        setTimeout(reinitializeIcons, 100);
-                    } else {
-                        console.error('Panel not found:', targetTab);
-                    }
+                    newButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const targetTab = this.getAttribute('data-tab');
+                        console.log('Tab clicked:', targetTab, 'Button index:', index);
+                        
+                        // Remove active class from all buttons and panels
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        tabPanels.forEach(panel => panel.classList.remove('active'));
+                        
+                        // Add active class to clicked button and corresponding panel
+                        this.classList.add('active');
+                        const targetPanel = document.getElementById(targetTab);
+                        if (targetPanel) {
+                            targetPanel.classList.add('active');
+                            console.log('Activated tab:', targetTab);
+                            // Re-initialize icons for the new tab content
+                            setTimeout(reinitializeIcons, 100);
+                        } else {
+                            console.error('Panel not found:', targetTab);
+                        }
+                    });
                 });
-            });
 
-            // YouTube placeholder click functionality
-            const youtubePlaceholders = document.querySelectorAll('.youtube-placeholder');
-            youtubePlaceholders.forEach(placeholder => {
-                placeholder.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Prevent tab switching when clicking video
-                    const title = this.querySelector('h3').textContent;
-                    console.log(`Opening YouTube video for: ${title}`);
-                    
-                    // Example: You can replace this with actual YouTube embed functionality
-                    // window.open('YOUR_YOUTUBE_URL_HERE', '_blank');
+                // YouTube placeholder click functionality
+                const youtubePlaceholders = document.querySelectorAll('.youtube-placeholder');
+                youtubePlaceholders.forEach(placeholder => {
+                    placeholder.addEventListener('click', function(e) {
+                        e.stopPropagation(); // Prevent tab switching when clicking video
+                        const titleElement = this.querySelector('h3');
+                        if (titleElement) {
+                            const title = titleElement.textContent;
+                            console.log(`Opening YouTube video for: ${title}`);
+                        }
+                        
+                        // Example: You can replace this with actual YouTube embed functionality
+                        // window.open('YOUR_YOUTUBE_URL_HERE', '_blank');
+                    });
                 });
-            });
+            } catch (error) {
+                console.error('Error initializing tabs:', error);
+            }
         }
 
         // Initialize tabs when DOM is ready
