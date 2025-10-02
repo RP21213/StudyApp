@@ -172,7 +172,7 @@ try:
     
 except Exception as e:
     print(f"Firebase initialization failed. Error: {e}")
-    print("⚠️  Running in development mode without Firebase - some features will be limited")
+    print("WARNING: Running in development mode without Firebase - some features will be limited")
     # Set dummy objects for development
     db = None
     bucket = None
@@ -8780,6 +8780,82 @@ def get_global_resources():
         print(f"Error getting global resources: {e}")
         return jsonify({"success": False, "message": "Failed to get global resources"}), 500
 
+@app.route('/api/materials/<material_type>', methods=['GET'])
+@login_required
+def get_materials_by_type(material_type):
+    """Get all materials of a specific type for the current user"""
+    try:
+        materials = []
+        
+        # Get all user's hubs for hub names
+        user_hubs = db.collection('hubs').where('user_id', '==', current_user.id).stream()
+        hubs_dict = {hub.id: hub.to_dict() for hub in user_hubs}
+        
+        if material_type == 'folder':
+            # Get all folders
+            folders_query = db.collection('folders').where('hub_id', 'in', list(hubs_dict.keys())).stream()
+            for folder_doc in folders_query:
+                folder = Folder.from_dict(folder_doc.to_dict())
+                materials.append({
+                    'id': folder.id,
+                    'title': folder.name,
+                    'hub_id': folder.hub_id,
+                    'hub_name': hubs_dict.get(folder.hub_id, {}).get('name', 'Unknown Hub')
+                })
+                
+        elif material_type == 'note':
+            # Get all notes
+            notes_query = db.collection('notes').where('hub_id', 'in', list(hubs_dict.keys())).stream()
+            for note_doc in notes_query:
+                note = Note.from_dict(note_doc.to_dict())
+                materials.append({
+                    'id': note.id,
+                    'title': note.title,
+                    'hub_id': note.hub_id,
+                    'hub_name': hubs_dict.get(note.hub_id, {}).get('name', 'Unknown Hub')
+                })
+                
+        elif material_type in ['flashcards', 'quiz', 'cheat_sheet']:
+            # Map material types to activity types
+            activity_type_map = {
+                'flashcards': 'Flashcards',
+                'quiz': 'Quiz',
+                'cheat_sheet': 'Cheat Sheet'
+            }
+            
+            activity_type = activity_type_map.get(material_type)
+            if activity_type:
+                activities_query = db.collection('activities').where('hub_id', 'in', list(hubs_dict.keys())).where('type', '==', activity_type).stream()
+                for activity_doc in activities_query:
+                    activity = Activity.from_dict(activity_doc.to_dict())
+                    materials.append({
+                        'id': activity.id,
+                        'title': activity.title or f'{activity_type} #{activity.id[:8]}',
+                        'hub_id': activity.hub_id,
+                        'hub_name': hubs_dict.get(activity.hub_id, {}).get('name', 'Unknown Hub')
+                    })
+                    
+        elif material_type == 'lecture_notes':
+            # Get all annotated slide decks
+            lectures_query = db.collection('annotated_slide_decks').where('user_id', '==', current_user.id).stream()
+            for lecture_doc in lectures_query:
+                lecture = AnnotatedSlideDeck.from_dict(lecture_doc.to_dict())
+                materials.append({
+                    'id': lecture.id,
+                    'title': lecture.title,
+                    'hub_id': lecture.hub_id,
+                    'hub_name': hubs_dict.get(lecture.hub_id, {}).get('name', 'Unknown Hub')
+                })
+        
+        return jsonify({
+            "success": True,
+            "materials": materials
+        })
+        
+    except Exception as e:
+        print(f"Error getting materials of type {material_type}: {e}")
+        return jsonify({"success": False, "message": f"Failed to get {material_type} materials"}), 500
+
 @app.route('/api/resources/<resource_id>/import', methods=['POST'])
 @login_required
 def import_shared_resource(resource_id):
@@ -8901,8 +8977,49 @@ def import_shared_resource(resource_id):
             )
             db.collection('notes').document(new_note_id).set(new_note.to_dict())
             
-        # Add similar logic for flashcards, quizzes, and cheatsheets...
-        # (Implementation would be similar to above)
+        elif shared_resource.resource_type in ['flashcards', 'quiz', 'cheat_sheet']:
+            # Get the original activity
+            original_activity_doc = db.collection('activities').document(shared_resource.resource_id).get()
+            if not original_activity_doc.exists:
+                return jsonify({"success": False, "message": "Original activity not found"}), 404
+            
+            original_activity = Activity.from_dict(original_activity_doc.to_dict())
+            
+            # Create new activity in user's hub
+            new_activity_id = str(uuid.uuid4())
+            new_activity = Activity(
+                id=new_activity_id,
+                hub_id=target_hub.id,
+                type=original_activity.type,
+                title=f"{original_activity.title} (Imported)",
+                data=original_activity.data,
+                status='completed',  # Mark as completed since it's imported
+                created_at=datetime.now(timezone.utc)
+            )
+            db.collection('activities').document(new_activity_id).set(new_activity.to_dict())
+            
+        elif shared_resource.resource_type == 'lecture_notes':
+            # Get the original lecture notes
+            original_lecture_doc = db.collection('annotated_slide_decks').document(shared_resource.resource_id).get()
+            if not original_lecture_doc.exists:
+                return jsonify({"success": False, "message": "Original lecture notes not found"}), 404
+            
+            original_lecture = AnnotatedSlideDeck.from_dict(original_lecture_doc.to_dict())
+            
+            # Create new lecture notes in user's hub
+            new_lecture_id = str(uuid.uuid4())
+            new_lecture = AnnotatedSlideDeck(
+                id=new_lecture_id,
+                hub_id=target_hub.id,
+                user_id=current_user.id,
+                title=f"{original_lecture.title} (Imported)",
+                source_file_path=original_lecture.source_file_path,
+                slides_data=original_lecture.slides_data,
+                flashcards_data=original_lecture.flashcards_data,
+                flashcards_status=original_lecture.flashcards_status,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.collection('annotated_slide_decks').document(new_lecture_id).set(new_lecture.to_dict())
         
         # Update the shared resource to track the import
         shared_resource.imports += 1

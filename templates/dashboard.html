@@ -2810,6 +2810,56 @@
             display: block;
         }
 
+        /* Dropdown Styles */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            min-width: 200px;
+            margin-top: 0.25rem;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: none;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-align: left;
+        }
+        .dropdown-item:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+        .dropdown-item:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+        .dropdown-item:hover {
+            background-color: var(--background-light);
+        }
+        .dropdown-item i {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+        }
+
         /* Study Groups Styles */
         .study-groups-container {
             background: var(--background-white);
@@ -6012,9 +6062,32 @@
                         <p>Share your study materials with the community and discover resources from other students.</p>
                     </div>
                     <div class="header-actions">
-                         <button class="button" id="share-folder-btn">
-                            <i data-lucide="share-2"></i> Share a Folder
-                        </button>
+                        <div class="dropdown-container">
+                            <button class="button" id="share-material-btn">
+                                <i data-lucide="share-2"></i> Share Study Material
+                                <i data-lucide="chevron-down" style="margin-left: 0.5rem; font-size: 0.9rem;"></i>
+                            </button>
+                            <div class="dropdown-menu" id="share-dropdown">
+                                <button class="dropdown-item" data-material-type="folder">
+                                    <i data-lucide="folder"></i> Share a Folder
+                                </button>
+                                <button class="dropdown-item" data-material-type="note">
+                                    <i data-lucide="file-text"></i> Share a Note
+                                </button>
+                                <button class="dropdown-item" data-material-type="flashcards">
+                                    <i data-lucide="layers"></i> Share Flashcards
+                                </button>
+                                <button class="dropdown-item" data-material-type="quiz">
+                                    <i data-lucide="help-circle"></i> Share a Quiz
+                                </button>
+                                <button class="dropdown-item" data-material-type="cheat_sheet">
+                                    <i data-lucide="bookmark"></i> Share a Cheat Sheet
+                                </button>
+                                <button class="dropdown-item" data-material-type="lecture_notes">
+                                    <i data-lucide="presentation"></i> Share Lecture Notes
+                                </button>
+                            </div>
+                        </div>
                         <button class="button button-secondary" id="create-study-group-btn">
                             <i data-lucide="users-plus"></i> Create a Study Group
                         </button>
@@ -6648,23 +6721,23 @@
         </div>
     </div>
 
-    <!-- Share Folder Modal -->
-    <div class="modal-overlay" id="share-folder-modal">
+    <!-- Share Material Modal -->
+    <div class="modal-overlay" id="share-material-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Share a Folder</h3>
+                <h3 id="share-modal-title">Share Study Material</h3>
                 <button class="close-button" id="close-share-modal-btn">
                     <i data-lucide="x"></i>
                 </button>
             </div>
-            <form id="share-folder-form">
-                <div class="form-group">
-                    <label for="folder-select">Select a Folder to Share</label>
-                    <select id="folder-select" name="folder_id" required>
-                        <option value="" disabled selected>-- Choose a folder --</option>
-                        {% for folder in all_user_folders %}
-                            <option value="{{ folder.id }}" data-hub-id="{{ folder.hub_id }}">{{ folder.hub_name }} / {{ folder.name }}</option>
-                        {% endfor %}
+            <form id="share-material-form">
+                <input type="hidden" id="material-type" name="material_type" value="">
+                
+                <!-- Material Selection -->
+                <div class="form-group" id="material-selection-group">
+                    <label id="material-select-label">Select Material to Share</label>
+                    <select id="material-select" name="material_id" required>
+                        <option value="" disabled selected>-- Choose material --</option>
                     </select>
                 </div>
                 
@@ -6699,23 +6772,23 @@
                 </div>
                 
                  <div class="form-group">
-                    <label for="folder-title">Share Title</label>
-                    <input type="text" id="folder-title" name="title" required placeholder="Enter a public title for this folder">
+                    <label for="material-title">Share Title</label>
+                    <input type="text" id="material-title" name="title" required placeholder="Enter a public title for this material">
                 </div>
                 
                  <div class="form-group">
-                    <label for="folder-description">Description</label>
-                    <textarea id="folder-description" name="description" required placeholder="Briefly describe what's in this folder. e.g., Lecture notes and quizzes for the final exam."></textarea>
+                    <label for="material-description">Description</label>
+                    <textarea id="material-description" name="description" required placeholder="Briefly describe this study material."></textarea>
                 </div>
                 
                  <div class="form-group">
-                    <label for="folder-tags">Tags (comma-separated)</label>
-                    <input type="text" id="folder-tags" name="tags" placeholder="e.g., physics, quantum mechanics, exam prep">
+                    <label for="material-tags">Tags (comma-separated)</label>
+                    <input type="text" id="material-tags" name="tags" placeholder="e.g., physics, quantum mechanics, exam prep">
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="button button-secondary" id="cancel-share-folder">Cancel</button>
-                    <button type="submit" class="button" id="share-folder-submit">Share Folder</button>
+                    <button type="button" class="button button-secondary" id="cancel-share-material">Cancel</button>
+                    <button type="submit" class="button" id="share-material-submit">Share Material</button>
                 </div>
             </form>
         </div>
@@ -10042,34 +10115,45 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 }
             }
 
-            // Share folder button functionality
-            const shareFolderBtn = document.getElementById('share-folder-btn');
-            const shareFolderBtnEmpty = document.getElementById('share-folder-btn-empty');
-            const shareModalOverlay = document.getElementById('share-folder-modal');
-            const shareForm = document.getElementById('share-folder-form');
+            // Share material functionality
+            const shareMaterialBtn = document.getElementById('share-material-btn');
+            const shareDropdown = document.getElementById('share-dropdown');
+            const shareModalOverlay = document.getElementById('share-material-modal');
+            const shareForm = document.getElementById('share-material-form');
             const shareDestinationRadios = document.querySelectorAll('input[name="share_destination"]');
             const studyGroupSelection = document.getElementById('study-group-selection');
             const studyGroupSelect = document.getElementById('study-group-select');
 
-            function openShareModal() {
+            // Dropdown functionality
+            if (shareMaterialBtn) {
+                shareMaterialBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    shareDropdown.classList.toggle('show');
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown-container')) {
+                    shareDropdown.classList.remove('show');
+                }
+            });
+
+            // Handle dropdown item clicks
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const materialType = e.currentTarget.dataset.materialType;
+                    openShareModal(materialType);
+                    shareDropdown.classList.remove('show');
+                });
+            });
+
+            function openShareModal(materialType = 'folder') {
                 if (shareModalOverlay) {
                     shareModalOverlay.classList.add('visible');
                     loadStudyGroupsForSharing();
-                    
-                    // Debug: Check if form elements are accessible
-                    const titleInput = document.getElementById('folder-title');
-                    const descInput = document.getElementById('folder-description');
-                    const tagsInput = document.getElementById('folder-tags');
-                    
-                    console.log('Title input:', titleInput);
-                    console.log('Description input:', descInput);
-                    console.log('Tags input:', tagsInput);
-                    
-                    // Test if inputs are disabled
-                    if (titleInput) {
-                        console.log('Title input disabled:', titleInput.disabled);
-                        console.log('Title input readonly:', titleInput.readOnly);
-                    }
+                    setupMaterialSelection(materialType);
                 }
             }
 
@@ -10111,42 +10195,85 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 }
             }
 
-            // Handle share folder form submission
+            // Setup material selection based on type
+            async function setupMaterialSelection(materialType) {
+                const materialTypeInput = document.getElementById('material-type');
+                const materialSelect = document.getElementById('material-select');
+                const materialSelectLabel = document.getElementById('material-select-label');
+                const shareModalTitle = document.getElementById('share-modal-title');
+                const materialTitle = document.getElementById('material-title');
+                const materialDescription = document.getElementById('material-description');
+
+                // Set the material type
+                materialTypeInput.value = materialType;
+
+                // Update modal title and labels
+                const materialTypeNames = {
+                    folder: 'Folder',
+                    note: 'Note',
+                    flashcards: 'Flashcards',
+                    quiz: 'Quiz',
+                    cheat_sheet: 'Cheat Sheet',
+                    lecture_notes: 'Lecture Notes'
+                };
+
+                const typeName = materialTypeNames[materialType] || 'Material';
+                shareModalTitle.textContent = `Share ${typeName}`;
+                materialSelectLabel.textContent = `Select ${typeName} to Share`;
+
+                // Clear and populate the select dropdown
+                materialSelect.innerHTML = '<option value="" disabled selected>-- Choose ' + typeName.toLowerCase() + ' --</option>';
+
+                try {
+                    // Fetch materials based on type
+                    const response = await fetch(`/api/materials/${materialType}`);
+                    const result = await response.json();
+
+                    if (result.success && result.materials) {
+                        result.materials.forEach(material => {
+                            const option = document.createElement('option');
+                            option.value = material.id;
+                            option.dataset.hubId = material.hub_id;
+                            option.textContent = `${material.hub_name} / ${material.title}`;
+                            materialSelect.appendChild(option);
+                        });
+
+                        // Auto-fill title when selection changes
+                        materialSelect.addEventListener('change', () => {
+                            const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+                            if (selectedOption && selectedOption.textContent !== materialSelect.options[0].textContent) {
+                                const materialName = selectedOption.textContent.split(' / ')[1];
+                                materialTitle.value = materialName;
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading materials:', error);
+                    materialSelect.innerHTML += '<option value="" disabled>Error loading materials</option>';
+                }
+            }
+
+            // Handle share material form submission
             if (shareForm) {
                 shareForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
                     const formData = new FormData(e.target);
-                    const folderId = formData.get('folder_id');
+                    const materialType = formData.get('material_type');
+                    const materialId = formData.get('material_id');
                     const title = formData.get('title');
                     const description = formData.get('description');
                     const tags = formData.get('tags');
                     const shareDestination = formData.get('share_destination');
                     const studyGroupId = formData.get('study_group_id');
 
-                    // Get hub_id from selected folder
-                    const folderSelect = document.getElementById('folder-select');
-                    const selectedOption = folderSelect.options[folderSelect.selectedIndex];
-                    const hubId = selectedOption.getAttribute('data-hub-id');
-                    
-                    // Debug: Check if hub_id was found
-                    console.log('Selected option:', selectedOption);
-                    console.log('Hub ID from data-hub-id:', hubId);
-                    console.log('All data attributes:', selectedOption.dataset);
-
-                    // Debug: Log all form values
-                    console.log('Form validation debug:');
-                    console.log('folderId:', folderId);
-                    console.log('title:', title);
-                    console.log('description:', description);
-                    console.log('hubId:', hubId);
-                    console.log('tags:', tags);
-                    console.log('shareDestination:', shareDestination);
-                    console.log('studyGroupId:', studyGroupId);
+                    // Get hub_id from selected material
+                    const materialSelect = document.getElementById('material-select');
+                    const selectedOption = materialSelect.options[materialSelect.selectedIndex];
+                    const hubId = selectedOption.dataset.hubId;
 
                     // Validate form
-                    if (!folderId || !title || !description || !hubId) {
-                        console.log('Validation failed - missing required fields');
+                    if (!materialType || !materialId || !title || !description || !hubId) {
                         showWarning('Please fill in all required fields.');
                         return;
                     }
@@ -10156,10 +10283,10 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                         return;
                     }
 
-                    // Debug: Log the data being sent
+                    // Prepare share data
                     const shareData = {
-                        resource_type: 'folder',
-                        resource_id: folderId,
+                        resource_type: materialType,
+                        resource_id: materialId,
                         hub_id: hubId,
                         title: title,
                         description: description,
@@ -10189,21 +10316,22 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                             
                             // Show success modal
                             const destination = shareDestination === 'study_group' ? 'study group' : 'global community';
+                            const materialTypeName = shareData.resource_type.charAt(0).toUpperCase() + shareData.resource_type.slice(1);
                             showSuccessModal(
                                 'Successfully Uploaded!',
-                                `Your folder has been shared to the ${destination}.`,
+                                `Your ${materialTypeName.toLowerCase()} has been shared to the ${destination}.`,
                                 () => {
                                     // Optional callback after modal closes
                                     console.log('Success modal closed');
                                 }
                             );
                         } else {
-                            showError(result.message || 'Error sharing folder. Please try again.');
+                            showError(result.message || 'Error sharing material. Please try again.');
                         }
                         
                     } catch (error) {
-                        console.error('Error sharing folder:', error);
-                        showError('Error sharing folder. Please try again.');
+                        console.error('Error sharing material:', error);
+                        showError('Error sharing material. Please try again.');
                     }
                 });
             }
@@ -10220,7 +10348,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             }
 
             // Cancel button
-            const cancelShareBtn = document.getElementById('cancel-share-folder');
+            const cancelShareBtn = document.getElementById('cancel-share-material');
             if (cancelShareBtn) {
                 cancelShareBtn.addEventListener('click', () => {
                     shareModalOverlay.classList.remove('visible');
@@ -10242,16 +10370,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 });
             }
 
-            if (shareFolderBtn) {
-                shareFolderBtn.addEventListener('click', openShareModal);
-                console.log('Share folder button event listener added');
-            } else {
-                console.error('Share folder button not found');
-            }
-
-            if (shareFolderBtnEmpty) {
-                shareFolderBtnEmpty.addEventListener('click', openShareModal);
-            }
+            // Old share folder button references removed - now handled by dropdown
 
             // Import Resource Modal Event Listeners
             const importModal = document.getElementById('import-resource-modal');
