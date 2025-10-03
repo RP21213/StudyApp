@@ -689,6 +689,8 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 0.5rem;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .stat-label {
@@ -1017,6 +1019,8 @@
             margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
+            opacity: 1;
+            transform: translateY(0);
             box-shadow: var(--shadow-xl);
             display: flex;
             align-items: center;
@@ -1096,6 +1100,8 @@
             transition: all var(--transition-normal);
             position: relative;
             border: 2px solid transparent;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .pricing-card:hover {
@@ -1265,6 +1271,8 @@
         .pricing-footer {
             text-align: center;
             margin-top: 3rem;
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .guarantee {
@@ -2653,8 +2661,17 @@
             });
         });
 
-        // Initialize GSAP animations
-        gsap.registerPlugin(ScrollTrigger);
+        // Initialize GSAP animations with error handling
+        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+            gsap.registerPlugin(ScrollTrigger);
+        } else {
+            console.warn('GSAP or ScrollTrigger not loaded, animations will be skipped');
+            // Ensure elements are visible even without GSAP
+            document.querySelectorAll('.pricing-card, .referral-banner, .pricing-footer, .stat-number').forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            });
+        }
 
         // Demo Video Functionality (only run if elements exist)
         const videoPlayer = document.querySelector('.video-player');
@@ -2853,67 +2870,105 @@
             }
         });
 
-        // Pricing section animations
-        gsap.from('.referral-banner', {
-            duration: 0.8,
-            y: 50,
-            opacity: 0,
-            ease: 'power3.out',
-            scrollTrigger: {
-                trigger: '.pricing',
-                start: 'top 80%',
-                end: 'bottom 20%',
-                toggleActions: 'play none none reverse'
-            }
-        });
-
-        gsap.from('.pricing-card', {
-            duration: 1,
-            y: 80,
-            opacity: 0,
-            stagger: 0.2,
-            ease: 'power3.out',
-            scrollTrigger: {
-                trigger: '.pricing-grid',
-                start: 'top 85%',
-                end: 'bottom 15%',
-                toggleActions: 'play none none reverse'
-            }
-        });
-
-        gsap.from('.pricing-footer', {
-            duration: 0.8,
-            y: 30,
-            opacity: 0,
-            ease: 'power3.out',
-            scrollTrigger: {
-                trigger: '.pricing-footer',
-                start: 'top 90%',
-                end: 'bottom 10%',
-                toggleActions: 'play none none reverse'
-            }
-        });
-
-        // Stats counter animation
-        gsap.utils.toArray('.stat-number').forEach(stat => {
-            const text = stat.textContent;
-            const number = parseInt(text.replace(/\D/g, ''));
-            const suffix = text.replace(/\d/g, '');
-            
-            gsap.from(stat, {
-                duration: 2,
-                innerText: 0,
-                snap: { innerText: 1 },
-                ease: 'power2.out',
-                onUpdate: function() {
-                    stat.textContent = Math.ceil(stat.innerText) + suffix;
-                },
+        // Pricing section animations (only if GSAP is available)
+        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+            gsap.from('.referral-banner', {
+                duration: 0.8,
+                y: 50,
+                opacity: 0,
+                ease: 'power3.out',
                 scrollTrigger: {
-                    trigger: stat,
-                    start: 'top 80%'
+                    trigger: '.pricing',
+                    start: 'top 80%',
+                    end: 'bottom 20%',
+                    toggleActions: 'play none none reverse'
                 }
             });
-        });
+
+            gsap.from('.pricing-card', {
+                duration: 1,
+                y: 80,
+                opacity: 0,
+                stagger: 0.2,
+                ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: '.pricing-grid',
+                    start: 'top 85%',
+                    end: 'bottom 15%',
+                    toggleActions: 'play none none reverse'
+                }
+            });
+
+            gsap.from('.pricing-footer', {
+                duration: 0.8,
+                y: 30,
+                opacity: 0,
+                ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: '.pricing-footer',
+                    start: 'top 90%',
+                    end: 'bottom 10%',
+                    toggleActions: 'play none none reverse'
+                }
+            });
+        }
+
+        // Stats counter animation (only if GSAP is available)
+        if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+            gsap.utils.toArray('.stat-number').forEach(stat => {
+                const text = stat.textContent;
+                const number = parseInt(text.replace(/\D/g, ''));
+                const suffix = text.replace(/\d/g, '');
+                
+                gsap.from(stat, {
+                    duration: 2,
+                    innerText: 0,
+                    snap: { innerText: 1 },
+                    ease: 'power2.out',
+                    onUpdate: function() {
+                        stat.textContent = Math.ceil(stat.innerText) + suffix;
+                    },
+                    scrollTrigger: {
+                        trigger: stat,
+                        start: 'top 80%'
+                    }
+                });
+            });
+        } else {
+            // Fallback animation for stats counter without GSAP
+            function animateStats() {
+                document.querySelectorAll('.stat-number').forEach(stat => {
+                    const text = stat.textContent;
+                    const number = parseInt(text.replace(/\D/g, ''));
+                    const suffix = text.replace(/\d/g, '');
+                    
+                    let current = 0;
+                    const increment = number / 60; // 60 frames for smooth animation
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= number) {
+                            current = number;
+                            clearInterval(timer);
+                        }
+                        stat.textContent = Math.ceil(current) + suffix;
+                    }, 16); // ~60fps
+                });
+            }
+            
+            // Start animation when stats come into view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateStats();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.stat-item').forEach(item => {
+                observer.observe(item);
+            });
+        }
 
         // Typing animation
         const words = ['games', 'flashcards', 'notes', 'quizzes', 'summaries', 'tests'];
