@@ -49,6 +49,8 @@ class User(UserMixin):
                  background_preference='default',
                  # --- NEW: Fields for Spotify ---
                  spotify_access_token=None, spotify_refresh_token=None, spotify_token_expires_at=None,
+                 # --- NEW: Fields for Google Drive ---
+                 google_access_token=None, google_refresh_token=None, google_token_expires_at=None,
                  # --- NEW: Onboarding Fields ---
                  has_completed_onboarding=False,
                  referral_source=None, goals=None, email_opt_in=False, theme_preference='light',
@@ -84,6 +86,11 @@ class User(UserMixin):
         self.spotify_access_token = spotify_access_token
         self.spotify_refresh_token = spotify_refresh_token
         self.spotify_token_expires_at = spotify_token_expires_at
+
+        # --- NEW: Initialize Google Drive Properties ---
+        self.google_access_token = google_access_token
+        self.google_refresh_token = google_refresh_token
+        self.google_token_expires_at = google_token_expires_at
 
         # --- NEW: Onboarding Properties ---
         self.has_completed_onboarding = has_completed_onboarding
@@ -132,6 +139,10 @@ class User(UserMixin):
             'spotify_access_token': self.spotify_access_token,
             'spotify_refresh_token': self.spotify_refresh_token,
             'spotify_token_expires_at': self.spotify_token_expires_at,
+            # --- NEW: Add Google Drive to dict for Firestore ---
+            'google_access_token': self.google_access_token,
+            'google_refresh_token': self.google_refresh_token,
+            'google_token_expires_at': self.google_token_expires_at,
             # --- NEW: Onboarding to dict ---
             'has_completed_onboarding': self.has_completed_onboarding,
             'referral_source': self.referral_source,
@@ -178,6 +189,10 @@ class User(UserMixin):
             spotify_access_token=source.get('spotify_access_token'),
             spotify_refresh_token=source.get('spotify_refresh_token'),
             spotify_token_expires_at=source.get('spotify_token_expires_at'),
+            # --- NEW: Retrieve Google Drive from dict ---
+            google_access_token=source.get('google_access_token'),
+            google_refresh_token=source.get('google_refresh_token'),
+            google_token_expires_at=source.get('google_token_expires_at'),
             # --- NEW: Onboarding from dict ---
             has_completed_onboarding=source.get('has_completed_onboarding', False),
             referral_source=source.get('referral_source'),

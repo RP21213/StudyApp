@@ -60,6 +60,13 @@ from icalendar import Calendar
 from werkzeug.utils import secure_filename
 import uuid
 
+# --- NEW: Imports for Google Drive API ---
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request
+import pickle
+
 
 # --- UPDATED: Import the new models, including Lecture ---
 from models import Hub, Activity, Note, Lecture
@@ -199,6 +206,12 @@ SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
+
+# --- NEW: Google Drive API Configuration ---
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:5000/google/callback")
+GOOGLE_SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 
 # --- NEW: Twilio Configuration ---
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
@@ -2224,6 +2237,233 @@ def get_audio_features(track_id):
 def get_currently_playing():
     """Get currently playing track with full details"""
     return spotify_api_request('GET', 'me/player/currently-playing')
+
+# ==============================================================================
+# 4.5. GOOGLE DRIVE AUTH & API ROUTES
+# ==============================================================================
+
+def get_valid_google_token():
+    """Checks if the current user's Google token is valid, refreshes if not, and returns a valid token."""
+    if not current_user.is_authenticated or not current_user.google_refresh_token:
+        return None
+
+    # Check if the token is expired or expires within the next 60 seconds
+    if not current_user.google_token_expires_at or current_user.google_token_expires_at <= datetime.now(timezone.utc) + timedelta(seconds=60):
+        try:
+            credentials = Credentials(
+                token=current_user.google_access_token,
+                refresh_token=current_user.google_refresh_token,
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=GOOGLE_CLIENT_ID,
+                client_secret=GOOGLE_CLIENT_SECRET
+            )
+            
+            # Refresh the token
+            request_obj = Request()
+            credentials.refresh(request_obj)
+            
+            # Update user's tokens in database
+            user_ref = db.collection('users').document(current_user.id)
+            user_ref.update({
+                'google_access_token': credentials.token,
+                'google_token_expires_at': datetime.now(timezone.utc) + timedelta(seconds=credentials.expiry.total_seconds() - datetime.now(timezone.utc).timestamp())
+            })
+            
+            return credentials.token
+        except Exception as e:
+            print(f"Error refreshing Google token: {e}")
+            return None
+    
+    return current_user.google_access_token
+
+def google_connected(f):
+    """Decorator to check if user is connected to Google Drive"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.google_access_token:
+            return jsonify({"success": False, "error": "Please connect your Google Drive account first."}), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/google/login')
+@login_required
+def google_login():
+    """Initiate Google Drive OAuth flow"""
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [GOOGLE_REDIRECT_URI]
+            }
+        },
+        scopes=GOOGLE_SCOPES
+    )
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true'
+    )
+    
+    # Store state in session for security
+    session['google_oauth_state'] = state
+    
+    return redirect(authorization_url)
+
+@app.route('/google/callback')
+@login_required
+def google_callback():
+    """Handle Google Drive OAuth callback"""
+    state = request.args.get('state')
+    code = request.args.get('code')
+    error = request.args.get('error')
+
+    if error:
+        flash(f"Google Drive connection failed: {error}", "error")
+        return redirect(url_for('dashboard'))
+
+    if state != session.get('google_oauth_state'):
+        flash("Invalid state parameter", "error")
+        return redirect(url_for('dashboard'))
+
+    try:
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "redirect_uris": [GOOGLE_REDIRECT_URI]
+                }
+            },
+            scopes=GOOGLE_SCOPES
+        )
+        flow.redirect_uri = GOOGLE_REDIRECT_URI
+        
+        # Exchange code for token
+        flow.fetch_token(code=code)
+        credentials = flow.credentials
+        
+        # Update user's Google tokens in database
+        user_ref = db.collection('users').document(current_user.id)
+        user_ref.update({
+            'google_access_token': credentials.token,
+            'google_refresh_token': credentials.refresh_token,
+            'google_token_expires_at': datetime.now(timezone.utc) + timedelta(seconds=credentials.expiry.total_seconds() - datetime.now(timezone.utc).timestamp())
+        })
+        
+        flash("Successfully connected your Google Drive account!", "success")
+        return redirect(url_for('dashboard'))
+        
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        flash("Failed to connect Google Drive account", "error")
+        return redirect(url_for('dashboard'))
+
+@app.route('/google/files')
+@login_required
+@google_connected
+def get_google_files():
+    """Get Google Drive files (Docs and Slides)"""
+    try:
+        credentials = Credentials(
+            token=get_valid_google_token(),
+            refresh_token=current_user.google_refresh_token,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET
+        )
+        
+        service = build('drive', 'v3', credentials=credentials)
+        
+        # Query for Google Docs and Slides
+        query = "mimeType='application/vnd.google-apps.document' or mimeType='application/vnd.google-apps.presentation'"
+        results = service.files().list(
+            q=query,
+            fields="files(id,name,mimeType,modifiedTime,size)",
+            orderBy="modifiedTime desc"
+        ).execute()
+        
+        files = results.get('files', [])
+        return jsonify({"success": True, "files": files})
+        
+    except Exception as e:
+        print(f"Error fetching Google files: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/google/import/<file_id>')
+@login_required
+@google_connected
+def import_google_file(file_id):
+    """Import a Google Doc or Slide to the current hub"""
+    try:
+        credentials = Credentials(
+            token=get_valid_google_token(),
+            refresh_token=current_user.google_refresh_token,
+            token_uri="https://oauth2.googleapis.com/token",
+            client_id=GOOGLE_CLIENT_ID,
+            client_secret=GOOGLE_CLIENT_SECRET
+        )
+        
+        service = build('drive', 'v3', credentials=credentials)
+        
+        # Get file metadata
+        file_metadata = service.files().get(fileId=file_id).execute()
+        file_name = file_metadata.get('name')
+        mime_type = file_metadata.get('mimeType')
+        
+        # Export file content based on type
+        if mime_type == 'application/vnd.google-apps.document':
+            # Export as DOCX
+            content = service.files().export(fileId=file_id, mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document').execute()
+            file_extension = '.docx'
+        elif mime_type == 'application/vnd.google-apps.presentation':
+            # Export as PPTX
+            content = service.files().export(fileId=file_id, mimeType='application/vnd.openxmlformats-officedocument.presentationml.presentation').execute()
+            file_extension = '.pptx'
+        else:
+            return jsonify({"success": False, "error": "Unsupported file type"}), 400
+        
+        # Upload to Firebase Storage
+        hub_id = request.args.get('hub_id')
+        if not hub_id:
+            return jsonify({"success": False, "error": "Hub ID required"}), 400
+        
+        bucket = storage.bucket()
+        filename = f"google_{file_id}_{file_name}{file_extension}"
+        file_path = f"hubs/{hub_id}/{filename}"
+        blob = bucket.blob(file_path)
+        
+        blob.upload_from_string(content, content_type='application/octet-stream')
+        
+        # Add to hub files
+        file_info = {
+            'name': f"{file_name}{file_extension}",
+            'path': file_path,
+            'size': len(content),
+            'source': 'google_drive',
+            'google_file_id': file_id
+        }
+        
+        db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
+        
+        # Invalidate vector store cache
+        if hub_id in vector_store_cache:
+            del vector_store_cache[hub_id]
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully imported {file_name}",
+            "file_info": file_info
+        })
+        
+    except Exception as e:
+        print(f"Error importing Google file: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # --- Homepage and Auth Routes ---
 @app.route("/")
@@ -8989,29 +9229,67 @@ def find_articles_for_assignment(hub_id):
         print(f"Error finding articles: {e}")
         return jsonify({"success": False, "message": "Failed to find articles"}), 500
 
+def get_document_text_by_id(doc_id):
+    """Get document text and title by document ID"""
+    try:
+        # Try to find document in notes collection
+        note_doc = db.collection('notes').document(doc_id).get()
+        if note_doc.exists:
+            note_data = note_doc.to_dict()
+            return note_data.get('content', ''), note_data.get('title', 'Untitled Note')
+        
+        # Try to find document in activities collection
+        activity_doc = db.collection('activities').document(doc_id).get()
+        if activity_doc.exists:
+            activity_data = activity_doc.to_dict()
+            # Get content based on activity type
+            if activity_data.get('type') == 'flashcards':
+                content = activity_data.get('content', '')
+            elif activity_data.get('type') == 'quiz':
+                content = activity_data.get('content', '')
+            elif activity_data.get('type') == 'cheat_sheet':
+                content = activity_data.get('content', '')
+            else:
+                content = activity_data.get('content', '')
+            return content, activity_data.get('title', 'Untitled Activity')
+        
+        # Try to find document in annotated_slide_decks collection
+        slide_doc = db.collection('annotated_slide_decks').document(doc_id).get()
+        if slide_doc.exists:
+            slide_data = slide_doc.to_dict()
+            return slide_data.get('content', ''), slide_data.get('title', 'Untitled Lecture Notes')
+        
+        return None, None
+        
+    except Exception as e:
+        print(f"Error getting document text by ID: {e}")
+        return None, None
+
 @app.route('/hub/<hub_id>/assignment-helper/generate-citations', methods=['POST'])
 @login_required
 def generate_citations_for_assignment(hub_id):
     """Generate citations for an assignment"""
     try:
-        # Get uploaded files
+        # Get uploaded assignment file
         assignment_file = request.files.get('assignment_file')
-        research_papers = request.files.getlist('research_papers')
+        research_document_ids = request.form.getlist('research_document_ids')
         url_links = request.form.get('url_links', '')
         citation_style = request.form.get('citation_style', 'apa')
         
-        if not assignment_file or not research_papers:
+        if not assignment_file or not research_document_ids:
             return jsonify({"success": False, "message": "Assignment file and research papers are required"}), 400
         
         # Process assignment file
         assignment_text = extract_text_from_file(assignment_file)
         
-        # Process research papers
+        # Process research papers from hub documents
         research_sources = []
-        for paper in research_papers:
-            paper_text = extract_text_from_file(paper)
-            source_info = extract_source_metadata(paper_text, paper.filename)
-            research_sources.append(source_info)
+        for doc_id in research_document_ids:
+            # Get document from database
+            doc_text, doc_title = get_document_text_by_id(doc_id)
+            if doc_text:
+                source_info = extract_source_metadata(doc_text, doc_title)
+                research_sources.append(source_info)
         
         # Process URL links
         url_sources = []
@@ -9108,6 +9386,66 @@ def get_materials_by_type(material_type):
     except Exception as e:
         print(f"Error getting materials of type {material_type}: {e}")
         return jsonify({"success": False, "message": f"Failed to get {material_type} materials"}), 500
+
+@app.route('/api/hub/<hub_id>/documents', methods=['GET'])
+@login_required
+def get_hub_documents(hub_id):
+    """Get all documents from a specific hub"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"success": False, "message": "User not authenticated"}), 401
+        
+        # Verify user has access to this hub
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found"}), 404
+        
+        hub_data = hub_doc.to_dict()
+        if hub_data.get('user_id') != user_id:
+            return jsonify({"success": False, "message": "Access denied"}), 403
+        
+        documents = []
+        
+        # Get all notes from this hub
+        notes = db.collection('notes').where('hub_id', '==', hub_id).where('user_id', '==', user_id).stream()
+        for note in notes:
+            note_data = note.to_dict()
+            documents.append({
+                'id': note.id,
+                'title': note_data.get('title', 'Untitled Note'),
+                'type': 'Note',
+                'hub_name': hub_data.get('name', 'Unknown Hub')
+            })
+        
+        # Get all activities from this hub
+        activities = db.collection('activities').where('hub_id', '==', hub_id).where('user_id', '==', user_id).stream()
+        for activity in activities:
+            activity_data = activity.to_dict()
+            activity_type = activity_data.get('type', 'activity')
+            documents.append({
+                'id': activity.id,
+                'title': activity_data.get('title', 'Untitled Activity'),
+                'type': activity_type.title(),
+                'hub_name': hub_data.get('name', 'Unknown Hub')
+            })
+        
+        # Get all annotated slide decks from this hub
+        slide_decks = db.collection('annotated_slide_decks').where('hub_id', '==', hub_id).where('user_id', '==', user_id).stream()
+        for slide_deck in slide_decks:
+            slide_deck_data = slide_deck.to_dict()
+            documents.append({
+                'id': slide_deck.id,
+                'title': slide_deck_data.get('title', 'Untitled Lecture Notes'),
+                'type': 'Lecture Notes',
+                'hub_name': hub_data.get('name', 'Unknown Hub')
+            })
+        
+        return jsonify({"success": True, "documents": documents})
+        
+    except Exception as e:
+        print(f"Error fetching hub documents: {e}")
+        return jsonify({"success": False, "message": "Failed to fetch documents"}), 500
 
 @app.route('/api/resources/<resource_id>/import', methods=['POST'])
 @login_required
