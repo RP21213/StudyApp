@@ -5529,6 +5529,135 @@
             function openAssignmentHelperModal() {
                 assignmentHelperModal.style.display = 'flex';
                 showHelperOptions();
+                
+                // Set up event listeners for helper options when modal opens
+                setupAssignmentHelperEventListeners();
+            }
+            
+            function setupAssignmentHelperEventListeners() {
+                // Remove any existing listeners first
+                const helperOptions = document.querySelectorAll('.helper-option');
+                helperOptions.forEach(option => {
+                    option.replaceWith(option.cloneNode(true));
+                });
+                
+                // Add fresh event listeners for helper options
+                const freshHelperOptions = document.querySelectorAll('.helper-option');
+                freshHelperOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const optionType = this.dataset.option;
+                        if (optionType === 'find-articles') {
+                            showFindArticlesPanel();
+                        } else if (optionType === 'citations') {
+                            showCitationsPanel();
+                        }
+                    });
+                });
+                
+                // Set up form event listeners
+                setupAssignmentHelperFormListeners();
+            }
+            
+            function setupAssignmentHelperFormListeners() {
+                // Find Articles Form
+                const findArticlesForm = document.getElementById('find-articles-form');
+                if (findArticlesForm) {
+                    // Remove existing listener
+                    findArticlesForm.replaceWith(findArticlesForm.cloneNode(true));
+                    const freshForm = document.getElementById('find-articles-form');
+                    
+                    freshForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const form = e.target;
+                        
+                        const formData = {
+                            assignment_title: form.querySelector('#assignment-title').value,
+                            assignment_description: form.querySelector('#assignment-description').value,
+                            subject_area: form.querySelector('#subject-area').value
+                        };
+                        
+                        if (!formData.assignment_title.trim()) {
+                            showError('Please enter an assignment title');
+                            return;
+                        }
+                        
+                        showLoading('Finding relevant articles...');
+                        
+                        try {
+                            const response = await fetch(`/hub/${hubId}/assignment-helper/find-articles`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(formData)
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                showResultsPanel('Research Articles Found');
+                                displayArticleResults(result.articles);
+                                hideLoading();
+                            } else {
+                                showError(`Error: ${result.message}`);
+                                hideLoading();
+                            }
+                        } catch (error) {
+                            showError('A network or server error occurred.');
+                            hideLoading();
+                        }
+                    });
+                }
+                
+                // Citations Form
+                const citationsForm = document.getElementById('citations-form');
+                if (citationsForm) {
+                    // Remove existing listener
+                    citationsForm.replaceWith(citationsForm.cloneNode(true));
+                    const freshCitationsForm = document.getElementById('citations-form');
+                    
+                    freshCitationsForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const form = e.target;
+                        
+                        const formData = new FormData();
+                        formData.append('assignment_file', form.querySelector('#assignment-file').files[0]);
+                        formData.append('citation_style', form.querySelector('#citation-style').value);
+                        formData.append('url_links', form.querySelector('#url-links').value);
+                        
+                        // Add research papers
+                        const researchFiles = form.querySelector('#research-papers').files;
+                        for (let i = 0; i < researchFiles.length; i++) {
+                            formData.append('research_papers', researchFiles[i]);
+                        }
+                        
+                        if (!formData.get('assignment_file') && !formData.get('url_links')) {
+                            showError('Please upload an assignment file or provide URL links');
+                            return;
+                        }
+                        
+                        showLoading('Generating citations...');
+                        
+                        try {
+                            const response = await fetch(`/hub/${hubId}/assignment-helper/generate-citations`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            const result = await response.json();
+                            
+                            if (result.success) {
+                                showResultsPanel('Citations Generated');
+                                displayCitationResults(result.citations);
+                                hideLoading();
+                            } else {
+                                showError(`Error: ${result.message}`);
+                                hideLoading();
+                            }
+                        } catch (error) {
+                            showError('A network or server error occurred.');
+                            hideLoading();
+                        }
+                    });
+                }
             }
 
             function showHelperOptions() {
@@ -5560,93 +5689,7 @@
                 document.getElementById('results-title').textContent = title;
             }
 
-            // Event listeners for helper options
-            document.addEventListener('DOMContentLoaded', function() {
-                const helperOptions = document.querySelectorAll('.helper-option');
-                helperOptions.forEach(option => {
-                    option.addEventListener('click', function() {
-                        const optionType = this.dataset.option;
-                        if (optionType === 'find-articles') {
-                            showFindArticlesPanel();
-                        } else if (optionType === 'citations') {
-                            showCitationsPanel();
-                        }
-                    });
-                });
-
-                // Find Articles Form
-                document.getElementById('find-articles-form')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const form = e.target;
-                    const formData = new FormData(form);
-                    
-                    const data = {
-                        title: formData.get('title'),
-                        description: formData.get('description'),
-                        subject: formData.get('subject')
-                    };
-
-                    if (!data.title.trim()) {
-                        showWarning('Please enter an assignment title.');
-                        return;
-                    }
-
-                    showLoading("Finding Research Articles...", "AI is searching for relevant academic sources.");
-                    
-                    try {
-                        const response = await fetch(`/hub/${hubId}/assignment-helper/find-articles`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-                        
-                        const result = await response.json();
-                        hideLoading();
-                        
-                        if (result.success) {
-                            displayArticleResults(result.articles);
-                        } else {
-                            showError(result.message || 'Failed to find articles');
-                        }
-                    } catch (error) {
-                        hideLoading();
-                        showError('A network or server error occurred.');
-                    }
-                });
-
-                // Citations Form
-                document.getElementById('citations-form')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const form = e.target;
-                    const formData = new FormData(form);
-                    
-                    if (!formData.get('assignment_file') || !formData.get('research_papers')) {
-                        showWarning('Please upload your assignment and research papers.');
-                        return;
-                    }
-
-                    showLoading("Generating Citations...", "AI is analyzing your documents and generating citations.");
-                    
-                    try {
-                        const response = await fetch(`/hub/${hubId}/assignment-helper/generate-citations`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        
-                        const result = await response.json();
-                        hideLoading();
-                        
-                        if (result.success) {
-                            displayCitationResults(result.citations);
-                        } else {
-                            showError(result.message || 'Failed to generate citations');
-                        }
-                    } catch (error) {
-                        hideLoading();
-                        showError('A network or server error occurred.');
-                    }
-                });
-            });
+            // Event listeners for helper options (now set up when modal opens)
 
             function displayArticleResults(articles) {
                 showResultsPanel('Research Articles Found');
