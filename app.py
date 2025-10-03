@@ -6595,6 +6595,196 @@ def edit_flashcards(activity_id):
         print(f"Error updating flashcard set {activity_id}: {e}")
         return jsonify({"success": False, "message": "An error occurred."}), 500
 
+# ==============================================================================
+# CREATE NOTES, FLASHCARDS, AND QUIZZES ROUTES
+# ==============================================================================
+
+@app.route("/hub/<hub_id>/create_note", methods=["POST"])
+@login_required
+def create_note(hub_id):
+    """Create a new note with user-provided content."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found."}), 404
+        
+        hub_data = hub_doc.to_dict()
+        if hub_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized."}), 403
+        
+        data = request.get_json()
+        title = data.get('title', '').strip()
+        content = data.get('content', '').strip()
+        
+        if not title or not content:
+            return jsonify({"success": False, "message": "Title and content are required."}), 400
+        
+        # Convert content to HTML (basic conversion)
+        content_html = content.replace('\n', '<br>')
+        
+        # Create new note
+        note_ref = db.collection('notes').document()
+        new_note = Note(
+            id=note_ref.id,
+            hub_id=hub_id,
+            title=title,
+            content_html=content_html,
+            created_at=datetime.now(timezone.utc)
+        )
+        
+        note_ref.set(new_note.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "message": "Note created successfully!",
+            "note_id": note_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error creating note: {e}")
+        return jsonify({"success": False, "message": "Failed to create note."}), 500
+
+@app.route("/hub/<hub_id>/create_flashcard_set", methods=["POST"])
+@login_required
+def create_flashcard_set(hub_id):
+    """Create a new flashcard set with user-provided cards."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found."}), 404
+        
+        hub_data = hub_doc.to_dict()
+        if hub_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized."}), 403
+        
+        data = request.get_json()
+        title = data.get('title', '').strip()
+        cards_data = data.get('cards', [])
+        
+        if not title:
+            return jsonify({"success": False, "message": "Title is required."}), 400
+        
+        if not cards_data or len(cards_data) == 0:
+            return jsonify({"success": False, "message": "At least one flashcard is required."}), 400
+        
+        # Validate cards
+        valid_cards = []
+        for card in cards_data:
+            front = card.get('front', '').strip()
+            back = card.get('back', '').strip()
+            if front and back:
+                valid_cards.append({'front': front, 'back': back})
+        
+        if not valid_cards:
+            return jsonify({"success": False, "message": "All flashcards must have both front and back content."}), 400
+        
+        # Create new flashcard activity
+        activity_ref = db.collection('activities').document()
+        new_flashcard_set = Activity(
+            id=activity_ref.id,
+            hub_id=hub_id,
+            type='Flashcards',
+            title=title,
+            data={'cards': valid_cards},
+            status='completed',
+            created_at=datetime.now(timezone.utc)
+        )
+        
+        activity_ref.set(new_flashcard_set.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "message": "Flashcard set created successfully!",
+            "activity_id": activity_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error creating flashcard set: {e}")
+        return jsonify({"success": False, "message": "Failed to create flashcard set."}), 500
+
+@app.route("/hub/<hub_id>/create_quiz", methods=["POST"])
+@login_required
+def create_quiz(hub_id):
+    """Create a new quiz with user-provided questions."""
+    try:
+        # Verify hub ownership
+        hub_doc = db.collection('hubs').document(hub_id).get()
+        if not hub_doc.exists:
+            return jsonify({"success": False, "message": "Hub not found."}), 404
+        
+        hub_data = hub_doc.to_dict()
+        if hub_data.get('user_id') != current_user.id:
+            return jsonify({"success": False, "message": "Unauthorized."}), 403
+        
+        data = request.get_json()
+        title = data.get('title', '').strip()
+        questions_data = data.get('questions', [])
+        
+        if not title:
+            return jsonify({"success": False, "message": "Title is required."}), 400
+        
+        if not questions_data or len(questions_data) == 0:
+            return jsonify({"success": False, "message": "At least one question is required."}), 400
+        
+        # Validate questions
+        valid_questions = []
+        for question_data in questions_data:
+            question_text = question_data.get('question', '').strip()
+            options = question_data.get('options', [])
+            correct = question_data.get('correct')
+            
+            if not question_text:
+                continue
+                
+            if len(options) != 4:
+                return jsonify({"success": False, "message": "Each question must have exactly 4 options."}), 400
+            
+            if correct is None or correct < 0 or correct > 3:
+                return jsonify({"success": False, "message": "Each question must have a correct answer selected."}), 400
+            
+            # Validate all options have content
+            valid_options = []
+            for option in options:
+                option_text = option.strip()
+                if not option_text:
+                    return jsonify({"success": False, "message": "All options must have content."}), 400
+                valid_options.append(option_text)
+            
+            valid_questions.append({
+                'question': question_text,
+                'options': valid_options,
+                'correct': int(correct)
+            })
+        
+        if not valid_questions:
+            return jsonify({"success": False, "message": "No valid questions provided."}), 400
+        
+        # Create new quiz activity
+        activity_ref = db.collection('activities').document()
+        new_quiz = Activity(
+            id=activity_ref.id,
+            hub_id=hub_id,
+            type='Quiz',
+            title=title,
+            data={'questions': valid_questions},
+            status='pending',
+            created_at=datetime.now(timezone.utc)
+        )
+        
+        activity_ref.set(new_quiz.to_dict())
+        
+        return jsonify({
+            "success": True, 
+            "message": "Quiz created successfully!",
+            "activity_id": activity_ref.id
+        })
+        
+    except Exception as e:
+        print(f"Error creating quiz: {e}")
+        return jsonify({"success": False, "message": "Failed to create quiz."}), 500
+
 @app.route("/delete_all_hubs")
 @login_required
 def delete_all_hubs():

@@ -686,6 +686,10 @@
         }
         .workspace-header {
             margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
         }
         .workspace-header h1 {
             font-size: 2.25rem; font-weight: 700; margin: 0;
@@ -693,6 +697,101 @@
         .workspace-header p {
             font-size: 1.1rem; color: var(--text-secondary); margin: 0.5rem 0 0 0;
             font-family: 'Lora', serif;
+        }
+        
+        /* Create button styles */
+        .create-note-btn, .create-flashcard-btn, .create-quiz-btn {
+            margin-top: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        /* Flashcard card styles */
+        .flashcard-card {
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .flashcard-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .flashcard-card-header span {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .flashcard-card-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .delete-card-btn, .delete-question-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-card-btn:hover, .delete-question-btn:hover {
+            color: var(--danger-color);
+            background-color: #fee2e2;
+        }
+        
+        /* Quiz question styles */
+        .quiz-question {
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .quiz-question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .quiz-question-header span {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .quiz-options {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .quiz-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .quiz-option input[type="radio"] {
+            margin: 0;
+        }
+        
+        .quiz-option input[type="text"] {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
         }
 
         .tab-content { display: none; }
@@ -3989,6 +4088,10 @@
                      <div class="workspace-header">
                         <h1>My Notes</h1>
                         <p>All the notes you have generated or created.</p>
+                        <button class="button button-primary create-note-btn" onclick="openCreateNoteModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                            Create Note
+                        </button>
                     </div>
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-notes"><label for="select-all-notes">Select All</label></div>
@@ -4022,6 +4125,10 @@
                     <div class="workspace-header">
                         <h1>My Flashcards</h1>
                         <p>All the flashcard sets you have generated or created.</p>
+                        <button class="button button-primary create-flashcard-btn" onclick="openCreateFlashcardModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                            Create Flashcard Set
+                        </button>
                     </div>
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-flashcards"><label for="select-all-flashcards">Select All</label></div>
@@ -4055,6 +4162,10 @@
                     <div class="workspace-header">
                         <h1>My Quizzes</h1>
                         <p>Review your completed quizzes or take new ones.</p>
+                        <button class="button button-primary create-quiz-btn" onclick="openCreateQuizModal()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+                            Create Quiz
+                        </button>
                     </div>
                     <div class="asset-list-header">
                         <div class="select-all-container"><input type="checkbox" class="select-all-checkbox" id="select-all-quizzes"><label for="select-all-quizzes">Select All</label></div>
@@ -4277,6 +4388,132 @@
     <div class="modal-overlay" id="add-items-modal"> <div class="modal-content"> <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> {% if all_notes %}<h4>Notes</h4><ul class="asset-list">{% for note in all_notes %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ note.id }}" data-type="note" style="margin-right:1rem;"> {{ note.title }}</label></li>{% endfor %}</ul>{% endif %} {% if all_quizzes_and_exams %}<h4>Quizzes</h4><ul class="asset-list">{% for quiz in all_quizzes_and_exams %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz" style="margin-right:1rem;"> {{ quiz.title }}</label></li>{% endfor %}</ul>{% endif %} </div> <div class="modal-footer"><button class="button button-secondary close-btn">Cancel</button><button class="button button-primary" id="save-added-items-btn">Add Selected Items</button></div> </div> </div>
     <div class="modal-overlay" id="schedule-event-modal"> <div class="modal-content"> <div class="modal-header"><h3>Schedule a New Session</h3><button class="close-btn">&times;</button></div> <form id="schedule-event-form"> <div class="modal-body"> <div class="form-group"><label for="event-title">Event Title</label><input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required></div> <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;"> <div><label for="event-type">Type</label><select id="event-type" name="event_type"><option>Study Session</option><option>Mock Exam</option><option>Flashcard Review</option><option>Draft Review</option><option>Custom</option></select></div> <div><label for="event-duration">Duration (minutes)</label><select id="event-duration" name="duration"><option value="20">20 mins</option><option value="40" selected>40 mins</option><option value="60">60 mins</option><option value="90">90 mins</option></select></div> </div> <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div> <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div> <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list" class="modal-file-list"></div></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div> </form> </div> </div>
     <div class="modal-overlay" id="import-ics-modal"> <div class="modal-content"> <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div> <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data"> <div class="modal-body"> <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p> <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div> </form> </div> </div>
+
+    <!-- Create Note Modal -->
+    <div class="modal-overlay" id="create-note-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Note</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="create-note-form">
+                <div class="modal-body">
+                    <p class="modal-description">Create a new note with your own content.</p>
+                    <div class="form-group">
+                        <label for="note-title">Note Title</label>
+                        <input type="text" id="note-title" name="title" placeholder="Enter note title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="note-content">Content</label>
+                        <textarea id="note-content" name="content" placeholder="Enter your note content here..." rows="10" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-secondary close-btn">Cancel</button>
+                    <button type="submit" class="button button-primary">Create Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Flashcard Set Modal -->
+    <div class="modal-overlay" id="create-flashcard-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Flashcard Set</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="create-flashcard-form">
+                <div class="modal-body">
+                    <p class="modal-description">Create a new flashcard set with your own cards.</p>
+                    <div class="form-group">
+                        <label for="flashcard-title">Flashcard Set Title</label>
+                        <input type="text" id="flashcard-title" name="title" placeholder="Enter flashcard set title" required>
+                    </div>
+                    <div id="flashcard-cards-container">
+                        <div class="flashcard-card" data-index="0">
+                            <div class="flashcard-card-header">
+                                <span>Card 1</span>
+                                <button type="button" class="delete-card-btn" onclick="removeFlashcardCard(0)" style="display: none;">&times;</button>
+                            </div>
+                            <div class="flashcard-card-fields">
+                                <div class="form-group">
+                                    <label for="card-0-front">Front</label>
+                                    <textarea id="card-0-front" name="cards[0][front]" placeholder="Question or term" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="card-0-back">Back</label>
+                                    <textarea id="card-0-back" name="cards[0][back]" placeholder="Answer or definition" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="button button-secondary" onclick="addFlashcardCard()">Add Another Card</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-secondary close-btn">Cancel</button>
+                    <button type="submit" class="button button-primary">Create Flashcard Set</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Quiz Modal -->
+    <div class="modal-overlay" id="create-quiz-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Quiz</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form id="create-quiz-form">
+                <div class="modal-body">
+                    <p class="modal-description">Create a new quiz with your own questions.</p>
+                    <div class="form-group">
+                        <label for="quiz-title">Quiz Title</label>
+                        <input type="text" id="quiz-title" name="title" placeholder="Enter quiz title" required>
+                    </div>
+                    <div id="quiz-questions-container">
+                        <div class="quiz-question" data-index="0">
+                            <div class="quiz-question-header">
+                                <span>Question 1</span>
+                                <button type="button" class="delete-question-btn" onclick="removeQuizQuestion(0)" style="display: none;">&times;</button>
+                            </div>
+                            <div class="form-group">
+                                <label for="question-0-text">Question</label>
+                                <textarea id="question-0-text" name="questions[0][question]" placeholder="Enter your question" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Options</label>
+                                <div class="quiz-options">
+                                    <div class="quiz-option">
+                                        <input type="radio" id="question-0-option-0" name="questions[0][correct]" value="0" required>
+                                        <input type="text" name="questions[0][options][0]" placeholder="Option A" required>
+                                    </div>
+                                    <div class="quiz-option">
+                                        <input type="radio" id="question-0-option-1" name="questions[0][correct]" value="1" required>
+                                        <input type="text" name="questions[0][options][1]" placeholder="Option B" required>
+                                    </div>
+                                    <div class="quiz-option">
+                                        <input type="radio" id="question-0-option-2" name="questions[0][correct]" value="2" required>
+                                        <input type="text" name="questions[0][options][2]" placeholder="Option C" required>
+                                    </div>
+                                    <div class="quiz-option">
+                                        <input type="radio" id="question-0-option-3" name="questions[0][correct]" value="3" required>
+                                        <input type="text" name="questions[0][options][3]" placeholder="Option D" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="button button-secondary" onclick="addQuizQuestion()">Add Another Question</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-secondary close-btn">Cancel</button>
+                    <button type="submit" class="button button-primary">Create Quiz</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="modal-overlay" id="event-details-modal"> <div class="modal-content"> <div class="modal-header"><h3 id="details-modal-title">Event Details</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> <strong>Time & Date</strong><p id="details-modal-time"></p> <strong>Focus / Details</strong><p id="details-modal-focus"></p> </div> <div class="modal-footer" style="justify-content: flex-end;"><a href="#" id="details-modal-export-btn" class="button button-secondary">Export .ics</a></div> </div> </div>
     
     <!-- Google Drive Modal -->
@@ -8977,6 +9214,428 @@ document.addEventListener('DOMContentLoaded', () => {
                         null,
                         'Delete'
                     );
+                }
+            });
+        });
+
+        // Create Note Modal Functions
+        function openCreateNoteModal() {
+            document.getElementById('create-note-modal').style.display = 'flex';
+        }
+
+        function closeCreateNoteModal() {
+            document.getElementById('create-note-modal').style.display = 'none';
+            document.getElementById('create-note-form').reset();
+        }
+
+        // Create Flashcard Modal Functions
+        function openCreateFlashcardModal() {
+            document.getElementById('create-flashcard-modal').style.display = 'flex';
+        }
+
+        function closeCreateFlashcardModal() {
+            document.getElementById('create-flashcard-modal').style.display = 'none';
+            document.getElementById('create-flashcard-form').reset();
+            // Reset to single card
+            const container = document.getElementById('flashcard-cards-container');
+            container.innerHTML = `
+                <div class="flashcard-card" data-index="0">
+                    <div class="flashcard-card-header">
+                        <span>Card 1</span>
+                        <button type="button" class="delete-card-btn" onclick="removeFlashcardCard(0)" style="display: none;">&times;</button>
+                    </div>
+                    <div class="flashcard-card-fields">
+                        <div class="form-group">
+                            <label for="card-0-front">Front</label>
+                            <textarea id="card-0-front" name="cards[0][front]" placeholder="Question or term" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-0-back">Back</label>
+                            <textarea id="card-0-back" name="cards[0][back]" placeholder="Answer or definition" required></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Create Quiz Modal Functions
+        function openCreateQuizModal() {
+            document.getElementById('create-quiz-modal').style.display = 'flex';
+        }
+
+        function closeCreateQuizModal() {
+            document.getElementById('create-quiz-modal').style.display = 'none';
+            document.getElementById('create-quiz-form').reset();
+            // Reset to single question
+            const container = document.getElementById('quiz-questions-container');
+            container.innerHTML = `
+                <div class="quiz-question" data-index="0">
+                    <div class="quiz-question-header">
+                        <span>Question 1</span>
+                        <button type="button" class="delete-question-btn" onclick="removeQuizQuestion(0)" style="display: none;">&times;</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="question-0-text">Question</label>
+                        <textarea id="question-0-text" name="questions[0][question]" placeholder="Enter your question" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Options</label>
+                        <div class="quiz-options">
+                            <div class="quiz-option">
+                                <input type="radio" id="question-0-option-0" name="questions[0][correct]" value="0" required>
+                                <input type="text" name="questions[0][options][0]" placeholder="Option A" required>
+                            </div>
+                            <div class="quiz-option">
+                                <input type="radio" id="question-0-option-1" name="questions[0][correct]" value="1" required>
+                                <input type="text" name="questions[0][options][1]" placeholder="Option B" required>
+                            </div>
+                            <div class="quiz-option">
+                                <input type="radio" id="question-0-option-2" name="questions[0][correct]" value="2" required>
+                                <input type="text" name="questions[0][options][2]" placeholder="Option C" required>
+                            </div>
+                            <div class="quiz-option">
+                                <input type="radio" id="question-0-option-3" name="questions[0][correct]" value="3" required>
+                                <input type="text" name="questions[0][options][3]" placeholder="Option D" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Flashcard card management
+        let flashcardCardCount = 1;
+        
+        function addFlashcardCard() {
+            const container = document.getElementById('flashcard-cards-container');
+            const newIndex = flashcardCardCount;
+            
+            const newCard = document.createElement('div');
+            newCard.className = 'flashcard-card';
+            newCard.setAttribute('data-index', newIndex);
+            newCard.innerHTML = `
+                <div class="flashcard-card-header">
+                    <span>Card ${newIndex + 1}</span>
+                    <button type="button" class="delete-card-btn" onclick="removeFlashcardCard(${newIndex})">&times;</button>
+                </div>
+                <div class="flashcard-card-fields">
+                    <div class="form-group">
+                        <label for="card-${newIndex}-front">Front</label>
+                        <textarea id="card-${newIndex}-front" name="cards[${newIndex}][front]" placeholder="Question or term" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-${newIndex}-back">Back</label>
+                        <textarea id="card-${newIndex}-back" name="cards[${newIndex}][back]" placeholder="Answer or definition" required></textarea>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(newCard);
+            flashcardCardCount++;
+            
+            // Show delete buttons for all cards if more than 1
+            updateFlashcardDeleteButtons();
+        }
+
+        function removeFlashcardCard(index) {
+            const card = document.querySelector(`.flashcard-card[data-index="${index}"]`);
+            if (card) {
+                card.remove();
+                updateFlashcardDeleteButtons();
+                updateFlashcardCardNumbers();
+            }
+        }
+
+        function updateFlashcardDeleteButtons() {
+            const cards = document.querySelectorAll('.flashcard-card');
+            cards.forEach((card, index) => {
+                const deleteBtn = card.querySelector('.delete-card-btn');
+                if (cards.length > 1) {
+                    deleteBtn.style.display = 'flex';
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            });
+        }
+
+        function updateFlashcardCardNumbers() {
+            const cards = document.querySelectorAll('.flashcard-card');
+            cards.forEach((card, index) => {
+                const header = card.querySelector('.flashcard-card-header span');
+                header.textContent = `Card ${index + 1}`;
+            });
+        }
+
+        // Quiz question management
+        let quizQuestionCount = 1;
+        
+        function addQuizQuestion() {
+            const container = document.getElementById('quiz-questions-container');
+            const newIndex = quizQuestionCount;
+            
+            const newQuestion = document.createElement('div');
+            newQuestion.className = 'quiz-question';
+            newQuestion.setAttribute('data-index', newIndex);
+            newQuestion.innerHTML = `
+                <div class="quiz-question-header">
+                    <span>Question ${newIndex + 1}</span>
+                    <button type="button" class="delete-question-btn" onclick="removeQuizQuestion(${newIndex})">&times;</button>
+                </div>
+                <div class="form-group">
+                    <label for="question-${newIndex}-text">Question</label>
+                    <textarea id="question-${newIndex}-text" name="questions[${newIndex}][question]" placeholder="Enter your question" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Options</label>
+                    <div class="quiz-options">
+                        <div class="quiz-option">
+                            <input type="radio" id="question-${newIndex}-option-0" name="questions[${newIndex}][correct]" value="0" required>
+                            <input type="text" name="questions[${newIndex}][options][0]" placeholder="Option A" required>
+                        </div>
+                        <div class="quiz-option">
+                            <input type="radio" id="question-${newIndex}-option-1" name="questions[${newIndex}][correct]" value="1" required>
+                            <input type="text" name="questions[${newIndex}][options][1]" placeholder="Option B" required>
+                        </div>
+                        <div class="quiz-option">
+                            <input type="radio" id="question-${newIndex}-option-2" name="questions[${newIndex}][correct]" value="2" required>
+                            <input type="text" name="questions[${newIndex}][options][2]" placeholder="Option C" required>
+                        </div>
+                        <div class="quiz-option">
+                            <input type="radio" id="question-${newIndex}-option-3" name="questions[${newIndex}][correct]" value="3" required>
+                            <input type="text" name="questions[${newIndex}][options][3]" placeholder="Option D" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(newQuestion);
+            quizQuestionCount++;
+            
+            // Show delete buttons for all questions if more than 1
+            updateQuizDeleteButtons();
+        }
+
+        function removeQuizQuestion(index) {
+            const question = document.querySelector(`.quiz-question[data-index="${index}"]`);
+            if (question) {
+                question.remove();
+                updateQuizDeleteButtons();
+                updateQuizQuestionNumbers();
+            }
+        }
+
+        function updateQuizDeleteButtons() {
+            const questions = document.querySelectorAll('.quiz-question');
+            questions.forEach((question, index) => {
+                const deleteBtn = question.querySelector('.delete-question-btn');
+                if (questions.length > 1) {
+                    deleteBtn.style.display = 'flex';
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            });
+        }
+
+        function updateQuizQuestionNumbers() {
+            const questions = document.querySelectorAll('.quiz-question');
+            questions.forEach((question, index) => {
+                const header = question.querySelector('.quiz-question-header span');
+                header.textContent = `Question ${index + 1}`;
+            });
+        }
+
+        // Modal close handlers
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('close-btn')) {
+                const modal = e.target.closest('.modal-overlay');
+                if (modal) {
+                    modal.style.display = 'none';
+                    // Reset forms if they are create modals
+                    if (modal.id === 'create-note-modal') {
+                        closeCreateNoteModal();
+                    } else if (modal.id === 'create-flashcard-modal') {
+                        closeCreateFlashcardModal();
+                    } else if (modal.id === 'create-quiz-modal') {
+                        closeCreateQuizModal();
+                    }
+                }
+            }
+        });
+
+        // Form submission handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const hubId = '{{ hub.id }}';
+
+            // Create Note Form
+            document.getElementById('create-note-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('note-title').value.trim();
+                const content = document.getElementById('note-content').value.trim();
+                
+                if (!title || !content) {
+                    showCustomAlert('Please fill in both title and content.', 'Missing Information');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_note`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title, content })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        closeCreateNoteModal();
+                        showSuccessModal('Success!', result.message, () => {
+                            // Reload the page to show the new note
+                            window.location.reload();
+                        });
+                    } else {
+                        showCustomAlert(result.message, 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error creating note:', error);
+                    showCustomAlert('Failed to create note. Please try again.', 'Error');
+                }
+            });
+
+            // Create Flashcard Form
+            document.getElementById('create-flashcard-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('flashcard-title').value.trim();
+                const cards = [];
+                
+                const cardElements = document.querySelectorAll('.flashcard-card');
+                for (const cardElement of cardElements) {
+                    const index = cardElement.getAttribute('data-index');
+                    const front = document.getElementById(`card-${index}-front`).value.trim();
+                    const back = document.getElementById(`card-${index}-back`).value.trim();
+                    
+                    if (front && back) {
+                        cards.push({ front, back });
+                    }
+                }
+                
+                if (!title) {
+                    showCustomAlert('Please enter a flashcard set title.', 'Missing Information');
+                    return;
+                }
+                
+                if (cards.length === 0) {
+                    showCustomAlert('Please add at least one flashcard.', 'Missing Information');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_flashcard_set`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title, cards })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        closeCreateFlashcardModal();
+                        showSuccessModal('Success!', result.message, () => {
+                            // Reload the page to show the new flashcard set
+                            window.location.reload();
+                        });
+                    } else {
+                        showCustomAlert(result.message, 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error creating flashcard set:', error);
+                    showCustomAlert('Failed to create flashcard set. Please try again.', 'Error');
+                }
+            });
+
+            // Create Quiz Form
+            document.getElementById('create-quiz-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('quiz-title').value.trim();
+                const questions = [];
+                
+                const questionElements = document.querySelectorAll('.quiz-question');
+                for (const questionElement of questionElements) {
+                    const index = questionElement.getAttribute('data-index');
+                    const questionText = document.getElementById(`question-${index}-text`).value.trim();
+                    const options = [];
+                    let correctAnswer = null;
+                    
+                    for (let i = 0; i < 4; i++) {
+                        const optionText = document.querySelector(`input[name="questions[${index}][options][${i}]"]`).value.trim();
+                        if (!optionText) {
+                            showCustomAlert(`Please fill in all options for Question ${parseInt(index) + 1}.`, 'Missing Information');
+                            return;
+                        }
+                        options.push(optionText);
+                        
+                        const radioButton = document.getElementById(`question-${index}-option-${i}`);
+                        if (radioButton.checked) {
+                            correctAnswer = i;
+                        }
+                    }
+                    
+                    if (!questionText) {
+                        showCustomAlert(`Please enter a question for Question ${parseInt(index) + 1}.`, 'Missing Information');
+                        return;
+                    }
+                    
+                    if (correctAnswer === null) {
+                        showCustomAlert(`Please select a correct answer for Question ${parseInt(index) + 1}.`, 'Missing Information');
+                        return;
+                    }
+                    
+                    questions.push({
+                        question: questionText,
+                        options: options,
+                        correct: correctAnswer
+                    });
+                }
+                
+                if (!title) {
+                    showCustomAlert('Please enter a quiz title.', 'Missing Information');
+                    return;
+                }
+                
+                if (questions.length === 0) {
+                    showCustomAlert('Please add at least one question.', 'Missing Information');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/hub/${hubId}/create_quiz`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ title, questions })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        closeCreateQuizModal();
+                        showSuccessModal('Success!', result.message, () => {
+                            // Reload the page to show the new quiz
+                            window.location.reload();
+                        });
+                    } else {
+                        showCustomAlert(result.message, 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error creating quiz:', error);
+                    showCustomAlert('Failed to create quiz. Please try again.', 'Error');
                 }
             });
         });
