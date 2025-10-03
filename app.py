@@ -2465,6 +2465,21 @@ def import_google_file(file_id):
         print(f"Error importing Google file: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/privacy')
+def privacy_policy():
+    """Privacy Policy page"""
+    return render_template('privacy.html')
+
+@app.route('/terms')
+def terms_of_service():
+    """Terms of Service page"""
+    return render_template('terms.html')
+
+@app.route('/cookies')
+def cookie_policy():
+    """Cookie Policy page"""
+    return render_template('cookies.html')
+
 # --- Homepage and Auth Routes ---
 @app.route("/")
 def index():
