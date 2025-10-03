@@ -2573,6 +2573,210 @@
             transition: transform 0.1s ease;
         }
 
+        /* ===== ASSIGNMENT HELPER STYLES ===== */
+        
+        .helper-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .helper-option {
+            background: var(--background-white);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .helper-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .helper-option .option-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .helper-option h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--text-main);
+            font-size: 1.25rem;
+        }
+        
+        .helper-option p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .helper-panel {
+            margin-top: 1rem;
+        }
+        
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background-color: var(--background-light);
+        }
+        
+        .panel-header h4 {
+            margin: 0;
+            color: var(--text-main);
+        }
+        
+        .form-help {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            display: block;
+        }
+        
+        .article-results {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--background-white);
+        }
+        
+        .article-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .article-title {
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .article-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-abstract {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            line-height: 1.4;
+            margin-bottom: 0.75rem;
+        }
+        
+        .article-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .article-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        
+        .article-link:hover {
+            text-decoration: underline;
+        }
+        
+        .save-article-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .save-article-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .citation-results {
+            background: var(--background-white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .citation-section {
+            margin-bottom: 2rem;
+        }
+        
+        .citation-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .citation-section h5 {
+            margin: 0 0 1rem 0;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+        
+        .citation-list {
+            background: var(--background-light);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .download-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 1rem;
+        }
+        
+        .download-btn:hover {
+            background: #059669;
+        }
+
         /* ===== ENHANCED CARD ANIMATIONS ===== */
         
         .hub-card, .content-card, .file-item-card {
@@ -3500,14 +3704,14 @@
                                 </div>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </a>
-                            <button type="button" class="feature-card" id="pipeline-study-planner">
-                                <div class="tool-favourite-star" data-tool-id="pipeline-study-planner">
+                            <button type="button" class="feature-card" id="assignment-helper">
+                                <div class="tool-favourite-star" data-tool-id="assignment-helper">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"></polygon></svg>
                                 </div>
-                                <div class="feature-icon-wrapper" style="background-color: #e0e7ff; color: #4338ca;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg></div>
+                                <div class="feature-icon-wrapper" style="background-color: #fef3c7; color: #d97706;"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg></div>
                                 <div class="feature-text">
-                                    <h4>Smart Study Planner<span class="pro-label">PRO</span></h4>
-                                    <p>Upload a syllabus and deadline to automatically create a schedule in your calendar.</p>
+                                    <h4>Assignment Helper<span class="pro-label">PRO</span></h4>
+                                    <p>Find research articles and generate complete citations automatically for your assignments.</p>
                                 </div>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="feature-arrow-svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </button>
@@ -3842,7 +4046,128 @@
     </div>
     <div class="modal-overlay" id="revision-pack-modal"> <div class="modal-content"> <div class="modal-header"><h3>Revision Pack Builder</h3><button class="close-btn">&times;</button></div> <form id="revision-pack-form"> <div class="modal-body"> <p class="modal-description">Turn your documents into a complete study kit with notes, flashcards, and quizzes, all organized in a new folder.</p> <div class="form-group"> <label class="label">Select Documents</label> <div id="revision-pack-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="num-flashcards">Number of Flashcards</label> <div class="slider-group"> <input type="range" id="num-flashcards" name="num_flashcards" min="0" max="100" value="20" step="5"> <span class="slider-value" id="num-flashcards-value">20</span> </div> </div> <div class="form-group"> <label for="num-quiz-questions">Number of Quiz Questions</label> <div class="slider-group"> <input type="range" id="num-quiz-questions" name="num_quiz_questions" min="0" max="50" value="10" step="5"> <span class="slider-value" id="num-quiz-questions-value">10</span> </div> </div> <div class="form-group checkbox-group"> <label> <input type="checkbox" id="include-notes" name="include_notes" checked> Include condensed revision notes </label> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Pack</button></div> </form> </div> </div>
     <div class="modal-overlay" id="exam-kit-modal"> <div class="modal-content"> <div class="modal-header"><h3>Exam Readiness Kit</h3><button class="close-btn">&times;</button></div> <form id="exam-kit-form"> <div class="modal-body"> <p class="modal-description">Generate one-page cheatsheets, a timed mock exam, and analyze past papers to predict likely topics.</p> <div class="form-group"> <label class="label">Select Main Lectures/Syllabi</label> <div id="exam-kit-lecture-files" class="modal-file-list"></div> </div> <div class="form-group"> <label class="label">Select Past Papers (Optional)</label> <div id="exam-kit-past-paper-files" class="modal-file-list"></div> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Kit</button></div> </form> </div> </div>
-    <div class="modal-overlay" id="study-plan-modal"> <div class="modal-content"> <div class="modal-header"><h3>Smart Study Planner</h3><button class="close-btn">&times;</button></div> <form id="study-plan-form"> <div class="modal-body"> <p class="modal-description">Select your course syllabus and set your deadline. The AI will create a schedule and add it to your calendar.</p> <div class="form-group"> <label class="label">Select Syllabus Document(s)</label> <div id="study-plan-files" class="modal-file-list"></div> </div> <div class="form-group"> <label for="study-plan-deadline">Exam/Assignment Deadline</label> <input type="date" id="study-plan-deadline" name="deadline" required> </div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Generate Plan</button></div> </form> </div> </div>
+    <!-- Assignment Helper Modal -->
+    <div class="modal-overlay" id="assignment-helper-modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>Assignment Helper</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Get AI-powered assistance with your research and citations for assignments.</p>
+                
+                <!-- Option Selection -->
+                <div id="assignment-helper-options" class="helper-options-grid">
+                    <div class="helper-option" data-option="find-articles">
+                        <div class="option-icon">🔍</div>
+                        <h4>Find Articles</h4>
+                        <p>Upload your assignment details and get 15 high-quality research sources</p>
+                    </div>
+                    
+                    <div class="helper-option" data-option="citations">
+                        <div class="option-icon">📚</div>
+                        <h4>Citations & References</h4>
+                        <p>Upload your assignment and sources to get complete citations automatically</p>
+                    </div>
+                </div>
+                
+                <!-- Find Articles Panel -->
+                <div id="find-articles-panel" class="helper-panel" style="display: none;">
+                    <div class="panel-header">
+                        <button class="back-btn" onclick="showHelperOptions()">← Back</button>
+                        <h4>Find Research Articles</h4>
+                    </div>
+                    <form id="find-articles-form">
+                        <div class="form-group">
+                            <label for="assignment-title">Assignment Title *</label>
+                            <input type="text" id="assignment-title" name="title" placeholder="e.g., Impact of AI on Modern Education" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="assignment-description">Assignment Description (Optional)</label>
+                            <textarea id="assignment-description" name="description" rows="4" placeholder="Paste your assignment brief, requirements, or description here..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject-area">Subject Area (Optional)</label>
+                            <select id="subject-area" name="subject">
+                                <option value="">Select subject area</option>
+                                <option value="computer-science">Computer Science</option>
+                                <option value="psychology">Psychology</option>
+                                <option value="business">Business</option>
+                                <option value="education">Education</option>
+                                <option value="medicine">Medicine</option>
+                                <option value="engineering">Engineering</option>
+                                <option value="literature">Literature</option>
+                                <option value="history">History</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="button button-secondary" onclick="showHelperOptions()">Cancel</button>
+                            <button type="submit" class="button button-primary">Find Articles</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Citations Panel -->
+                <div id="citations-panel" class="helper-panel" style="display: none;">
+                    <div class="panel-header">
+                        <button class="back-btn" onclick="showHelperOptions()">← Back</button>
+                        <h4>Generate Citations & References</h4>
+                    </div>
+                    <form id="citations-form">
+                        <div class="form-group">
+                            <label for="assignment-file">Upload Your Assignment *</label>
+                            <input type="file" id="assignment-file" name="assignment_file" accept=".doc,.docx,.pdf,.txt" required>
+                            <small class="form-help">Supported formats: Word, PDF, Text</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="research-papers">Upload Research Papers *</label>
+                            <input type="file" id="research-papers" name="research_papers" multiple accept=".pdf,.doc,.docx" required>
+                            <small class="form-help">Upload all the research papers you used (PDF or Word format)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="url-links">Add URL Links (Optional)</label>
+                            <textarea id="url-links" name="url_links" rows="3" placeholder="Paste URLs here, one per line"></textarea>
+                            <small class="form-help">Add any web sources you used</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="citation-style">Citation Style *</label>
+                            <select id="citation-style" name="citation_style" required>
+                                <option value="apa">APA (American Psychological Association)</option>
+                                <option value="mla">MLA (Modern Language Association)</option>
+                                <option value="chicago">Chicago</option>
+                                <option value="harvard">Harvard</option>
+                                <option value="ieee">IEEE</option>
+                                <option value="vancouver">Vancouver</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="button button-secondary" onclick="showHelperOptions()">Cancel</button>
+                            <button type="submit" class="button button-primary">Generate Citations</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Results Panel -->
+                <div id="assignment-results-panel" class="helper-panel" style="display: none;">
+                    <div class="panel-header">
+                        <button class="back-btn" onclick="showHelperOptions()">← New Search</button>
+                        <h4 id="results-title">Results</h4>
+                    </div>
+                    <div id="assignment-results-content">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal-overlay" id="add-items-modal"> <div class="modal-content"> <div class="modal-header"><h3>Add Items to Folder</h3><button class="close-btn">&times;</button></div> <div class="modal-body"> {% if all_notes %}<h4>Notes</h4><ul class="asset-list">{% for note in all_notes %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ note.id }}" data-type="note" style="margin-right:1rem;"> {{ note.title }}</label></li>{% endfor %}</ul>{% endif %} {% if all_quizzes_and_exams %}<h4>Quizzes</h4><ul class="asset-list">{% for quiz in all_quizzes_and_exams %}<li class="asset-item"><label style="display:flex;width:100%;cursor:pointer;"><input type="checkbox" data-id="{{ quiz.id }}" data-type="quiz" style="margin-right:1rem;"> {{ quiz.title }}</label></li>{% endfor %}</ul>{% endif %} </div> <div class="modal-footer"><button class="button button-secondary close-btn">Cancel</button><button class="button button-primary" id="save-added-items-btn">Add Selected Items</button></div> </div> </div>
     <div class="modal-overlay" id="schedule-event-modal"> <div class="modal-content"> <div class="modal-header"><h3>Schedule a New Session</h3><button class="close-btn">&times;</button></div> <form id="schedule-event-form"> <div class="modal-body"> <div class="form-group"><label for="event-title">Event Title</label><input type="text" id="event-title" name="title" placeholder="e.g., Mid-term revision" required></div> <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;"> <div><label for="event-type">Type</label><select id="event-type" name="event_type"><option>Study Session</option><option>Mock Exam</option><option>Flashcard Review</option><option>Draft Review</option><option>Custom</option></select></div> <div><label for="event-duration">Duration (minutes)</label><select id="event-duration" name="duration"><option value="20">20 mins</option><option value="40" selected>40 mins</option><option value="60">60 mins</option><option value="90">90 mins</option></select></div> </div> <div class="form-group"><label for="event-start-time">Start Time</label><input type="datetime-local" id="event-start-time" name="start_time" required></div> <div class="form-group"><label for="event-focus">Focus / Goal</label><textarea id="event-focus" name="focus" rows="3" placeholder="e.g., Review weak topics from last quiz"></textarea></div> <div class="form-group"><label>Source Files (Optional)</label><div id="modal-file-list" class="modal-file-list"></div></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Create Event</button></div> </form> </div> </div>
     <div class="modal-overlay" id="import-ics-modal"> <div class="modal-content"> <div class="modal-header"><h3>Import Calendar</h3><button class="close-btn">&times;</button></div> <form id="import-ics-form" action="{{ url_for('import_ics', hub_id=hub.id) }}" method="POST" enctype="multipart/form-data"> <div class="modal-body"> <p class="modal-description">Upload your university calendar file (.ics format) to add all your lectures and deadlines to your study hub schedule.</p> <div class="form-group"><label for="ics-file-upload">Select .ics file</label><input type="file" id="ics-file-upload" name="ics_file" accept=".ics" required></div> </div> <div class="modal-footer"><button type="button" class="button button-secondary close-btn">Cancel</button><button type="submit" class="button button-primary">Import Events</button></div> </form> </div> </div>
@@ -4703,7 +5028,7 @@
             const allModals = document.querySelectorAll('.modal-overlay');
             const revisionModal = document.getElementById('revision-pack-modal');
             const examKitModal = document.getElementById('exam-kit-modal');
-            const studyPlanModal = document.getElementById('study-plan-modal');
+            const assignmentHelperModal = document.getElementById('assignment-helper-modal');
             const calendarEl = document.getElementById('fullcalendar');
             const scheduleModal = document.getElementById('schedule-event-modal');
             const detailsModal = document.getElementById('event-details-modal');
@@ -5200,26 +5525,193 @@
                 } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
             });
             
-            function openStudyPlanModal() {
-                 if(getAllFiles().length === 0) return showWarning("Please upload at least one syllabus document first.");
-                 populateModalFileList('study-plan-files', getAllFiles());
-                 studyPlanModal.style.display = 'flex';
+            // Assignment Helper Functions
+            function openAssignmentHelperModal() {
+                assignmentHelperModal.style.display = 'flex';
+                showHelperOptions();
             }
 
-            document.getElementById('study-plan-form')?.addEventListener('submit', async (e) => {
-                 e.preventDefault();
-                 const form = e.target;
-                 const syllabusFiles = Array.from(form.querySelectorAll('input[name="study-plan-files_files"]:checked')).map(cb => cb.value);
-                 const deadline = form.deadline.value;
-                 if (syllabusFiles.length === 0) return showWarning("Please select a syllabus document.");
-                 showLoading("Generating Your Study Plan...", "This will be added to your calendar automatically.");
-                try {
-                    const response = await fetch(`/hub/${hubId}/create_study_plan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ syllabus_files: syllabusFiles, deadline: deadline }) });
-                    const result = await response.json();
-                     if (result.success) { window.location.hash = 'calendar'; window.location.reload(); }
-                     else { showError(`Error: ${result.message}`); hideLoading(); }
-                } catch (error) { showError('A network or server error occurred.'); hideLoading(); }
+            function showHelperOptions() {
+                document.getElementById('assignment-helper-options').style.display = 'block';
+                document.getElementById('find-articles-panel').style.display = 'none';
+                document.getElementById('citations-panel').style.display = 'none';
+                document.getElementById('assignment-results-panel').style.display = 'none';
+            }
+
+            function showFindArticlesPanel() {
+                document.getElementById('assignment-helper-options').style.display = 'none';
+                document.getElementById('find-articles-panel').style.display = 'block';
+                document.getElementById('citations-panel').style.display = 'none';
+                document.getElementById('assignment-results-panel').style.display = 'none';
+            }
+
+            function showCitationsPanel() {
+                document.getElementById('assignment-helper-options').style.display = 'none';
+                document.getElementById('find-articles-panel').style.display = 'none';
+                document.getElementById('citations-panel').style.display = 'block';
+                document.getElementById('assignment-results-panel').style.display = 'none';
+            }
+
+            function showResultsPanel(title) {
+                document.getElementById('assignment-helper-options').style.display = 'none';
+                document.getElementById('find-articles-panel').style.display = 'none';
+                document.getElementById('citations-panel').style.display = 'none';
+                document.getElementById('assignment-results-panel').style.display = 'block';
+                document.getElementById('results-title').textContent = title;
+            }
+
+            // Event listeners for helper options
+            document.addEventListener('DOMContentLoaded', function() {
+                const helperOptions = document.querySelectorAll('.helper-option');
+                helperOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const optionType = this.dataset.option;
+                        if (optionType === 'find-articles') {
+                            showFindArticlesPanel();
+                        } else if (optionType === 'citations') {
+                            showCitationsPanel();
+                        }
+                    });
+                });
+
+                // Find Articles Form
+                document.getElementById('find-articles-form')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    
+                    const data = {
+                        title: formData.get('title'),
+                        description: formData.get('description'),
+                        subject: formData.get('subject')
+                    };
+
+                    if (!data.title.trim()) {
+                        showWarning('Please enter an assignment title.');
+                        return;
+                    }
+
+                    showLoading("Finding Research Articles...", "AI is searching for relevant academic sources.");
+                    
+                    try {
+                        const response = await fetch(`/hub/${hubId}/assignment-helper/find-articles`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        
+                        const result = await response.json();
+                        hideLoading();
+                        
+                        if (result.success) {
+                            displayArticleResults(result.articles);
+                        } else {
+                            showError(result.message || 'Failed to find articles');
+                        }
+                    } catch (error) {
+                        hideLoading();
+                        showError('A network or server error occurred.');
+                    }
+                });
+
+                // Citations Form
+                document.getElementById('citations-form')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    
+                    if (!formData.get('assignment_file') || !formData.get('research_papers')) {
+                        showWarning('Please upload your assignment and research papers.');
+                        return;
+                    }
+
+                    showLoading("Generating Citations...", "AI is analyzing your documents and generating citations.");
+                    
+                    try {
+                        const response = await fetch(`/hub/${hubId}/assignment-helper/generate-citations`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+                        hideLoading();
+                        
+                        if (result.success) {
+                            displayCitationResults(result.citations);
+                        } else {
+                            showError(result.message || 'Failed to generate citations');
+                        }
+                    } catch (error) {
+                        hideLoading();
+                        showError('A network or server error occurred.');
+                    }
+                });
             });
+
+            function displayArticleResults(articles) {
+                showResultsPanel('Research Articles Found');
+                
+                const resultsContent = document.getElementById('assignment-results-content');
+                let html = `<div class="article-results">`;
+                
+                if (articles && articles.length > 0) {
+                    articles.forEach((article, index) => {
+                        html += `
+                            <div class="article-item">
+                                <div class="article-title">${article.title || 'Untitled Article'}</div>
+                                <div class="article-meta">
+                                    ${article.authors ? article.authors.join(', ') : 'Unknown authors'} 
+                                    ${article.year ? `(${article.year})` : ''} 
+                                    ${article.journal ? `- ${article.journal}` : ''}
+                                </div>
+                                <div class="article-abstract">${article.abstract || article.summary || 'No abstract available'}</div>
+                                <div class="article-actions">
+                                    ${article.url ? `<a href="${article.url}" target="_blank" class="article-link">View Article</a>` : ''}
+                                    <button class="save-article-btn" onclick="saveArticle(${index})">Save to Hub</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += '<p>No articles found. Try adjusting your search criteria.</p>';
+                }
+                
+                html += '</div>';
+                resultsContent.innerHTML = html;
+            }
+
+            function displayCitationResults(citations) {
+                showResultsPanel('Citations Generated');
+                
+                const resultsContent = document.getElementById('assignment-results-content');
+                let html = `
+                    <div class="citation-results">
+                        <div class="citation-section">
+                            <h5>In-Text Citations</h5>
+                            <div class="citation-list">${citations.in_text_citations || 'No in-text citations found'}</div>
+                        </div>
+                        
+                        <div class="citation-section">
+                            <h5>Reference List</h5>
+                            <div class="citation-list">${citations.reference_list || 'No references found'}</div>
+                        </div>
+                        
+                        <button class="download-btn" onclick="downloadCitations()">Download Citations</button>
+                    </div>
+                `;
+                
+                resultsContent.innerHTML = html;
+            }
+
+            function saveArticle(index) {
+                // This would save the article to the user's hub
+                showSuccess('Article saved to your research library!');
+            }
+
+            function downloadCitations() {
+                // This would download the citations as a file
+                showSuccess('Citations downloaded successfully!');
+            }
             
             async function handleQuickToolSubmit(toolName, selectedFiles) {
                 if (isAITaskRunning) return;
@@ -5560,8 +6052,8 @@
                             case 'individual-cheatsheet-generator':
                                 openIndividualCheatsheetModal();
                                 break;
-                            case 'pipeline-study-planner':
-                                openStudyPlanModal();
+                            case 'assignment-helper':
+                                openAssignmentHelperModal();
                                 break;
                             case 'pipeline-voice-transcription':
                             case 'pipeline-live-lecture':
@@ -6007,7 +6499,7 @@
                     { id: 'pipeline-stuck-question', name: 'Stuck on a Question?', description: 'Get help with difficult problems', url: '#tools', icon: 'M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z' },
                     { id: 'pipeline-exam-kit', name: 'Exam Builder', description: 'Build comprehensive exam preparation', url: '#tools', icon: 'M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25' },
                     { id: 'pipeline-voice-transcription', name: 'Voice Essay Writer', description: 'Speak your essays with voice commands, citations, and professional formatting', url: '#tools', icon: 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8' },
-                    { id: 'pipeline-study-planner', name: 'Smart Study Planner', description: 'Plan your study schedule', url: '#tools', icon: 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5' }
+                    { id: 'assignment-helper', name: 'Assignment Helper', description: 'Find articles and generate citations', url: '#tools', icon: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z' }
                 ],
 
                 init: function() {

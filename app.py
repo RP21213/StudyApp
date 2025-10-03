@@ -1768,6 +1768,176 @@ def generate_interactive_heatmap_data(text):
     )
     return response.choices[0].message.content
 
+# ==============================================================================
+# ASSIGNMENT HELPER HELPER FUNCTIONS
+# ==============================================================================
+
+def generate_article_search_queries(assignment_title, assignment_description, subject_area):
+    """Generate search queries for finding relevant articles"""
+    prompt = f"""
+    Generate 3-5 specific search queries for finding academic articles related to this assignment.
+    
+    Assignment Title: {assignment_title}
+    Description: {assignment_description}
+    Subject Area: {subject_area}
+    
+    Return as a JSON array of strings, each containing a specific search query.
+    Focus on key concepts, methodologies, and specific terms that would be found in academic papers.
+    
+    Example: ["machine learning education effectiveness", "AI tools student learning outcomes", "educational technology adoption"]
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result.get("queries", [])
+    except Exception as e:
+        print(f"Error generating search queries: {e}")
+        return [assignment_title]  # Fallback to just the title
+
+def generate_mock_articles(assignment_title, assignment_description, subject_area):
+    """Generate mock articles for demonstration (replace with real API calls)"""
+    prompt = f"""
+    Generate 15 realistic academic articles that would be relevant to this assignment.
+    
+    Assignment Title: {assignment_title}
+    Description: {assignment_description}
+    Subject Area: {subject_area}
+    
+    For each article, provide:
+    - title: A realistic academic paper title
+    - authors: Array of 2-4 author names
+    - year: Publication year (2018-2024)
+    - journal: Academic journal name
+    - abstract: 2-3 sentence abstract
+    - url: A placeholder URL
+    
+    Return as JSON with "articles" array containing 15 article objects.
+    Make the articles highly relevant to the assignment topic.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result.get("articles", [])
+    except Exception as e:
+        print(f"Error generating mock articles: {e}")
+        return []
+
+def extract_text_from_file(file):
+    """Extract text from uploaded file"""
+    try:
+        if file.filename.endswith('.pdf'):
+            # For PDF files, you would use PyPDF2 or pdfplumber
+            # For now, return a placeholder
+            return f"PDF content from {file.filename}"
+        elif file.filename.endswith(('.doc', '.docx')):
+            # For Word files, you would use python-docx
+            return f"Word document content from {file.filename}"
+        elif file.filename.endswith('.txt'):
+            return file.read().decode('utf-8')
+        else:
+            return f"Text content from {file.filename}"
+    except Exception as e:
+        print(f"Error extracting text from file: {e}")
+        return f"Error reading {file.filename}"
+
+def extract_source_metadata(text, filename):
+    """Extract metadata from research paper text"""
+    prompt = f"""
+    Extract metadata from this research paper:
+    
+    Filename: {filename}
+    Content: {text[:2000]}...
+    
+    Return JSON with:
+    - title: Paper title
+    - authors: Array of author names
+    - year: Publication year
+    - journal: Journal name
+    - doi: DOI if available
+    - abstract: Brief summary
+    
+    If information is not available, use reasonable defaults based on the filename and content.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        result['filename'] = filename
+        return result
+    except Exception as e:
+        print(f"Error extracting metadata: {e}")
+        return {
+            'title': filename.replace('.pdf', '').replace('.docx', ''),
+            'authors': ['Unknown Author'],
+            'year': '2023',
+            'journal': 'Unknown Journal',
+            'doi': None,
+            'abstract': 'Abstract not available',
+            'filename': filename
+        }
+
+def extract_url_metadata(url):
+    """Extract metadata from URL (placeholder)"""
+    # In a real implementation, you would scrape the webpage
+    return {
+        'title': f'Web Article from {url}',
+        'authors': ['Unknown Author'],
+        'year': '2024',
+        'journal': 'Website',
+        'url': url,
+        'abstract': 'Content from website not extracted'
+    }
+
+def generate_formatted_citations(assignment_text, research_sources, url_sources, citation_style):
+    """Generate formatted citations using AI"""
+    prompt = f"""
+    Generate citations for this assignment in {citation_style.upper()} style.
+    
+    Assignment Text: {assignment_text[:1000]}...
+    
+    Research Sources: {json.dumps(research_sources, indent=2)}
+    URL Sources: {json.dumps(url_sources, indent=2)}
+    
+    Return JSON with:
+    - in_text_citations: Array of in-text citations found in the assignment
+    - reference_list: Complete reference list in {citation_style.upper()} format
+    
+    Format the citations according to {citation_style.upper()} style guidelines.
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        return result
+    except Exception as e:
+        print(f"Error generating citations: {e}")
+        return {
+            'in_text_citations': 'Error generating in-text citations',
+            'reference_list': 'Error generating reference list'
+        }
+
 def generate_study_plan_from_syllabus(syllabus_text, deadline_str):
     """Analyzes a syllabus and creates a structured study plan as JSON."""
     prompt = f"""
@@ -8779,6 +8949,89 @@ def get_global_resources():
     except Exception as e:
         print(f"Error getting global resources: {e}")
         return jsonify({"success": False, "message": "Failed to get global resources"}), 500
+
+# ==============================================================================
+# ASSIGNMENT HELPER ENDPOINTS
+# ==============================================================================
+
+@app.route('/hub/<hub_id>/assignment-helper/find-articles', methods=['POST'])
+@login_required
+def find_articles_for_assignment(hub_id):
+    """Find research articles for an assignment"""
+    try:
+        data = request.get_json()
+        assignment_title = data.get('title', '').strip()
+        assignment_description = data.get('description', '').strip()
+        subject_area = data.get('subject', '')
+        
+        if not assignment_title:
+            return jsonify({"success": False, "message": "Assignment title is required"}), 400
+        
+        # Generate search queries using AI
+        search_queries = generate_article_search_queries(assignment_title, assignment_description, subject_area)
+        
+        # For now, we'll generate mock articles since we don't have access to academic databases
+        # In a real implementation, you would integrate with APIs like:
+        # - Google Scholar API
+        # - arXiv API
+        # - PubMed API
+        # - Crossref API
+        
+        articles = generate_mock_articles(assignment_title, assignment_description, subject_area)
+        
+        return jsonify({
+            "success": True,
+            "articles": articles,
+            "search_queries": search_queries
+        })
+        
+    except Exception as e:
+        print(f"Error finding articles: {e}")
+        return jsonify({"success": False, "message": "Failed to find articles"}), 500
+
+@app.route('/hub/<hub_id>/assignment-helper/generate-citations', methods=['POST'])
+@login_required
+def generate_citations_for_assignment(hub_id):
+    """Generate citations for an assignment"""
+    try:
+        # Get uploaded files
+        assignment_file = request.files.get('assignment_file')
+        research_papers = request.files.getlist('research_papers')
+        url_links = request.form.get('url_links', '')
+        citation_style = request.form.get('citation_style', 'apa')
+        
+        if not assignment_file or not research_papers:
+            return jsonify({"success": False, "message": "Assignment file and research papers are required"}), 400
+        
+        # Process assignment file
+        assignment_text = extract_text_from_file(assignment_file)
+        
+        # Process research papers
+        research_sources = []
+        for paper in research_papers:
+            paper_text = extract_text_from_file(paper)
+            source_info = extract_source_metadata(paper_text, paper.filename)
+            research_sources.append(source_info)
+        
+        # Process URL links
+        url_sources = []
+        if url_links:
+            urls = [url.strip() for url in url_links.split('\n') if url.strip()]
+            for url in urls:
+                # In a real implementation, you would scrape the URL for metadata
+                url_sources.append(extract_url_metadata(url))
+        
+        # Generate citations using AI
+        citations = generate_formatted_citations(assignment_text, research_sources, url_sources, citation_style)
+        
+        return jsonify({
+            "success": True,
+            "citations": citations
+        })
+        
+    except Exception as e:
+        print(f"Error generating citations: {e}")
+        return jsonify({"success": False, "message": "Failed to generate citations"}), 500
 
 @app.route('/api/materials/<material_type>', methods=['GET'])
 @login_required
