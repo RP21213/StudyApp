@@ -5413,7 +5413,7 @@
             const importModal = document.getElementById('import-ics-modal');
             const addItemsModal = document.getElementById('add-items-modal');
             const uploadInput = document.getElementById('pdf-upload');
-            const themeToggle = document.getElementById('theme-toggle');
+            // const themeToggle = document.getElementById('theme-toggle'); // Removed - using dropdown toggle only
             const slideNotesModal = document.getElementById('slide-notes-modal');
             const studyToolsTab = document.getElementById('tools');
             const toolFileSelectModal = document.getElementById('tool-file-select-modal');
@@ -7001,21 +7001,11 @@
             function applyTheme(theme) {
                 if (theme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    if(themeToggle) themeToggle.checked = true;
                     if(dropdownThemeToggle) dropdownThemeToggle.checked = true;
                 } else {
                     document.documentElement.removeAttribute('data-theme');
-                    if(themeToggle) themeToggle.checked = false;
                     if(dropdownThemeToggle) dropdownThemeToggle.checked = false;
                 }
-            }
-            
-            if(themeToggle) {
-                themeToggle.addEventListener('change', () => {
-                    const newTheme = themeToggle.checked ? 'dark' : 'light';
-                    localStorage.setItem('theme', newTheme);
-                    applyTheme(newTheme);
-                });
             }
             
             if(dropdownThemeToggle) {

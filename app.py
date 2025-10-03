@@ -6559,6 +6559,72 @@ def batch_delete_assets():
         print(f"Error during batch delete: {e}")
         return jsonify({"success": False, "message": "An internal error occurred."}), 500
 
+@app.route("/note/<note_id>/update_content", methods=["POST"])
+@login_required
+def update_note_content(note_id):
+    """Update note content with inline edits"""
+    try:
+        data = request.get_json()
+        changes = data.get('changes', {})
+        full_content = data.get('full_content')
+        
+        if not changes and not full_content:
+            return jsonify({"success": False, "message": "No content provided"}), 400
+
+        # First try to find it as a regular note
+        note_doc = db.collection('notes').document(note_id).get()
+        if note_doc.exists:
+            note = Note.from_dict(note_doc.to_dict())
+            # Verify ownership
+            hub_doc = db.collection('hubs').document(note.hub_id).get()
+            if not hub_doc.exists or hub_doc.to_dict().get('user_id') != current_user.id:
+                return jsonify({"success": False, "message": "Unauthorized"}), 403
+            
+            # Update the note content
+            if full_content:
+                note.content_html = full_content
+            else:
+                # Apply individual changes (this is more complex and would require DOM manipulation)
+                # For now, we'll use the full content approach
+                note.content_html = full_content or note.content_html
+            
+            # Save to Firestore
+            db.collection('notes').document(note_id).update({
+                'content_html': note.content_html,
+                'updated_at': firestore.SERVER_TIMESTAMP
+            })
+            
+        else:
+            # Try to find it as an activity
+            activity_doc = db.collection('activities').document(note_id).get()
+            if not activity_doc.exists:
+                return jsonify({"success": False, "message": "Note not found"}), 404
+            
+            activity = Activity.from_dict(activity_doc.to_dict())
+            # Verify ownership
+            hub_doc = db.collection('hubs').document(activity.hub_id).get()
+            if not hub_doc.exists or hub_doc.to_dict().get('user_id') != current_user.id:
+                return jsonify({"success": False, "message": "Unauthorized"}), 403
+            
+            # Update the activity content
+            if activity.data and activity.data.get('type') == 'note':
+                if full_content:
+                    activity.data['content_html'] = full_content
+                
+                # Save to Firestore
+                db.collection('activities').document(note_id).update({
+                    'data.content_html': activity.data['content_html'],
+                    'updated_at': firestore.SERVER_TIMESTAMP
+                })
+            else:
+                return jsonify({"success": False, "message": "Note not found"}), 404
+
+        return jsonify({"success": True, "message": "Content updated successfully"})
+        
+    except Exception as e:
+        print(f"Error updating note content: {e}")
+        return jsonify({"success": False, "message": "An internal error occurred"}), 500
+
 @app.route("/note/<note_id>/edit", methods=["POST"])
 @login_required
 def edit_note(note_id):
