@@ -2527,6 +2527,16 @@
             100% { transform: translateX(0); opacity: 1; }
         }
         
+        @keyframes slideInRight {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+        
         @keyframes fadeInUp {
             0% { transform: translateY(20px); opacity: 0; }
             100% { transform: translateY(0); opacity: 1; }
@@ -3162,6 +3172,54 @@
             alertTitle.textContent = `${emoji} ${title}`;
             alertMessage.textContent = message;
             alertModal.style.display = 'flex';
+        }
+
+        function showMessage(message, type = 'success') {
+            // Remove any existing messages
+            const existing = document.querySelector('.success-message, .error-message');
+            if (existing) {
+                existing.remove();
+            }
+
+            // Create message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            if (type === 'success') {
+                messageDiv.style.backgroundColor = '#10b981';
+            } else {
+                messageDiv.style.backgroundColor = '#ef4444';
+            }
+            
+            messageDiv.textContent = message;
+            
+            // Add to page
+            document.body.appendChild(messageDiv);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.animation = 'slideOutRight 0.3s ease-in';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 300);
+                }
+            }, 4000);
         }
 
         function closeCustomModal() {

@@ -1847,24 +1847,6 @@ def generate_mock_articles(assignment_title, assignment_description, subject_are
         print(f"Error generating mock articles: {e}")
         return []
 
-def extract_text_from_file(file):
-    """Extract text from uploaded file"""
-    try:
-        if file.filename.endswith('.pdf'):
-            # For PDF files, you would use PyPDF2 or pdfplumber
-            # For now, return a placeholder
-            return f"PDF content from {file.filename}"
-        elif file.filename.endswith(('.doc', '.docx')):
-            # For Word files, you would use python-docx
-            return f"Word document content from {file.filename}"
-        elif file.filename.endswith('.txt'):
-            return file.read().decode('utf-8')
-        else:
-            return f"Text content from {file.filename}"
-    except Exception as e:
-        print(f"Error extracting text from file: {e}")
-        return f"Error reading {file.filename}"
-
 def extract_source_metadata(text, filename):
     """Extract metadata from research paper text"""
     prompt = f"""
@@ -9571,7 +9553,8 @@ def generate_citations_for_assignment(hub_id):
             return jsonify({"success": False, "message": "Assignment file and research papers are required"}), 400
         
         # Process assignment file
-        assignment_text = extract_text_from_file(assignment_file)
+        file_extension = os.path.splitext(assignment_file.filename)[1].lower()
+        assignment_text = extract_text_from_file(assignment_file, file_extension)
         
         # Process research papers from hub documents
         research_sources = []
