@@ -5813,9 +5813,19 @@ def upload_file(hub_id):
     if not filename_lower.endswith((".pdf", ".docx", ".pptx")):
         return jsonify({"success": False, "message": "Invalid file type. Please upload a PDF, Word document (.docx), or PowerPoint presentation (.pptx)."}), 400
 
+    # Check if Firebase Storage is available
+    if bucket is None:
+        return jsonify({"success": False, "message": "File storage is not available. Please check your configuration."}), 500
+    
+    # Check if Firestore database is available
+    if db is None:
+        return jsonify({"success": False, "message": "Database is not available. Please check your configuration."}), 500
+
     try:
         filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', file.filename)
         file_path = f"hubs/{hub_id}/{filename}"
+        print(f"Uploading file: {file.filename} -> {filename}")
+        print(f"File path: {file_path}")
         blob = bucket.blob(file_path)
         
         # Determine content type based on file extension
@@ -5829,12 +5839,20 @@ def upload_file(hub_id):
         else:
             content_type = 'application/octet-stream'
         
+        print(f"Content type: {content_type}")
         file.seek(0)
+        print("Starting file upload to Firebase Storage...")
         blob.upload_from_file(file, content_type=content_type)
+        print("File uploaded to Firebase Storage successfully!")
         
         file.seek(0, os.SEEK_END)
-        file_info = {'name': filename, 'path': file_path, 'size': file.tell()}
+        file_size = file.tell()
+        file_info = {'name': filename, 'path': file_path, 'size': file_size}
+        print(f"File size: {file_size} bytes")
+        print(f"File info: {file_info}")
+        print("Updating Firestore with file info...")
         db.collection('hubs').document(hub_id).update({'files': firestore.ArrayUnion([file_info])})
+        print("Firestore updated successfully!")
         
         # When a file is uploaded, invalidate the tutor's vector store cache for this hub
         if hub_id in vector_store_cache:
@@ -5848,6 +5866,8 @@ def upload_file(hub_id):
 
     except Exception as e:
         print(f"Error in upload_file: {e}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({"success": False, "message": str(e)}), 500
 
 # --- NEW: Route to generate preview data for a specific file and pipeline ---
