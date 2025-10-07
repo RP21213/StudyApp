@@ -4018,21 +4018,48 @@ def create_slide_notes_session(hub_id):
                 flash("Selected file not found in storage.", "error")
                 return redirect(url_for('hub_page', hub_id=hub_id))
             
-            # Make it publicly accessible (ignore errors if already public)
-            try:
-                blob.make_public()
-                pdf_url = blob.public_url
-                print(f"Made blob public, URL: {pdf_url}")
-            except Exception as e:
-                print(f"Error making blob public: {e}")
-                # Try to get the URL anyway
+            # Check file type and handle accordingly
+            file_extension = os.path.splitext(filename)[1].lower()
+            pdf_url = None
+            
+            if file_extension == '.pdf':
+                # For PDFs, make publicly accessible for PDF.js viewer
                 try:
+                    blob.make_public()
                     pdf_url = blob.public_url
-                    print(f"Using existing public URL: {pdf_url}")
-                except Exception as e2:
-                    print(f"Error getting public URL: {e2}")
-                    flash("Error accessing selected file.", "error")
+                    print(f"Made PDF blob public, URL: {pdf_url}")
+                except Exception as e:
+                    print(f"Error making PDF blob public: {e}")
+                    # Try to get the URL anyway
+                    try:
+                        pdf_url = blob.public_url
+                        print(f"Using existing public PDF URL: {pdf_url}")
+                    except Exception as e2:
+                        print(f"Error getting public PDF URL: {e2}")
+                        flash("Error accessing PDF file.", "error")
+                        return redirect(url_for('hub_page', hub_id=hub_id))
+            elif file_extension in ['.pptx', '.docx']:
+                # For PowerPoint/Word files, extract text content instead
+                try:
+                    file_content = blob.download_as_bytes()
+                    file_stream = io.BytesIO(file_content)
+                    extracted_text = extract_text_from_file(file_stream, file_extension)
+                    
+                    if not extracted_text.strip():
+                        flash("Could not extract text from the selected file.", "error")
+                        return redirect(url_for('hub_page', hub_id=hub_id))
+                    
+                    # Store extracted text in session for display
+                    print(f"Extracted text from {file_extension} file: {len(extracted_text)} characters")
+                    pdf_url = None  # No PDF URL for non-PDF files
+                    
+                except Exception as e:
+                    print(f"Error extracting text from {file_extension} file: {e}")
+                    flash(f"Error processing {file_extension} file.", "error")
                     return redirect(url_for('hub_page', hub_id=hub_id))
+            else:
+                flash("Unsupported file type. Please select a PDF, PowerPoint, or Word document.", "error")
+                return redirect(url_for('hub_page', hub_id=hub_id))
             
 
         # IMPORTANT: create the document in annotated_slide_decks (not sessions)

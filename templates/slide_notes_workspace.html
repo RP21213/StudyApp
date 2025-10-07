@@ -819,6 +819,28 @@
         const saveBtn = document.getElementById('save-notes-btn');
         const saveStatus = document.getElementById('save-status');
         
+        // Check if this is a PDF or other file type
+        const isPdfFile = pdfUrl && pdfUrl !== 'None' && pdfUrl !== '';
+        
+        if (!isPdfFile) {
+            // Hide PDF-specific elements for non-PDF files
+            document.getElementById('slide-viewer').style.display = 'none';
+            document.querySelector('.slide-controls').style.display = 'none';
+            
+            // Show document content instead
+            const slideViewer = document.getElementById('slide-viewer');
+            slideViewer.innerHTML = `
+                <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                    <h3>📄 Document Content</h3>
+                    <p>This file type is not directly viewable in the slide viewer.</p>
+                    <p>You can still take notes and use the AI tutor to ask questions about the content.</p>
+                </div>
+            `;
+            slideViewer.style.display = 'flex';
+            slideViewer.style.alignItems = 'center';
+            slideViewer.style.justifyContent = 'center';
+        }
+        
         // Drawing tool elements
         const penTool = document.getElementById('pen-tool');
         const eraseTool = document.getElementById('erase-tool');
@@ -1411,11 +1433,13 @@ async function saveNotes() {
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const loadingTask = pdfjsLib.getDocument(pdfUrl);
-                pdfDoc = await loadingTask.promise;
-                
-                pageCountEl.textContent = pdfDoc.numPages;
-                pageNumEl.textContent = pageNum;
+                if (isPdfFile) {
+                    // Load PDF only if it's a PDF file
+                    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+                    pdfDoc = await loadingTask.promise;
+                    
+                    pageCountEl.textContent = pdfDoc.numPages;
+                    pageNumEl.textContent = pageNum;
                 
                 // Load existing notes and drawings from the session
                 const existingNotes = {{ slides_data | tojson }};
@@ -1428,25 +1452,31 @@ async function saveNotes() {
                     });
                 }
                 
-                quill.root.innerHTML = slideNotesData[1] || '<p><br></p>';
+                    quill.root.innerHTML = slideNotesData[1] || '<p><br></p>';
 
-                renderPage(pageNum);
-                
-                // Load drawings for the first page
-                loadDrawingsForPage(pageNum);
+                    renderPage(pageNum);
+                    
+                    // Load drawings for the first page
+                    loadDrawingsForPage(pageNum);
 
-                prevPageBtn.addEventListener('click', onPrevPage);
-                nextPageBtn.addEventListener('click', onNextPage);
-                saveBtn.addEventListener('click', saveNotes);
+                    prevPageBtn.addEventListener('click', onPrevPage);
+                    nextPageBtn.addEventListener('click', onNextPage);
+                    saveBtn.addEventListener('click', saveNotes);
+                    
+                    // Drawing event listeners
+                    drawingCanvas.addEventListener('mousedown', startDrawing);
+                    drawingCanvas.addEventListener('mousemove', draw);
+                    drawingCanvas.addEventListener('mouseup', stopDrawing);
+                    drawingCanvas.addEventListener('mouseout', stopDrawing);
+                } else {
+                    // For non-PDF files, just initialize the notes editor
+                    quill.root.innerHTML = '<p><br></p>';
+                    saveBtn.addEventListener('click', saveNotes);
+                }
                 
-                // Drawing event listeners
-                drawingCanvas.addEventListener('mousedown', startDrawing);
-                drawingCanvas.addEventListener('mousemove', draw);
-                drawingCanvas.addEventListener('mouseup', stopDrawing);
-                drawingCanvas.addEventListener('mouseout', stopDrawing);
-                
-                // Touch events for mobile
-                drawingCanvas.addEventListener('touchstart', (e) => {
+                // Touch events for mobile (only for PDF files)
+                if (isPdfFile) {
+                    drawingCanvas.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     const touch = e.touches[0];
                     const mouseEvent = new MouseEvent('mousedown', {
@@ -1548,6 +1578,9 @@ async function saveNotes() {
                     }
                 });
 
+                }
+                
+                // General initialization for all file types
                 // Check flashcards status on page load
                 checkFlashcardsStatus();
                 
