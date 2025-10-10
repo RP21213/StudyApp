@@ -6669,6 +6669,68 @@ def update_note_content(note_id):
         print(f"Error updating note content: {e}")
         return jsonify({"success": False, "message": "An internal error occurred"}), 500
 
+@app.route("/chat_with_notes", methods=["POST"])
+@login_required
+def chat_with_notes():
+    """Chat with AI about lecture notes"""
+    try:
+        data = request.get_json()
+        user_message = data.get('message', '').strip()
+        note_content = data.get('note_content', '').strip()
+        note_id = data.get('note_id')
+        
+        if not user_message:
+            return jsonify({"success": False, "message": "Message is required"}), 400
+        
+        if not note_content:
+            return jsonify({"success": False, "message": "Note content not found"}), 400
+        
+        # Create a prompt for the AI
+        system_prompt = """You are a helpful AI tutor assistant. You have access to a student's lecture notes 
+        and your job is to help them understand the material better. You can:
+        - Summarize sections or the entire lecture
+        - Explain concepts in detail with examples
+        - Provide real-world applications
+        - Create quiz questions to test understanding
+        - Clarify confusing points
+        - Break down complex topics into simpler parts
+        
+        Always be encouraging, clear, and educational. Format your responses with proper HTML 
+        (use <p>, <ul>, <li>, <strong>, <em> tags) for better readability."""
+        
+        user_prompt = f"""Here are the lecture notes:
+
+{note_content[:8000]}
+
+Student's question: {user_message}
+
+Please provide a helpful, detailed response."""
+        
+        # Use OpenAI to generate response
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1000
+        )
+        
+        ai_response = response.choices[0].message.content
+        
+        return jsonify({
+            "success": True,
+            "response": ai_response
+        })
+        
+    except Exception as e:
+        print(f"Error in chat_with_notes: {e}")
+        return jsonify({
+            "success": False, 
+            "response": "<p>Sorry, I encountered an error processing your question. Please try again.</p>"
+        }), 500
+
 @app.route("/note/<note_id>/edit", methods=["POST"])
 @login_required
 def edit_note(note_id):

@@ -57,12 +57,13 @@
         
         /* Inline Editing Styles */
         .editable {
-            cursor: text;
+            cursor: pointer;
             border-radius: 4px;
             transition: all 0.2s ease;
             padding: 4px;
             margin: -4px;
             outline: none;
+            position: relative;
         }
         
         .editable:hover {
@@ -70,11 +71,38 @@
             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
         
+        .editable:hover::after {
+            content: "Double-click to edit";
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-main);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'Poppins', sans-serif;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeInTooltip 0.3s ease 0.5s forwards;
+            z-index: 1000;
+        }
+        
+        @keyframes fadeInTooltip {
+            to { opacity: 1; }
+        }
+        
         .editable:focus,
         .editable.editing {
             background-color: rgba(79, 70, 229, 0.05);
             box-shadow: 0 0 0 2px var(--primary-color);
             cursor: text;
+        }
+        
+        .editable.editing::after {
+            display: none;
         }
         
         .save-controls {
@@ -281,46 +309,227 @@
             font-weight: 600;
         }
         
-        #selection-popup {
-            position: absolute; display: none; background-color: var(--text-main);
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            padding: 0.5rem; z-index: 1000;
-            display: flex; flex-direction: column; gap: 0.25rem;
-            width: 240px;
+        /* Chat Sidebar Styles */
+        .companion-sidebar { 
+            position: sticky; 
+            top: 2rem; 
+            background-color: var(--background-card); 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--card-shadow); 
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 4rem);
+            max-height: 800px;
         }
-        .popup-button { background: none; border: none; color: white; padding: 0.5rem 0.75rem; margin: 0; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; text-align: left; line-height: 1.4; }
-        .popup-button:hover { background-color: rgba(255,255,255,0.2); }
-        .popup-button strong { font-size: 0.9rem; font-weight: 600; display: block; }
-        .popup-button span { font-size: 0.8rem; font-weight: 400; opacity: 0.8; }
         
-        .companion-sidebar { position: sticky; top: 2rem; background-color: var(--background-card); border-radius: 12px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); padding: 1.5rem; }
-        .companion-sidebar h3 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
-        .companion-content { min-height: 200px; font-family: 'Lora', serif; line-height: 1.7; }
-        .companion-content .empty-state { text-align: center; padding-top: 3rem; color: var(--text-secondary); }
-        .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 1rem auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chat-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
         
-        .mini-quiz-question { font-family: 'Poppins', sans-serif; font-weight: 600; margin-bottom: 1rem; }
-        .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-        .quiz-option { border: 1px solid var(--border-color); background-color: white; color: var(--text-main); padding: 0.75rem; border-radius: 6px; text-align: left; width: 100%; font-family: 'Poppins', sans-serif; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s; }
-        .quiz-option:hover:not(:disabled) { background-color: #f9fafb; }
-        .quiz-option:disabled { cursor: not-allowed; }
-        .quiz-option.correct { background-color: #dcfce7; border-color: #86efac; color: #166534; font-weight: 600; }
-        .quiz-option.incorrect { background-color: #fee2e2; border-color: #fca5a5; color: #991b1b; }
-        .quiz-feedback { font-size: 0.9rem; font-weight: 500; font-family: 'Poppins', sans-serif; margin-top: 0.5rem; }
-        .feedback-correct { color: var(--success-color); }
-        .feedback-incorrect { color: var(--danger-color); }
+        .chat-header h3 { 
+            margin: 0; 
+            font-size: 1.25rem; 
+        }
+        
+        .chat-subtitle {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .ai-message, .user-message {
+            display: flex;
+            gap: 0.75rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            background-color: #f3f4f6;
+        }
+        
+        .user-message .message-avatar {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .message-content {
+            flex: 1;
+            background-color: #f9fafb;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-family: 'Lora', serif;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .user-message .message-content {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .message-content p {
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .message-content ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .message-content li {
+            margin: 0.25rem 0;
+        }
+        
+        .quick-actions {
+            padding: 1rem 1.5rem 0.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            background-color: #f3f4f6;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .quick-action-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        
+        .chat-input-container {
+            padding: 0.5rem 1.5rem 1rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        
+        #chat-input {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            resize: none;
+            max-height: 120px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        #chat-input:focus {
+            border-color: var(--primary-color);
+        }
+        
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem 0;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+        
+        .spinner { 
+            border: 3px solid #e5e7eb; 
+            border-top: 3px solid var(--primary-color); 
+            border-radius: 50%; 
+            width: 24px; 
+            height: 24px; 
+            animation: spin 1s linear infinite; 
+        }
+        
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
         
         @media (max-width: 1024px) { .page-layout { grid-template-columns: 1fr; } .companion-sidebar { position: static; margin-top: 2rem; } }
     </style>
 </head>
 <body>
-    <div id="selection-popup">
-        <button class="popup-button" data-type="simplify"><strong>Simplify It</strong><span>👉 Rephrase in clear, plain language.</span></button>
-        <button class="popup-button" data-type="example"><strong>Give an Example</strong><span>👉 Provide a concrete, real-world example.</span></button>
-        <button class="popup-button" data-type="significance"><strong>Why It Matters</strong><span>👉 Explain its significance and relevance.</span></button>
-        <button class="popup-button" data-type="quiz"><strong>Quiz Me</strong><span>👉 Generate a quick question on this text.</span></button>
-    </div>
     <div class="page-layout">
         <div class="main-content">
             <header class="note-header">
@@ -352,9 +561,38 @@
             </div>
         </div>
         <aside class="companion-sidebar">
+            <div class="chat-header">
             <h3>AI Companion</h3>
-            <div id="companion-content" class="companion-content">
-                <div class="empty-state"><p>Highlight text in your notes to get started.</p></div>
+                <p class="chat-subtitle">Ask me anything about your notes</p>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="ai-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <p>Hi! I've read through your entire lecture notes. Feel free to ask me:</p>
+                        <ul>
+                            <li>Summarize any section</li>
+                            <li>Explain concepts in detail</li>
+                            <li>Give real-world examples</li>
+                            <li>Quiz you on the material</li>
+                            <li>Clarify confusing points</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="quick-actions">
+                <button class="quick-action-btn" data-prompt="Summarize the main points of this lecture">📝 Summarize</button>
+                <button class="quick-action-btn" data-prompt="Give me a quiz on this material">🎯 Quiz Me</button>
+                <button class="quick-action-btn" data-prompt="Explain the most important concepts with examples">💡 Examples</button>
+            </div>
+            <div class="chat-input-container">
+                <textarea id="chat-input" placeholder="Ask me anything about your notes..." rows="1"></textarea>
+                <button id="send-btn" class="send-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
             </div>
         </aside>
     </div>
@@ -379,13 +617,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const noteContentArea = document.getElementById('note-content-area');
             if (!noteContentArea) return;
-            const popup = document.getElementById('selection-popup');
-            const companionContent = document.getElementById('companion-content');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-btn');
             const pagination = document.getElementById('note-pagination');
             const pageInfo = document.getElementById('page-info');
             const prevBtn = document.getElementById('prev-page-btn');
             const nextBtn = document.getElementById('next-page-btn');
-            let currentSelection = null;
             let isAIThinking = false;
             
             // Pagination variables
@@ -443,164 +681,143 @@
             // Initialize pagination on load
             initializePagination();
 
-            function renderQuiz(quizData) {
-                companionContent.innerHTML = '';
-                quizData.questions.forEach((q, index) => {
-                    const questionBlock = document.createElement('div');
-                    questionBlock.innerHTML = `<p class="mini-quiz-question">${q.question}</p>`;
-                    const optionsContainer = document.createElement('div');
-                    optionsContainer.className = 'quiz-options';
-                    q.options.forEach(optionText => {
-                        const optionButton = document.createElement('button');
-                        optionButton.className = 'quiz-option';
-                        optionButton.textContent = optionText;
-                        optionButton.dataset.correctAnswer = q.correct_answer;
-                        optionsContainer.appendChild(optionButton);
-                    });
-                    questionBlock.appendChild(optionsContainer);
-                    const feedbackEl = document.createElement('div');
-                    feedbackEl.className = 'quiz-feedback';
-                    questionBlock.appendChild(feedbackEl);
-                    companionContent.appendChild(questionBlock);
-                });
-            }
-
-            companionContent.addEventListener('click', (e) => {
-                if (e.target.classList.contains('quiz-option') && !e.target.disabled) {
-                    const button = e.target;
-                    const optionsContainer = button.parentElement;
-                    const feedbackEl = optionsContainer.nextElementSibling;
-                    const correctAnswer = button.dataset.correctAnswer;
-                    optionsContainer.querySelectorAll('.quiz-option').forEach(btn => btn.disabled = true);
-                    if (button.textContent === correctAnswer) {
-                        button.classList.add('correct');
-                        feedbackEl.textContent = 'Correct!';
-                        feedbackEl.className = 'quiz-feedback feedback-correct';
+            // Chat functionality
+            function addMessage(content, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'user-message' : 'ai-message';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = isUser ? '👤' : '🤖';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                if (typeof content === 'string') {
+                    messageContent.innerHTML = content;
                     } else {
-                        button.classList.add('incorrect');
-                        feedbackEl.textContent = `Correct answer: ${correctAnswer}`;
-                        feedbackEl.className = 'quiz-feedback feedback-incorrect';
-                        Array.from(optionsContainer.children).find(b => b.textContent === correctAnswer)?.classList.add('correct');
-                    }
+                    messageContent.appendChild(content);
                 }
-            });
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                chatMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
 
-            // Improved text selection handling
-            function handleTextSelection() {
-                if (isAIThinking) return;
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'ai-message typing-indicator-message';
+                typingDiv.id = 'typing-indicator';
                 
-                const selection = window.getSelection();
-                const selectedText = selection.toString().trim();
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = '🤖';
                 
-                // More flexible selection criteria - allow longer selections and handle complex selections
-                if (selectedText.length >= 10 && selectedText.length <= 2000) {
-                    currentSelection = selection;
-                    
-                    // Get the bounding rectangle of the selection
-                    const range = selection.getRangeAt(0);
-                    const rect = range.getBoundingClientRect();
-                    
-                    // Position the popup
-                    popup.style.display = 'flex';
-                    popup.style.left = `${rect.left + window.scrollX + rect.width / 2 - popup.offsetWidth / 2}px`;
-                    popup.style.top = `${rect.top + window.scrollY - popup.offsetHeight - 10}px`;
-                    
-                    // Ensure popup stays within viewport
-                    const popupRect = popup.getBoundingClientRect();
-                    if (popupRect.left < 10) {
-                        popup.style.left = '10px';
-                    }
-                    if (popupRect.right > window.innerWidth - 10) {
-                        popup.style.left = `${window.innerWidth - popupRect.width - 10}px`;
-                    }
-                    if (popupRect.top < 10) {
-                        popup.style.top = `${rect.bottom + window.scrollY + 10}px`;
-                    }
-                } else {
-                    popup.style.display = 'none';
+                const indicatorContainer = document.createElement('div');
+                indicatorContainer.className = 'message-content';
+                
+                const indicator = document.createElement('div');
+                indicator.className = 'typing-indicator';
+                indicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                
+                indicatorContainer.appendChild(indicator);
+                typingDiv.appendChild(avatar);
+                typingDiv.appendChild(indicatorContainer);
+                chatMessages.appendChild(typingDiv);
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function removeTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    indicator.remove();
                 }
             }
 
-            // Multiple event listeners for better selection detection
-            noteContentArea.addEventListener('mouseup', handleTextSelection);
-            noteContentArea.addEventListener('keyup', (e) => {
-                if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') {
-                    handleTextSelection();
-                }
-            });
-            
-            // Handle selection changes
-            document.addEventListener('selectionchange', () => {
-                if (noteContentArea.contains(document.activeElement) || 
-                    (window.getSelection().rangeCount > 0 && 
-                     noteContentArea.contains(window.getSelection().getRangeAt(0).commonAncestorContainer))) {
-                    handleTextSelection();
-                }
-            });
-            document.addEventListener('mousedown', (e) => {
-                if (!popup.contains(e.target)) popup.style.display = 'none';
-            });
-            popup.addEventListener('click', async (e) => {
-                const button = e.target.closest('.popup-button');
-                if (button && currentSelection && !isAIThinking) {
+            async function sendMessage() {
+                const message = chatInput.value.trim();
+                if (!message || isAIThinking) return;
+
+                // Add user message
+                addMessage(message, true);
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+
+                // Disable input while thinking
                     isAIThinking = true;
-                    noteContentArea.classList.add('ai-loading');
-                    companionContent.innerHTML = '<div class="spinner"></div><p style="text-align:center;">Working on it...</p>';
-                    popup.style.display = 'none';
-                    const selectedText = currentSelection.toString().trim();
-                    const explanationType = button.dataset.type;
+                sendBtn.disabled = true;
+                chatInput.disabled = true;
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                try {
+                    // Get full note content
+                    const noteContent = noteContentArea.textContent;
                     
-                    // Better context extraction for complex selections
-                    let contextText = '';
-                    try {
-                        const range = currentSelection.getRangeAt(0);
-                        const container = range.commonAncestorContainer;
-                        
-                        // If selection spans multiple elements, get the parent container
-                        if (container.nodeType === Node.TEXT_NODE) {
-                            contextText = container.parentElement.textContent;
-                        } else {
-                            contextText = container.textContent;
-                        }
-                        
-                        // If context is too long, get a reasonable portion around the selection
-                        if (contextText.length > 1000) {
-                            const startIndex = Math.max(0, range.startOffset - 200);
-                            const endIndex = Math.min(contextText.length, range.endOffset + 200);
-                            contextText = contextText.substring(startIndex, endIndex);
-                        }
-                    } catch (e) {
-                        // Fallback to simple context extraction
-                        contextText = currentSelection.anchorNode.parentElement.textContent;
-                    }
-                    const isQuiz = explanationType === 'quiz';
-                    const endpoint = isQuiz ? '/generate_mini_quiz' : '/explain_selection';
-                    try {
-                        const response = await fetch(endpoint, {
+                    const response = await fetch('/chat_with_notes', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ selected_text: selectedText, context_text: contextText, explanation_type: explanationType })
-                        });
+                        body: JSON.stringify({ 
+                            message: message,
+                            note_content: noteContent,
+                            note_id: '{{ note.id }}'
+                        })
+                    });
+
                         if (!response.ok) throw new Error('API request failed');
                         const result = await response.json();
-                        if (isQuiz) {
-                            renderQuiz(result);
-                        } else {
-                            companionContent.innerHTML = result.explanation;
-                        }
+                    
+                    removeTypingIndicator();
+                    addMessage(result.response, false);
                     } catch (error) {
-                        companionContent.innerHTML = '<p>Sorry, an error occurred. Please try again.</p>';
+                    console.error('Chat error:', error);
+                    removeTypingIndicator();
+                    addMessage('<p>Sorry, I encountered an error. Please try again.</p>', false);
                     } finally {
                         isAIThinking = false;
-                        noteContentArea.classList.remove('ai-loading');
-                    }
+                    sendBtn.disabled = false;
+                    chatInput.disabled = false;
+                    chatInput.focus();
                 }
+            }
+
+            // Auto-resize textarea
+            chatInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // Send message on button click
+            sendBtn.addEventListener('click', sendMessage);
+
+            // Send message on Enter (Shift+Enter for new line)
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Quick action buttons
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const prompt = this.dataset.prompt;
+                    chatInput.value = prompt;
+                    chatInput.focus();
+                    sendMessage();
+                });
             });
         });
 
         // Inline Editing Functionality
         let editedElements = new Map(); // Store element and original content
         let hasUnsavedChanges = false;
+        let currentlyEditing = null;
 
         function makeElementsEditable() {
             const noteContent = document.getElementById('note-content-area');
@@ -611,7 +828,7 @@
             
             textElements.forEach(element => {
                 // Skip if already processed or contains child elements that shouldn't be edited
-                if (element.hasAttribute('contenteditable') || element.querySelector('img, svg, code, pre, button, input, select, textarea')) {
+                if (element.classList.contains('editable-element') || element.querySelector('img, svg, code, pre, button, input, select, textarea')) {
                     return;
                 }
 
@@ -619,38 +836,89 @@
                 const text = element.textContent.trim();
                 if (text.length < 3) return;
 
-                // Make element directly editable
-                element.setAttribute('contenteditable', 'true');
                 element.classList.add('editable');
+                element.classList.add('editable-element');
                 
-                // Store original content on first focus
-                element.addEventListener('focus', function() {
-                    if (!editedElements.has(this)) {
-                        editedElements.set(this, this.innerHTML);
-                    }
-                    this.classList.add('editing');
-                }, { once: false });
-
-                // Handle input changes
-                element.addEventListener('input', function() {
-                    hasUnsavedChanges = true;
-                    showUnsavedNotification();
-                });
-
-                // Remove editing class on blur
-                element.addEventListener('blur', function() {
-                    this.classList.remove('editing');
-                });
-
-                // Handle keyboard shortcuts
-                element.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        e.preventDefault();
-                        cancelSingleEdit(this);
-                        this.blur();
-                    }
+                // Double-click to edit
+                element.addEventListener('dblclick', function(e) {
+                    e.preventDefault();
+                    startEditing(this);
                 });
             });
+        }
+
+        function startEditing(element) {
+            // If already editing another element, finish that first
+            if (currentlyEditing && currentlyEditing !== element) {
+                finishEditing(currentlyEditing);
+            }
+
+            // Store original content if not already stored
+            if (!editedElements.has(element)) {
+                editedElements.set(element, element.innerHTML);
+            }
+
+            element.setAttribute('contenteditable', 'true');
+            element.classList.add('editing');
+            currentlyEditing = element;
+            
+            // Focus the element
+            element.focus();
+            
+            // Select all text for easy editing
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            // Handle input changes
+            element.addEventListener('input', handleInput);
+            
+            // Handle blur
+            element.addEventListener('blur', handleBlur);
+
+            // Handle keyboard shortcuts
+            element.addEventListener('keydown', handleKeydown);
+        }
+
+        function handleInput() {
+            hasUnsavedChanges = true;
+            showUnsavedNotification();
+        }
+
+        function handleBlur(e) {
+            // Small delay to allow other clicks to register
+            setTimeout(() => {
+                if (currentlyEditing === e.target) {
+                    finishEditing(e.target);
+                }
+            }, 100);
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelSingleEdit(e.target);
+            } else if (e.key === 'Enter' && !e.shiftKey && (e.target.tagName !== 'LI')) {
+                // For non-list items, Enter finishes editing
+                e.preventDefault();
+                finishEditing(e.target);
+            }
+        }
+
+        function finishEditing(element) {
+            element.removeAttribute('contenteditable');
+            element.classList.remove('editing');
+            
+            // Remove event listeners
+            element.removeEventListener('input', handleInput);
+            element.removeEventListener('blur', handleBlur);
+            element.removeEventListener('keydown', handleKeydown);
+            
+            if (currentlyEditing === element) {
+                currentlyEditing = null;
+            }
         }
 
         function cancelSingleEdit(element) {
@@ -658,13 +926,14 @@
                 const originalContent = editedElements.get(element);
                 element.innerHTML = originalContent;
                 editedElements.delete(element);
-                element.classList.remove('editing');
-                
-                // Check if no more changes
-                if (editedElements.size === 0) {
-                    hasUnsavedChanges = false;
-                    hideUnsavedNotification();
-                }
+            }
+            
+            finishEditing(element);
+
+            // Check if no more changes
+            if (editedElements.size === 0) {
+                hasUnsavedChanges = false;
+                hideUnsavedNotification();
             }
         }
 
