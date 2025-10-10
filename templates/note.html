@@ -57,66 +57,24 @@
         
         /* Inline Editing Styles */
         .editable {
-            position: relative;
-            cursor: pointer;
+            cursor: text;
             border-radius: 4px;
             transition: all 0.2s ease;
-            padding: 2px 4px;
-            margin: -2px -4px;
+            padding: 4px;
+            margin: -4px;
+            outline: none;
         }
         
         .editable:hover {
-            background-color: rgba(79, 70, 229, 0.1);
-            border: 1px dashed var(--primary-color);
+            background-color: rgba(79, 70, 229, 0.08);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
         }
         
+        .editable:focus,
         .editable.editing {
             background-color: rgba(79, 70, 229, 0.05);
-            border: 1px solid var(--primary-color);
-            padding: 8px;
-            margin: -8px;
-            border-radius: 6px;
-        }
-        
-        .editable-input {
-            background: none;
-            border: none;
-            outline: none;
-            font-family: inherit;
-            font-size: inherit;
-            font-weight: inherit;
-            color: inherit;
-            width: 100%;
-            min-height: 1.2em;
-            resize: none;
-            overflow: hidden;
-        }
-        
-        .editable-input:focus {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 1px solid var(--primary-color);
-            border-radius: 4px;
-            padding: 4px;
-        }
-        
-        .edit-indicator {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background-color: var(--primary-color);
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-            pointer-events: none;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-        }
-        
-        .editable:hover .edit-indicator {
-            opacity: 1;
+            box-shadow: 0 0 0 2px var(--primary-color);
+            cursor: text;
         }
         
         .save-controls {
@@ -230,16 +188,12 @@
         }
         
         html[data-theme="dark"] .editable:hover {
-            background-color: rgba(79, 70, 229, 0.2);
+            background-color: rgba(99, 102, 241, 0.2);
         }
         
+        html[data-theme="dark"] .editable:focus,
         html[data-theme="dark"] .editable.editing {
-            background-color: rgba(79, 70, 229, 0.1);
-        }
-        
-        html[data-theme="dark"] .editable-input:focus {
-            background-color: rgba(0, 0, 0, 0.3);
-            color: var(--text-main);
+            background-color: rgba(99, 102, 241, 0.15);
         }
         
         /* Pagination Styles */
@@ -645,20 +599,19 @@
         });
 
         // Inline Editing Functionality
-        let editedElements = new Set();
-        let originalContent = {};
+        let editedElements = new Map(); // Store element and original content
         let hasUnsavedChanges = false;
 
         function makeElementsEditable() {
             const noteContent = document.getElementById('note-content-area');
             if (!noteContent) return;
 
-            // Make text elements editable (p, span, div, h1-h6, li, etc.)
-            const textElements = noteContent.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6, li, td, th, blockquote');
+            // Make text elements editable (p, h1-h6, li, etc.)
+            const textElements = noteContent.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th, blockquote');
             
             textElements.forEach(element => {
                 // Skip if already processed or contains child elements that shouldn't be edited
-                if (element.classList.contains('editable') || element.querySelector('img, svg, code, pre, button, input, select, textarea')) {
+                if (element.hasAttribute('contenteditable') || element.querySelector('img, svg, code, pre, button, input, select, textarea')) {
                     return;
                 }
 
@@ -666,128 +619,52 @@
                 const text = element.textContent.trim();
                 if (text.length < 3) return;
 
+                // Make element directly editable
+                element.setAttribute('contenteditable', 'true');
                 element.classList.add('editable');
-                element.setAttribute('data-original-content', element.innerHTML);
                 
-                // Add edit indicator
-                const indicator = document.createElement('div');
-                indicator.className = 'edit-indicator';
-                indicator.textContent = 'Click to edit';
-                element.appendChild(indicator);
+                // Store original content on first focus
+                element.addEventListener('focus', function() {
+                    if (!editedElements.has(this)) {
+                        editedElements.set(this, this.innerHTML);
+                    }
+                    this.classList.add('editing');
+                }, { once: false });
 
-                element.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('edit-indicator')) return;
-                    startEditing(this);
+                // Handle input changes
+                element.addEventListener('input', function() {
+                    hasUnsavedChanges = true;
+                    showUnsavedNotification();
+                });
+
+                // Remove editing class on blur
+                element.addEventListener('blur', function() {
+                    this.classList.remove('editing');
+                });
+
+                // Handle keyboard shortcuts
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        cancelSingleEdit(this);
+                        this.blur();
+                    }
                 });
             });
         }
 
-        function startEditing(element) {
-            if (element.classList.contains('editing')) return;
-
-            // Store original content if not already stored
-            if (!originalContent[element]) {
-                originalContent[element] = element.innerHTML;
-            }
-
-            element.classList.add('editing');
-            
-            const text = element.textContent;
-            const textarea = document.createElement('textarea');
-            textarea.className = 'editable-input';
-            textarea.value = text;
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-            
-            // Replace content with textarea
-            element.innerHTML = '';
-            element.appendChild(textarea);
-            
-            // Focus and select text
-            textarea.focus();
-            textarea.select();
-            
-            // Auto-resize textarea
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = this.scrollHeight + 'px';
-            });
-
-            // Handle keyboard shortcuts
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    e.preventDefault();
-                    saveEdit(element, textarea);
-                } else if (e.key === 'Escape') {
-                    e.preventDefault();
-                    cancelEdit(element);
+        function cancelSingleEdit(element) {
+            if (editedElements.has(element)) {
+                const originalContent = editedElements.get(element);
+                element.innerHTML = originalContent;
+                editedElements.delete(element);
+                element.classList.remove('editing');
+                
+                // Check if no more changes
+                if (editedElements.size === 0) {
+                    hasUnsavedChanges = false;
+                    hideUnsavedNotification();
                 }
-            });
-
-            // Save on blur
-            textarea.addEventListener('blur', function() {
-                setTimeout(() => saveEdit(element, textarea), 100);
-            });
-
-            // Mark as edited
-            editedElements.add(element);
-            hasUnsavedChanges = true;
-            showUnsavedNotification();
-        }
-
-        function saveEdit(element, textarea) {
-            const newText = textarea.value.trim();
-            
-            if (newText === element.textContent.trim()) {
-                // No changes, just cancel
-                cancelEdit(element);
-                return;
-            }
-
-            // Update element with new content
-            element.innerHTML = newText;
-            element.classList.remove('editing');
-            
-            // Add edit indicator back
-            const indicator = document.createElement('div');
-            indicator.className = 'edit-indicator';
-            indicator.textContent = 'Click to edit';
-            element.appendChild(indicator);
-            
-            // Re-add click listener
-            element.addEventListener('click', function(e) {
-                if (e.target.classList.contains('edit-indicator')) return;
-                startEditing(this);
-            });
-
-            // Mark as having changes
-            if (!editedElements.has(element)) {
-                editedElements.add(element);
-            }
-            
-            hasUnsavedChanges = true;
-            showUnsavedNotification();
-        }
-
-        function cancelEdit(element) {
-            // Restore original content
-            if (originalContent[element]) {
-                element.innerHTML = originalContent[element];
-            }
-            
-            element.classList.remove('editing');
-            editedElements.delete(element);
-            
-            // Re-add click listener
-            element.addEventListener('click', function(e) {
-                if (e.target.classList.contains('edit-indicator')) return;
-                startEditing(this);
-            });
-
-            // Check if no more changes
-            if (editedElements.size === 0) {
-                hasUnsavedChanges = false;
-                hideUnsavedNotification();
             }
         }
 
@@ -808,20 +685,12 @@
             if (!noteId || !noteContent) return;
 
             try {
-                // Get all edited elements and their new content
-                const changes = {};
-                editedElements.forEach(element => {
-                    const selector = getElementSelector(element);
-                    changes[selector] = element.innerHTML;
-                });
-
                 const response = await fetch(`/note/${noteId}/update_content`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
-                        changes: changes,
                         full_content: noteContent.innerHTML 
                     })
                 });
@@ -829,9 +698,10 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    // Reset state
-                    editedElements.clear();
-                    originalContent = {};
+                    // Reset state - update stored original content
+                    editedElements.forEach((originalContent, element) => {
+                        editedElements.set(element, element.innerHTML);
+                    });
                     hasUnsavedChanges = false;
                     hideUnsavedNotification();
                     
@@ -847,46 +717,17 @@
         }
 
         function discardAllChanges() {
-            editedElements.forEach(element => {
-                if (originalContent[element]) {
-                    element.innerHTML = originalContent[element];
-                }
+            // Restore all original content
+            editedElements.forEach((originalContent, element) => {
+                element.innerHTML = originalContent;
             });
             
             editedElements.clear();
-            originalContent = {};
             hasUnsavedChanges = false;
             hideUnsavedNotification();
             
             // Re-initialize editable elements
             makeElementsEditable();
-        }
-
-        function getElementSelector(element) {
-            // Generate a unique selector for the element
-            const path = [];
-            let current = element;
-            
-            while (current && current !== document.body) {
-                let selector = current.tagName.toLowerCase();
-                
-                if (current.id) {
-                    selector += '#' + current.id;
-                    path.unshift(selector);
-                    break;
-                } else {
-                    let sibling = current;
-                    let nth = 1;
-                    while (sibling = sibling.previousElementSibling) {
-                        if (sibling.tagName === current.tagName) nth++;
-                    }
-                    if (nth !== 1) selector += ':nth-of-type(' + nth + ')';
-                }
-                path.unshift(selector);
-                current = current.parentElement;
-            }
-            
-            return path.join(' > ');
         }
 
         function showNotification(message, type) {
