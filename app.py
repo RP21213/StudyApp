@@ -4273,7 +4273,8 @@ def migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data):
                     front=valid_card['front'],
                     back=valid_card['back'],
                     card_index=valid_card['index'],
-                    difficulty='medium'
+                    difficulty='medium',
+                    next_review=datetime.now(timezone.utc)  # Set to current time so card is immediately due
                 )
                 sr_card_ref.set(sr_card.to_dict())
                 migrated_count += 1
@@ -10690,53 +10691,53 @@ def create_review_session():
                         # Use the same is_due() logic as get_due_cards
                         if sr_card.is_due():
                             print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
-                        # Get the original flashcard data (use the already fetched data)
-                        try:
-                            flashcard_doc = db.collection('activities').document(activity_id).get()
-                            if flashcard_doc.exists:
-                                flashcard_data = flashcard_doc.to_dict()
-                                flashcards = flashcard_data.get('data', {}).get('cards', [])
-                                
-                                # Find the specific flashcard using robust matching
-                                flashcard = None
-                                card_index = sr_card.card_index
-                                
-                                # First try: Use stored index if valid
-                                if 0 <= card_index < len(flashcards):
-                                    flashcard = flashcards[card_index]
-                                    print(f"✅ DEBUG: Found card by index {card_index}")
+                            # Get the original flashcard data (use the already fetched data)
+                            try:
+                                flashcard_doc = db.collection('activities').document(activity_id).get()
+                                if flashcard_doc.exists:
+                                    flashcard_data = flashcard_doc.to_dict()
+                                    flashcards = flashcard_data.get('data', {}).get('cards', [])
+                                    
+                                    # Find the specific flashcard using robust matching
+                                    flashcard = None
+                                    card_index = sr_card.card_index
+                                    
+                                    # First try: Use stored index if valid
+                                    if 0 <= card_index < len(flashcards):
+                                        flashcard = flashcards[card_index]
+                                        print(f"✅ DEBUG: Found card by index {card_index}")
+                                    else:
+                                        # Second try: Match by content (front/back text)
+                                        print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching")
+                                        for idx, fc in enumerate(flashcards):
+                                            if (fc.get('front', '').strip() == sr_card.front.strip() and 
+                                                fc.get('back', '').strip() == sr_card.back.strip()):
+                                                flashcard = fc
+                                                card_index = idx
+                                                print(f"✅ DEBUG: Found card by content matching at index {idx}")
+                                                break
+                                    
+                                    if flashcard:
+                                        due_cards.append({
+                                            'id': sr_card.id,
+                                            'front': flashcard.get('front', ''),
+                                            'back': flashcard.get('back', ''),
+                                            'activity_id': activity_id,
+                                            'card_index': card_index,
+                                            'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
+                                            'interval': sr_card.interval_days,
+                                            'ease_factor': sr_card.ease_factor,
+                                            'repetitions': sr_card.repetitions
+                                        })
+                                        print(f"✅ DEBUG: Added card {sr_card.id} to due cards")
+                                    else:
+                                        print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card.id} (index: {sr_card.card_index}, activity: {activity_id})")
+                                        print(f"🔍 DEBUG: Activity has {len(flashcards)} cards, SR card front: '{sr_card.front[:50]}...'")
                                 else:
-                                    # Second try: Match by content (front/back text)
-                                    print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching")
-                                    for idx, fc in enumerate(flashcards):
-                                        if (fc.get('front', '').strip() == sr_card.front.strip() and 
-                                            fc.get('back', '').strip() == sr_card.back.strip()):
-                                            flashcard = fc
-                                            card_index = idx
-                                            print(f"✅ DEBUG: Found card by content matching at index {idx}")
-                                            break
-                                
-                                if flashcard:
-                                    due_cards.append({
-                                        'id': sr_card.id,
-                                        'front': flashcard.get('front', ''),
-                                        'back': flashcard.get('back', ''),
-                                        'activity_id': activity_id,
-                                        'card_index': card_index,
-                                        'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
-                                        'interval': sr_card.interval_days,
-                                        'ease_factor': sr_card.ease_factor,
-                                        'repetitions': sr_card.repetitions
-                                    })
-                                    print(f"✅ DEBUG: Added card {sr_card.id} to due cards")
-                                else:
-                                    print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card.id} (index: {sr_card.card_index}, activity: {activity_id})")
-                                    print(f"🔍 DEBUG: Activity has {len(flashcards)} cards, SR card front: '{sr_card.front[:50]}...'")
-                            else:
-                                print(f"❌ ERROR: Activity {activity_id} not found")
-                        except Exception as e:
-                            print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
-                            debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
+                                    print(f"❌ ERROR: Activity {activity_id} not found")
+                            except Exception as e:
+                                print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
+                                debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
                         else:
                             next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
                             print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
