@@ -1336,7 +1336,7 @@ def generate_key_points_html(text):
     - Final page: Key takeaways and summary
 
     **HTML STRUCTURE:**
-    ```html
+    Use this exact structure (DO NOT include ```html or ```):
     <div class="note-page" data-page="1">
         <h2 class="page-title">Main Concepts</h2>
         <ul>
@@ -1347,7 +1347,6 @@ def generate_key_points_html(text):
         <h2 class="page-title">Topic Name</h2>
         <!-- Content for this page -->
     </div>
-    ```
 
     **CONTENT FOCUS:**
     - Main themes and central concepts
@@ -1363,7 +1362,7 @@ def generate_key_points_html(text):
     - Place diagrams strategically within relevant pages where they add the most value
 
     **DIAGRAM FORMAT:**
-    ```html
+    Use this exact structure (DO NOT include ```html or ```):
     <div class="diagram-container">
         <h4 class="diagram-title">Diagram: [Title]</h4>
         <div class="diagram-description">
@@ -1372,9 +1371,10 @@ def generate_key_points_html(text):
             <p><strong>Explanation:</strong> [How it relates to the topic]</p>
         </div>
     </div>
-    ```
 
     Your response MUST be a single block of well-formed HTML with proper pagination.
+
+    CRITICAL: Do NOT include any markdown formatting like ```html or ``` in your response. Return ONLY the HTML content.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
@@ -1422,7 +1422,7 @@ def generate_condensed_notes_html(text):
     - Final page: Key takeaways, summary, and important points
 
     **HTML STRUCTURE:**
-    ```html
+    Use this exact structure (DO NOT include ```html or ```):
     <div class="note-page" data-page="1">
         <h2 class="page-title">Introduction & Overview</h2>
         <h3>Main Concepts</h3>
@@ -1434,7 +1434,6 @@ def generate_condensed_notes_html(text):
         <h2 class="page-title">Topic Name</h2>
         <!-- Detailed content for this topic -->
     </div>
-    ```
 
     **WELL-ORGANIZED STRUCTURE:**
     - Use clear hierarchical headings and subheadings
@@ -1462,7 +1461,7 @@ def generate_condensed_notes_html(text):
     - Place diagrams strategically within relevant pages where they add the most value
 
     **DIAGRAM FORMAT:**
-    ```html
+    Use this exact structure (DO NOT include ```html or ```):
     <div class="diagram-container">
         <h4 class="diagram-title">Diagram: [Title]</h4>
         <div class="diagram-description">
@@ -1471,9 +1470,10 @@ def generate_condensed_notes_html(text):
             <p><strong>Explanation:</strong> [How it relates to the topic]</p>
         </div>
     </div>
-    ```
 
     Your response MUST be a single block of well-formed HTML with proper pagination.
+
+    CRITICAL: Do NOT include any markdown formatting like ```html or ``` in your response. Return ONLY the HTML content.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
@@ -1524,7 +1524,7 @@ def generate_detailed_notes_html(text):
     - Final page: Comprehensive summary, key takeaways, and important connections
 
     **HTML STRUCTURE:**
-    ```html
+    Use this exact structure (DO NOT include ```html or ```):
     <div class="note-page" data-page="1">
         <h2 class="page-title">Introduction & Background</h2>
         <h3>Main Concepts</h3>
@@ -1536,7 +1536,6 @@ def generate_detailed_notes_html(text):
         <h2 class="page-title">Topic Name</h2>
         <!-- Comprehensive content for this topic -->
     </div>
-    ```
 
     **COMPREHENSIVE COVERAGE:**
     - Don't skip important details or assume prior knowledge
@@ -1574,6 +1573,8 @@ def generate_detailed_notes_html(text):
     ```
 
     Your response MUST be a single block of well-formed HTML with proper pagination.
+
+    CRITICAL: Do NOT include any markdown formatting like ```html or ``` in your response. Return ONLY the HTML content.
 
     Follow these rules precisely:
     1.  **Structure:** Use standard HTML tags like `<h1>`, `<h2>`, `<h3>`, `<p>`, `<ul>`, `<ol>`, `<li>`, and `<strong>`.
