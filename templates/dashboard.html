@@ -525,8 +525,8 @@
             overflow: hidden;
             width: 100%;
             box-sizing: border-box;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
+            opacity: 1;
+            transform: translateY(0) scale(1);
             animation: flashcardButtonPulse 3s ease infinite, buttonSlideIn 0.5s ease forwards 0.45s;
         }
         
@@ -1883,8 +1883,196 @@
             opacity: 1;
         }
         
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content { 
+            display: none; 
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tab-content.active { 
+            display: block; 
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            animation: contentReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        /* Cool content reveal animations */
+        @keyframes contentReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+                filter: blur(5px);
+            }
+            50% {
+                opacity: 0.7;
+                transform: translateY(10px) scale(0.98);
+                filter: blur(2px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+        
+        /* Staggered animation for content elements */
+        .tab-content.active .content-card,
+        .tab-content.active .hub-card,
+        .tab-content.active .community-card,
+        .tab-content.active .progress-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: staggerReveal 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        .tab-content.active .content-card:nth-child(1) { animation-delay: 0.1s; }
+        .tab-content.active .content-card:nth-child(2) { animation-delay: 0.15s; }
+        .tab-content.active .content-card:nth-child(3) { animation-delay: 0.2s; }
+        .tab-content.active .content-card:nth-child(4) { animation-delay: 0.25s; }
+        .tab-content.active .content-card:nth-child(5) { animation-delay: 0.3s; }
+        .tab-content.active .content-card:nth-child(6) { animation-delay: 0.35s; }
+        
+        .tab-content.active .hub-card:nth-child(1) { animation-delay: 0.1s; }
+        .tab-content.active .hub-card:nth-child(2) { animation-delay: 0.15s; }
+        .tab-content.active .hub-card:nth-child(3) { animation-delay: 0.2s; }
+        .tab-content.active .hub-card:nth-child(4) { animation-delay: 0.25s; }
+        
+        .tab-content.active .community-card:nth-child(1) { animation-delay: 0.1s; }
+        .tab-content.active .community-card:nth-child(2) { animation-delay: 0.15s; }
+        .tab-content.active .community-card:nth-child(3) { animation-delay: 0.2s; }
+        .tab-content.active .community-card:nth-child(4) { animation-delay: 0.25s; }
+        
+        .tab-content.active .progress-card:nth-child(1) { animation-delay: 0.1s; }
+        .tab-content.active .progress-card:nth-child(2) { animation-delay: 0.15s; }
+        .tab-content.active .progress-card:nth-child(3) { animation-delay: 0.2s; }
+        
+        @keyframes staggerReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(25px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Special animations for different tab types */
+        .tab-content.active .workspace-header {
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideInFromLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.2s;
+        }
+        
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Grid reveal animation */
+        .tab-content.active .hub-grid,
+        .tab-content.active .community-grid,
+        .tab-content.active .progress-grid {
+            opacity: 0;
+            animation: gridReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards 0.3s;
+        }
+        
+        @keyframes gridReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        /* Special animations for specific tabs */
+        #hubs.tab-content.active .hub-card {
+            animation: hubCardReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes hubCardReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) rotateY(-10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateY(0deg);
+            }
+        }
+        
+        #community.tab-content.active .community-card {
+            animation: communityCardReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes communityCardReveal {
+            0% {
+                opacity: 0;
+                transform: translateX(-30px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        #progress.tab-content.active .progress-card {
+            animation: progressCardReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes progressCardReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(25px) scale(0.95);
+                filter: brightness(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: brightness(1);
+            }
+        }
+        
+        #spaced-repetition.tab-content.active .content-card {
+            animation: spacedRepetitionReveal 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes spacedRepetitionReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) rotateX(-5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0deg);
+            }
+        }
+        
+        #earn-money.tab-content.active .content-card {
+            animation: earnMoneyReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        
+        @keyframes earnMoneyReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(25px) scale(0.9);
+                filter: hue-rotate(30deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: hue-rotate(0deg);
+            }
+        }
 
         .container { max-width: 1400px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); gap: 2rem; }
@@ -2222,8 +2410,8 @@
             box-sizing: border-box;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
+            opacity: 1;
+            transform: translateY(0) scale(1);
             animation: earnMoneyPulse 3s ease infinite, buttonSlideIn 0.5s ease forwards 0.55s;
         }
         
@@ -5397,8 +5585,206 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ===== FOCI LOADING ANIMATION ===== */
+        
+        .foci-loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1b26 0%, #2d1b69 50%, #4c1d95 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .foci-loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .foci-loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .foci-logo {
+            width: 80px;
+            height: 80px;
+            position: relative;
+        }
+        
+        .foci-logo svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+        }
+        
+        .foci-logo-path {
+            fill: none;
+            stroke: url(#fociGradient);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: fociDraw 2s ease-in-out infinite;
+        }
+        
+        .foci-logo-glow {
+            fill: none;
+            stroke: url(#fociGradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.3;
+            filter: blur(4px);
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: fociDraw 2s ease-in-out infinite, fociGlow 1.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes fociDraw {
+            0% {
+                stroke-dashoffset: 200;
+            }
+            50% {
+                stroke-dashoffset: 100;
+            }
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        @keyframes fociGlow {
+            0% {
+                opacity: 0.2;
+                stroke-width: 6;
+            }
+            100% {
+                opacity: 0.4;
+                stroke-width: 10;
+            }
+        }
+        
+        .foci-loading-text {
+            color: #e2e8f0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+            opacity: 0;
+            animation: fociTextFade 1.5s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+        }
+        
+        @keyframes fociTextFade {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        .foci-loading-dots {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .foci-loading-dot {
+            width: 8px;
+            height: 8px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: fociDotPulse 1.4s ease-in-out infinite both;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+        }
+        
+        .foci-loading-dot:nth-child(1) { animation-delay: 0s; }
+        .foci-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .foci-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes fociDotPulse {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .foci-logo {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .foci-loading-text {
+                font-size: 1rem;
+            }
+        }
     </style>
+
+    <!-- Foci Loading Overlay -->
+    <div class="foci-loading-overlay" id="foci-loading-overlay">
+        <div class="foci-loading-container">
+            <div class="foci-logo">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="fociGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Glow layer -->
+                    <path class="foci-logo-glow" d="M20,50 C20,20 80,20 80,50 C80,80 20,80 20,50 M35,35 C35,25 65,25 65,35 C65,45 35,45 35,35 M35,65 C35,55 65,55 65,65 C65,75 35,75 35,65 M50,20 C50,10 50,90 50,90 M30,30 C70,70 M70,30 C30,70"/>
+                    <!-- Main logo path -->
+                    <path class="foci-logo-path" d="M20,50 C20,20 80,20 80,50 C80,80 20,80 20,50 M35,35 C35,25 65,25 65,35 C65,45 35,45 35,35 M35,65 C35,55 65,55 65,65 C65,75 35,75 35,65 M50,20 C50,10 50,90 50,90 M30,30 C70,70 M70,30 C30,70"/>
+                </svg>
+            </div>
+            <div class="foci-loading-text" id="foci-loading-text">Loading...</div>
+            <div class="foci-loading-dots">
+                <div class="foci-loading-dot"></div>
+                <div class="foci-loading-dot"></div>
+                <div class="foci-loading-dot"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Foci Loading Animation Functions
+        function showFociLoading(message = 'Loading...') {
+            const overlay = document.getElementById('foci-loading-overlay');
+            const textElement = document.getElementById('foci-loading-text');
+            
+            if (overlay && textElement) {
+                textElement.textContent = message;
+                overlay.classList.add('active');
+            }
+        }
+
+        function hideFociLoading() {
+            const overlay = document.getElementById('foci-loading-overlay');
+            
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
+
         // UPDATED SCRIPT: Initialize theme and accessibility settings from localStorage
         (function() {
             const theme = localStorage.getItem('theme');
@@ -7678,6 +8064,23 @@ Best regards,
             // Initialize flashcard count in sidebar
             updateFlashcardCount();
             
+            // Add loading animation for hub navigation
+            document.querySelectorAll('.hub-card-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const hubName = this.closest('.hub-card').dataset.hubName || 'Study Hub';
+                    showFociLoading(`Entering ${hubName}...`);
+                });
+            });
+            
+            // Add loading animation for hub links in progress section
+            document.querySelectorAll('a[href*="/hub/"]').forEach(link => {
+                if (!link.classList.contains('hub-card-link')) {
+                    link.addEventListener('click', function(e) {
+                        showFociLoading('Opening Study Hub...');
+                    });
+                }
+            });
+            
             // Modal functionality
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
@@ -7857,12 +8260,28 @@ Best regards,
                         
                         const targetId = tab.getAttribute('data-tab');
                         
+                        // Hide all tab contents with smooth transition
                         tabContents.forEach(content => {
-                            content.classList.remove('active');
-                            if (content.id === targetId) {
-                                content.classList.add('active');
+                            if (content.classList.contains('active')) {
+                                content.style.opacity = '0';
+                                content.style.transform = 'translateY(20px) scale(0.95)';
+                                setTimeout(() => {
+                                    content.classList.remove('active');
+                                }, 200);
                             }
                         });
+                        
+                        // Show target content with animation
+                        setTimeout(() => {
+                            const targetContent = document.getElementById(targetId);
+                            if (targetContent) {
+                                targetContent.classList.add('active');
+                                // Trigger reflow to ensure animation starts
+                                targetContent.offsetHeight;
+                                targetContent.style.opacity = '1';
+                                targetContent.style.transform = 'translateY(0) scale(1)';
+                            }
+                        }, 250);
                         history.pushState(null, '', '#' + targetId);
                         
                         // Special handling for earn-money tab
