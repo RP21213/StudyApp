@@ -11725,14 +11725,6 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             
                 console.log(`🔍 Total due cards across all hubs: ${totalDueCards}`);
                 
-                // Update the spaced repetition display with the collected data
-                updateSpacedRepetitionTabStats({
-                    totalDueCards: totalDueCards,
-                    totalNewCards: totalNewCards,
-                    totalLearningCards: totalLearningCards,
-                    totalMatureCards: totalMatureCards
-                });
-                
                 // If no hub found with due cards, try to find any hub with flashcards
             if (!targetHub) {
                 for (const hub of hubsData.hubs) {
