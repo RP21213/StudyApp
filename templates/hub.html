@@ -300,8 +300,8 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            opacity: 0;
-            transform: translateX(-20px);
+            opacity: 1;
+            transform: translateX(0);
             animation: slideInNav 0.4s ease forwards;
         }
         
@@ -5316,6 +5316,7 @@
             const sidebarToggle = document.getElementById('sidebar-toggle');
             const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
             const tabContents = document.querySelectorAll('.tab-content');
+            
             let calendar; 
             const loadingContainer = document.getElementById('loading-status-container');
             let isAITaskRunning = false;
@@ -5769,8 +5770,16 @@
             sidebarToggle.innerHTML = sidebar.classList.contains('collapsed') ? iconExpand : iconCollapse;
 
             function showTab(tabId) {
-                navLinks.forEach(link => link.classList.toggle('active', link.dataset.tab === tabId));
-                tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
+                navLinks.forEach(link => {
+                    const isActive = link.dataset.tab === tabId;
+                    link.classList.toggle('active', isActive);
+                });
+                
+                tabContents.forEach(content => {
+                    const isActive = content.id === tabId;
+                    content.classList.toggle('active', isActive);
+                });
+                
                 window.location.hash = tabId;
 
                 if (tabId === 'calendar' && calendarEl) {
@@ -5798,19 +5807,12 @@
                     
                     // Check if we're in onboarding and clicked Study Tools
                     const onboardingStep = sessionStorage.getItem('onboardingStep');
-                    console.log('🔍 Study Tools clicked - onboardingStep:', onboardingStep);
-                    console.log('🔍 Tab clicked:', e.currentTarget.dataset.tab);
                     
                     if (e.currentTarget.dataset.tab === 'tools' && onboardingStep === 'hub_entry') {
-                        console.log('🎯 Study Tools clicked during onboarding, triggering next step...');
                         // Wait for the Study Tools content to load, then guide to "In a Lecture"
                         setTimeout(() => {
                             guideToInLecture();
                         }, 1000);
-                    } else {
-                        console.log('❌ Study Tools click not triggering onboarding - conditions not met');
-                        console.log('   - Tab is tools:', e.currentTarget.dataset.tab === 'tools');
-                        console.log('   - Onboarding step is hub_entry:', onboardingStep === 'hub_entry');
                     }
                 });
             });

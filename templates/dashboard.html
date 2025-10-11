@@ -303,8 +303,8 @@
             box-sizing: border-box;
             position: relative;
             overflow: hidden;
-            opacity: 0;
-            transform: translateX(-20px);
+            opacity: 1;
+            transform: translateX(0);
             animation: slideInNav 0.4s ease forwards;
         }
         
@@ -7606,21 +7606,16 @@ Best regards,
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('🎬 Main DOMContentLoaded - Initializing all functionality...');
-            
             // ===== INTEGRATED MICROANIMATIONS SYSTEM =====
-            console.log('🎬 Adding microanimations to existing elements...');
             
             // Add animations to all buttons
             const buttons = document.querySelectorAll('.button');
-            console.log(`🎯 Found ${buttons.length} buttons to animate`);
             
             buttons.forEach((button, index) => {
                 // Store original onclick if it exists
                 const originalOnclick = button.onclick;
                 
                 button.addEventListener('click', function(e) {
-                    console.log('🔘 Button clicked:', this.textContent.trim() || this.innerHTML);
                     
                     // Add click animation
                     this.classList.add('clicked');
@@ -7673,15 +7668,11 @@ Best regards,
             
             // Add sparkle effects to special buttons
             const specialButtons = document.querySelectorAll('[data-sparkle="true"]');
-            console.log(`✨ Found ${specialButtons.length} sparkle buttons`);
             specialButtons.forEach(button => {
                 button.addEventListener('click', function() {
-                    console.log('✨ Sparkle button clicked!');
                     createSparkleEffect(this);
                 });
             });
-            
-            console.log('🎬 Microanimations integrated successfully!');
             // ===== END MICROANIMATIONS =====
             
             // Initialize flashcard count in sidebar
@@ -7693,7 +7684,6 @@ Best regards,
             const modalOverlay = document.getElementById('modal-overlay');
 
             if (openModalBtn) openModalBtn.addEventListener('click', () => {
-                console.log('📱 Opening modal with animation');
                 modalOverlay.classList.add('visible');
                 // Add bounce animation to modal content
                 const modalContent = modalOverlay.querySelector('.modal-content');
@@ -7707,7 +7697,6 @@ Best regards,
             });
             
             if(closeModalBtn) closeModalBtn.addEventListener('click', () => {
-                console.log('📱 Closing modal with animation');
                 const modalContent = modalOverlay.querySelector('.modal-content');
                 if (modalContent) {
                     modalContent.style.transition = 'transform 0.2s ease';
@@ -7720,7 +7709,6 @@ Best regards,
             
             if(modalOverlay) modalOverlay.addEventListener('click', e => { 
                 if (e.target === modalOverlay) {
-                    console.log('📱 Closing modal via overlay click');
                     const modalContent = modalOverlay.querySelector('.modal-content');
                     if (modalContent) {
                         modalContent.style.transition = 'transform 0.2s ease';
@@ -7858,8 +7846,6 @@ Best regards,
                 if (tab.hasAttribute('data-tab')) {
                     tab.addEventListener('click', (e) => {
                         e.preventDefault();
-                        console.log('🔄 Tab switching to:', tab.getAttribute('data-tab'));
-                        
                         // Add click animation to tab
                         tab.style.transform = 'scale(0.95)';
                         setTimeout(() => {
@@ -7870,20 +7856,11 @@ Best regards,
                         tab.classList.add('active');
                         
                         const targetId = tab.getAttribute('data-tab');
+                        
                         tabContents.forEach(content => {
                             content.classList.remove('active');
                             if (content.id === targetId) {
-                                // Add entrance animation to new content
-                                content.style.opacity = '0';
-                                content.style.transform = 'translateY(20px)';
                                 content.classList.add('active');
-                                
-                                // Animate content in
-                                setTimeout(() => {
-                                    content.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                                    content.style.opacity = '1';
-                                    content.style.transform = 'translateY(0)';
-                                }, 50);
                             }
                         });
                         history.pushState(null, '', '#' + targetId);
