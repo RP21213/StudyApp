@@ -11629,6 +11629,15 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 }
                 
                 // Update UI
+                console.log('📊 Updating spaced repetition UI with data:', {
+                    totalDueCards,
+                    totalCards,
+                    totalNewCards,
+                    totalLearningCards,
+                    totalMatureCards,
+                    recentSessionsCount: allRecentSessions.length
+                });
+                
                 updateSpacedRepetitionUI({
                     totalDueCards,
                     totalCards,
@@ -11714,9 +11723,17 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 }
             }
             
-            console.log(`🔍 Total due cards across all hubs: ${totalDueCards}`);
-            
-            // If no hub found with due cards, try to find any hub with flashcards
+                console.log(`🔍 Total due cards across all hubs: ${totalDueCards}`);
+                
+                // Update the spaced repetition display with the collected data
+                updateSpacedRepetitionTabStats({
+                    totalDueCards: totalDueCards,
+                    totalNewCards: totalNewCards,
+                    totalLearningCards: totalLearningCards,
+                    totalMatureCards: totalMatureCards
+                });
+                
+                // If no hub found with due cards, try to find any hub with flashcards
             if (!targetHub) {
                 for (const hub of hubsData.hubs) {
                     // Check various possible flashcard count fields
@@ -11764,13 +11781,25 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
         
         // Update spaced repetition stats in the dedicated tab
         function updateSpacedRepetitionTabStats(data) {
+            console.log('🎯 updateSpacedRepetitionTabStats called with data:', data);
+            
             // Update the stats in the spaced repetition tab
             const dueCardsElement = document.getElementById('sr-due-cards');
             const newCardsElement = document.getElementById('sr-new-cards');
             const learningCardsElement = document.getElementById('sr-learning-cards');
             const matureCardsElement = document.getElementById('sr-mature-cards');
             
-            if (dueCardsElement) dueCardsElement.textContent = data.totalDueCards || 0;
+            console.log('🎯 Found elements:', {
+                dueCardsElement: !!dueCardsElement,
+                newCardsElement: !!newCardsElement,
+                learningCardsElement: !!learningCardsElement,
+                matureCardsElement: !!matureCardsElement
+            });
+            
+            if (dueCardsElement) {
+                dueCardsElement.textContent = data.totalDueCards || 0;
+                console.log('🎯 Updated due cards element to:', data.totalDueCards || 0);
+            }
             if (newCardsElement) newCardsElement.textContent = data.totalNewCards || 0;
             if (learningCardsElement) learningCardsElement.textContent = data.totalLearningCards || 0;
             if (matureCardsElement) matureCardsElement.textContent = data.totalMatureCards || 0;

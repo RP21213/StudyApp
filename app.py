@@ -61,11 +61,16 @@ from werkzeug.utils import secure_filename
 import uuid
 
 # --- NEW: Imports for Google Drive API ---
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from google.auth.transport.requests import Request
-import pickle
+try:
+    from googleapiclient.discovery import build
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import Flow
+    from google.auth.transport.requests import Request
+    import pickle
+    GOOGLE_API_AVAILABLE = True
+except ImportError:
+    GOOGLE_API_AVAILABLE = False
+    print("Google API libraries not available - some features will be disabled")
 
 
 # --- UPDATED: Import the new models, including Lecture ---
@@ -2227,6 +2232,8 @@ def get_currently_playing():
 
 def get_valid_google_token():
     """Checks if the current user's Google token is valid, refreshes if not, and returns a valid token."""
+    if not GOOGLE_API_AVAILABLE:
+        return None
     if not current_user.is_authenticated or not current_user.google_refresh_token:
         return None
 
