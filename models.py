@@ -648,15 +648,17 @@ class SpacedRepetitionCard:
         self.created_at = created_at or datetime.now(timezone.utc)
 
     def to_dict(self):
+        # Note: Firestore automatically handles datetime objects, but we need to ensure 
+        # they're timezone-aware and properly formatted
         return {
             'id': self.id,
             'activity_id': self.activity_id,
             'card_index': self.card_index,
             'front': self.front,
             'back': self.back,
-            'ease_factor': self.ease_factor,
-            'interval_days': self.interval_days,
-            'repetitions': self.repetitions,
+            'ease_factor': float(self.ease_factor),  # Ensure it's a float
+            'interval_days': int(self.interval_days),  # Ensure it's an int
+            'repetitions': int(self.repetitions),  # Ensure it's an int
             'last_reviewed': self.last_reviewed,
             'next_review': self.next_review,
             'difficulty': self.difficulty,
@@ -665,7 +667,34 @@ class SpacedRepetitionCard:
 
     @staticmethod
     def from_dict(source):
-        return SpacedRepetitionCard(**source)
+        # Ensure datetime objects are properly handled
+        # Firestore returns datetime objects, but we need to ensure they're timezone-aware
+        last_reviewed = source.get('last_reviewed')
+        next_review = source.get('next_review')
+        created_at = source.get('created_at')
+        
+        # Make sure datetime objects are timezone-aware
+        if last_reviewed and not last_reviewed.tzinfo:
+            last_reviewed = last_reviewed.replace(tzinfo=timezone.utc)
+        if next_review and not next_review.tzinfo:
+            next_review = next_review.replace(tzinfo=timezone.utc)
+        if created_at and not created_at.tzinfo:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        
+        return SpacedRepetitionCard(
+            id=source.get('id'),
+            activity_id=source.get('activity_id'),
+            card_index=source.get('card_index'),
+            front=source.get('front'),
+            back=source.get('back'),
+            ease_factor=source.get('ease_factor', 2.5),
+            interval_days=source.get('interval_days', 1),
+            repetitions=source.get('repetitions', 0),
+            last_reviewed=last_reviewed,
+            next_review=next_review,
+            difficulty=source.get('difficulty', 'medium'),
+            created_at=created_at
+        )
 
     def is_due(self):
         """Check if this card is due for review"""

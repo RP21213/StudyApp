@@ -11317,6 +11317,8 @@ def get_due_cards(hub_id):
                 total_cards_checked += 1
                 
                 if sr_card.is_due():
+                    next_review_str = sr_card.next_review.strftime("%Y-%m-%d %H:%M:%S") if sr_card.next_review else "None"
+                    last_reviewed_str = sr_card.last_reviewed.strftime("%Y-%m-%d %H:%M:%S") if sr_card.last_reviewed else "Never"
                     due_cards.append({
                         'id': sr_card.id,
                         'front': sr_card.front,
@@ -11328,7 +11330,7 @@ def get_due_cards(hub_id):
                         'repetitions': sr_card.repetitions,
                         'difficulty': sr_card.difficulty
                     })
-                    print(f"🔍 DEBUG: Card {sr_card.id} is due (interval: {sr_card.interval_days}d, reps: {sr_card.repetitions})")
+                    print(f"🔍 DEBUG: Card {sr_card.id} is due (interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}, last_reviewed: {last_reviewed_str}, next_review: {next_review_str})")
                 else:
                     next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
                     print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
@@ -11398,9 +11400,32 @@ def review_card():
             sr_card.ease_factor
         )
         
-        # Save updated card
-        card_ref.update(sr_card.to_dict())
-        print(f"✅ SUCCESS: Card {card_id} updated: {old_interval}d -> {sr_card.interval_days}d")
+        # Save updated card - convert to dict and remove the id field (shouldn't be updated)
+        card_data = sr_card.to_dict()
+        # Don't update the id field - it's the document ID
+        card_data.pop('id', None)
+        
+        print(f"🔍 DEBUG: About to update card {card_id} with data: repetitions={sr_card.repetitions}, interval={sr_card.interval_days}d, next_review={sr_card.next_review}")
+        
+        try:
+            card_ref.update(card_data)
+            print(f"✅ SUCCESS: Card {card_id} updated in Firestore: {old_interval}d -> {sr_card.interval_days}d")
+            
+            # Verify the update persisted
+            updated_card_doc = card_ref.get()
+            if updated_card_doc.exists:
+                updated_data = updated_card_doc.to_dict()
+                print(f"🔍 VERIFY: Card after update - repetitions={updated_data.get('repetitions')}, interval={updated_data.get('interval_days')}d")
+                if updated_data.get('repetitions') != sr_card.repetitions:
+                    print(f"⚠️ WARNING: Repetitions mismatch! Expected {sr_card.repetitions}, got {updated_data.get('repetitions')}")
+            else:
+                print(f"⚠️ WARNING: Card {card_id} not found after update!")
+                
+        except Exception as update_error:
+            print(f"❌ ERROR: Failed to update card {card_id} in Firestore: {update_error}")
+            import traceback
+            traceback.print_exc()
+            raise
         
         debugger.logger.info(f"Card {card_id} updated: {old_interval}d -> {sr_card.interval_days}d")
         
