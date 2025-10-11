@@ -1886,27 +1886,33 @@
         .tab-content { 
             display: none; 
             opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation-fill-mode: both;
         }
         .tab-content.active { 
             display: block; 
             opacity: 1;
             transform: translateY(0) scale(1);
-            animation: contentReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: smoothContentReveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
         
-        /* Cool content reveal animations */
-        @keyframes contentReveal {
+        /* Smooth content reveal animations */
+        @keyframes smoothContentReveal {
             0% {
                 opacity: 0;
-                transform: translateY(30px) scale(0.9);
-                filter: blur(5px);
+                transform: translateY(30px) scale(0.95);
+                filter: blur(8px);
             }
-            50% {
-                opacity: 0.7;
-                transform: translateY(10px) scale(0.98);
-                filter: blur(2px);
+            40% {
+                opacity: 0.8;
+                transform: translateY(8px) scale(0.98);
+                filter: blur(3px);
+            }
+            70% {
+                opacity: 0.95;
+                transform: translateY(-2px) scale(1.01);
+                filter: blur(1px);
             }
             100% {
                 opacity: 1;
@@ -5617,63 +5623,33 @@
         }
         
         .foci-logo {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 60px;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .foci-logo svg {
+        .foci-logo img {
             width: 100%;
             height: 100%;
+            object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+            animation: fociLogoPulse 2s ease-in-out infinite;
         }
         
-        .foci-logo-path {
-            fill: none;
-            stroke: url(#fociGradient);
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-dasharray: 200;
-            stroke-dashoffset: 200;
-            animation: fociDraw 2s ease-in-out infinite;
-        }
-        
-        .foci-logo-glow {
-            fill: none;
-            stroke: url(#fociGradient);
-            stroke-width: 8;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            opacity: 0.3;
-            filter: blur(4px);
-            stroke-dasharray: 200;
-            stroke-dashoffset: 200;
-            animation: fociDraw 2s ease-in-out infinite, fociGlow 1.5s ease-in-out infinite alternate;
-        }
-        
-        @keyframes fociDraw {
-            0% {
-                stroke-dashoffset: 200;
+        @keyframes fociLogoPulse {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
             }
             50% {
-                stroke-dashoffset: 100;
-            }
-            100% {
-                stroke-dashoffset: 0;
+                transform: scale(1.05);
+                filter: drop-shadow(0 0 30px rgba(139, 92, 246, 0.8));
             }
         }
         
-        @keyframes fociGlow {
-            0% {
-                opacity: 0.2;
-                stroke-width: 6;
-            }
-            100% {
-                opacity: 0.4;
-                stroke-width: 10;
-            }
-        }
         
         .foci-loading-text {
             color: #e2e8f0;
@@ -5728,8 +5704,8 @@
         /* Mobile responsive */
         @media (max-width: 768px) {
             .foci-logo {
-                width: 60px;
-                height: 60px;
+                width: 100px;
+                height: 50px;
             }
             
             .foci-loading-text {
@@ -5742,19 +5718,7 @@
     <div class="foci-loading-overlay" id="foci-loading-overlay">
         <div class="foci-loading-container">
             <div class="foci-logo">
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="fociGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <!-- Glow layer -->
-                    <path class="foci-logo-glow" d="M20,50 C20,20 80,20 80,50 C80,80 20,80 20,50 M35,35 C35,25 65,25 65,35 C65,45 35,45 35,35 M35,65 C35,55 65,55 65,65 C65,75 35,75 35,65 M50,20 C50,10 50,90 50,90 M30,30 C70,70 M70,30 C30,70"/>
-                    <!-- Main logo path -->
-                    <path class="foci-logo-path" d="M20,50 C20,20 80,20 80,50 C80,80 20,80 20,50 M35,35 C35,25 65,25 65,35 C65,45 35,45 35,35 M35,65 C35,55 65,55 65,65 C65,75 35,75 35,65 M50,20 C50,10 50,90 50,90 M30,30 C70,70 M70,30 C30,70"/>
-                </svg>
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiB2aWV3Qm94PSIwIDAgMTAwIDQwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8dGV4dCB4PSI1MCIgeT0iMjgiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiM4YjVjZjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkZvY2k8L3RleHQ+Cjwvc3ZnPgo=" alt="Foci" />
             </div>
             <div class="foci-loading-text" id="foci-loading-text">Loading...</div>
             <div class="foci-loading-dots">
@@ -8259,29 +8223,17 @@ Best regards,
                         tab.classList.add('active');
                         
                         const targetId = tab.getAttribute('data-tab');
+                        const targetContent = document.getElementById(targetId);
                         
-                        // Hide all tab contents with smooth transition
-                        tabContents.forEach(content => {
-                            if (content.classList.contains('active')) {
-                                content.style.opacity = '0';
-                                content.style.transform = 'translateY(20px) scale(0.95)';
-                                setTimeout(() => {
-                                    content.classList.remove('active');
-                                }, 200);
-                            }
-                        });
-                        
-                        // Show target content with animation
-                        setTimeout(() => {
-                            const targetContent = document.getElementById(targetId);
-                            if (targetContent) {
-                                targetContent.classList.add('active');
-                                // Trigger reflow to ensure animation starts
-                                targetContent.offsetHeight;
-                                targetContent.style.opacity = '1';
-                                targetContent.style.transform = 'translateY(0) scale(1)';
-                            }
-                        }, 250);
+                        if (targetContent && !targetContent.classList.contains('active')) {
+                            // Remove active class from all content
+                            tabContents.forEach(content => {
+                                content.classList.remove('active');
+                            });
+                            
+                            // Add active class to target content - CSS handles the animation
+                            targetContent.classList.add('active');
+                        }
                         history.pushState(null, '', '#' + targetId);
                         
                         // Special handling for earn-money tab
