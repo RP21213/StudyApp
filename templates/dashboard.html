@@ -11467,6 +11467,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             });
             
             // Load spaced repetition data when progress tab is active
+            console.log('🔄 Loading spaced repetition data on page load...');
             loadSpacedRepetitionData();
             
             // Check if returning from a spaced repetition session
@@ -11576,18 +11577,23 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 // Get data for each hub
                 for (const hub of hubsData.hubs) {
                     try {
+                        console.log(`🔍 Checking hub ${hub.id} (${hub.name}) for due cards...`);
                         // Get due cards
                         const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`, {
                             credentials: 'include'
                         });
                         if (dueResponse.ok) {
                             const dueData = await dueResponse.json();
+                            console.log(`🔍 Hub ${hub.id} due cards response:`, dueData);
                             if (dueData.success) {
                                 totalDueCards += dueData.total_due;
+                                console.log(`✅ Hub ${hub.id} contributed ${dueData.total_due} due cards. Total so far: ${totalDueCards}`);
                             }
                         } else if (dueResponse.status === 401 || dueResponse.status === 403) {
                             console.log('🔍 Authentication required for due cards - skipping');
                             continue;
+                        } else {
+                            console.log(`❌ Hub ${hub.id} due cards API failed: ${dueResponse.status}`);
                         }
                         
                         // Get learning progress
@@ -11671,7 +11677,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
         }
         
         // New Spaced Repetition Tab Functions
-        function startSpacedRepetitionSession() {
+        async function startSpacedRepetitionSession() {
             console.log('🎯 Starting spaced repetition session...');
             
             // Show loading message
@@ -11700,6 +11706,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             
             for (const hub of hubsData.hubs) {
                 try {
+                    console.log(`🔍 Checking hub ${hub.id} (${hub.name}) for due cards...`);
                     // Actually check for due cards in this hub
                     const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`, {
                         credentials: 'include'
@@ -11707,26 +11714,37 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                     
                     if (dueResponse.ok) {
                         const dueData = await dueResponse.json();
+                        console.log(`🔍 Hub ${hub.id} response:`, dueData);
                         if (dueData.success && dueData.total_due > 0) {
-                            console.log(`🔍 Hub ${hub.id} has ${dueData.total_due} due cards`);
+                            console.log(`✅ Hub ${hub.id} has ${dueData.total_due} due cards`);
                             totalDueCards += dueData.total_due;
                             if (dueData.total_due > maxDueCards) {
                                 maxDueCards = dueData.total_due;
                                 targetHub = hub; // Keep track of hub with most cards for session creation
                             }
                         } else {
-                            console.log(`🔍 Hub ${hub.id} has no due cards`);
+                            console.log(`🔍 Hub ${hub.id} has no due cards (success: ${dueData.success}, total_due: ${dueData.total_due})`);
                         }
+                    } else {
+                        console.log(`❌ Hub ${hub.id} API call failed: ${dueResponse.status}`);
                     }
                 } catch (error) {
-                    console.log(`🔍 Error checking hub ${hub.id}:`, error);
+                    console.log(`❌ Error checking hub ${hub.id}:`, error);
                 }
             }
             
                 console.log(`🔍 Total due cards across all hubs: ${totalDueCards}`);
+            
+            // If we found due cards, proceed with the session
+            if (totalDueCards > 0) {
+                console.log(`✅ Found ${totalDueCards} due cards across all hubs, proceeding with session`);
+            } else {
+                console.log(`⚠️ No due cards found, but we'll still try to start a session (migration might be needed)`);
+            }
                 
-                // If no hub found with due cards, try to find any hub with flashcards
+            // If no hub found with due cards, try to find any hub with flashcards
             if (!targetHub) {
+                console.log(`🔍 No target hub selected yet, looking for hubs with flashcards...`);
                 for (const hub of hubsData.hubs) {
                     // Check various possible flashcard count fields
                     const flashcardCount = hub.flashcard_count || hub.flashcards_count || hub.card_count || hub.total_cards || 0;
@@ -11734,6 +11752,7 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                     
                     if (flashcardCount > 0) {
                         targetHub = hub;
+                        console.log(`✅ Selected hub ${hub.id} based on flashcard count`);
                         break;
                     }
                 }
@@ -11789,12 +11808,25 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             });
             
             if (dueCardsElement) {
-                dueCardsElement.textContent = data.totalDueCards || 0;
-                console.log('🎯 Updated due cards element to:', data.totalDueCards || 0);
+                const dueCount = data.totalDueCards || 0;
+                dueCardsElement.textContent = dueCount;
+                console.log(`🎯 Updated due cards element to: ${dueCount}`);
+                console.log(`🎯 Due cards element innerHTML is now: "${dueCardsElement.innerHTML}"`);
+            } else {
+                console.log('❌ dueCardsElement not found!');
             }
-            if (newCardsElement) newCardsElement.textContent = data.totalNewCards || 0;
-            if (learningCardsElement) learningCardsElement.textContent = data.totalLearningCards || 0;
-            if (matureCardsElement) matureCardsElement.textContent = data.totalMatureCards || 0;
+            if (newCardsElement) {
+                newCardsElement.textContent = data.totalNewCards || 0;
+                console.log(`🎯 Updated new cards element to: ${data.totalNewCards || 0}`);
+            }
+            if (learningCardsElement) {
+                learningCardsElement.textContent = data.totalLearningCards || 0;
+                console.log(`🎯 Updated learning cards element to: ${data.totalLearningCards || 0}`);
+            }
+            if (matureCardsElement) {
+                matureCardsElement.textContent = data.totalMatureCards || 0;
+                console.log(`🎯 Updated mature cards element to: ${data.totalMatureCards || 0}`);
+            }
             
             // Update the urgent styling for due cards
             const dueCardElement = document.querySelector('.sr-stat-card.urgent');
