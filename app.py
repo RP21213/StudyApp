@@ -10616,214 +10616,228 @@ def create_review_session():
             debugger.logger.warning(f"User {current_user.id} attempted to create session without hub_id")
             return jsonify({"success": False, "message": "Hub ID is required"}), 400
         
-        # Get due cards for this hub
-        print(f"🔍 DEBUG: Getting due cards for hub {hub_id}")
+        # Get due cards from ALL hubs for this user
+        print(f"🔍 DEBUG: Getting due cards from all hubs for user {current_user.id}")
         
         # Call the get_due_cards function directly (not the route)
         try:
-            # Get all activities in this hub
-            activities_query = db.collection('activities').where('hub_id', '==', hub_id).where('type', '==', 'Flashcards')
-            activities = list(activities_query.stream())
-            print(f"🔍 DEBUG: Found {len(activities)} flashcard activities in hub {hub_id}")
+            # Get all hubs for this user
+            hubs_query = db.collection('hubs').where('user_id', '==', current_user.id)
+            user_hubs = list(hubs_query.stream())
+            print(f"🔍 DEBUG: Found {len(user_hubs)} hubs for user {current_user.id}")
             
             due_cards = []
             total_cards_checked = 0
             
-            for activity_doc in activities:
-                activity_id = activity_doc.id
-                print(f"🔍 DEBUG: Checking activity {activity_id}")
+            # Check each hub for due cards
+            for hub_doc in user_hubs:
+                current_hub_id = hub_doc.id
+                print(f"🔍 DEBUG: Checking hub {current_hub_id}")
                 
-                # Get spaced repetition cards for this activity
-                sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
-                sr_cards = list(sr_cards_query.stream())
-                print(f"🔍 DEBUG: Found {len(sr_cards)} SR cards in activity {activity_id}")
-                
-                # If no spaced repetition cards exist, migrate them automatically
-                if not sr_cards:
-                    activity_data = activity_doc.to_dict()
-                    flashcards_data = activity_data.get('data', {}).get('cards', [])
-                    if flashcards_data:
-                        print(f"🔍 DEBUG: Auto-migrating {len(flashcards_data)} flashcards for activity {activity_id}")
-                        try:
-                            migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
-                            # Re-query after migration
-                            sr_cards = list(sr_cards_query.stream())
-                            print(f"🔍 DEBUG: After migration, found {len(sr_cards)} SR cards")
-                        except Exception as migration_error:
-                            print(f"❌ ERROR: Auto-migration failed for activity {activity_id}: {migration_error}")
-                            debugger.logger.error(f"Auto-migration failed for activity {activity_id}: {migration_error}")
-                            continue
-                
-                # Check if activity needs recovery before processing cards
-                activity_doc = db.collection('activities').document(activity_id).get()
-                if activity_doc.exists:
-                    activity_data = activity_doc.to_dict()
-                    current_cards = activity_data.get('data', {}).get('cards', [])
+                # Get all activities in this hub
+                activities_query = db.collection('activities').where('hub_id', '==', current_hub_id).where('type', '==', 'Flashcards')
+                activities = list(activities_query.stream())
+                print(f"🔍 DEBUG: Found {len(activities)} flashcard activities in hub {current_hub_id}")
+            
+                # Process activities in this hub
+                for activity_doc in activities:
+                    activity_id = activity_doc.id
+                    print(f"🔍 DEBUG: Checking activity {activity_id} in hub {current_hub_id}")
                     
-                    # If activity has no cards but SR cards exist, recover once for the entire activity
-                    if len(current_cards) == 0 and len(sr_cards) > 0:
-                        print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery")
-                        if recover_missing_flashcards(activity_id):
-                            print(f"✅ AUTO-RECOVERY: Recovered cards for activity {activity_id}")
-                            # Re-fetch the activity data after recovery
-                            activity_doc = db.collection('activities').document(activity_id).get()
-                            activity_data = activity_doc.to_dict()
-                            current_cards = activity_data.get('data', {}).get('cards', [])
-                            print(f"✅ AUTO-RECOVERY: Activity now has {len(current_cards)} cards")
-                            
-                            # CRITICAL: Re-query SR cards after recovery to get updated data
-                            sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
-                            sr_cards = list(sr_cards_query.stream())
-                            print(f"✅ AUTO-RECOVERY: Re-queried {len(sr_cards)} SR cards after recovery")
-                        else:
-                            print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
-                            # Skip this entire activity if recovery failed
-                            continue
-
-                for sr_card_doc in sr_cards:
-                    sr_card_data = sr_card_doc.to_dict()
-                    total_cards_checked += 1
-                    
-                    try:
-                        sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
-                        print(f"🔍 DEBUG: Processing card {sr_card.id}, interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}")
-                        
-                        # Use the same is_due() logic as get_due_cards
-                        if sr_card.is_due():
-                            print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
-                            # Get the original flashcard data (use the already fetched data)
+                    # Get spaced repetition cards for this activity
+                    sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+                    sr_cards = list(sr_cards_query.stream())
+                    print(f"🔍 DEBUG: Found {len(sr_cards)} SR cards in activity {activity_id}")
+                
+                    # If no spaced repetition cards exist, migrate them automatically
+                    if not sr_cards:
+                        activity_data = activity_doc.to_dict()
+                        flashcards_data = activity_data.get('data', {}).get('cards', [])
+                        if flashcards_data:
+                            print(f"🔍 DEBUG: Auto-migrating {len(flashcards_data)} flashcards for activity {activity_id}")
                             try:
-                                flashcard_doc = db.collection('activities').document(activity_id).get()
-                                if flashcard_doc.exists:
-                                    flashcard_data = flashcard_doc.to_dict()
-                                    flashcards = flashcard_data.get('data', {}).get('cards', [])
-                                    
-                                    # Find the specific flashcard using robust matching
-                                    flashcard = None
-                                    card_index = sr_card.card_index
-                                    
-                                    # First try: Use stored index if valid
-                                    if 0 <= card_index < len(flashcards):
-                                        flashcard = flashcards[card_index]
-                                        print(f"✅ DEBUG: Found card by index {card_index}")
-                                    else:
-                                        # Second try: Match by content (front/back text)
-                                        print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching")
-                                        for idx, fc in enumerate(flashcards):
-                                            if (fc.get('front', '').strip() == sr_card.front.strip() and 
-                                                fc.get('back', '').strip() == sr_card.back.strip()):
-                                                flashcard = fc
-                                                card_index = idx
-                                                print(f"✅ DEBUG: Found card by content matching at index {idx}")
-                                                break
-                                    
-                                    if flashcard:
-                                        due_cards.append({
-                                            'id': sr_card.id,
-                                            'front': flashcard.get('front', ''),
-                                            'back': flashcard.get('back', ''),
-                                            'activity_id': activity_id,
-                                            'card_index': card_index,
-                                            'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
-                                            'interval': sr_card.interval_days,
-                                            'ease_factor': sr_card.ease_factor,
-                                            'repetitions': sr_card.repetitions
-                                        })
-                                        print(f"✅ DEBUG: Added card {sr_card.id} to due cards")
-                                    else:
-                                        print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card.id} (index: {sr_card.card_index}, activity: {activity_id})")
-                                        print(f"🔍 DEBUG: Activity has {len(flashcards)} cards, SR card front: '{sr_card.front[:50]}...'")
-                                else:
-                                    print(f"❌ ERROR: Activity {activity_id} not found")
-                            except Exception as e:
-                                print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
-                                debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
-                        else:
-                            next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
-                            print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
-                    except Exception as card_error:
-                        print(f"❌ ERROR: Failed to process card {sr_card_doc.id}: {card_error}")
-                        debugger.logger.error(f"Failed to process card {sr_card_doc.id}: {card_error}")
+                                migrate_flashcards_to_spaced_repetition(activity_id, flashcards_data)
+                                # Re-query after migration
+                                sr_cards = list(sr_cards_query.stream())
+                                print(f"🔍 DEBUG: After migration, found {len(sr_cards)} SR cards")
+                            except Exception as migration_error:
+                                print(f"❌ ERROR: Auto-migration failed for activity {activity_id}: {migration_error}")
+                                debugger.logger.error(f"Auto-migration failed for activity {activity_id}: {migration_error}")
+                                continue
+                
+                    # Check if activity needs recovery before processing cards
+                    activity_doc = db.collection('activities').document(activity_id).get()
+                    if activity_doc.exists:
+                        activity_data = activity_doc.to_dict()
+                        current_cards = activity_data.get('data', {}).get('cards', [])
                         
-                        # Fallback: Use the same logic as get_due_cards function
-                        print(f"🔄 FALLBACK: Using manual due check for card {sr_card_doc.id}")
+                        # If activity has no cards but SR cards exist, recover once for the entire activity
+                        if len(current_cards) == 0 and len(sr_cards) > 0:
+                            print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery")
+                            if recover_missing_flashcards(activity_id):
+                                print(f"✅ AUTO-RECOVERY: Recovered cards for activity {activity_id}")
+                                # Re-fetch the activity data after recovery
+                                activity_doc = db.collection('activities').document(activity_id).get()
+                                activity_data = activity_doc.to_dict()
+                                current_cards = activity_data.get('data', {}).get('cards', [])
+                                print(f"✅ AUTO-RECOVERY: Activity now has {len(current_cards)} cards")
+                                
+                                # CRITICAL: Re-query SR cards after recovery to get updated data
+                                sr_cards_query = db.collection('spaced_repetition_cards').where('activity_id', '==', activity_id)
+                                sr_cards = list(sr_cards_query.stream())
+                                print(f"✅ AUTO-RECOVERY: Re-queried {len(sr_cards)} SR cards after recovery")
+                            else:
+                                print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id}")
+                                # Skip this entire activity if recovery failed
+                                continue
+
+                    # Process each spaced repetition card
+                    for sr_card_doc in sr_cards:
+                        sr_card_data = sr_card_doc.to_dict()
+                        total_cards_checked += 1
+                        
                         try:
-                            # Manual due check (same as get_due_cards)
-                            next_review = sr_card_data.get('next_review')
-                            if next_review:
-                                # Convert Firestore timestamp to datetime if needed
-                                if hasattr(next_review, 'timestamp'):
-                                    next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
-                                else:
-                                    next_review_dt = next_review
+                            sr_card = SpacedRepetitionCard.from_dict(sr_card_data)
+                            print(f"🔍 DEBUG: Processing card {sr_card.id}, interval: {sr_card.interval_days}d, reps: {sr_card.repetitions}")
                             
-                            if next_review_dt <= datetime.now(timezone.utc):
-                                print(f"🔍 DEBUG: Card {sr_card_doc.id} is due (manual check)")
-                                # Get the original flashcard data
-                                flashcard_doc = db.collection('activities').document(activity_id).get()
-                                if flashcard_doc.exists:
-                                    flashcard_data = flashcard_doc.to_dict()
-                                    flashcards = flashcard_data.get('data', {}).get('cards', [])
-                                    
-                                    # If activity has no cards but SR cards exist, try to recover
-                                    if len(flashcards) == 0:
-                                        print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery (fallback)")
-                                        if recover_missing_flashcards(activity_id):
-                                            # Re-fetch the activity data after recovery
-                                            flashcard_doc = db.collection('activities').document(activity_id).get()
-                                            flashcard_data = flashcard_doc.to_dict()
-                                            flashcards = flashcard_data.get('data', {}).get('cards', [])
-                                            print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id} (fallback)")
+                            # Use the same is_due() logic as get_due_cards
+                            if sr_card.is_due():
+                                print(f"🔍 DEBUG: Card {sr_card.id} is due for review")
+                                # Get the original flashcard data (use the already fetched data)
+                                try:
+                                    flashcard_doc = db.collection('activities').document(activity_id).get()
+                                    if flashcard_doc.exists:
+                                        flashcard_data = flashcard_doc.to_dict()
+                                        flashcards = flashcard_data.get('data', {}).get('cards', [])
+                                        
+                                        # Find the specific flashcard using robust matching
+                                        flashcard = None
+                                        card_index = sr_card.card_index
+                                        
+                                        # First try: Use stored index if valid
+                                        if 0 <= card_index < len(flashcards):
+                                            flashcard = flashcards[card_index]
+                                            print(f"✅ DEBUG: Found card by index {card_index}")
                                         else:
-                                            print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id} (fallback)")
-                                            continue  # Skip this card if recovery failed
-                                    
-                                    # Find the specific flashcard using robust matching
-                                    flashcard = None
-                                    card_index = sr_card_data.get('card_index', 0)
-                                    
-                                    # First try: Use stored index if valid
-                                    if 0 <= card_index < len(flashcards):
-                                        flashcard = flashcards[card_index]
-                                        print(f"✅ DEBUG: Found card by index {card_index} (fallback)")
-                                    else:
-                                        # Second try: Match by content (front/back text)
-                                        print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching (fallback)")
-                                        sr_front = sr_card_data.get('front', '').strip()
-                                        sr_back = sr_card_data.get('back', '').strip()
-                                        for idx, fc in enumerate(flashcards):
-                                            if (fc.get('front', '').strip() == sr_front and 
-                                                fc.get('back', '').strip() == sr_back):
-                                                flashcard = fc
-                                                card_index = idx
-                                                print(f"✅ DEBUG: Found card by content matching at index {idx} (fallback)")
-                                                break
+                                            # Second try: Match by content (front/back text)
+                                            print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching")
+                                            for idx, fc in enumerate(flashcards):
+                                                if (fc.get('front', '').strip() == sr_card.front.strip() and 
+                                                    fc.get('back', '').strip() == sr_card.back.strip()):
+                                                    flashcard = fc
+                                                    card_index = idx
+                                                    print(f"✅ DEBUG: Found card by content matching at index {idx}")
+                                                    break
                                         
                                         if flashcard:
                                             due_cards.append({
-                                                'id': sr_card_doc.id,
+                                                'id': sr_card.id,
                                                 'front': flashcard.get('front', ''),
                                                 'back': flashcard.get('back', ''),
                                                 'activity_id': activity_id,
+                                                'hub_id': current_hub_id,  # Include hub_id for tracking
                                                 'card_index': card_index,
-                                                'next_review': next_review_dt.isoformat(),
-                                                'interval': sr_card_data.get('interval_days', 1),
-                                                'ease_factor': sr_card_data.get('ease_factor', 2.5),
-                                                'repetitions': sr_card_data.get('repetitions', 0)
+                                                'next_review': sr_card.next_review.isoformat() if sr_card.next_review else None,
+                                                'interval': sr_card.interval_days,
+                                                'ease_factor': sr_card.ease_factor,
+                                                'repetitions': sr_card.repetitions
                                             })
-                                            print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards (fallback)")
+                                            print(f"✅ DEBUG: Added card {sr_card.id} to due cards from hub {current_hub_id}")
                                         else:
-                                            print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card_doc.id} (fallback)")
-                        except Exception as fallback_error:
-                            print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
-                            debugger.logger.error(f"Fallback failed for card {sr_card_doc.id}: {fallback_error}")
+                                            print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card.id} (index: {sr_card.card_index}, activity: {activity_id})")
+                                            print(f"🔍 DEBUG: Activity has {len(flashcards)} cards, SR card front: '{sr_card.front[:50]}...'")
+                                    else:
+                                        print(f"❌ ERROR: Activity {activity_id} not found")
+                                except Exception as e:
+                                    print(f"❌ ERROR: Failed to get flashcard data for card {sr_card.id}: {e}")
+                                    debugger.logger.error(f"Failed to get flashcard data for card {sr_card.id}: {e}")
+                            else:
+                                next_review = sr_card.next_review.strftime("%Y-%m-%d %H:%M") if sr_card.next_review else "Never"
+                                print(f"🔍 DEBUG: Card {sr_card.id} not due (next review: {next_review})")
+                        except Exception as card_error:
+                            print(f"❌ ERROR: Failed to process card {sr_card_doc.id}: {card_error}")
+                            debugger.logger.error(f"Failed to process card {sr_card_doc.id}: {card_error}")
+                        
+                            # Fallback: Use the same logic as get_due_cards function
+                            print(f"🔄 FALLBACK: Using manual due check for card {sr_card_doc.id}")
+                            try:
+                                # Manual due check (same as get_due_cards)
+                                next_review = sr_card_data.get('next_review')
+                                if next_review:
+                                    # Convert Firestore timestamp to datetime if needed
+                                    if hasattr(next_review, 'timestamp'):
+                                        next_review_dt = datetime.fromtimestamp(next_review.timestamp(), tz=timezone.utc)
+                                    else:
+                                        next_review_dt = next_review
+                                    
+                                    if next_review_dt <= datetime.now(timezone.utc):
+                                        print(f"🔍 DEBUG: Card {sr_card_doc.id} is due (manual check)")
+                                        # Get the original flashcard data
+                                        flashcard_doc = db.collection('activities').document(activity_id).get()
+                                        if flashcard_doc.exists:
+                                            flashcard_data = flashcard_doc.to_dict()
+                                            flashcards = flashcard_data.get('data', {}).get('cards', [])
+                                            
+                                            # If activity has no cards but SR cards exist, try to recover
+                                            if len(flashcards) == 0:
+                                                print(f"🔄 AUTO-RECOVERY: Activity {activity_id} has 0 cards, attempting recovery (fallback)")
+                                                if recover_missing_flashcards(activity_id):
+                                                    # Re-fetch the activity data after recovery
+                                                    flashcard_doc = db.collection('activities').document(activity_id).get()
+                                                    flashcard_data = flashcard_doc.to_dict()
+                                                    flashcards = flashcard_data.get('data', {}).get('cards', [])
+                                                    print(f"✅ AUTO-RECOVERY: Recovered {len(flashcards)} cards for activity {activity_id} (fallback)")
+                                                else:
+                                                    print(f"❌ AUTO-RECOVERY: Failed to recover cards for activity {activity_id} (fallback)")
+                                                    continue  # Skip this card if recovery failed
+                                            
+                                            # Find the specific flashcard using robust matching
+                                            flashcard = None
+                                            card_index = sr_card_data.get('card_index', 0)
+                                            
+                                            # First try: Use stored index if valid
+                                            if 0 <= card_index < len(flashcards):
+                                                flashcard = flashcards[card_index]
+                                                print(f"✅ DEBUG: Found card by index {card_index} (fallback)")
+                                            else:
+                                                # Second try: Match by content (front/back text)
+                                                print(f"🔍 DEBUG: Index {card_index} out of range, trying content matching (fallback)")
+                                                sr_front = sr_card_data.get('front', '').strip()
+                                                sr_back = sr_card_data.get('back', '').strip()
+                                                for idx, fc in enumerate(flashcards):
+                                                    if (fc.get('front', '').strip() == sr_front and 
+                                                        fc.get('back', '').strip() == sr_back):
+                                                        flashcard = fc
+                                                        card_index = idx
+                                                        print(f"✅ DEBUG: Found card by content matching at index {idx} (fallback)")
+                                                        break
+                                            
+                                            if flashcard:
+                                                due_cards.append({
+                                                    'id': sr_card_doc.id,
+                                                    'front': flashcard.get('front', ''),
+                                                    'back': flashcard.get('back', ''),
+                                                    'activity_id': activity_id,
+                                                    'hub_id': current_hub_id,  # Include hub_id for tracking
+                                                    'card_index': card_index,
+                                                    'next_review': next_review_dt.isoformat(),
+                                                    'interval': sr_card_data.get('interval_days', 1),
+                                                    'ease_factor': sr_card_data.get('ease_factor', 2.5),
+                                                    'repetitions': sr_card_data.get('repetitions', 0)
+                                                })
+                                                print(f"✅ DEBUG: Added card {sr_card_doc.id} to due cards from hub {current_hub_id} (fallback)")
+                                            else:
+                                                print(f"❌ ERROR: Could not find matching flashcard for SR card {sr_card_doc.id} (fallback)")
+                            except Exception as fallback_error:
+                                print(f"❌ ERROR: Fallback also failed for card {sr_card_doc.id}: {fallback_error}")
+                                debugger.logger.error(f"Fallback failed for card {sr_card_doc.id}: {fallback_error}")
             
             print(f"🔍 DEBUG: Total cards checked: {total_cards_checked}, Due cards: {len(due_cards)}")
-            debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards in hub {hub_id}")
+            debugger.logger.info(f"Found {len(due_cards)} due cards out of {total_cards_checked} total cards across all hubs")
             
         except Exception as e:
-            print(f"❌ ERROR: Failed to get due cards for hub {hub_id}: {e}")
-            debugger.logger.error(f"Error getting due cards for hub {hub_id}: {e}")
+            print(f"❌ ERROR: Failed to get due cards from all hubs: {e}")
+            debugger.logger.error(f"Error getting due cards from all hubs: {e}")
             return jsonify({"success": False, "message": f"Failed to get due cards: {str(e)}"}), 500
         
         # Limit cards for this session
@@ -10831,8 +10845,8 @@ def create_review_session():
         print(f"🔍 DEBUG: Limited to {len(session_cards)} cards for this session")
         
         if not session_cards:
-            print(f"ℹ️ INFO: No cards due for review in hub {hub_id}")
-            debugger.logger.info(f"No cards due for review in hub {hub_id}")
+            print(f"ℹ️ INFO: No cards due for review across all hubs")
+            debugger.logger.info(f"No cards due for review across all hubs")
             return jsonify({
                 "success": True,
                 "message": "No cards due for review",
@@ -10841,12 +10855,12 @@ def create_review_session():
             })
         
         # Create review session
-        print(f"🔍 DEBUG: Creating review session with {len(session_cards)} cards")
+        print(f"🔍 DEBUG: Creating review session with {len(session_cards)} cards from multiple hubs")
         session_ref = db.collection('review_sessions').document()
         session = ReviewSession(
             id=session_ref.id,
             user_id=current_user.id,
-            hub_id=hub_id,
+            hub_id=hub_id,  # Keep original hub_id for session tracking
             session_type=session_type,
             cards_data=[card['id'] for card in session_cards]
         )

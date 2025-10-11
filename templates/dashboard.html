@@ -11684,20 +11684,53 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
             // Debug: Log all hub data
             console.log('🔍 All hubs data:', hubsData.hubs);
             
-            // Find a hub with flashcards - check multiple possible fields
+            // Calculate total due cards across all hubs
             let targetHub = null;
+            let totalDueCards = 0;
+            let maxDueCards = 0;
+            
             for (const hub of hubsData.hubs) {
-                // Check various possible flashcard count fields
-                const flashcardCount = hub.flashcard_count || hub.flashcards_count || hub.card_count || hub.total_cards || 0;
-                console.log(`🔍 Checking hub ${hub.id}: flashcard_count=${hub.flashcard_count}, total_cards=${hub.total_cards}, flashcardCount=${flashcardCount}`);
-                
-                if (flashcardCount > 0) {
-                    targetHub = hub;
-                    break;
+                try {
+                    // Actually check for due cards in this hub
+                    const dueResponse = await fetch(`/api/spaced_repetition/due_cards/${hub.id}`, {
+                        credentials: 'include'
+                    });
+                    
+                    if (dueResponse.ok) {
+                        const dueData = await dueResponse.json();
+                        if (dueData.success && dueData.total_due > 0) {
+                            console.log(`🔍 Hub ${hub.id} has ${dueData.total_due} due cards`);
+                            totalDueCards += dueData.total_due;
+                            if (dueData.total_due > maxDueCards) {
+                                maxDueCards = dueData.total_due;
+                                targetHub = hub; // Keep track of hub with most cards for session creation
+                            }
+                        } else {
+                            console.log(`🔍 Hub ${hub.id} has no due cards`);
+                        }
+                    }
+                } catch (error) {
+                    console.log(`🔍 Error checking hub ${hub.id}:`, error);
                 }
             }
             
-            // If no hub found by count, just use the first hub (the migration will handle it)
+            console.log(`🔍 Total due cards across all hubs: ${totalDueCards}`);
+            
+            // If no hub found with due cards, try to find any hub with flashcards
+            if (!targetHub) {
+                for (const hub of hubsData.hubs) {
+                    // Check various possible flashcard count fields
+                    const flashcardCount = hub.flashcard_count || hub.flashcards_count || hub.card_count || hub.total_cards || 0;
+                    console.log(`🔍 Checking hub ${hub.id}: flashcard_count=${hub.flashcard_count}, total_cards=${hub.total_cards}, flashcardCount=${flashcardCount}`);
+                    
+                    if (flashcardCount > 0) {
+                        targetHub = hub;
+                        break;
+                    }
+                }
+            }
+            
+            // If still no hub found, just use the first hub (the migration will handle it)
             if (!targetHub && hubsData.hubs.length > 0) {
                 targetHub = hubsData.hubs[0];
                 console.log(`🔍 Using first available hub: ${targetHub.id}`);
@@ -11711,9 +11744,9 @@ console.log('🔍 Template debug - current_user.has_completed_onboarding:', {{ c
                 return;
             }
             
-            // Start the session
+            // Start the session (will pull cards from all hubs)
             const sessionUrl = `/spaced_repetition/review?hub_id=${targetHub.id}&max_cards=20`;
-            console.log(`🚀 Starting session with hub: ${targetHub.id}`);
+            console.log(`🚀 Starting session with hub: ${targetHub.id} (${totalDueCards} total due cards across all hubs)`);
             window.location.href = sessionUrl;
         }
         
